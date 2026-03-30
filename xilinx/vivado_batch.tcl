@@ -279,7 +279,10 @@ if {$tcl_platform(os) eq "Linux"} {
         puts "INFO: Found Vitis at $vitis_path."
 
         # set the XSCT path
-        set xsct_exe [file join $vitis_path bin xsct]
+        set xsct_exe [file join $vitis_path bin xsct.bat]
+        if {![file exists $xsct_exe]} {
+            set xsct_exe [file join $vitis_path bin xsct]
+        }
  
         # run the XSCT script
         puts "INFO: Generating Device Tree files."

@@ -5,6 +5,8 @@ if [ "${_DAPHNE_WSL_WINDOWS_XILINX_SH-}" = "1" ]; then
 fi
 _DAPHNE_WSL_WINDOWS_XILINX_SH=1
 
+ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
+
 daphne_to_windows_path() {
   input_path="$1"
   if command -v wslpath >/dev/null 2>&1; then
@@ -32,35 +34,16 @@ daphne_to_windows_path() {
 daphne_write_windows_wrapper() {
   target="$1"
   tool_path="$2"
+  helper_script="$ROOT_DIR/scripts/wsl/run_windows_batch_tool.sh"
+  if [ ! -f "$helper_script" ]; then
+    echo "ERROR: Windows batch helper not found at $helper_script" >&2
+    return 2 2>/dev/null || exit 2
+  fi
   cat >"$target" <<EOF
 #!/bin/sh
 set -eu
 
-tool_path_wsl='$tool_path'
-tool_path_win=\$(wslpath -w "\$tool_path_wsl")
-while [ "\$#" -gt 0 ]; do
-  arg="\$1"
-  shift
-  converted_arg="\$arg"
-  if [ -e "\$arg" ] || [ -d "\$arg" ]; then
-    if resolved_arg=\$(realpath "\$arg" 2>/dev/null); then
-      if converted_candidate=\$(wslpath -w "\$resolved_arg" 2>/dev/null); then
-        converted_arg="\$converted_candidate"
-      fi
-    fi
-  else
-    case "\$arg" in
-      /*)
-        if converted_candidate=\$(wslpath -w "\$arg" 2>/dev/null); then
-          converted_arg="\$converted_candidate"
-        fi
-        ;;
-    esac
-  fi
-  set -- "\$@" "\$converted_arg"
-done
-
-exec cmd.exe /c "\$tool_path_win" "\$@"
+exec '$helper_script' '$tool_path' "\$@"
 EOF
   chmod +x "$target"
 }

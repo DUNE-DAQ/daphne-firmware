@@ -37,6 +37,8 @@ That script:
 
 - creates WSL-local `vivado` and `xsct` wrappers that point at the Windows
   `.bat` launchers;
+- launches those tools through `cmd.exe /c call ...` while converting any Tcl
+  or artifact paths to absolute Windows or UNC paths first;
 - exports `XILINX_VITIS` in Windows path form so the Tcl flow can find XSCT
   inside the Windows Vivado process;
 - verifies that Vivado is callable from WSL and reports whether XSCT is also
@@ -91,17 +93,19 @@ The WSL wrapper also records:
 - `build/wsl-vivado/<timestamp>/build.log`
 - `build/wsl-vivado/<timestamp>/artifacts.txt`
 
-## Known issues on the current WSL host
+## Current status on the WSL host
 
-The helper wrappers are not yet fully qualified on the current WSL host.
-Observed behavior includes:
+The repo wrappers no longer rely on the Windows current working directory being
+mapped into the WSL repo. Instead they call the Windows `.bat` launchers
+directly and pass absolute converted Tcl and artifact paths. This is a better
+fit for the observed working path, where Windows Vivado can already source
+`\\wsl.localhost\...` Tcl files directly.
 
-- stale `XILINX_VITIS` shell state masking the correct computed value;
-- hangs after the helper prints the wrapper directory line;
-- Windows `cmd.exe` falling back from the WSL UNC current directory to
-  `C:\Windows`, which breaks relative Tcl `source` paths.
+If you still see stale local state, re-run:
 
-When that happens, use the manual fallback documented in
-`docs/wsl-agent-summary.md`: invoke `vivado.bat` via `cmd.exe /c` together with
-`pushd \\wsl.localhost\...` so the WSL path is mapped to a temporary drive
-letter before Vivado starts.
+```bash
+./scripts/wsl/check_windows_xilinx.sh
+```
+
+If that still fails on a specific host, the manual `pushd \\wsl.localhost\...`
+commands in `docs/wsl-agent-summary.md` remain the reference fallback.
