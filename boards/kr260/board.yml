@@ -1,0 +1,10 @@
+name: kr260
+supported: false
+inherits: k26c
+missing:
+  - Carrier-specific pin map for the DAPHNE mezzanine interface
+  - Validated Vivado `BOARD_PART`
+  - Device-tree overlay validation on the KR260 carrier
+  - End-to-end deployment test with `daphne-server`
+notes:
+  - The repo now has a board abstraction point, but the KR260 port is intentionally left as a scaffold until hardware mapping data is available.

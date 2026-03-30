@@ -1,0 +1,33 @@
+CAPI=2:
+
+name: dune-daq:daphne:thresholds-test:0.1.0
+description: AXI-Lite smoke test for the DAPHNE self-trigger threshold register block
+
+filesets:
+  rtl:
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd
+      - ../../ip_repo/daphne3_ip/rtl/selftrig/thresholds.vhd
+    file_type: vhdlSource
+  tb:
+    files:
+      - ../../tests/logic/thresholds_axi_smoke_tb.vhd
+    file_type: vhdlSource
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl
+  sim:
+    <<: *default_target
+    default_tool: ghdl
+    filesets_append:
+      - tb
+    toplevel: thresholds_axi_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us
