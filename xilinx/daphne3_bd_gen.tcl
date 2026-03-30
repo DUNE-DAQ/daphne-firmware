@@ -3,7 +3,9 @@
 # <daniel.avila@eia.edu.co - daniel.avila.gomez@cern.ch>
 
 # general setup stuff
-set blockDesignDir ../bd
+set script_dir [file dirname [file normalize [info script]]]
+set repo_root [file normalize [file join $script_dir ".."]]
+set blockDesignDir [file join $repo_root "bd"]
 
 # check if the block design folder already exists
 if {[file exists $blockDesignDir]} {
@@ -16,7 +18,7 @@ if {[file exists $blockDesignDir]} {
 file mkdir $blockDesignDir 
 
 # configure the current in-memory project
-source -notrace ./daphne_board_env.tcl
+source -notrace [file join $script_dir "daphne_board_env.tcl"]
 set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
 set daphne_pfm_name [daphne_get_env_or_default DAPHNE_PFM_NAME "xilinx:k26c:name:0.0"]
@@ -28,11 +30,11 @@ puts "INFO: Building block design for part <$daphne_fpga_part> board_part <$daph
 
 # make sure to add the new DAPHNE3 IP before generating the Block Design
 # this helps to avoid errors or not finding the IP
-source -notrace daphne3_ip_gen.tcl
+source -notrace [file join $script_dir "daphne3_ip_gen.tcl"]
 
 # update IP catalog
-set_property IP_REPO_PATHS ../ip_repo [current_project]
-update_ip_catalog 
+set_property IP_REPO_PATHS [file join $repo_root "ip_repo"] [current_project]
+update_ip_catalog
 
 # set design name here
 variable designName 
