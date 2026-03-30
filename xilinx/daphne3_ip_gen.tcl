@@ -21,6 +21,8 @@ puts "INFO: Packaging DAPHNE3 IP for part <$daphne_fpga_part> board_part <$daphn
 set bramFolDir [file join $daphne_ip_root "src" "dune.daq_user_hermes_daphne_1.0" "src" "axi4_lite_bram_ctrl_0"]
 set ethFolDir [file join $daphne_ip_root "src" "dune.daq_user_hermes_daphne_1.0" "src" "xxv_ethernet_0"]
 set ethXCIDir [file join $ethFolDir "xxv_ethernet_0.xci"]
+set hermesComponentXml [file join $daphne_ip_root "src" "dune.daq_user_hermes_daphne_1.0" "component.xml"]
+set hermesXguiDir [file join $daphne_ip_root "src" "dune.daq_user_hermes_daphne_1.0" "xgui"]
 set XGUIFolDir [file join $daphne_ip_root "xgui"]
 set xmlFileDir [file join $daphne_ip_root "component.xml"]
 
@@ -50,6 +52,19 @@ if {[file exists $XGUIFolDir]} {
     puts "INFO: XGUI File already exists at $XGUIFolDir."
     puts "INFO: Deleting older version of XGUI file..."
     file delete -force $XGUIFolDir
+}
+
+# delete stale nested hermes IP-XACT metadata so Vivado treats vendored sources as RTL
+if {[file exists $hermesXguiDir]} {
+    puts "INFO: Legacy Hermes XGUI already exists at $hermesXguiDir."
+    puts "INFO: Deleting older version of legacy Hermes XGUI..."
+    file delete -force $hermesXguiDir
+}
+
+if {[file exists $hermesComponentXml]} {
+    puts "INFO: Legacy Hermes component.xml already exists at $hermesComponentXml."
+    puts "INFO: Deleting older version of legacy Hermes component.xml..."
+    file delete -force $hermesComponentXml
 }
 
 # delete the XML file
@@ -393,8 +408,10 @@ foreach daqVhdlType $vhdlDAQFiles {
 
 # 10Gig Sender SystemVerilog files
 foreach daqSystemVerilogType $systemVerilogDAQFiles {
-    ipx::add_file -name $daqSystemVerilogType -file_group $lang_synth
-    ipx::add_file -name $daqSystemVerilogType -file_group $lang_sim
+    set fileObjSynth [ipx::add_file -name $daqSystemVerilogType -file_group $lang_synth]
+    set fileObjSim [ipx::add_file -name $daqSystemVerilogType -file_group $lang_sim]
+    set_property TYPE {systemVerilogSource} $fileObjSynth
+    set_property TYPE {systemVerilogSource} $fileObjSim
 }
 
 # 10Gig Sender Verilog files
