@@ -262,21 +262,22 @@ if {$tcl_platform(os) eq "Linux"} {
     }
 } elseif {$tcl_platform(os) eq "Windows NT"} {
     puts "INFO: Running current TCL script on $tcl_platform(os)."
- 
+
     # since we are running on Windows, we cannot generate everything up to the overlay folder
     # we would need to do everything on a separate script using WSL commands
     puts "WARNING: Device Tree Overlay can not be automatically produced on Windows."
     puts "WARNING: Please make sure to use the .xsa File to manually generate the necessary outputs."
- 
+
     # check if vitis is on PATH
     if {![info exists ::env(XILINX_VITIS)]} {
-        # tell the user that vitis is not on PATH and must source its environment first
-        error "ERROR: XILINX_VITIS is not set. Please source settings64.bat/.sh first."
+        puts "WARNING: XILINX_VITIS is not set. Skipping Windows device-tree helper step."
+        puts "INFO: Hardware build completed with outputs in $outputDir."
+        exit
     } else {
         # as vitis is on PATH, we can generate .dts .dtsi files
         set vitis_path $::env(XILINX_VITIS)
         puts "INFO: Found Vitis at $vitis_path."
- 
+
         # set the XSCT path
         set xsct_exe [file join $vitis_path bin xsct]
  
