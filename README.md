@@ -82,7 +82,15 @@ repo-local runbook and wrapper:
 ./scripts/remote/run_remote_vivado_chain.sh
 ```
 
-See `docs/remote-vivado.md` and `docs/agent-handoff.md`.
+If you are in WSL2 and Vivado/Vitis 2024.1 are installed on Windows, use:
+
+```bash
+./scripts/wsl/check_windows_xilinx.sh
+./scripts/wsl/run_wsl_vivado_chain.sh
+```
+
+See `docs/remote-vivado.md`, `docs/wsl-windows-vivado.md`, and
+`docs/agent-handoff.md`.
 
 Optional overrides:
 
