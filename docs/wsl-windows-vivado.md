@@ -29,7 +29,7 @@ export DAPHNE_VITIS_VERSION=2024.1
 Run:
 
 ```bash
-cd ~/repo/daphne-firmware
+cd ~/work/daphne-firmware
 ./scripts/wsl/check_windows_xilinx.sh
 ```
 
@@ -47,7 +47,7 @@ That script:
 Run:
 
 ```bash
-cd ~/repo/daphne-firmware
+cd ~/work/daphne-firmware
 export DAPHNE_BOARD=k26c
 export DAPHNE_ETH_MODE=create_ip
 ./scripts/wsl/run_wsl_vivado_chain.sh
@@ -90,3 +90,18 @@ The WSL wrapper also records:
 - `build/wsl-vivado/<timestamp>/preflight.log`
 - `build/wsl-vivado/<timestamp>/build.log`
 - `build/wsl-vivado/<timestamp>/artifacts.txt`
+
+## Known issues on the current WSL host
+
+The helper wrappers are not yet fully qualified on the current WSL host.
+Observed behavior includes:
+
+- stale `XILINX_VITIS` shell state masking the correct computed value;
+- hangs after the helper prints the wrapper directory line;
+- Windows `cmd.exe` falling back from the WSL UNC current directory to
+  `C:\Windows`, which breaks relative Tcl `source` paths.
+
+When that happens, use the manual fallback documented in
+`docs/wsl-agent-summary.md`: invoke `vivado.bat` via `cmd.exe /c` together with
+`pushd \\wsl.localhost\...` so the WSL path is mapped to a temporary drive
+letter before Vivado starts.

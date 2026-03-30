@@ -4,6 +4,7 @@
 
 - Branch: `codex/fusesoc-modular-migration`
 - Baseline migration commit: `d1b1ce3`
+- Latest WSL handoff should also consult `docs/wsl-agent-summary.md`
 
 ## What is already done
 
@@ -67,6 +68,17 @@ export XILINX_SETTINGS_SH=/path/to/Vivado/2024.1/settings64.sh
 export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2024.1/settings64.sh
 ```
 
+## WSL-specific status
+
+For the WSL2 host that launches Windows-installed Vivado/Vitis:
+
+- direct `cmd.exe /c ...vivado.bat -version` works;
+- direct `cmd.exe /c ...xsct.bat -help` works;
+- the helper wrappers under `scripts/wsl/` are not yet the trusted execution
+  path on that host;
+- use `docs/wsl-agent-summary.md` for the exact manual preflight/build fallback
+  based on `cmd.exe /c "pushd \\wsl.localhost\... && ... && popd"`.
+
 ## Known repo-level caveats
 
 - FuseSoC warns that several `.core` files are not colocated with the source
@@ -91,3 +103,5 @@ The relevant docs are:
 - `docs/server-contract.md`
 - `docs/gap-analysis.md`
 - `petalinux/README.md`
+- `docs/wsl-windows-vivado.md`
+- `docs/wsl-agent-summary.md`
