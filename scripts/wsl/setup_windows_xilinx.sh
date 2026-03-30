@@ -38,22 +38,29 @@ set -eu
 
 tool_path_wsl='$tool_path'
 tool_path_win=\$(wslpath -w "\$tool_path_wsl")
-cmdline="\"\$tool_path_win\""
-
-for arg in "\$@"; do
+while [ "\$#" -gt 0 ]; do
+  arg="\$1"
+  shift
   converted_arg="\$arg"
-  case "\$arg" in
-    /*)
-      if converted_candidate=\$(wslpath -w "\$arg" 2>/dev/null); then
+  if [ -e "\$arg" ] || [ -d "\$arg" ]; then
+    if resolved_arg=\$(realpath "\$arg" 2>/dev/null); then
+      if converted_candidate=\$(wslpath -w "\$resolved_arg" 2>/dev/null); then
         converted_arg="\$converted_candidate"
       fi
-      ;;
-  esac
-  escaped_arg=\$(printf '%s' "\$converted_arg" | sed 's/"/\\"/g')
-  cmdline="\$cmdline \"\$escaped_arg\""
+    fi
+  else
+    case "\$arg" in
+      /*)
+        if converted_candidate=\$(wslpath -w "\$arg" 2>/dev/null); then
+          converted_arg="\$converted_candidate"
+        fi
+        ;;
+    esac
+  fi
+  set -- "\$@" "\$converted_arg"
 done
 
-exec cmd.exe /c "\$cmdline"
+exec cmd.exe /c "\$tool_path_win" "\$@"
 EOF
   chmod +x "$target"
 }
