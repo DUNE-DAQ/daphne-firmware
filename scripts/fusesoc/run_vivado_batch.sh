@@ -40,6 +40,12 @@ export DAPHNE_FPGA_PART
 export DAPHNE_BOARD_PART
 export DAPHNE_PFM_NAME
 
+if [ -z "${DAPHNE_GIT_SHA-}" ] && command -v git >/dev/null 2>&1; then
+  if resolved_git_sha=$(git -C "$ROOT_DIR" rev-parse --short=7 HEAD 2>/dev/null); then
+    export DAPHNE_GIT_SHA="$resolved_git_sha"
+  fi
+fi
+
 cd "$ROOT_DIR/xilinx"
 
 shim_tcl=".daphne-vivado-shim.$$.tcl"

@@ -31,10 +31,11 @@ if ! command -v xsct >/dev/null 2>&1; then
 fi
 
 branch_name="$(git -C "$ROOT_DIR" rev-parse --abbrev-ref HEAD)"
-commit_sha="$(git -C "$ROOT_DIR" rev-parse --short HEAD)"
+commit_sha="$(git -C "$ROOT_DIR" rev-parse --short=7 HEAD)"
 
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_ETH_MODE="$ETH_MODE"
+export DAPHNE_GIT_SHA="${DAPHNE_GIT_SHA:-$commit_sha}"
 
 {
   echo "run_id=$RUN_ID"
