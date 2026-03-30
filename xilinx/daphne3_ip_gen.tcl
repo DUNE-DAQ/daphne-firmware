@@ -9,11 +9,12 @@ set daphne_ip_root [file join $repo_root "ip_repo" "daphne3_ip"]
 source -notrace [file join $script_dir "daphne_board_env.tcl"]
 set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
+set daphne_eth_mode [daphne_get_env_or_default DAPHNE_ETH_MODE "vendored_hdl"]
 set_part $daphne_fpga_part
 set_property BOARD_PART $daphne_board_part [current_project]
 set_property TARGET_LANGUAGE VHDL [current_project]
 set_property DEFAULT_LIB work [current_project]
-puts "INFO: Packaging DAPHNE3 IP for part <$daphne_fpga_part> board_part <$daphne_board_part>."
+puts "INFO: Packaging DAPHNE3 IP for part <$daphne_fpga_part> board_part <$daphne_board_part> eth_mode <$daphne_eth_mode>."
 
 # list the directories that must be deleted at the start of the process when generating a new iteration of the IP
 # this is purposely done so that older versions of IPs or files are updated to avoid later conflict or invalid configurations
@@ -34,8 +35,8 @@ if {[file exists $bramFolDir]} {
     file delete -force $bramFolDir
 } 
 
-# delete the XXV Ethernet IP files
-if {[file exists $ethFolDir]} {
+# delete the XXV Ethernet IP files only in create_ip mode
+if {$daphne_eth_mode eq "create_ip" && [file exists $ethFolDir]} {
     if {[file exists $ethXCIDir]} {
         puts "INFO: Reusing existing IP 'XXV Ethernet' from $ethXCIDir."
     } else {
@@ -196,9 +197,7 @@ set_property -dict [list \
 set_property GENERATE_SYNTH_CHECKPOINT FALSE $axi4LitBramIP
 
 # ethernet IP
-if {[file exists $ethXCIDir]} {
-    puts "INFO: Skipping XXV Ethernet IP regeneration and using seeded XCI at $ethXCIDir."
-} else {
+if {$daphne_eth_mode eq "create_ip"} {
     set xxvEthernetIP [create_ip -vlnv $xxv_ethernet_vlnv -module_name xxv_ethernet_0 -dir $ethernetRepoDir]
     # configure IP properties
     set_property -dict [list \
@@ -209,6 +208,8 @@ if {[file exists $ethXCIDir]} {
         CONFIG.INCLUDE_SHARED_LOGIC {0} \
     ] [get_ips xxv_ethernet_0]
     set_property GENERATE_SYNTH_CHECKPOINT FALSE $xxvEthernetIP
+} else {
+    puts "INFO: Using vendored HDL for XXV Ethernet; create_ip is disabled."
 }
 
 # build DAPHNE IP
@@ -259,10 +260,10 @@ set xpgui_files [ipx::add_file_group xilinx_xpgui $daphne]
 
 # list IP VLNVs
 set ipVlnv [list $axi_bram_ctrl_vlnv]
-if {![file exists $ethXCIDir]} {
+if {$daphne_eth_mode eq "create_ip"} {
     lappend ipVlnv $xxv_ethernet_vlnv
 } else {
-    puts "INFO: XXV Ethernet subcore will be treated as a static XCI, not a regeneratable subcore."
+    puts "INFO: XXV Ethernet will be packaged from vendored HDL, not as a regeneratable subcore."
 }
 
 # Sub IP file groups
@@ -416,8 +417,10 @@ foreach daqSystemVerilogType $systemVerilogDAQFiles {
 
 # 10Gig Sender Verilog files
 foreach daqVerilogType $verilogDAQFiles {
-    ipx::add_file -name $daqVerilogType -file_group $lang_synth
-    ipx::add_file -name $daqVerilogType -file_group $lang_sim
+    set fileObjSynth [ipx::add_file -name $daqVerilogType -file_group $lang_synth]
+    set fileObjSim [ipx::add_file -name $daqVerilogType -file_group $lang_sim]
+    set_property TYPE {verilogSource} $fileObjSynth
+    set_property TYPE {verilogSource} $fileObjSim
 }
 
 # # VHDL Testbench files (Unused files, not needed for IP packaging)
