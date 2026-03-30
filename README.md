@@ -125,6 +125,8 @@ logic, and the integrated Hermes source tree. Details are recorded in
 - `cores/features/*.core` split the design into reusable feature blocks:
   configuration, frontend control, self-trigger logic, timing, spy-buffer,
   AFE/DAC interfaces, and Hermes transport.
+- `rtl/isolated/subsystems/frontend/frontend_boundary.vhd` starts capturing the
+  frontend alignment contract separately from downstream trigger semantics.
 - `cores/features/daphne3-modular.core` reassembles the top-level RTL from the
   modular blocks without changing the currently qualified Vivado flow.
 - `cores/generated/daphne3-ip.core` is generated from the source-selection rules

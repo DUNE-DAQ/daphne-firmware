@@ -15,3 +15,11 @@ Each module contract should capture:
 
 This directory is intentionally documentation-first. Harnesses and assertions
 should follow only after the contract is stable.
+
+Current contract set:
+
+- `control-plane`
+- `frontend-boundary`
+- `timing-subsystem`
+- `trigger-pipeline`
+- `hermes-boundary`

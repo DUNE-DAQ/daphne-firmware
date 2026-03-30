@@ -44,7 +44,8 @@ subsystem boundaries with neutral names.
     |         v                      v                     |       |
     |  +-------------+     +------------------+     +-----+----+  |
     |  | Frontend    |---->| Trigger pipeline |---->| Frame /  |  |
-    |  | alignment   |     | filters + desc   |     | mux path |  |
+    |  | boundary    |     | filters + desc   |     | mux path |  |
+    |  | 16b / LSB   |     | 14b semantics    |     |          |  |
     |  +-------------+     +------------------+     +----------+  |
     |                                                             |
     +-------------------------------------------------------------+
@@ -59,6 +60,8 @@ rtl/isolated/
   subsystems/
     control/
       control_plane_boundary.vhd
+    frontend/
+      frontend_boundary.vhd
     hermes/
       hermes_boundary.vhd
     timing/
@@ -71,6 +74,8 @@ rtl/isolated/
 
 - `control-plane` contains PS-visible register semantics, decode rules, and
   safe access behavior.
+- `frontend-boundary` captures the alignment/configuration preconditions that
+  must be satisfied before AFE data are considered valid for downstream logic.
 - `timing-subsystem` isolates clock, reset, endpoint control, and status
   propagation.
 - `trigger-pipeline` becomes the proof-oriented home for thresholding,
