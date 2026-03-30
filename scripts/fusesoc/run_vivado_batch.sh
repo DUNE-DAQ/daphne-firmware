@@ -59,6 +59,7 @@ append_env_tcl DAPHNE_PLACE_DIRECTIVE
 append_env_tcl DAPHNE_POST_PLACE_PHYSOPT_DIRECTIVE
 append_env_tcl DAPHNE_ROUTE_DIRECTIVE
 append_env_tcl DAPHNE_POST_ROUTE_PHYSOPT_DIRECTIVE
-printf 'source -notrace [file join [pwd] "vivado_batch.tcl"]\n' >>"$shim_tcl"
+printf 'set script_dir [file dirname [file normalize [info script]]]\n' >>"$shim_tcl"
+printf 'source -notrace [file join $script_dir "vivado_batch.tcl"]\n' >>"$shim_tcl"
 
 exec vivado -mode batch -source "$shim_tcl"
