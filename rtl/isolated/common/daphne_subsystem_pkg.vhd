@@ -36,6 +36,19 @@ package daphne_subsystem_pkg is
     timestamp_valid : std_logic;
   end record;
 
+  type analog_control_t is record
+    afe_resetn       : std_logic;
+    dac_resetn       : std_logic;
+    afe_config_valid : std_logic;
+    dac_config_valid : std_logic;
+  end record;
+
+  type analog_status_t is record
+    config_ready : std_logic;
+    afe_ready    : std_logic;
+    dac_ready    : std_logic;
+  end record;
+
   type trigger_descriptor_t is record
     valid      : std_logic;
     channel_id : std_logic_vector(7 downto 0);
@@ -78,6 +91,19 @@ package daphne_subsystem_pkg is
     endpoint_ready  => '0',
     endpoint_state  => (others => '0'),
     timestamp_valid => '0'
+  );
+
+  constant ANALOG_CONTROL_NULL : analog_control_t := (
+    afe_resetn       => '0',
+    dac_resetn       => '0',
+    afe_config_valid => '0',
+    dac_config_valid => '0'
+  );
+
+  constant ANALOG_STATUS_NULL : analog_status_t := (
+    config_ready => '0',
+    afe_ready    => '0',
+    dac_ready    => '0'
   );
 
   constant TRIGGER_DESCRIPTOR_NULL : trigger_descriptor_t := (

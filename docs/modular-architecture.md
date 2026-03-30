@@ -22,6 +22,8 @@ legacy generated manifest protects the current K26C delivery path from churn.
 - `config-control`: PL-side board-control register bank and fan monitor logic.
 - `control-plane`: additive wrapper for the existing PS-visible control/status
   ABI.
+- `analog-control`: additive wrapper for the AFE/DAC configuration readiness
+  boundary.
 - `frontend-control`: frontend alignment/control path and AXI-Lite control
   block.
 - `frontend-boundary`: additive wrapper that captures the 16-bit alignment and
