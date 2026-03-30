@@ -75,6 +75,15 @@ export DAPHNE_BOARD=k26c
 ./scripts/fusesoc/run_vivado_batch.sh
 ```
 
+If Vivado runs on a remote server instead of the local workstation, use the
+repo-local runbook and wrapper:
+
+```bash
+./scripts/remote/run_remote_vivado_chain.sh
+```
+
+See `docs/remote-vivado.md` and `docs/agent-handoff.md`.
+
 Optional overrides:
 
 ```bash

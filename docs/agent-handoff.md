@@ -1,0 +1,93 @@
+# Agent Handoff
+
+## Current branch
+
+- Branch: `codex/fusesoc-modular-migration`
+- Baseline migration commit: `d1b1ce3`
+
+## What is already done
+
+- Added reusable FuseSoC cores for:
+  - common package definitions
+  - config/control
+  - frontend control
+  - self-trigger
+  - timing endpoint
+  - spy buffer
+  - AFE and DAC interfaces
+  - Hermes transport
+  - modular top-level aggregation
+- Preserved the current generated K26C Vivado path.
+- Fixed the Vivado Tcl path for the AXI Quad SPI dtbo patch and forwarded extra
+  shim environment variables used by remote builds.
+- Added smoke tests for:
+  - `config-control`
+  - `selftrigger`
+  - `frontend-control`
+- Added formal scaffolds for:
+  - `fe_axi`
+  - `thresholds`
+
+## What was verified locally
+
+The following command passes on a non-Vivado machine:
+
+```bash
+./scripts/fusesoc/run_logic_test.sh
+```
+
+This verifies the GHDL-backed smoke targets for:
+
+- `dune-daq:daphne:config-control:0.1.0`
+- `dune-daq:daphne:selftrigger:0.1.0`
+- `dune-daq:daphne:frontend-control:0.1.0`
+
+## What is not verified locally
+
+- Vivado preflight
+- K26C synthesis/implementation
+- `.bit` / `.xsa` / `.dtbo` production
+- Petalinux packaging
+- `daphne-server` deployment on target
+- formal execution, because `sby` is not installed on the local workstation
+
+## Immediate next step on a remote Vivado host
+
+Use the runbook in `docs/remote-vivado.md` and run:
+
+```bash
+export DAPHNE_BOARD=k26c
+./scripts/remote/run_remote_vivado_chain.sh
+```
+
+If the Xilinx environment is not already sourced:
+
+```bash
+export XILINX_SETTINGS_SH=/path/to/Vivado/2024.1/settings64.sh
+export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2024.1/settings64.sh
+```
+
+## Known repo-level caveats
+
+- FuseSoC warns that several `.core` files are not colocated with the source
+  directories they describe. This is not blocking today, but it should be
+  normalized later.
+- The modular graph exists, but the qualified implementation path still uses
+  the generated compatibility manifest.
+- MAC/IP defaults are still anchored in imported PL-era defaults and are not
+  yet migrated to a board/software-owned device-tree layer.
+
+## Downstream deploy gap
+
+The repo is still missing the full deployable chain:
+
+- Petalinux recipe/meta-layer
+- boot asset assembly
+- automatic firmware-to-rootfs handoff
+- integrated `daphne-server` install/start validation
+
+The relevant docs are:
+
+- `docs/server-contract.md`
+- `docs/gap-analysis.md`
+- `petalinux/README.md`
