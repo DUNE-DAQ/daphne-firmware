@@ -9,6 +9,7 @@ filesets:
   rtl_boundaries:
     depend:
       - dune-daq:daphne:control-plane:0.1.0
+      - dune-daq:daphne:analog-control:0.1.0
       - dune-daq:daphne:frontend-boundary:0.1.0
       - dune-daq:daphne:hermes-boundary:0.1.0
       - dune-daq:daphne:timing-subsystem:0.1.0

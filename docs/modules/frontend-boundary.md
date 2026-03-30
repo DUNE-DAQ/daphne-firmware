@@ -25,6 +25,8 @@ become first-class contract items:
 - The serialized word order must be `LSb first`.
 - IDELAY tap values are only valid to load while `idelay_en_vtc = 0`.
 - Alignment should not be considered valid until `idelayctrl_ready = 1`.
+- Alignment must also wait for the analog-control and timing-subsystem
+  readiness conditions; the frontend boundary does not own those prerequisites.
 - Bitslip calibration is targeting the frontend training pattern `0x00FF` on
   the 16-bit FCLK word.
 
@@ -58,5 +60,5 @@ assumption: `16-bit`, `LSb-first`.
 
 ## Isolation objective
 
-Make control-plane preconditions explicit before any trigger or downstream
-logic relies on aligned AFE words.
+Make control-plane, analog-control, and timing preconditions explicit before
+any trigger or downstream logic relies on aligned AFE words.

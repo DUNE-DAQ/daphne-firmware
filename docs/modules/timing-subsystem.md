@@ -36,6 +36,10 @@ contract needs to say when timing-derived outputs are actually trustworthy.
 In other words, downstream logic should not treat "received clock present" as
 the same thing as "timing subsystem ready".
 
+The frontend alignment path depends on this distinction. Alignment should only
+start once the selected timing path is stable enough to trust the frontend
+clocks derived from it.
+
 ## Readiness model
 
 When endpoint timing is selected, the safe conceptual readiness condition is:
@@ -62,6 +66,9 @@ software-visible concept for:
 - timestamp valid
 
 without changing the existing register ABI.
+
+This readiness concept is also the timing-side prerequisite for
+`frontend-boundary` to assert alignment validity.
 
 ## Verification posture
 

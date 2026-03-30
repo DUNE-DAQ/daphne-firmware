@@ -18,8 +18,10 @@ should follow only after the contract is stable.
 
 Current contract set:
 
+- `analog-control`
 - `control-plane`
 - `frontend-boundary`
 - `timing-subsystem`
 - `trigger-pipeline`
+- `spy-buffer`
 - `hermes-boundary`

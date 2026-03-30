@@ -99,8 +99,9 @@ See `docs/remote-vivado.md`, `docs/wsl-windows-vivado.md`, and
 `docs/agent-handoff.md`.
 
 The current isolation/formal-prep structure is described in
-`docs/rtl-isolation-plan.md`, and the current qualified build checkpoint is
-recorded in `docs/build-baseline.md`.
+`docs/rtl-isolation-plan.md`, the dependency transition is tracked in
+`docs/dependency-transition-plan.md`, and the current qualified build
+checkpoint is recorded in `docs/build-baseline.md`.
 
 Optional overrides:
 
@@ -129,6 +130,8 @@ logic, and the integrated Hermes source tree. Details are recorded in
   frontend alignment contract separately from downstream trigger semantics.
 - `cores/common/daphne-subsystem-types.core` carries the neutral typed records
   used by the isolation/formal-prep wrapper layer.
+- `cores/features/analog-control.core` captures the AFE/DAC configuration
+  readiness boundary that must settle before frontend alignment.
 - `cores/features/control-plane.core`,
   `cores/features/frontend-boundary.core`,
   `cores/features/timing-subsystem.core`,

@@ -35,17 +35,17 @@ subsystem boundaries with neutral names.
     +-------------------------------------------------------------+
     |                         DAPHNE Top                          |
     |                                                             |
-    |  +-------------+    +------------------+   +-------------+  |
-    |  | Timing      |<-->| Control plane    |<->| Hermes      |  |
-    |  | subsystem   |    | regs / decode /  |   | boundary    |  |
-    |  | ext clk in  |    | safe responses   |   | 10G stable  |  |
-    |  +------+------+    +---------+--------+   +------+------+  |
-    |         |                      |                     ^       |
-    |         v                      v                     |       |
+    |  +-------------+   +------------------+   +-------------+  |
+    |  | Control     |-->| Analog control   |-->| Timing      |  |
+    |  | plane       |   | AFE + DAC cfg    |   | subsystem   |  |
+    |  | regs / safe |   | cfg_ready        |   | ext clk in  |  |
+    |  +------+------+   +---------+--------+   +------+------+  |
+    |         |                     |                     |       |
+    |         v                     v                     v       |
     |  +-------------+     +------------------+     +-----+----+  |
-    |  | Frontend    |---->| Trigger pipeline |---->| Frame /  |  |
-    |  | boundary    |     | filters + desc   |     | mux path |  |
-    |  | 16b / LSB   |     | 14b semantics    |     |          |  |
+    |  | Frontend    |---->| Trigger pipeline |---->| Hermes   |  |
+    |  | boundary    |     | filters + desc   |     | boundary |  |
+    |  | 16b / LSB   |     | 14b semantics    |     | 10G hand |  |
     |  +-------------+     +------------------+     +----------+  |
     |                                                             |
     +-------------------------------------------------------------+
@@ -57,6 +57,7 @@ subsystem boundaries with neutral names.
 cores/common/
   daphne-subsystem-types.core
 cores/features/
+  analog-control.core
   control-plane.core
   frontend-boundary.core
   hermes-boundary.core
@@ -83,12 +84,15 @@ rtl/isolated/
 
 - `control-plane` contains PS-visible register semantics, decode rules, and
   safe access behavior.
+- `analog-control` contains the explicit AFE/DAC configuration readiness
+  boundary that must settle before alignment starts.
 - `frontend-boundary` captures the alignment/configuration preconditions that
   must be satisfied before AFE data are considered valid for downstream logic.
+  It depends on both analog configuration and timing readiness.
 - `timing-subsystem` isolates clock, reset, endpoint control, and status
-  propagation.
+  propagation, and must be ready before alignment starts.
 - `trigger-pipeline` becomes the proof-oriented home for thresholding,
-  trigger decisions, and descriptor handoff.
+  trigger decisions, and descriptor handoff after alignment is valid.
 - `hermes-boundary` isolates the contract between acquisition/formatting logic
   and the unchanged transport subsystem.
 
