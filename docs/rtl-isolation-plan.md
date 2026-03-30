@@ -42,11 +42,19 @@ subsystem boundaries with neutral names.
     |  +------+------+   +---------+--------+   +------+------+  |
     |         |                     |                     |       |
     |         v                     v                     v       |
-    |  +-------------+     +------------------+     +-----+----+  |
+    |  +-------------+     +------------------+     +----------+  |
     |  | Frontend    |---->| Trigger pipeline |---->| Hermes   |  |
     |  | boundary    |     | filters + desc   |     | boundary |  |
     |  | 16b / LSB   |     | 14b semantics    |     | 10G hand |  |
-    |  +-------------+     +------------------+     +----------+  |
+    |  +------+------+     +---------+--------+     +----------+  |
+    |         |                      |                              |
+    |         +--------------------->|                              |
+    |                                v                              |
+    |                          +-----------+                        |
+    |                          | Spy       |                        |
+    |                          | boundary  |                        |
+    |                          | + memory  |                        |
+    |                          +-----------+                        |
     |                                                             |
     +-------------------------------------------------------------+
 ```
@@ -61,6 +69,7 @@ cores/features/
   control-plane.core
   frontend-boundary.core
   hermes-boundary.core
+  spy-buffer-boundary.core
   timing-subsystem.core
   trigger-pipeline.core
   daphne-modular.core
@@ -74,6 +83,8 @@ rtl/isolated/
       frontend_boundary.vhd
     hermes/
       hermes_boundary.vhd
+    spy/
+      spy_buffer_boundary.vhd
     timing/
       timing_subsystem_boundary.vhd
     trigger/
@@ -93,6 +104,8 @@ rtl/isolated/
   propagation, and must be ready before alignment starts.
 - `trigger-pipeline` becomes the proof-oriented home for thresholding,
   trigger decisions, and descriptor handoff after alignment is valid.
+- `spy-buffer-boundary` keeps capture gating explicit and separate from the
+  imported debug-memory implementation.
 - `hermes-boundary` isolates the contract between acquisition/formatting logic
   and the unchanged transport subsystem.
 

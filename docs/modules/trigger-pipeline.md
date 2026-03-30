@@ -33,6 +33,10 @@ The neutral enable rule for this module should be:
 
 - `trigger_enable = config_ready and timing_ready and alignment_ready`
 
+That readiness rule now has a neutral typed home in
+`acquisition_readiness_t`, so later proof work can target one boundary-facing
+contract instead of re-deriving the gating semantics per module.
+
 The downstream `14-bit` trigger semantics belong here, not in the frontend
 alignment contract.
 

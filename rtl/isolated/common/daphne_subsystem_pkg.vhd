@@ -49,6 +49,12 @@ package daphne_subsystem_pkg is
     dac_ready    : std_logic;
   end record;
 
+  type acquisition_readiness_t is record
+    config_ready    : std_logic;
+    timing_ready    : std_logic;
+    alignment_ready : std_logic;
+  end record;
+
   type trigger_descriptor_t is record
     valid      : std_logic;
     channel_id : std_logic_vector(7 downto 0);
@@ -104,6 +110,12 @@ package daphne_subsystem_pkg is
     config_ready => '0',
     afe_ready    => '0',
     dac_ready    => '0'
+  );
+
+  constant ACQUISITION_READINESS_NULL : acquisition_readiness_t := (
+    config_ready    => '0',
+    timing_ready    => '0',
+    alignment_ready => '0'
   );
 
   constant TRIGGER_DESCRIPTOR_NULL : trigger_descriptor_t := (

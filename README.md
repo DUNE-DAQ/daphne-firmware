@@ -134,6 +134,7 @@ logic, and the integrated Hermes source tree. Details are recorded in
   readiness boundary that must settle before frontend alignment.
 - `cores/features/control-plane.core`,
   `cores/features/frontend-boundary.core`,
+  `cores/features/spy-buffer-boundary.core`,
   `cores/features/timing-subsystem.core`,
   `cores/features/trigger-pipeline.core`, and
   `cores/features/hermes-boundary.core` expose the additive subsystem

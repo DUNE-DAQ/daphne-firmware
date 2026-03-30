@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:spy-buffer-boundary:0.1.0
+description: Neutral spy-buffer gating wrapper for capture readiness and observation boundaries
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/spy/spy_buffer_boundary.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
