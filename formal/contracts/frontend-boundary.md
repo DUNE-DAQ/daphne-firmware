@@ -10,6 +10,8 @@ samples are considered valid for downstream use.
 - The AFE is configured for `16-bit`, `LSb-first` transmission.
 - The frontend clock trio is frequency-locked and edge-aligned.
 - IDELAY programming occurs only while `idelay_en_vtc = 0`.
+- Software/frontend defaults must be checked against this requirement at the
+  register-writing level, not inferred only from boolean field names.
 
 ## Guarantees
 
