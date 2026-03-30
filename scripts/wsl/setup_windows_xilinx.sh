@@ -7,6 +7,12 @@ _DAPHNE_WSL_WINDOWS_XILINX_SH=1
 
 daphne_to_windows_path() {
   input_path="$1"
+  if command -v wslpath >/dev/null 2>&1; then
+    if converted_path=$(wslpath -w "$input_path" 2>/dev/null); then
+      printf '%s' "$converted_path"
+      return 0
+    fi
+  fi
   case "$input_path" in
     /mnt/[a-zA-Z]/*)
       drive_letter=$(printf '%s' "$input_path" | cut -d/ -f3 | tr '[:lower:]' '[:upper:]')
@@ -28,7 +34,26 @@ daphne_write_windows_wrapper() {
   tool_path="$2"
   cat >"$target" <<EOF
 #!/bin/sh
-exec "$tool_path" "\$@"
+set -eu
+
+tool_path_wsl='$tool_path'
+tool_path_win=\$(wslpath -w "\$tool_path_wsl")
+cmdline="\"\$tool_path_win\""
+
+for arg in "\$@"; do
+  converted_arg="\$arg"
+  case "\$arg" in
+    /*)
+      if converted_candidate=\$(wslpath -w "\$arg" 2>/dev/null); then
+        converted_arg="\$converted_candidate"
+      fi
+      ;;
+  esac
+  escaped_arg=\$(printf '%s' "\$converted_arg" | sed 's/"/\\"/g')
+  cmdline="\$cmdline \"\$escaped_arg\""
+done
+
+exec cmd.exe /c "\$cmdline"
 EOF
   chmod +x "$target"
 }
@@ -37,6 +62,7 @@ EOF
 : "${DAPHNE_VIVADO_VERSION:=2024.1}"
 : "${DAPHNE_VITIS_VERSION:=$DAPHNE_VIVADO_VERSION}"
 : "${DAPHNE_WSL_XILINX_WRAPPER_DIR:=$HOME/.cache/daphne-wsl-xilinx/bin}"
+: "${DAPHNE_REQUIRE_XSCT:=0}"
 
 DAPHNE_WSL_VIVADO_BAT="$DAPHNE_WINDOWS_XILINX_ROOT/Vivado/$DAPHNE_VIVADO_VERSION/bin/vivado.bat"
 DAPHNE_WSL_XSCT_BAT="$DAPHNE_WINDOWS_XILINX_ROOT/Vitis/$DAPHNE_VITIS_VERSION/bin/xsct.bat"
@@ -46,15 +72,16 @@ if [ ! -f "$DAPHNE_WSL_VIVADO_BAT" ]; then
   return 2 2>/dev/null || exit 2
 fi
 
-if [ ! -f "$DAPHNE_WSL_XSCT_BAT" ]; then
-  echo "ERROR: XSCT batch launcher not found at $DAPHNE_WSL_XSCT_BAT" >&2
-  return 2 2>/dev/null || exit 2
-fi
-
 mkdir -p "$DAPHNE_WSL_XILINX_WRAPPER_DIR"
 
 daphne_write_windows_wrapper "$DAPHNE_WSL_XILINX_WRAPPER_DIR/vivado" "$DAPHNE_WSL_VIVADO_BAT"
-daphne_write_windows_wrapper "$DAPHNE_WSL_XILINX_WRAPPER_DIR/xsct" "$DAPHNE_WSL_XSCT_BAT"
+
+if [ -f "$DAPHNE_WSL_XSCT_BAT" ]; then
+  daphne_write_windows_wrapper "$DAPHNE_WSL_XILINX_WRAPPER_DIR/xsct" "$DAPHNE_WSL_XSCT_BAT"
+elif [ "$DAPHNE_REQUIRE_XSCT" = "1" ]; then
+  echo "ERROR: XSCT batch launcher not found at $DAPHNE_WSL_XSCT_BAT" >&2
+  return 2 2>/dev/null || exit 2
+fi
 
 case ":$PATH:" in
   *":$DAPHNE_WSL_XILINX_WRAPPER_DIR:"*) ;;
@@ -65,4 +92,7 @@ export PATH
 export DAPHNE_WSL_XILINX_WRAPPER_DIR
 export DAPHNE_WSL_VIVADO_BAT
 export DAPHNE_WSL_XSCT_BAT
-export XILINX_VITIS="${XILINX_VITIS:-$(daphne_to_windows_path "$DAPHNE_WINDOWS_XILINX_ROOT/Vitis/$DAPHNE_VITIS_VERSION")}"
+
+if [ -f "$DAPHNE_WSL_XSCT_BAT" ]; then
+  export XILINX_VITIS="$(daphne_to_windows_path "$DAPHNE_WINDOWS_XILINX_ROOT/Vitis/$DAPHNE_VITIS_VERSION")"
+fi

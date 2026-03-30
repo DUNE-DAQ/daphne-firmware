@@ -39,7 +39,8 @@ That script:
   `.bat` launchers;
 - exports `XILINX_VITIS` in Windows path form so the Tcl flow can find XSCT
   inside the Windows Vivado process;
-- verifies that both tools are callable from WSL.
+- verifies that Vivado is callable from WSL and reports whether XSCT is also
+  available.
 
 ## Full WSL chain
 
@@ -64,6 +65,8 @@ and stores logs under `build/wsl-vivado/<timestamp>/`.
 
 - `create_ip` is the currently qualified Ethernet mode for the WSL/Windows
   Vivado path.
+- `xsct` is optional for the core build. It is only needed for the
+  Vitis/device-tree helper path.
 - The Tcl flow detects `Windows NT` inside Vivado and does not attempt the full
   Linux-side dtbo compilation flow there. That behavior is expected.
 - The wrapper sets `XILINX_VITIS` to a Windows-style path such as
