@@ -1,0 +1,19 @@
+[options]
+mode prove
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+# Scaffold only. This currently checks elaboration and pins the proof entry
+# point to the threshold register bank while the rest of the repo is being
+# decomposed into reusable blocks.
+# TODO: add a harness that proves reset-to-all-ones behavior, address decode
+# coverage for channels 0..39, and rejection of partial writes.
+ghdl --std=08 ../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd ../../ip_repo/daphne3_ip/rtl/selftrig/thresholds.vhd -e thresholds
+prep -top thresholds
+
+[files]
+../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd
+../../ip_repo/daphne3_ip/rtl/selftrig/thresholds.vhd

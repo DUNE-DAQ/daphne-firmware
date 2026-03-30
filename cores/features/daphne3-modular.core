@@ -1,0 +1,30 @@
+CAPI=2:
+
+name: dune-daq:daphne:daphne3-modular:0.1.0
+description: Modular top-level source manifest assembled from reusable feature blocks
+provider:
+  name: local
+
+filesets:
+  rtl_top:
+    depend:
+      - dune-daq:daphne:afe-interface:0.1.0
+      - dune-daq:daphne:config-control:0.1.0
+      - dune-daq:daphne:dac-interface:0.1.0
+      - dune-daq:daphne:frontend-control:0.1.0
+      - dune-daq:daphne:hermes-transport:0.1.0
+      - dune-daq:daphne:selftrigger:0.1.0
+      - dune-daq:daphne:spy-buffer:0.1.0
+      - dune-daq:daphne:timing-endpoint:0.1.0
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/misc/AXI_RAM.vhd
+      - ../../ip_repo/daphne3_ip/rtl/misc/DAQ_CLOCKS.vhd
+      - ../../ip_repo/daphne3_ip/rtl/i2c/i2cm.vhd
+      - ../../ip_repo/daphne3_ip/rtl/cm/spim_cm.vhd
+      - ../../ip_repo/daphne3_ip/rtl/daphne3.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl_top

@@ -12,7 +12,7 @@ set bd_file [file join $repo_root "bd" "DAPHNE_MEZ_SELFTRIGGER_V1" "DAPHNE_MEZ_S
 set bd_wrapper_vhd [file join $repo_root "bd" "DAPHNE_MEZ_SELFTRIGGER_V1" "hdl" "DAPHNE_MEZ_SELFTRIGGER_V1_wrapper.vhd"]
 set pinmap_xdc [file join $script_dir "DAPHNE_V3_PIN_MAP.xdc"]
 set dtbo_gen_tcl [file join $script_dir "daphne3_dtbo_gen.tcl"]
-set axi_quad_spi_patch [file join $repo_root "scripts" "axi_quad_spi_dtbo_patch.sed"]
+set axi_quad_spi_patch [file join $script_dir "scripts" "axi_quad_spi_dtbo_patch.sed"]
 
 if { [string first $scriptsVivadoVersion $currentVivadoVersion] == -1 } {
     puts ""

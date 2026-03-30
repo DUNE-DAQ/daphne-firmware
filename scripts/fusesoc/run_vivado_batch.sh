@@ -50,7 +50,9 @@ append_env_tcl DAPHNE_BOARD_PART
 append_env_tcl DAPHNE_PFM_NAME
 append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_ETH_MODE
+append_env_tcl DAPHNE_GIT_SHA
 append_env_tcl DAPHNE_MAX_THREADS
+append_env_tcl DAPHNE_OUTPUT_DIR
 append_env_tcl DAPHNE_SKIP_POST_SYNTH_REPORTS
 append_env_tcl DAPHNE_SKIP_POST_SYNTH_CHECKPOINT
 append_env_tcl DAPHNE_SYNTH_DIRECTIVE

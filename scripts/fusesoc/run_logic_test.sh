@@ -11,8 +11,9 @@ fi
 
 if [ "$#" -eq 0 ]; then
   set -- \
-    dune-daq:daphne:thresholds-test:0.1.0 \
-    dune-daq:daphne:frontend-test:0.1.0
+    dune-daq:daphne:config-control:0.1.0 \
+    dune-daq:daphne:selftrigger:0.1.0 \
+    dune-daq:daphne:frontend-control:0.1.0
 fi
 
 for core in "$@"; do

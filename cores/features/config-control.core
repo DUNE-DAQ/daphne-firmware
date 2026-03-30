@@ -1,0 +1,37 @@
+CAPI=2:
+
+name: dune-daq:daphne:config-control:0.1.0
+description: Board-control AXI-Lite block for fan, LEDs, muxes, and self-trigger config registers
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/config/fanmon.vhd
+      - ../../ip_repo/daphne3_ip/rtl/config/stuff.vhd
+    file_type: vhdlSource
+  tb_axi_smoke:
+    files:
+      - ../../tests/logic/stuff_axi_smoke_tb.vhd
+    file_type: vhdlSource
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl
+  sim:
+    <<: *default_target
+    default_tool: ghdl
+    filesets_append:
+      - tb_axi_smoke
+    toplevel: stuff_axi_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=10us

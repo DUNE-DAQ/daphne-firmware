@@ -1,0 +1,32 @@
+CAPI=2:
+
+name: dune-daq:daphne:k26c-modular-platform:0.1.0
+description: K26C platform collateral layered on the modular DAPHNE source graph
+provider:
+  name: local
+
+filesets:
+  platform:
+    depend:
+      - dune-daq:daphne:daphne3-modular:0.1.0
+    files:
+      - ../../boards/k26c/board.yml
+      - ../../Memory_Map.md
+      - ../../petalinux/README.md
+      - ../../petalinux/daphne-server-deps.lock.cmake
+      - ../../petalinux/toolchains/aarch64-petalinux.cmake
+      - ../../xilinx/DAPHNE_V3_PIN_MAP.xdc
+      - ../../xilinx/daphne3_bd_gen.tcl
+      - ../../xilinx/daphne3_dtbo_gen.tcl
+      - ../../xilinx/daphne3_ip_gen.tcl
+      - ../../xilinx/daphne3_xgui_gen.tcl
+      - ../../xilinx/daphne_board_env.tcl
+      - ../../xilinx/scripts/axi_quad_spi_dtbo_patch.sed
+      - ../../xilinx/vivado_batch.tcl
+    file_type: user
+
+targets:
+  default:
+    description: Source-only platform manifest for the emerging modular K26C build flow
+    filesets:
+      - platform
