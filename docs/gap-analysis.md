@@ -13,6 +13,10 @@
   layers.
 - Formal verification scaffolds added for AXI-Lite leaf modules.
 - Petalinux/dependency notes added for `daphne-server` compatibility.
+- WSL2-driven Windows Vivado/Vitis flow qualified for the current K26C
+  hardware build path, with generated `.bit`, `.bin`, and `.xsa` artifacts.
+- Additive RTL isolation scaffolding started under `rtl/isolated/` to prepare
+  subsystem contracts without disturbing the imported source tree.
 
 ## Still missing
 
@@ -21,9 +25,9 @@
   implementation path still consumes the generated legacy manifest and Vivado BD
   flow for safety.
 
-- Verified simulator/tool execution in this workspace.
-  FuseSoC is wired up repo-locally, but no HDL simulator or Xilinx tools are
-  available yet on this host, so the new smoke tests have not run end to end.
+- Fully local tool execution in this macOS workspace.
+  Local FuseSoC/GHDL smoke tests run here, but the qualified Vivado build path
+  currently lives on the WSL2 host with Windows-installed Xilinx tools.
 
 - Useful formal properties, not just formal entry points.
   SymbiYosys `.sby` scaffolds exist for the AXI-Lite leaf blocks, but property
@@ -38,8 +42,8 @@
   no automated installation path for bitstream + dtbo + `daphne-server`.
 
 - End-to-end deployment test.
-  No generated bitstream, `.xsa`, `.dtbo`, or server-on-target validation has
-  been executed from this new repo yet.
+  A generated bitstream and `.xsa` now exist from the new repo flow, but there
+  is still no qualified `.dtbo`, boot image, or server-on-target validation.
 
 - Linux/C++ dependency bundling inside this repo.
   The lockfile is mirrored, but the actual dependency tarball and deployment
@@ -47,14 +51,12 @@
 
 ## Recommended next steps
 
-1. Install `fusesoc`, `edalize`, `ghdl`, and the Xilinx 2024.1 toolchain on a
-   Linux host.
-2. Run the new frontend and threshold smoke tests and fix any CAPI2/backend
-   issues.
-3. Switch the top-level build path from the generated compatibility manifest to
-   the modular platform graph once Vivado consumption is qualified.
-4. Add harness properties to the formal scaffolds for `fe_axi` and
-   `thresholds`, then decide whether `stuff` is worth proving or only
-   simulation-testing.
-5. Add a Petalinux recipe or deploy bundle flow that consumes the generated
+1. Preserve the successful K26C hardware build as the pre-isolation baseline.
+2. Add neutral subsystem contracts and wrappers under `rtl/isolated/`.
+3. Add harness properties to the formal scaffolds for `fe_axi` and
+   `thresholds`, then extend the same contract style to timing/control and
+   trigger-descriptor boundaries.
+4. Decide how device-tree and board-owned MAC/IP provisioning are generated
+   from the PetaLinux side without refactoring Hermes transport behavior.
+5. Add a PetaLinux-native deploy bundle flow that consumes the generated
    firmware outputs and co-installs `daphne-server`.

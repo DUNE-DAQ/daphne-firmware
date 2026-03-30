@@ -18,6 +18,10 @@ current `Daphne_MEZZ` non-project Vivado flow and audited against the legacy
 - Added formal verification scaffolds for the AXI-Lite leaf blocks where a
   proof has a realistic cost/benefit ratio during the migration.
 - Recorded the PS-side deployment contract needed by `daphne-server`.
+- Qualified a WSL2-driven Windows Vivado/Vitis K26C hardware build flow and
+  captured that baseline for follow-on isolation work.
+- Started an additive `rtl/isolated/` scaffolding layer to prepare subsystem
+  contracts and future formal harnesses without disturbing the imported blob.
 
 ## Repository layout
 
@@ -35,6 +39,8 @@ current `Daphne_MEZZ` non-project Vivado flow and audited against the legacy
 - `docs/`: source audit, server contract, modular architecture, and gap
   analysis.
 - `formal/`: SymbiYosys scaffolds for leaf blocks that are suitable for formal.
+- `rtl/isolated/`: neutral subsystem wrapper shells and typed interfaces for the
+  isolation/formal-prep phase.
 
 ## Quick start
 
@@ -91,6 +97,10 @@ If you are in WSL2 and Vivado/Vitis 2024.1 are installed on Windows, use:
 
 See `docs/remote-vivado.md`, `docs/wsl-windows-vivado.md`, and
 `docs/agent-handoff.md`.
+
+The current isolation/formal-prep structure is described in
+`docs/rtl-isolation-plan.md`, and the current qualified build checkpoint is
+recorded in `docs/build-baseline.md`.
 
 Optional overrides:
 
@@ -151,3 +161,5 @@ are:
 - Petalinux recipes, `BOOT.BIN` assembly, and boot-image generation;
 - integrated build/deploy test of the generated firmware together with
   `daphne-server`.
+- proof-carrying module contracts and real formal harnesses beyond the current
+  leaf-block scaffolds.
