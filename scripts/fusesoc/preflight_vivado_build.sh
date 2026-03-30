@@ -58,7 +58,8 @@ append_env_tcl DAPHNE_BOARD_PART
 append_env_tcl DAPHNE_PFM_NAME
 append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_ETH_MODE
-printf 'source -notrace [file join [pwd] "daphne3_ip_gen.tcl"]\n' >>"$shim_tcl"
+printf 'set script_dir [file dirname [file normalize [info script]]]\n' >>"$shim_tcl"
+printf 'source -notrace [file join $script_dir "daphne3_ip_gen.tcl"]\n' >>"$shim_tcl"
 printf 'exit\n' >>"$shim_tcl"
 
 echo "INFO: Running packaging preflight for board=$BOARD eth_mode=$ETH_MODE."
