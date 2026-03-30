@@ -28,6 +28,27 @@ become first-class contract items:
 - Bitslip calibration is targeting the frontend training pattern `0x00FF` on
   the 16-bit FCLK word.
 
+## daphne-server alignment with this contract
+
+The current `daphne-server` frontend contract matches this boundary at the
+register and calibration level:
+
+- the frontend control/status register map matches the RTL register ABI;
+- the server drives delay, bitslip, trigger, and `DELAY_EN_VTC` through the
+  expected frontend registers;
+- the server's bitslip scan explicitly searches for `0x00FF00FF`, which is the
+  32-bit software-visible form of the RTL's `0x00FF` 16-bit FCLK expectation.
+
+What is still not explicit enough in software:
+
+- the lightweight/default client configuration path does not document the exact
+  semantic mapping of the `sb_first` boolean to the AFE's `LSB_MSB_FIRST` bit;
+- therefore the software-side boolean naming should not yet be treated as the
+  authoritative source for frontend bit-order semantics.
+
+For now, the RTL remains the authoritative source for the required deserialize
+assumption: `16-bit`, `LSb-first`.
+
 ## Boundary clarification
 
 - The frontend deserializer boundary is `16-bit` wide.
