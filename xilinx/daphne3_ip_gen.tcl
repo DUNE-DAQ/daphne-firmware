@@ -48,7 +48,7 @@ if {$daphne_eth_mode eq "create_ip" && [file exists $ethFolDir]} {
     }
 }
 
-if {$daphne_eth_mode ne "create_ip"} {
+if {$daphne_eth_mode eq "vendored_hdl"} {
     foreach staleEthFile [list $ethXCIDir $ethXMLDir] {
         if {[file exists $staleEthFile]} {
             puts "INFO: Deleting stale Ethernet IP artifact $staleEthFile for vendored HDL mode."
@@ -219,7 +219,7 @@ if {$daphne_eth_mode eq "create_ip"} {
     ] [get_ips xxv_ethernet_0]
     set_property GENERATE_SYNTH_CHECKPOINT FALSE $xxvEthernetIP
 } else {
-    puts "INFO: Using vendored HDL for XXV Ethernet; create_ip is disabled."
+    puts "INFO: Using pre-existing Ethernet collateral for mode <$daphne_eth_mode>; create_ip is disabled."
 }
 
 # build DAPHNE IP
@@ -272,6 +272,8 @@ set xpgui_files [ipx::add_file_group xilinx_xpgui $daphne]
 set ipVlnv [list $axi_bram_ctrl_vlnv]
 if {$daphne_eth_mode eq "create_ip"} {
     lappend ipVlnv $xxv_ethernet_vlnv
+} elseif {$daphne_eth_mode eq "seeded_xci"} {
+    puts "INFO: XXV Ethernet will be packaged from a seeded XCI."
 } else {
     puts "INFO: XXV Ethernet will be packaged from vendored HDL, not as a regeneratable subcore."
 }
@@ -371,6 +373,20 @@ foreach daqIPType $xciDAQFiles {
 set anylanguageSynthFg [ipx::get_file_groups xilinx_anylanguagesynthesis -of_objects $daphne]
 set anybehavioralSynthFg [ipx::get_file_groups xilinx_anylanguagebehavioralsimulation -of_objects $daphne]
 set implFg [ipx::get_file_groups xilinx_implementation -of_objects $daphne]
+if {$daphne_eth_mode eq "seeded_xci"} {
+    if {![file exists $ethXCIDir]} {
+        error "ERROR: DAPHNE_ETH_MODE=seeded_xci but XXV Ethernet XCI is missing at $ethXCIDir"
+    }
+    ipx::add_file -name $ethXCIDir -file_group $lang_synth
+    ipx::add_file -name $ethXCIDir -file_group $lang_sim
+    ipx::add_file -name $ethXCIDir -file_group $impl_files
+    set ethFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anylanguageSynthFg]
+    set ethFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anybehavioralSynthFg]
+    set implFileObj [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $implFg]
+    set_property CELL_NAME core_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjLan
+    set_property CELL_NAME core_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjSim
+    set_property CELL_NAME core_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe $implFileObj
+}
 set bramFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anylanguageSynthFg]
 set bramFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anybehavioralSynthFg]
 
