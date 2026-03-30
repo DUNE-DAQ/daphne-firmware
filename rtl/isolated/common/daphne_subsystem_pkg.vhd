@@ -3,6 +3,23 @@ use ieee.std_logic_1164.all;
 
 package daphne_subsystem_pkg is
 
+  type frontend_tap_array_t is array (4 downto 0) of std_logic_vector(8 downto 0);
+  type frontend_bitslip_array_t is array (4 downto 0) of std_logic_vector(3 downto 0);
+
+  type frontend_alignment_control_t is record
+    idelayctrl_reset : std_logic;
+    iserdes_reset    : std_logic;
+    idelay_en_vtc    : std_logic;
+    idelay_tap       : frontend_tap_array_t;
+    iserdes_bitslip  : frontend_bitslip_array_t;
+  end record;
+
+  type frontend_alignment_status_t is record
+    idelayctrl_ready : std_logic;
+    format_ok        : std_logic;
+    training_ok      : std_logic;
+  end record;
+
   type timing_control_t is record
     use_endpoint_clock : std_logic;
     mmcm0_reset        : std_logic;
@@ -39,6 +56,20 @@ package daphne_subsystem_pkg is
     mmcm1_reset        => '0',
     endpoint_reset     => '0',
     endpoint_addr      => (others => '0')
+  );
+
+  constant FRONTEND_ALIGNMENT_CONTROL_NULL : frontend_alignment_control_t := (
+    idelayctrl_reset => '0',
+    iserdes_reset    => '0',
+    idelay_en_vtc    => '0',
+    idelay_tap       => (others => (others => '0')),
+    iserdes_bitslip  => (others => (others => '0'))
+  );
+
+  constant FRONTEND_ALIGNMENT_STATUS_NULL : frontend_alignment_status_t := (
+    idelayctrl_ready => '0',
+    format_ok        => '0',
+    training_ok      => '0'
   );
 
   constant TIMING_STATUS_NULL : timing_status_t := (
