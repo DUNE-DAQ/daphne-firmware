@@ -3,6 +3,7 @@ set -eu
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
+ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
 
 case "$BOARD" in
   k26c)
@@ -27,6 +28,14 @@ if ! command -v vivado >/dev/null 2>&1; then
   exit 2
 fi
 
+if [ "$ETH_MODE" = "vendored_hdl" ]; then
+  echo "ERROR: DAPHNE_ETH_MODE=vendored_hdl is not qualified for full implementation yet." >&2
+  echo "Use DAPHNE_ETH_MODE=create_ip for the current WSL/Windows Vivado flow." >&2
+  exit 2
+fi
+
+export DAPHNE_BOARD="$BOARD"
+export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_FPGA_PART
 export DAPHNE_BOARD_PART
 export DAPHNE_PFM_NAME
@@ -61,6 +70,7 @@ append_env_tcl DAPHNE_PLACE_DIRECTIVE
 append_env_tcl DAPHNE_POST_PLACE_PHYSOPT_DIRECTIVE
 append_env_tcl DAPHNE_ROUTE_DIRECTIVE
 append_env_tcl DAPHNE_POST_ROUTE_PHYSOPT_DIRECTIVE
+append_env_tcl XILINX_VITIS
 printf 'set script_dir [file dirname [file normalize [info script]]]\n' >>"$shim_tcl"
 printf 'source -notrace [file join $script_dir "vivado_batch.tcl"]\n' >>"$shim_tcl"
 
