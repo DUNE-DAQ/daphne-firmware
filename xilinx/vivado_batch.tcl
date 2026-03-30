@@ -6,6 +6,13 @@
 # check if script is running in correct Vivado version
 set scriptsVivadoVersion 2024.1
 set currentVivadoVersion [version -short]
+set script_dir [file dirname [file normalize [info script]]]
+set repo_root [file normalize [file join $script_dir ".."]]
+set bd_file [file join $repo_root "bd" "DAPHNE_MEZ_SELFTRIGGER_V1" "DAPHNE_MEZ_SELFTRIGGER_V1.bd"]
+set bd_wrapper_vhd [file join $repo_root "bd" "DAPHNE_MEZ_SELFTRIGGER_V1" "hdl" "DAPHNE_MEZ_SELFTRIGGER_V1_wrapper.vhd"]
+set pinmap_xdc [file join $script_dir "DAPHNE_V3_PIN_MAP.xdc"]
+set dtbo_gen_tcl [file join $script_dir "daphne3_dtbo_gen.tcl"]
+set axi_quad_spi_patch [file join $repo_root "scripts" "axi_quad_spi_dtbo_patch.sed"]
 
 if { [string first $scriptsVivadoVersion $currentVivadoVersion] == -1 } {
     puts ""
@@ -19,7 +26,7 @@ if { [string first $scriptsVivadoVersion $currentVivadoVersion] == -1 } {
 }
 
 # general setup stuff
-source -notrace ./daphne_board_env.tcl
+source -notrace [file join $script_dir "daphne_board_env.tcl"]
 set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
 set daphne_pfm_name [daphne_get_env_or_default DAPHNE_PFM_NAME "xilinx:k26c:name:0.0"]
@@ -41,6 +48,9 @@ proc daphne_run_nonfatal {label command} {
 
 set_param general.maxThreads $daphne_max_threads
 set outputDir [daphne_get_env_or_default DAPHNE_OUTPUT_DIR "./output"]
+if {[file pathtype $outputDir] ne "absolute"} {
+    set outputDir [file normalize [file join $script_dir $outputDir]]
+}
 # verify if the output folder has already been created
 if {[file exists $outputDir]} {
     # output folder already exists, therefore delete it and its contents
@@ -79,8 +89,8 @@ puts "INFO: passing git commit number $v_git_sha to top level generic"
 
 # create the block design
 # this command also verifies if the block design already exists, if so, it deletes it in order to generate a newer version
-source -notrace ./daphne3_bd_gen.tcl
-read_bd ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd
+source -notrace [file join $script_dir "daphne3_bd_gen.tcl"]
+read_bd $bd_file
 
 # # verify if the block design exists, if not, create it
 # set bdFile ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd
@@ -126,15 +136,15 @@ read_bd ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd
 # }
 
 # make the wrapper of the block design needed for later synthesis and implementation
-make_wrapper -top -files [get_files ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd] 
-read_vhdl ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/hdl/DAPHNE_MEZ_SELFTRIGGER_V1_wrapper.vhd
+make_wrapper -top -files [get_files $bd_file]
+read_vhdl $bd_wrapper_vhd
 
 # load general placement constraints...
-read_xdc -verbose ./DAPHNE_V3_PIN_MAP.xdc
+read_xdc -verbose $pinmap_xdc
 
 # generate the output products of the Block Design needed for synthesis and implementation
-set_property synth_checkpoint_mode None [get_files ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd]
-generate_target all [get_files ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd]
+set_property synth_checkpoint_mode None [get_files $bd_file]
+generate_target all [get_files $bd_file]
 
 # synth design...
 synth_design -top DAPHNE_MEZ_SELFTRIGGER_V1_wrapper -directive $daphne_synth_directive
@@ -210,7 +220,7 @@ if {$tcl_platform(os) eq "Linux"} {
  
         # run the XSCT script
         puts "INFO: Generating Device Tree files."
-        if {[catch {exec $xsct_exe daphne3_dtbo_gen.tcl "$outputDir/daphne3_st_$git_sha.xsa" $outputDir $git_sha 2>@1} result]} {
+        if {[catch {exec $xsct_exe $dtbo_gen_tcl "$outputDir/daphne3_st_$git_sha.xsa" $outputDir $git_sha 2>@1} result]} {
             error "ERROR: xsct command failed:\n$result"
         }
         puts "INFO: Device Tree files have been generated."
@@ -220,7 +230,7 @@ if {$tcl_platform(os) eq "Linux"} {
  
         # add missing lines for AXI Quad SPI module
         puts "INFO: Adding missing lines for AXI Quad SPI module in the dtsi file."
-        exec sed -i -f ./scripts/axi_quad_spi_dtbo_patch.sed $pl_dtsi_path
+        exec sed -i -f $axi_quad_spi_patch $pl_dtsi_path
         puts "INFO: Finished adding missing lines for dtsi file."
  
         # compile the Device Tree

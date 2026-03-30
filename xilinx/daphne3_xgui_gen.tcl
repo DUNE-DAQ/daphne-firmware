@@ -25,10 +25,13 @@
 # ------------------------------------------------------------------------------------------------------------------------------------------------
 
 # create the folder where the file will be located
-file mkdir ../ip_repo/daphne3_ip/xgui
+set script_dir [file dirname [file normalize [info script]]]
+set repo_root [file normalize [file join $script_dir ".."]]
+set xgui_dir [file join $repo_root "ip_repo" "daphne3_ip" "xgui"]
+file mkdir $xgui_dir
 
 # set the file path
-set xgui_file_path "../ip_repo/daphne3_ip/xgui/DAPHNE3_v1_0.tcl"
+set xgui_file_path [file join $xgui_dir "DAPHNE3_v1_0.tcl"]
 
 # create/open the file 
 set fileId [open $xgui_file_path "w"]
