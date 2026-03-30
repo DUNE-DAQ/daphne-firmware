@@ -13,10 +13,18 @@ fi
 
 echo "INFO: Vivado batch launcher: $DAPHNE_WSL_VIVADO_BAT"
 echo "INFO: XSCT batch launcher: $DAPHNE_WSL_XSCT_BAT"
-echo "INFO: XILINX_VITIS=$XILINX_VITIS"
+echo "INFO: XILINX_VITIS=${XILINX_VITIS-}"
 echo "INFO: PATH wrapper dir: $DAPHNE_WSL_XILINX_WRAPPER_DIR"
 
 vivado -version
-xsct -help >/dev/null
 
-echo "INFO: Vivado and XSCT are callable from WSL."
+if command -v xsct >/dev/null 2>&1; then
+  xsct -help >/dev/null
+  echo "INFO: XSCT is callable from WSL."
+else
+  echo "WARNING: XSCT is not available from WSL." >&2
+  echo "WARNING: This is acceptable for bitstream/XSA generation." >&2
+  echo "WARNING: Device-tree helper steps will be skipped until Vitis/XSCT is reachable." >&2
+fi
+
+echo "INFO: Vivado is callable from WSL."
