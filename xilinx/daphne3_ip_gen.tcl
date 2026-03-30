@@ -373,10 +373,12 @@ foreach daqIPType $xciDAQFiles {
 set anylanguageSynthFg [ipx::get_file_groups xilinx_anylanguagesynthesis -of_objects $daphne]
 set anybehavioralSynthFg [ipx::get_file_groups xilinx_anylanguagebehavioralsimulation -of_objects $daphne]
 set implFg [ipx::get_file_groups xilinx_implementation -of_objects $daphne]
-if {$daphne_eth_mode eq "seeded_xci"} {
+if {$daphne_eth_mode eq "create_ip" || $daphne_eth_mode eq "seeded_xci"} {
     if {![file exists $ethXCIDir]} {
-        error "ERROR: DAPHNE_ETH_MODE=seeded_xci but XXV Ethernet XCI is missing at $ethXCIDir"
+        error "ERROR: DAPHNE_ETH_MODE=$daphne_eth_mode but XXV Ethernet XCI is missing at $ethXCIDir"
     }
+    # The deimos pcs/pma wrapper expects the Ethernet core as an IP-backed cell, so
+    # package the regenerated/seeded XCI explicitly in synth, sim, and impl groups.
     ipx::add_file -name $ethXCIDir -file_group $lang_synth
     ipx::add_file -name $ethXCIDir -file_group $lang_sim
     ipx::add_file -name $ethXCIDir -file_group $impl_files
