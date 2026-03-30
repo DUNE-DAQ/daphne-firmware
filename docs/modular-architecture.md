@@ -35,6 +35,8 @@ legacy generated manifest protects the current K26C delivery path from churn.
 - `timing-subsystem`: additive wrapper around endpoint-facing typed control,
   readiness, and timestamp propagation.
 - `spy-buffer`: spy-buffer capture and memory path.
+- `spy-buffer-boundary`: additive wrapper that expresses capture readiness
+  gating separately from the imported spy memory implementation.
 - `afe-interface`: AFE SPI/control logic.
 - `dac-interface`: DAC SPI/control logic.
 - `hermes-transport`: imported Hermes/IPBus/UDP transport library.

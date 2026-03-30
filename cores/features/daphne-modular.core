@@ -12,6 +12,7 @@ filesets:
       - dune-daq:daphne:analog-control:0.1.0
       - dune-daq:daphne:frontend-boundary:0.1.0
       - dune-daq:daphne:hermes-boundary:0.1.0
+      - dune-daq:daphne:spy-buffer-boundary:0.1.0
       - dune-daq:daphne:timing-subsystem:0.1.0
       - dune-daq:daphne:trigger-pipeline:0.1.0
   rtl_top:

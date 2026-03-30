@@ -31,3 +31,6 @@ Spy capture should only be considered meaningful when:
 The neutral enable rule for this module should be:
 
 - `spy_enable = config_ready and timing_ready and alignment_ready`
+
+That gating rule should live at the neutral spy-buffer boundary rather than in
+the imported memory implementation itself.

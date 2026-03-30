@@ -18,3 +18,5 @@ Status: documentation target first
 
 - no meaningful capture enable while readiness conditions are false
 - disabled capture does not perturb the main acquisition path
+- boundary-facing gating should be expressed through the same typed readiness
+  contract used by the trigger pipeline

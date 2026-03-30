@@ -19,8 +19,9 @@ The correct subsystem order is:
 3. `timing-subsystem`
 4. `frontend-boundary`
 5. `trigger-pipeline`
-6. `spy-buffer`
-7. `hermes-boundary`
+6. `spy-buffer-boundary`
+7. `spy-buffer`
+8. `hermes-boundary`
 
 ## Why this order
 
@@ -32,6 +33,8 @@ The correct subsystem order is:
 - `frontend-boundary` can only promote data to "alignment-valid" after both
   analog configuration and timing readiness are true.
 - `trigger-pipeline` must not consume frontend data until alignment is valid.
+- `spy-buffer-boundary` makes the capture gating explicit without changing the
+  imported spy-memory implementation.
 - `spy-buffer` may stay separate, but capture must be gated by the same
   readiness contract.
 - `hermes-boundary` remains the unchanged transport handoff and should only see
@@ -62,8 +65,8 @@ Derived enables:
 ## Transition steps
 
 1. Document the dependency chain in module contracts.
-2. Add `analog-control` and `spy-buffer` to the modular architecture as
-   first-class named subsystems.
+2. Add `analog-control`, `spy-buffer-boundary`, and `spy-buffer` to the modular
+   architecture as first-class named subsystems.
 3. Reflect the dependency ordering in the FuseSoC graph with additive
    boundary/package cores.
 4. Introduce typed readiness/status records before changing any imported
