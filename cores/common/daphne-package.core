@@ -1,0 +1,17 @@
+CAPI=2:
+
+name: dune-daq:daphne:daphne-package:0.1.0
+description: Shared DAPHNE type/package definitions and default constants
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

@@ -58,6 +58,8 @@ append_env_tcl DAPHNE_BOARD_PART
 append_env_tcl DAPHNE_PFM_NAME
 append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_ETH_MODE
+append_env_tcl DAPHNE_GIT_SHA
+append_env_tcl DAPHNE_OUTPUT_DIR
 printf 'set script_dir [file dirname [file normalize [info script]]]\n' >>"$shim_tcl"
 printf 'source -notrace [file join $script_dir "daphne3_ip_gen.tcl"]\n' >>"$shim_tcl"
 printf 'exit\n' >>"$shim_tcl"

@@ -1,0 +1,34 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-interface:0.1.0
+description: AFE SPI control block and legacy behavioral simulation target
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/afe/spim_afe.vhd
+      - ../../ip_repo/daphne3_ip/rtl/afe/spim_afe1.vhd
+      - ../../ip_repo/daphne3_ip/rtl/afe/spim_dac2.vhd
+    file_type: vhdlSource
+  tb_legacy:
+    files:
+      - ../../ip_repo/daphne3_ip/sim/afe/AFE5808A.vhd
+      - ../../ip_repo/daphne3_ip/sim/dac/AD5327.vhd
+      - ../../ip_repo/daphne3_ip/sim/afe/spim_afe_testbench.vhd
+    file_type: vhdlSource
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl
+  sim:
+    <<: *default_target
+    description: Legacy vendor-library simulation bench for the AFE SPI path
+    default_tool: xsim
+    filesets_append:
+      - tb_legacy
+    toplevel: spim_afe_testbench

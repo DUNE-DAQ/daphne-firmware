@@ -1,0 +1,31 @@
+CAPI=2:
+
+name: dune-daq:daphne:spy-buffer:0.1.0
+description: Spy-buffer capture and memory path with legacy simulation target
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/misc/outspybuff.vhd
+      - ../../ip_repo/daphne3_ip/rtl/spy/spybuff.vhd
+      - ../../ip_repo/daphne3_ip/rtl/spy/spybuffers.vhd
+      - ../../ip_repo/daphne3_ip/rtl/spy/spyram.vhd
+    file_type: vhdlSource
+  tb_legacy:
+    files:
+      - ../../ip_repo/daphne3_ip/sim/spy/spybuff_tb.vhd
+    file_type: vhdlSource
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl
+  sim:
+    <<: *default_target
+    description: Legacy spy-buffer simulation bench
+    default_tool: xsim
+    filesets_append:
+      - tb_legacy
+    toplevel: spybuff_tb

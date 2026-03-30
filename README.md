@@ -10,8 +10,13 @@ current `Daphne_MEZZ` non-project Vivado flow and audited against the legacy
   `xilinx/` layout so the Vivado batch flow remains usable.
 - Added board configuration indirection for the Kria build scripts through
   `DAPHNE_FPGA_PART`, `DAPHNE_BOARD_PART`, and `DAPHNE_PFM_NAME`.
-- Added FuseSoC-ready logic smoke tests around the frontend trigger register
-  block and the self-trigger threshold AXI window.
+- Added reusable FuseSoC module cores for common, feature, and platform layers
+  while preserving the original generated source manifest and Vivado batch path.
+- Added FuseSoC-ready smoke tests around the frontend trigger register block,
+  the self-trigger threshold AXI window, and the PL-side board-control
+  register block.
+- Added formal verification scaffolds for the AXI-Lite leaf blocks where a
+  proof has a realistic cost/benefit ratio during the migration.
 - Recorded the PS-side deployment contract needed by `daphne-server`.
 
 ## Repository layout
@@ -20,11 +25,16 @@ current `Daphne_MEZZ` non-project Vivado flow and audited against the legacy
   source tree.
 - `xilinx/`: imported non-project Vivado scripts, now parameterized by board.
 - `cores/tests/`: FuseSoC cores.
+- `cores/common/`: reusable shared package/common cores.
+- `cores/features/`: reusable feature-block cores plus module-level simulation
+  and formal targets.
 - `tests/logic/`: HDL smoke tests.
 - `boards/`: board metadata and support status.
 - `petalinux/`: deployment-side toolchain/dependency notes for the Kria Linux
   environment.
-- `docs/`: source audit, server contract, and gap analysis.
+- `docs/`: source audit, server contract, modular architecture, and gap
+  analysis.
+- `formal/`: SymbiYosys scaffolds for leaf blocks that are suitable for formal.
 
 ## Quick start
 
@@ -43,7 +53,14 @@ To run a single smoke test instead of the default suite:
 ./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-test:0.1.0
 ```
 
-Refresh the generated source manifest after editing the imported RTL/Tcl flow:
+Run the checked-in formal scaffolds:
+
+```bash
+./scripts/formal/run_formal.sh
+```
+
+Refresh the generated legacy source manifest after editing the imported
+RTL/Tcl flow:
 
 ```bash
 ./scripts/fusesoc/refresh_cores.sh
@@ -77,22 +94,43 @@ logic, and the integrated Hermes source tree. Details are recorded in
 
 ## FuseSoC structure
 
+- `cores/common/daphne-package.core` provides the shared DAPHNE package.
+- `cores/features/*.core` split the design into reusable feature blocks:
+  configuration, frontend control, self-trigger logic, timing, spy-buffer,
+  AFE/DAC interfaces, and Hermes transport.
+- `cores/features/daphne3-modular.core` reassembles the top-level RTL from the
+  modular blocks without changing the currently qualified Vivado flow.
 - `cores/generated/daphne3-ip.core` is generated from the source-selection rules
-  in `xilinx/daphne3_ip_gen.tcl`.
-- `cores/platform/k26c-platform.core` adds the current K26C build collateral on
-  top of the generated PL source manifest.
-- `cores/tests/*.core` packages standalone HDL smoke tests for server-visible
-  AXI register blocks.
+  in `xilinx/daphne3_ip_gen.tcl` and remains the compatibility path for the
+  current K26C Vivado build.
+- `cores/platform/k26c-platform.core` keeps the working legacy K26C path.
+- `cores/platform/k26c-modular-platform.core` is the source-only platform
+  wrapper for the emerging modular graph.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache
   directories so the workflow does not depend on global user configuration.
+- `scripts/fusesoc/run_logic_test.sh` now exercises the module-level smoke
+  targets directly.
+
+## Verification posture
+
+- `config-control`, `frontend-control`, and `selftrigger` expose `sim` targets
+  backed by GHDL smoke benches.
+- `afe-interface`, `dac-interface`, and `spy-buffer` expose `sim` targets that
+  retain the imported legacy benches under vendor-library simulators such as
+  XSim.
+- `frontend-control` and `selftrigger` expose `formal` scaffolds that pin the
+  expected SymbiYosys proof entry points for the AXI-Lite register blocks.
+- Timing, Hermes transport, and the full frontend datapath are documented as
+  future formal candidates, not present-day proof targets.
 
 ## What is still missing
 
 This is not yet a complete multi-board deployment repo. The main remaining gaps
 are:
 
-- self-contained top-level FuseSoC/Vivado packaging for the full design;
+- top-level Vivado consumption of the new modular graph rather than the current
+  generated compatibility manifest;
 - validated carrier support beyond the current K26C baseline;
-- Petalinux recipes or boot-image generation;
+- Petalinux recipes, `BOOT.BIN` assembly, and boot-image generation;
 - integrated build/deploy test of the generated firmware together with
   `daphne-server`.
