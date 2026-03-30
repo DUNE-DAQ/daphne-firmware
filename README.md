@@ -127,7 +127,15 @@ logic, and the integrated Hermes source tree. Details are recorded in
   AFE/DAC interfaces, and Hermes transport.
 - `rtl/isolated/subsystems/frontend/frontend_boundary.vhd` starts capturing the
   frontend alignment contract separately from downstream trigger semantics.
-- `cores/features/daphne3-modular.core` reassembles the top-level RTL from the
+- `cores/common/daphne-subsystem-types.core` carries the neutral typed records
+  used by the isolation/formal-prep wrapper layer.
+- `cores/features/control-plane.core`,
+  `cores/features/frontend-boundary.core`,
+  `cores/features/timing-subsystem.core`,
+  `cores/features/trigger-pipeline.core`, and
+  `cores/features/hermes-boundary.core` expose the additive subsystem
+  boundaries directly in the FuseSoC graph.
+- `cores/features/daphne-modular.core` reassembles the top-level RTL from the
   modular blocks without changing the currently qualified Vivado flow.
 - `cores/generated/daphne3-ip.core` is generated from the source-selection rules
   in `xilinx/daphne3_ip_gen.tcl` and remains the compatibility path for the

@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:hermes-boundary:0.1.0
+description: Neutral handoff wrapper into the unchanged Hermes transport subsystem
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/hermes/hermes_boundary.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

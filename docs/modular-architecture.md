@@ -8,7 +8,7 @@ firmware:
 - `cores/generated/daphne3-ip.core` is the compatibility manifest generated
   from the existing Vivado Tcl flow. This is the safe path for the currently
   qualified K26C build.
-- `cores/features/*.core` plus `cores/features/daphne3-modular.core` are the
+- `cores/features/*.core` plus `cores/features/daphne-modular.core` are the
   FuseSoC-native decomposition used for incremental refactoring, simulation, and
   eventual top-level platform packaging.
 
@@ -18,16 +18,28 @@ legacy generated manifest protects the current K26C delivery path from churn.
 ## Core graph
 
 - `daphne-package`: shared records, array types, and legacy default constants.
+- `daphne-subsystem-types`: neutral typed records for the isolation wrappers.
 - `config-control`: PL-side board-control register bank and fan monitor logic.
+- `control-plane`: additive wrapper for the existing PS-visible control/status
+  ABI.
 - `frontend-control`: frontend alignment/control path and AXI-Lite control
   block.
+- `frontend-boundary`: additive wrapper that captures the 16-bit alignment and
+  sample-format preconditions before downstream logic uses the data.
 - `selftrigger`: threshold register bank plus self-trigger algorithms.
+- `trigger-pipeline`: additive wrapper around trigger, descriptor, and
+  downstream handoff semantics.
 - `timing-endpoint`: PDTS timing endpoint block.
+- `timing-subsystem`: additive wrapper around endpoint-facing typed control,
+  readiness, and timestamp propagation.
 - `spy-buffer`: spy-buffer capture and memory path.
 - `afe-interface`: AFE SPI/control logic.
 - `dac-interface`: DAC SPI/control logic.
 - `hermes-transport`: imported Hermes/IPBus/UDP transport library.
-- `daphne3-modular`: top-level source manifest assembled from the feature cores.
+- `hermes-boundary`: additive wrapper that isolates the unchanged Hermes
+  transport interface from future trigger/frame cleanup.
+- `daphne-modular`: top-level source manifest assembled from the feature and
+  boundary cores.
 
 ## Platform packaging
 
@@ -49,6 +61,10 @@ legacy generated manifest protects the current K26C delivery path from churn.
 ## What this does not do yet
 
 - It does not replace the current Vivado Tcl flow with a pure CAPI2 build.
+- It does not yet make the additive subsystem-boundary wrappers drive the
+  imported top-level implementation; those cores are present so the graph
+  reflects the intended subsystem split while the legacy feature implementations
+  stay in charge of behavior.
 - It does not move MAC/IP defaults into a board-specific software/device-tree
   layer. The imported PL package defaults remain in place until the transport
   path is reworked with software ownership in mind.

@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:trigger-pipeline:0.1.0
+description: Neutral trigger and descriptor boundary wrapper around the imported self-trigger implementation
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/trigger/trigger_pipeline_boundary.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
