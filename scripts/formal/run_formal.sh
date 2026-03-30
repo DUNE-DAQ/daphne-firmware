@@ -11,7 +11,9 @@ fi
 if [ "$#" -eq 0 ]; then
   set -- \
     "$ROOT_DIR/formal/sby/fe_axi_axi_lite.sby" \
-    "$ROOT_DIR/formal/sby/thresholds_axi_lite.sby"
+    "$ROOT_DIR/formal/sby/thresholds_axi_lite.sby" \
+    "$ROOT_DIR/formal/sby/trigger_pipeline_boundary_gate.sby" \
+    "$ROOT_DIR/formal/sby/spy_buffer_boundary_gate.sby"
 fi
 
 for job in "$@"; do
