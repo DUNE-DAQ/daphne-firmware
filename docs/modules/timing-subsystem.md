@@ -21,6 +21,48 @@ Neutral boundary for:
 Keep the existing register meanings and timing concepts, but expose status and
 control through cleaner typed interfaces instead of ad hoc signal bundles.
 
+## Constraints that must be explicit
+
+The rest of the design depends on more than "timing block exists". The
+contract needs to say when timing-derived outputs are actually trustworthy.
+
+- `CLOCK_SOURCE` selects between local and endpoint-derived timing.
+- `MMCM0_LOCKED` and `MMCM1_LOCKED` are prerequisites for trusting the derived
+  frontend clocks.
+- The endpoint-ready path is not equivalent to clock lock alone.
+- `TIMESTAMP_OK` and endpoint FSM state are required before treating endpoint
+  timestamp/sync outputs as valid.
+
+In other words, downstream logic should not treat "received clock present" as
+the same thing as "timing subsystem ready".
+
+## Readiness model
+
+When endpoint timing is selected, the safe conceptual readiness condition is:
+
+- endpoint clock selected;
+- clock-generation path locked;
+- endpoint state machine in ready state;
+- timestamp path valid.
+
+When local timing is selected:
+
+- the design may still run from local clocks;
+- fake timestamp behavior is expected;
+- downstream logic must not infer full endpoint readiness from local operation.
+
+## Control-plane implication
+
+The control/status wrapper should eventually expose a single neutral
+software-visible concept for:
+
+- clock source selected
+- clock path locked
+- endpoint ready
+- timestamp valid
+
+without changing the existing register ABI.
+
 ## Verification posture
 
 - formal at the control boundary only
