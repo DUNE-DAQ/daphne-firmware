@@ -22,6 +22,7 @@ puts "INFO: Packaging DAPHNE3 IP for part <$daphne_fpga_part> board_part <$daphn
 set bramFolDir [file join $daphne_ip_root "src" "dune.daq_user_hermes_daphne_1.0" "src" "axi4_lite_bram_ctrl_0"]
 set ethFolDir [file join $daphne_ip_root "src" "dune.daq_user_hermes_daphne_1.0" "src" "xxv_ethernet_0"]
 set ethXCIDir [file join $ethFolDir "xxv_ethernet_0.xci"]
+set ethXMLDir [file join $ethFolDir "xxv_ethernet_0.xml"]
 set hermesComponentXml [file join $daphne_ip_root "src" "dune.daq_user_hermes_daphne_1.0" "component.xml"]
 set hermesXguiDir [file join $daphne_ip_root "src" "dune.daq_user_hermes_daphne_1.0" "xgui"]
 set XGUIFolDir [file join $daphne_ip_root "xgui"]
@@ -44,6 +45,15 @@ if {$daphne_eth_mode eq "create_ip" && [file exists $ethFolDir]} {
         puts "INFO: IP 'XXV Ethernet' already exists at $ethFolDir."
         puts "INFO: Deleting older version of IP XXV Ethernet..."
         file delete -force $ethFolDir
+    }
+}
+
+if {$daphne_eth_mode ne "create_ip"} {
+    foreach staleEthFile [list $ethXCIDir $ethXMLDir] {
+        if {[file exists $staleEthFile]} {
+            puts "INFO: Deleting stale Ethernet IP artifact $staleEthFile for vendored HDL mode."
+            file delete -force $staleEthFile
+        }
     }
 }
 
