@@ -1,0 +1,33 @@
+CAPI=2:
+
+name: dune-daq:daphne:frontend-test:0.1.0
+description: AXI-Lite smoke test for the DAPHNE frontend alignment and trigger register block
+
+filesets:
+  rtl:
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd
+      - ../../ip_repo/daphne3_ip/rtl/frontend/fe_axi.vhd
+    file_type: vhdlSource
+  tb:
+    files:
+      - ../../tests/logic/fe_axi_smoke_tb.vhd
+    file_type: vhdlSource
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl
+  sim:
+    <<: *default_target
+    default_tool: ghdl
+    filesets_append:
+      - tb
+    toplevel: fe_axi_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us
