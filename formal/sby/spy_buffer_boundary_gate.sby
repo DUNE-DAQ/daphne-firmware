@@ -1,0 +1,17 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+# Boundary-level proof: spy capture enable is exactly the documented readiness
+# conjunction.
+ghdl --std=08 ../../rtl/isolated/common/daphne_subsystem_pkg.vhd ../../rtl/isolated/subsystems/spy/spy_buffer_boundary.vhd ../vhdl/spy_buffer_boundary_formal.vhd -e spy_buffer_boundary_formal
+prep -top spy_buffer_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/spy/spy_buffer_boundary.vhd
+../vhdl/spy_buffer_boundary_formal.vhd
