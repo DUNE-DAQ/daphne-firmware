@@ -8,7 +8,7 @@ provider:
 filesets:
   platform:
     depend:
-      - dune-daq:daphne:daphne3-modular:0.1.0
+      - dune-daq:daphne:daphne-modular:0.1.0
     files:
       - ../../boards/k26c/board.yml
       - ../../Memory_Map.md

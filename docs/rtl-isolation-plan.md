@@ -54,6 +54,15 @@ subsystem boundaries with neutral names.
 ## Proposed tree
 
 ```text
+cores/common/
+  daphne-subsystem-types.core
+cores/features/
+  control-plane.core
+  frontend-boundary.core
+  hermes-boundary.core
+  timing-subsystem.core
+  trigger-pipeline.core
+  daphne-modular.core
 rtl/isolated/
   common/
     daphne_subsystem_pkg.vhd
@@ -101,3 +110,5 @@ rtl/isolated/
 3. Add per-module contract documents.
 4. Preserve the legacy/generated Vivado build path untouched.
 5. Prepare for future formal harnesses by defining typed internal interfaces.
+6. Reflect the subsystem boundaries directly in the FuseSoC graph before
+   rewiring any imported implementation logic.

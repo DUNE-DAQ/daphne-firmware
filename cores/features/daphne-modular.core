@@ -1,11 +1,18 @@
 CAPI=2:
 
-name: dune-daq:daphne:daphne3-modular:0.1.0
-description: Modular top-level source manifest assembled from reusable feature blocks
+name: dune-daq:daphne:daphne-modular:0.1.0
+description: Modular top-level source manifest assembled from reusable feature and boundary blocks
 provider:
   name: local
 
 filesets:
+  rtl_boundaries:
+    depend:
+      - dune-daq:daphne:control-plane:0.1.0
+      - dune-daq:daphne:frontend-boundary:0.1.0
+      - dune-daq:daphne:hermes-boundary:0.1.0
+      - dune-daq:daphne:timing-subsystem:0.1.0
+      - dune-daq:daphne:trigger-pipeline:0.1.0
   rtl_top:
     depend:
       - dune-daq:daphne:afe-interface:0.1.0
@@ -27,4 +34,5 @@ filesets:
 targets:
   default:
     filesets:
+      - rtl_boundaries
       - rtl_top

@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:timing-subsystem:0.1.0
+description: Neutral timing control and readiness boundary wrapper around the unchanged endpoint path
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/timing/timing_subsystem_boundary.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
