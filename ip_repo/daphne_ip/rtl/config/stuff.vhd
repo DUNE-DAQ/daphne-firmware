@@ -114,7 +114,7 @@ architecture stuff_arch of stuff is
 
     signal reset: std_logic;
     signal fan_count_reg: std_logic_vector(11 downto 0) := X"000";
-    signal fan_speed_reg: std_logic_vector(7 downto 0) := X"FF"; 
+    signal fan_speed_cfg_reg: std_logic_vector(7 downto 0);
     signal fan_ctrl_reg: std_logic;
     signal fan0_rpm, fan1_rpm: std_logic_vector(11 downto 0);
     signal stat_led_reg: std_logic_vector(5 downto 0) := "000000";
@@ -170,20 +170,19 @@ reset <= not S_AXI_ARESETN;
 
 -- take the 100MHz AXI clock and divide it by 4096 to produce 24.4kHz clock
 -- suitable for driving the fan speed pwm signal. duty cycle is controlled by
--- fan_speed_reg: 0 = fan off, 255 = fan full speed.
+-- fan_speed_cfg_reg: 0 = fan off, 255 = fan full speed.
 
 fanspeed_proc: process(S_AXI_ACLK)
 begin
     if rising_edge(S_AXI_ACLK) then
         if (reset='1') then
             fan_count_reg <= (others=>'0');
-            fan_speed_reg <= X"FF";
             fan_ctrl_reg <= '0';
         else
             fan_count_reg <= std_logic_vector( unsigned(fan_count_reg) + 1 );
             if (fan_count_reg = X"000") then
                 fan_ctrl_reg <= '1'; 
-            elsif (fan_count_reg(11 downto 4)=fan_speed_reg) then
+            elsif (fan_count_reg(11 downto 4)=fan_speed_cfg_reg) then
                 fan_ctrl_reg <= '0';
             end if;
         end if;
@@ -294,7 +293,7 @@ process (S_AXI_ACLK)
 begin
   if rising_edge(S_AXI_ACLK) then 
     if (S_AXI_ARESETN = '0') then
-        fan_speed_reg <= X"FF";
+        fan_speed_cfg_reg <= X"FF";
         hvbias_en_reg <= '0';
         mux_en_reg <= "00";
         mux_a_reg <= "00";
@@ -316,7 +315,7 @@ begin
         case ( axi_awaddr(6 downto 0) ) is
 
           when FANCTRL_OFFSET => 
-            fan_speed_reg <= S_AXI_WDATA(7 downto 0);
+            fan_speed_cfg_reg <= S_AXI_WDATA(7 downto 0);
 
           when HVBIAS_OFFSET => 
             hvbias_en_reg <= S_AXI_WDATA(0);
@@ -457,7 +456,7 @@ end process;
 
 reg_rden <= axi_arready and S_AXI_ARVALID and (not axi_rvalid) ;
 
-reg_data_out <= (X"000000" & fan_speed_reg)                       when (axi_araddr(6 downto 0)=FANCTRL_OFFSET) else
+reg_data_out <= (X"000000" & fan_speed_cfg_reg)                   when (axi_araddr(6 downto 0)=FANCTRL_OFFSET) else
                 (X"00000" & fan0_rpm)                             when (axi_araddr(6 downto 0)=FAN0SPD_OFFSET) else
                 (X"00000" & fan1_rpm)                             when (axi_araddr(6 downto 0)=FAN1SPD_OFFSET) else
                 (X"0000000" & "000" & hvbias_en_reg)              when (axi_araddr(6 downto 0)=HVBIAS_OFFSET) else
