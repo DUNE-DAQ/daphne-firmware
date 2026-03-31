@@ -109,7 +109,8 @@ That work belongs to the next packaging phase around PetaLinux and boot-image
 assembly.
 
 The first repo-owned scaffold for that phase now lives under
-`petalinux/meta-daphne/`.
+`petalinux/meta-daphne/`, and the first project-integration helper lives at
+`scripts/petalinux/bootstrap_kr260_project.sh`.
 
 ## Recommended next milestone
 

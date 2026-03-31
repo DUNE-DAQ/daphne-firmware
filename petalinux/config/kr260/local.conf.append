@@ -1,0 +1,2 @@
+# DAPHNE image package set
+IMAGE_INSTALL:append = " daphne-overlay daphne-server daphne-services"
