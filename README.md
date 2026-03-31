@@ -83,8 +83,18 @@ Current board-supported path:
 
 ```bash
 export DAPHNE_BOARD=k26c
+./scripts/fusesoc/fusesoc.sh run --target=impl dune-daq:daphne:k26c-platform:0.1.0
+```
+
+The convenience wrapper now dispatches through the same FuseSoC target:
+
+```bash
+export DAPHNE_BOARD=k26c
 ./scripts/fusesoc/run_vivado_batch.sh
 ```
+
+This target still preserves the qualified `xilinx/vivado_batch.tcl` flow; the
+change is that FuseSoC now owns the top-level entry point and work root.
 
 If Vivado runs on a remote server instead of the local workstation, use the
 repo-local runbook and wrapper:
