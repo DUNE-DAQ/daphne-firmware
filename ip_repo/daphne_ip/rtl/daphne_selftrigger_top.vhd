@@ -35,7 +35,6 @@ port(
     hvbias_en: out std_logic; -- enable HV bias source
     mux_en: out std_logic_vector(1 downto 0); -- analog mux enables
     mux_a: out std_logic_vector(1 downto 0); -- analog mux addr selects
-    gpi: in std_logic; -- testpoint input
 
     -- optical timing endpoint interface signals
 
