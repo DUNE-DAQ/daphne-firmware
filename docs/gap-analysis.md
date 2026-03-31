@@ -45,6 +45,11 @@
   A generated bitstream and `.xsa` now exist from the new repo flow, but there
   is still no qualified `.dtbo`, boot image, or server-on-target validation.
 
+- Full bootable firmware packaging.
+  The repo can be driven to a stable overlay-bundle step, but it still does not
+  produce the full golden-style boot package with `BOOT.BIN`, kernel,
+  `system.dtb`, rootfs image, and QSPI/eMMC staging artifacts.
+
 - Linux/C++ dependency bundling inside this repo.
   The lockfile is mirrored, but the actual dependency tarball and deployment
   scripts still live with `daphne-server`.
@@ -58,5 +63,7 @@
    trigger-descriptor boundaries.
 4. Decide how device-tree and board-owned MAC/IP provisioning are generated
    from the PetaLinux side without refactoring Hermes transport behavior.
-5. Add a PetaLinux-native deploy bundle flow that consumes the generated
+5. Add a repo-local post-build overlay packaging step from `.xsa` to `.dtbo`
+   and qualify it against the known-good golden DTB.
+6. Add a PetaLinux-native deploy bundle flow that consumes the generated
    firmware outputs and co-installs `daphne-server`.
