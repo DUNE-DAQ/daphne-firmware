@@ -1,0 +1,18 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+# Boundary-level proof: the neutral Hermes handoff wrapper does not consume
+# descriptors and exposes only the null status record.
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd hermes_boundary.vhd hermes_boundary_formal.vhd -e hermes_boundary_formal
+prep -top hermes_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/hermes/hermes_boundary.vhd
+../vhdl/hermes_boundary_formal.vhd

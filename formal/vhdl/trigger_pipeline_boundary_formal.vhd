@@ -3,13 +3,15 @@ use ieee.std_logic_1164.all;
 use work.daphne_subsystem_pkg.all;
 
 entity trigger_pipeline_boundary_formal is
+  port (
+    clk            : in std_logic;
+    reset          : in std_logic;
+    readiness      : in acquisition_readiness_t;
+    descriptor_rdy : in std_logic
+  );
 end entity trigger_pipeline_boundary_formal;
 
 architecture formal of trigger_pipeline_boundary_formal is
-  signal clk              : std_logic := '0';
-  signal reset            : std_logic := '0';
-  signal descriptor_rdy   : std_logic := '0';
-  signal readiness        : acquisition_readiness_t := ACQUISITION_READINESS_NULL;
   signal trigger_enable   : std_logic;
   signal descriptor       : trigger_descriptor_t;
 begin
@@ -28,6 +30,7 @@ begin
   -- readiness contract, and the wrapper itself does not synthesize a
   -- descriptor.
   assert trigger_enable = (
+    (not reset) and
     readiness.config_ready and
     readiness.timing_ready and
     readiness.alignment_ready
@@ -37,5 +40,21 @@ begin
 
   assert descriptor = TRIGGER_DESCRIPTOR_NULL
     report "boundary wrapper must not synthesize a descriptor"
+    severity failure;
+
+  assert (reset = '0') or (trigger_enable = '0')
+    report "trigger_enable_o must stay low while reset is asserted"
+    severity failure;
+
+  assert (readiness.config_ready = '1') or (trigger_enable = '0')
+    report "trigger_enable_o must stay low until configuration is ready"
+    severity failure;
+
+  assert (readiness.timing_ready = '1') or (trigger_enable = '0')
+    report "trigger_enable_o must stay low until timing is ready"
+    severity failure;
+
+  assert (readiness.alignment_ready = '1') or (trigger_enable = '0')
+    report "trigger_enable_o must stay low until alignment is ready"
     severity failure;
 end architecture formal;

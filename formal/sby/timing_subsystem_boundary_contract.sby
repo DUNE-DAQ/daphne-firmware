@@ -1,0 +1,18 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+# Boundary-level proof: the neutral timing wrapper exposes only null status
+# and zero-valued timestamp/sync outputs regardless of ignored control inputs.
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd timing_subsystem_boundary.vhd timing_subsystem_boundary_formal.vhd -e timing_subsystem_boundary_formal
+prep -top timing_subsystem_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/timing/timing_subsystem_boundary.vhd
+../vhdl/timing_subsystem_boundary_formal.vhd

@@ -24,6 +24,6 @@ targets:
   formal:
     filesets:
       - rtl
-    description: Formal proof scaffold for frontend alignment validity gating
+    description: Formal proof of frontend alignment validity gating and reset inhibition
     filesets_append:
       - formal

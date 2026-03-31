@@ -22,7 +22,8 @@ begin
     variable align_stat_q : frontend_alignment_status_t;
   begin
     align_stat_q := align_stat_i;
-    align_stat_q.alignment_valid := prereq_i.config_ready and
+    align_stat_q.alignment_valid := resetn_axi and
+                                    prereq_i.config_ready and
                                     prereq_i.timing_ready and
                                     align_stat_i.idelayctrl_ready and
                                     align_stat_i.format_ok and

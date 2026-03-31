@@ -6,15 +6,14 @@ depth 20
 smtbmc z3
 
 [script]
-# Scaffold only. This currently checks elaboration and pins the proof entry
-# point to the threshold register bank while the rest of the repo is being
-# decomposed into reusable blocks.
-# TODO: add a harness that proves reset-to-all-ones behavior, address decode
-# coverage for channels 0..39, and rejection of partial writes.
+# Prove reset-to-all-ones behavior, address decode across channels 0..39,
+# partial-write rejection, and readable register image consistency for the
+# threshold AXI-Lite register bank.
 plugin -i ghdl
-ghdl --std=08 daphne_package.vhd thresholds.vhd -e thresholds
-prep -top thresholds
+ghdl --std=08 daphne_package.vhd thresholds.vhd thresholds_axi_formal.vhd -e thresholds_axi_formal
+prep -top thresholds_axi_formal
 
 [files]
 ../../ip_repo/daphne_ip/rtl/daphne_package.vhd
 ../../ip_repo/daphne_ip/rtl/selftrig/thresholds.vhd
+../vhdl/thresholds_axi_formal.vhd

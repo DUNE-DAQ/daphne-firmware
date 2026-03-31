@@ -12,8 +12,18 @@ filesets:
     files:
       - ../../rtl/isolated/subsystems/timing/timing_subsystem_boundary.vhd
     file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/timing_subsystem_boundary_contract.sby
+    file_type: user
 
 targets:
   default:
     filesets:
       - rtl
+  formal:
+    filesets:
+      - rtl
+    description: Formal proof that the neutral timing wrapper holds null status and zero-valued outputs
+    filesets_append:
+      - formal

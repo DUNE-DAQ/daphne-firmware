@@ -12,8 +12,18 @@ filesets:
     files:
       - ../../rtl/isolated/subsystems/analog/analog_control_boundary.vhd
     file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/analog_control_boundary_contract.sby
+    file_type: user
 
 targets:
   default:
     filesets:
       - rtl
+  formal:
+    filesets:
+      - rtl
+    description: Formal proof of reset-qualified analog configuration readiness
+    filesets_append:
+      - formal

@@ -1,0 +1,18 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+# Boundary-level proof: analog readiness is the reset-qualified conjunction of
+# AFE/DAC reset release and configuration validity.
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd analog_control_boundary.vhd analog_control_boundary_formal.vhd -e analog_control_boundary_formal
+prep -top analog_control_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/analog/analog_control_boundary.vhd
+../vhdl/analog_control_boundary_formal.vhd

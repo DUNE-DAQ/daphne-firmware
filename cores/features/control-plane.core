@@ -12,8 +12,18 @@ filesets:
     files:
       - ../../rtl/isolated/subsystems/control/control_plane_boundary.vhd
     file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/control_plane_boundary_contract.sby
+    file_type: user
 
 targets:
   default:
     filesets:
       - rtl
+  formal:
+    filesets:
+      - rtl
+    description: Formal proof that the neutral control-plane boundary drives only null timing control
+    filesets_append:
+      - formal

@@ -66,6 +66,6 @@ targets:
   formal:
     filesets:
       - rtl_axi_smoke
-    description: Formal scaffold for the AXI-Lite register interface
+    description: Formal proof of the AXI-Lite register interface reset, readback, and pulse behavior
     filesets_append:
       - formal
