@@ -24,9 +24,37 @@ filesets:
       - ../../xilinx/scripts/axi_quad_spi_dtbo_patch.sed
       - ../../xilinx/vivado_batch.tcl
     file_type: user
+  hooks:
+    files:
+      - ../../scripts/fusesoc/vivado_batch_hook.sh
+    file_type: user
+
+scripts:
+  vivado_batch:
+    cmd:
+      - sh
+      - scripts/fusesoc/vivado_batch_hook.sh
+    filesets:
+      - hooks
 
 targets:
   default:
     description: Source-only platform manifest for the current K26C build flow
     filesets:
       - platform
+  impl:
+    description: FuseSoC entry point for the qualified K26C Vivado batch flow
+    default_tool: vivado
+    toplevel: daphne_selftrigger_bd_wrapper
+    filesets:
+      - platform
+    hooks:
+      pre_build:
+        - vivado_batch
+    tools:
+      vivado:
+        part: xck26-sfvc784-2LV-c
+        board_part: xilinx.com:k26c:part0:1.4
+        synth: none
+        pnr: none
+        source_mgmt_mode: None
