@@ -9,3 +9,4 @@ Planned payload once the build handoff is wired:
 Source of truth:
 - xilinx/output/
 - scripts/package/complete_dtbo_bundle.sh
+- scripts/petalinux/stage_overlay_into_project.sh

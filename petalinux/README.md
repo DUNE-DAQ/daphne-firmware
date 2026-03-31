@@ -41,3 +41,20 @@ To attach the repo-owned layer to an existing PetaLinux project:
 That step does not create the project for you and does not yet produce a full
 bootable image. It only makes the DAPHNE layer, DT append points, and package
 set visible to the project in a reproducible way.
+
+## Current firmware staging point
+
+After the hardware build has produced the overlay bundle in `xilinx/output/`:
+
+```bash
+./scripts/petalinux/stage_overlay_into_project.sh /path/to/petalinux-project
+```
+
+That copies the latest generated overlay payload into:
+
+```text
+project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged/
+```
+
+so the `daphne-overlay` recipe has a repo-owned place to install the qualified
+firmware artifacts from.

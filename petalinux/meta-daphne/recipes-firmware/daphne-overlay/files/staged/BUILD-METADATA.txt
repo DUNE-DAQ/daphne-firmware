@@ -1,0 +1,10 @@
+No staged overlay artifacts have been installed yet.
+
+Populate this directory through:
+  scripts/petalinux/stage_overlay_into_project.sh
+
+Expected staged payload after qualification:
+  daphne-overlay.dtbo
+  daphne-overlay.bin
+  shell.json
+  SHA256SUMS
