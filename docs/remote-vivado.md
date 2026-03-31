@@ -64,6 +64,13 @@ The Vivado flow should populate `xilinx/output/` with artifacts such as:
 - `.dtbo`
 - timing/utilization/power reports
 
+If the Vivado run stops after `.xsa` / `.bin`, complete the overlay packaging
+step with:
+
+```bash
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output
+```
+
 The wrapper script also records:
 
 - `build/remote-vivado/<timestamp>/run.env`

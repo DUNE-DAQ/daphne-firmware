@@ -85,6 +85,13 @@ artifacts, especially:
 - `.xsa`
 - implementation reports
 
+Then, from WSL with `xsct` and `dtc` available on `PATH`, finish the overlay
+packaging step outside Vivado:
+
+```bash
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output
+```
+
 The WSL wrapper also records:
 
 - `build/wsl-vivado/<timestamp>/run.env`

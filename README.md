@@ -98,10 +98,17 @@ If you are in WSL2 and Vivado/Vitis 2024.1 are installed on Windows, use:
 See `docs/remote-vivado.md`, `docs/wsl-windows-vivado.md`, and
 `docs/agent-handoff.md`.
 
+To finish the DT overlay packaging from an existing `.xsa` / `.bin` pair:
+
+```bash
+./scripts/package/complete_dtbo_bundle.sh
+```
+
 The current isolation/formal-prep structure is described in
 `docs/rtl-isolation-plan.md`, the dependency transition is tracked in
 `docs/dependency-transition-plan.md`, and the current qualified build
-checkpoint is recorded in `docs/build-baseline.md`.
+checkpoint is recorded in `docs/build-baseline.md`. The current firmware
+artifact boundary is documented in `docs/firmware-delivery.md`.
 
 Optional overrides:
 
