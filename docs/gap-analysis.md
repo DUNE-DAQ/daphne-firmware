@@ -21,10 +21,11 @@
 
 ## Still missing
 
-- Full top-level FuseSoC integration for the complete Vivado design.
-  Reason: the design now has modular CAPI2 source manifests, but the qualified
-  implementation path still consumes the generated legacy manifest and Vivado BD
-  flow for safety.
+- Full FuseSoC-native Vivado ownership for the complete design.
+  Reason: the repo now has a top-level FuseSoC `impl` entry point for the
+  qualified K26C batch flow, but the actual implementation still runs through
+  the legacy `vivado_batch.tcl` path and the artifact/export packaging remains
+  outside the FuseSoC target.
 
 - Fully local tool execution in this macOS workspace.
   Local FuseSoC/GHDL smoke tests run here, but the qualified Vivado build path
