@@ -8,7 +8,8 @@ smtbmc z3
 [script]
 # Boundary-level proof: trigger enable is exactly the documented readiness
 # conjunction, and the wrapper does not synthesize a descriptor on its own.
-ghdl --std=08 ../../rtl/isolated/common/daphne_subsystem_pkg.vhd ../../rtl/isolated/subsystems/trigger/trigger_pipeline_boundary.vhd ../vhdl/trigger_pipeline_boundary_formal.vhd -e trigger_pipeline_boundary_formal
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd trigger_pipeline_boundary.vhd trigger_pipeline_boundary_formal.vhd -e trigger_pipeline_boundary_formal
 prep -top trigger_pipeline_boundary_formal
 
 [files]

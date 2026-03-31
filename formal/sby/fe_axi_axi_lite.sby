@@ -11,7 +11,8 @@ smtbmc z3
 # TODO: add a formal harness with AXI-Lite environment assumptions and
 # assertions for reset defaults, partial-write rejection, and trigger pulse
 # width.
-ghdl --std=08 ../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd ../../ip_repo/daphne3_ip/rtl/frontend/fe_axi.vhd -e fe_axi
+plugin -i ghdl
+ghdl --std=08 daphne3_package.vhd fe_axi.vhd -e fe_axi
 prep -top fe_axi
 
 [files]
