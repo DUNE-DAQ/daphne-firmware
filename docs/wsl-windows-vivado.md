@@ -60,8 +60,11 @@ This performs:
 1. WSL tool check
 2. `./scripts/fusesoc/preflight_vivado_build.sh`
 3. `./scripts/fusesoc/run_vivado_batch.sh`
+4. `./scripts/package/complete_dtbo_bundle.sh`
 
 and stores logs under `build/wsl-vivado/<timestamp>/`.
+
+This is the intended single-command path for WSL-driven Windows builds.
 
 ## Output directory rule
 
@@ -132,7 +135,7 @@ For a commit-specific run, the main files should be:
 - `xilinx/output-<gitsha>/daphne_selftrigger_<gitsha>.bin`
 - `xilinx/output-<gitsha>/daphne_selftrigger_<gitsha>.xsa`
 
-Then finish the overlay packaging step outside Vivado:
+If you want to run the packaging step separately, use:
 
 ```bash
 ./scripts/package/complete_dtbo_bundle.sh ./xilinx/output

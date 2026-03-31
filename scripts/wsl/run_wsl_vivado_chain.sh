@@ -7,6 +7,7 @@ ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
 LOG_DIR="${DAPHNE_WSL_LOG_DIR:-$ROOT_DIR/build/wsl-vivado}"
 RUN_ID="${DAPHNE_WSL_RUN_ID:-$(date +%Y%m%d-%H%M%S)}"
 RUN_DIR="$LOG_DIR/$RUN_ID"
+PACKAGE_DTBO="${DAPHNE_WSL_PACKAGE_DTBO:-1}"
 
 . "$ROOT_DIR/scripts/wsl/setup_windows_xilinx.sh"
 
@@ -19,6 +20,28 @@ export DAPHNE_BOARD="$BOARD"
 export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_GIT_SHA="${DAPHNE_GIT_SHA:-$commit_sha}"
 
+resolve_output_dir() {
+  output_dir_value="${DAPHNE_OUTPUT_DIR-}"
+  if [ -z "$output_dir_value" ]; then
+    printf '%s\n' "$ROOT_DIR/xilinx/output"
+    return 0
+  fi
+
+  case "$output_dir_value" in
+    /*)
+      printf '%s\n' "$output_dir_value"
+      ;;
+    ./*)
+      printf '%s\n' "$ROOT_DIR/xilinx/${output_dir_value#./}"
+      ;;
+    *)
+      printf '%s\n' "$ROOT_DIR/xilinx/$output_dir_value"
+      ;;
+  esac
+}
+
+OUTPUT_DIR="$(resolve_output_dir)"
+
 {
   printf 'run_id=%s\n' "$RUN_ID"
   printf 'kernel=%s\n' "$(uname -r)"
@@ -28,6 +51,8 @@ export DAPHNE_GIT_SHA="${DAPHNE_GIT_SHA:-$commit_sha}"
   printf 'eth_mode=%s\n' "$ETH_MODE"
   printf 'root_dir=%s\n' "$ROOT_DIR"
   printf 'log_dir=%s\n' "$RUN_DIR"
+  printf 'output_dir=%s\n' "$OUTPUT_DIR"
+  printf 'package_dtbo=%s\n' "$PACKAGE_DTBO"
   printf 'vivado=%s\n' "$(command -v vivado)"
   printf 'xsct=%s\n' "$(command -v xsct || true)"
   printf 'vivado_bat=%s\n' "$DAPHNE_WSL_VIVADO_BAT"
@@ -54,7 +79,13 @@ echo "INFO: logs will be written under $RUN_DIR"
   ./scripts/fusesoc/run_vivado_batch.sh
 ) 2>&1 | tee "$RUN_DIR/build.log"
 
-OUTPUT_DIR="${DAPHNE_OUTPUT_DIR:-$ROOT_DIR/xilinx/output}"
+if [ "$PACKAGE_DTBO" = "1" ]; then
+  (
+    cd "$ROOT_DIR"
+    ./scripts/package/complete_dtbo_bundle.sh "$OUTPUT_DIR"
+  ) 2>&1 | tee "$RUN_DIR/package.log"
+fi
+
 {
   echo "output_dir=$OUTPUT_DIR"
   if [ -d "$OUTPUT_DIR" ]; then
@@ -66,4 +97,7 @@ echo "INFO: WSL Vivado chain completed."
 echo "INFO: Tool check log: $RUN_DIR/toolcheck.log"
 echo "INFO: Preflight log: $RUN_DIR/preflight.log"
 echo "INFO: Build log: $RUN_DIR/build.log"
+if [ "$PACKAGE_DTBO" = "1" ]; then
+  echo "INFO: Packaging log: $RUN_DIR/package.log"
+fi
 echo "INFO: Artifact listing: $RUN_DIR/artifacts.txt"
