@@ -106,12 +106,16 @@ The repo still does **not** yet generate:
 - QSPI or eMMC staging images
 
 That work belongs to the next packaging phase around PetaLinux and boot-image
-assembly.
+assembly, which now has a terminal-driven wrapper in
+`scripts/petalinux/build_kr260_image.sh`.
 
 The first repo-owned scaffold for that phase now lives under
-`petalinux/meta-daphne/`, and the first project-integration helper lives at
-`scripts/petalinux/bootstrap_kr260_project.sh`. A terminal-driven project
-creation/import wrapper now lives at `scripts/petalinux/init_kr260_project.sh`.
+`petalinux/meta-daphne/`, and the current project wrappers live at:
+
+- `scripts/petalinux/bootstrap_kr260_project.sh`
+- `scripts/petalinux/init_kr260_project.sh`
+- `scripts/petalinux/build_kr260_image.sh`
+- `scripts/petalinux/collect_project_artifacts.sh`
 
 ## Recommended next milestone
 
@@ -122,7 +126,8 @@ then build outward toward the golden-package shape:
 2. compare the resulting DT outputs against the known-good golden DTB,
 3. stage the generated overlay bundle into the PetaLinux project through
    `scripts/petalinux/stage_overlay_into_project.sh`,
-4. define the board-owned DT inputs for MAC/IP defaults and optional IP,
-5. add boot-image assembly (`BOOT.BIN`, kernel, DTB),
-6. add full PetaLinux/rootfs packaging only after the firmware artifact chain is
-   stable.
+4. build and collect the image into `petalinux/output/<project-name>/` through
+   `scripts/petalinux/build_kr260_image.sh`,
+5. define the board-owned DT inputs for MAC/IP defaults and optional IP,
+6. replace placeholder userspace/service recipes with real packages,
+7. validate the resulting bundle against the known-good golden image.

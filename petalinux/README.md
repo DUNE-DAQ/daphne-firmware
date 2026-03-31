@@ -15,13 +15,17 @@ Current contents:
   attaching that layer to an initialized KR260 PetaLinux project.
 - `scripts/petalinux/init_kr260_project.sh` for terminal-driven project
   creation/import plus hardware-handoff application.
+- `scripts/petalinux/build_kr260_image.sh` and
+  `scripts/petalinux/collect_project_artifacts.sh` for repo-owned
+  `petalinux-build`, boot packaging, and image artifact collection into a
+  stable bundle.
 
 Still missing before this repo can be considered a full Petalinux deliverable:
 
 - a build-tested integration of `meta-daphne/` into a real KR260 PetaLinux
   project;
-- a reproducible boot asset layout (`BOOT.BIN`, image bundle, overlay install
-  path, service unit);
+- non-placeholder Yocto recipes for `daphne-server` and the systemd service
+  chain;
 - an automated handoff from the firmware build outputs
   (`xilinx/output/*.xsa`, `.bit`, `.dtbo`) to the board image build;
 - a validated target rootfs test on a Linux/Petalinux host.
@@ -49,6 +53,32 @@ That wrapper:
 - runs `petalinux-config --get-hw-description`,
 - attaches `meta-daphne`,
 - optionally stages the generated overlay artifacts.
+
+## Current full build wrapper
+
+To drive the repo-owned flow through `petalinux-build`, boot packaging, and
+bundle collection:
+
+```bash
+./scripts/petalinux/build_kr260_image.sh \
+  /path/to/petalinux-project \
+  /path/to/hw-handoff-dir \
+  --output-dir ./xilinx/output
+```
+
+That wrapper:
+
+- creates or reuses the project,
+- runs `petalinux-config --get-hw-description`,
+- attaches `meta-daphne`,
+- optionally stages the overlay bundle,
+- runs `petalinux-build`,
+- runs `petalinux-package --boot --u-boot --force`,
+- collects the resulting artifacts into:
+
+```text
+petalinux/output/<project-name>/
+```
 
 If you already have an initialized project and only want to attach the layer,
 use the lower-level bootstrap script:
@@ -79,3 +109,21 @@ project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged/
 
 so the `daphne-overlay` recipe has a repo-owned place to install the qualified
 firmware artifacts from.
+
+## Collected bundle layout
+
+After `build_kr260_image.sh` succeeds, the repo-owned bundle directory contains
+the collected output shape:
+
+```text
+petalinux/output/<project-name>/
+  boot/
+  rootfs/
+  overlay/
+  meta/
+  MANIFEST.txt
+  SHA256SUMS
+```
+
+This does not guarantee that the build matches the golden image yet, but it
+gives the repo a stable place to compare against `~/golden/`.
