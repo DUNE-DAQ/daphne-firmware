@@ -1,0 +1,19 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+# Boundary-level proof: alignment_valid is exactly the conjunction of
+# configuration, timing, observed training/format readiness, and deasserted
+# reset controls.
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd frontend_boundary.vhd frontend_boundary_formal.vhd -e frontend_boundary_formal
+prep -top frontend_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/frontend/frontend_boundary.vhd
+../vhdl/frontend_boundary_formal.vhd

@@ -1,4 +1,5 @@
 fe_axi_axi_lite/
+frontend_boundary_gate/
 thresholds_axi_lite/
 trigger_pipeline_boundary_gate/
 spy_buffer_boundary_gate/

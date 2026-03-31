@@ -19,8 +19,14 @@ samples are considered valid for downstream use.
   ready to be trusted.
 - Downstream logic can distinguish "configured" from merely "wired".
 - Training-pattern validation is tied to the documented 16-bit FCLK contract.
+- `alignment_valid` must not assert unless:
+  - configuration is ready
+  - timing is ready
+  - `idelayctrl_ready = 1`
+  - format and training checks are both good
+  - delay-control and SERDES resets are deasserted
 
 ## Evidence target
 
-- documentation now
-- simulation and assertions on alignment gating later
+- boundary-level formal on the `alignment_valid` gate now
+- simulation and deeper assertions on the imported alignment path later
