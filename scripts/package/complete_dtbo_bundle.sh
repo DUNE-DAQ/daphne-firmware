@@ -19,6 +19,40 @@ Generated outputs:
 EOF
 }
 
+is_wsl() {
+  uname -r | grep -qiE 'microsoft|wsl'
+}
+
+find_latest_xsa() {
+  find "$1" -maxdepth 1 -type f -name 'daphne3_st_*.xsa' | sort | tail -n 1
+}
+
+select_xsct_output_dir() {
+  local requested_dir mirror_dir
+
+  requested_dir="$1"
+  case "$requested_dir" in
+    /mnt/[a-zA-Z]/*)
+      printf '%s\n' "$requested_dir"
+      return 0
+      ;;
+  esac
+
+  if is_wsl; then
+    case "$requested_dir" in
+      /home/*)
+        mirror_dir="/mnt/c${requested_dir}"
+        if [[ -d "$mirror_dir" ]]; then
+          printf '%s\n' "$mirror_dir"
+          return 0
+        fi
+        ;;
+    esac
+  fi
+
+  printf '%s\n' "$requested_dir"
+}
+
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
     echo "ERROR: required command '$1' not found on PATH" >&2
@@ -52,6 +86,7 @@ fi
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 OUTPUT_DIR_INPUT="${1:-${DAPHNE_OUTPUT_DIR:-$ROOT_DIR/xilinx/output}}"
 OUTPUT_DIR="$(CDPATH= cd -- "$OUTPUT_DIR_INPUT" && pwd)"
+XSCT_OUTPUT_DIR="$(select_xsct_output_dir "$OUTPUT_DIR")"
 DTBO_GEN_TCL="$ROOT_DIR/xilinx/daphne3_dtbo_gen.tcl"
 AXI_SPI_PATCH="$ROOT_DIR/xilinx/scripts/axi_quad_spi_dtbo_patch.sed"
 if command -v sha256sum >/dev/null 2>&1; then
@@ -82,12 +117,14 @@ if [[ ! -f "$AXI_SPI_PATCH" ]]; then
   exit 2
 fi
 
-latest_xsa="$(
-  find "$OUTPUT_DIR" -maxdepth 1 -type f -name 'daphne3_st_*.xsa' | sort | tail -n 1
-)"
+latest_xsa="$(find_latest_xsa "$OUTPUT_DIR")"
+
+if [[ -z "$latest_xsa" && "$XSCT_OUTPUT_DIR" != "$OUTPUT_DIR" ]]; then
+  latest_xsa="$(find_latest_xsa "$XSCT_OUTPUT_DIR")"
+fi
 
 if [[ -z "$latest_xsa" ]]; then
-  echo "ERROR: no daphne3_st_*.xsa found in $OUTPUT_DIR" >&2
+  echo "ERROR: no daphne3_st_*.xsa found in $OUTPUT_DIR or $XSCT_OUTPUT_DIR" >&2
   exit 2
 fi
 
@@ -96,29 +133,36 @@ git_sha="${xsa_basename#daphne3_st_}"
 git_sha="${git_sha%.xsa}"
 
 bin_file="$OUTPUT_DIR/daphne3_st_${git_sha}.bin"
+bin_input_file="$bin_file"
+if [[ ! -f "$bin_input_file" ]]; then
+  bin_input_file="$XSCT_OUTPUT_DIR/daphne3_st_${git_sha}.bin"
+fi
 dtbo_file="$OUTPUT_DIR/daphne3_st_${git_sha}.dtbo"
 overlay_dir="$OUTPUT_DIR/daphne3_st_OL_${git_sha}"
 overlay_zip="$OUTPUT_DIR/daphne3_st_OL_${git_sha}.zip"
 json_file="$OUTPUT_DIR/shell.json"
 
-if [[ ! -f "$bin_file" ]]; then
-  echo "ERROR: expected bitstream binary not found: $bin_file" >&2
+if [[ ! -f "$bin_input_file" ]]; then
+  echo "ERROR: expected bitstream binary not found in $OUTPUT_DIR or $XSCT_OUTPUT_DIR" >&2
   exit 2
 fi
 
 echo "INFO: completing DTBO bundle for git SHA $git_sha"
 echo "INFO: output dir = $OUTPUT_DIR"
+if [[ "$XSCT_OUTPUT_DIR" != "$OUTPUT_DIR" ]]; then
+  echo "INFO: xsct dir   = $XSCT_OUTPUT_DIR"
+fi
 echo "INFO: xsa        = $latest_xsa"
-echo "INFO: bin        = $bin_file"
+echo "INFO: bin        = $bin_input_file"
 
-xsct "$DTBO_GEN_TCL" "$latest_xsa" "$OUTPUT_DIR" "$git_sha"
+xsct "$DTBO_GEN_TCL" "$latest_xsa" "$XSCT_OUTPUT_DIR" "$git_sha"
 
 pl_dtsi_path="$(
-  find "$OUTPUT_DIR/daphne3_st_${git_sha}" -type f -name 'pl.dtsi' | sort | head -n 1
+  find "$XSCT_OUTPUT_DIR/daphne3_st_${git_sha}" -type f -name 'pl.dtsi' | sort | head -n 1
 )"
 
 if [[ -z "$pl_dtsi_path" ]]; then
-  echo "ERROR: XSCT completed but no pl.dtsi was generated under $OUTPUT_DIR/daphne3_st_${git_sha}" >&2
+  echo "ERROR: XSCT completed but no pl.dtsi was generated under $XSCT_OUTPUT_DIR/daphne3_st_${git_sha}" >&2
   exit 2
 fi
 
@@ -130,7 +174,7 @@ dtc -@ -O dtb -o "$dtbo_file" "$pl_dtsi_path"
 mkdir -p "$overlay_dir"
 printf '{ "shell_type" : "XRT_FLAT", "num_slots": "1" }\n' > "$json_file"
 cp -f "$dtbo_file" "$overlay_dir/daphne3_st_OL_${git_sha}.dtbo"
-cp -f "$bin_file" "$overlay_dir/daphne3_st_OL_${git_sha}.bin"
+cp -f "$bin_input_file" "$overlay_dir/daphne3_st_OL_${git_sha}.bin"
 cp -f "$json_file" "$overlay_dir/shell.json"
 
 (
