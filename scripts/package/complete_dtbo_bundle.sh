@@ -26,6 +26,24 @@ need_cmd() {
   }
 }
 
+ensure_xsct() {
+  if command -v xsct >/dev/null 2>&1; then
+    return 0
+  fi
+
+  setup_script="$ROOT_DIR/scripts/wsl/setup_windows_xilinx.sh"
+  if [[ -f "$setup_script" ]]; then
+    # shellcheck disable=SC1090
+    . "$setup_script"
+  fi
+
+  if ! command -v xsct >/dev/null 2>&1; then
+    echo "ERROR: required command 'xsct' not found on PATH" >&2
+    echo "ERROR: if you are running from WSL, source scripts/wsl/setup_windows_xilinx.sh first" >&2
+    exit 2
+  fi
+}
+
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   usage
   exit 0
@@ -45,7 +63,7 @@ else
   exit 2
 fi
 
-need_cmd xsct
+ensure_xsct
 need_cmd dtc
 need_cmd zip
 
