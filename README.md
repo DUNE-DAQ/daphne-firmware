@@ -84,7 +84,7 @@ Current board-supported path:
 ```bash
 export DAPHNE_BOARD=k26c
 export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
-./scripts/fusesoc/fusesoc.sh run --target=impl dune-daq:daphne:k26c-platform:0.1.0
+./scripts/fusesoc/build_platform.sh
 ```
 
 The convenience wrapper now dispatches through the same FuseSoC target:
@@ -92,6 +92,13 @@ The convenience wrapper now dispatches through the same FuseSoC target:
 ```bash
 export DAPHNE_BOARD=k26c
 ./scripts/fusesoc/run_vivado_batch.sh
+```
+
+To select the modular platform graph explicitly instead of the legacy source
+manifest, use:
+
+```bash
+./scripts/fusesoc/build_platform.sh --modular
 ```
 
 This target still preserves the qualified `xilinx/vivado_batch.tcl` flow; the

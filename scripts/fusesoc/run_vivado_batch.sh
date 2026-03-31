@@ -3,7 +3,6 @@ set -eu
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
-ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
 
 case "$BOARD" in
   k26c)
@@ -23,19 +22,7 @@ case "$BOARD" in
     ;;
 esac
 
-if ! command -v vivado >/dev/null 2>&1; then
-  echo "ERROR: vivado is not installed or not on PATH." >&2
-  exit 2
-fi
-
-if [ "$ETH_MODE" = "vendored_hdl" ]; then
-  echo "ERROR: DAPHNE_ETH_MODE=vendored_hdl is not qualified for full implementation yet." >&2
-  echo "Use DAPHNE_ETH_MODE=create_ip for the current WSL/Windows Vivado flow." >&2
-  exit 2
-fi
-
 export DAPHNE_BOARD="$BOARD"
-export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_FPGA_PART
 export DAPHNE_BOARD_PART
 export DAPHNE_PFM_NAME
@@ -46,4 +33,4 @@ if [ -z "${DAPHNE_GIT_SHA-}" ] && command -v git >/dev/null 2>&1; then
   fi
 fi
 
-exec "$ROOT_DIR/scripts/fusesoc/fusesoc.sh" run --target=impl dune-daq:daphne:k26c-platform:0.1.0
+exec "$ROOT_DIR/scripts/fusesoc/build_platform.sh" --platform-core dune-daq:daphne:k26c-platform:0.1.0

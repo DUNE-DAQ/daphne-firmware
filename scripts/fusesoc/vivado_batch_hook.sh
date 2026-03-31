@@ -82,6 +82,6 @@ append_env_tcl DAPHNE_ROUTE_DIRECTIVE
 append_env_tcl DAPHNE_POST_ROUTE_PHYSOPT_DIRECTIVE
 append_env_tcl XILINX_VITIS
 printf 'set script_dir [file dirname [file normalize [info script]]]\n' >>"$shim_tcl"
-printf 'source -notrace [file join $script_dir "vivado_batch.tcl"]\n' >>"$shim_tcl"
+printf 'source -notrace [file join $script_dir "vivado_impl_entry.tcl"]\n' >>"$shim_tcl"
 
 exec vivado -mode batch -source "$shim_tcl"

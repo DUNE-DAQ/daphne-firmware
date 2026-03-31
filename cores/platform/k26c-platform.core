@@ -10,23 +10,25 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-ip:0.1.0
     files:
-      - ../../boards/k26c/board.yml
-      - ../../Memory_Map.md
-      - ../../petalinux/README.md
-      - ../../petalinux/daphne-server-deps.lock.cmake
-      - ../../petalinux/toolchains/aarch64-petalinux.cmake
-      - ../../xilinx/daphne_selftrigger_pin_map.xdc
-      - ../../xilinx/daphne_bd_gen.tcl
-      - ../../xilinx/daphne_dtbo_gen.tcl
-      - ../../xilinx/daphne_ip_gen.tcl
-      - ../../xilinx/daphne_xgui_gen.tcl
-      - ../../xilinx/daphne_board_env.tcl
-      - ../../xilinx/scripts/axi_quad_spi_dtbo_patch.sed
-      - ../../xilinx/vivado_batch.tcl
+      - boards/k26c/board.yml
+      - Memory_Map.md
+      - petalinux/README.md
+      - petalinux/daphne-server-deps.lock.cmake
+      - petalinux/toolchains/aarch64-petalinux.cmake
+      - xilinx/daphne_selftrigger_pin_map.xdc
+      - xilinx/daphne_bd_gen.tcl
+      - xilinx/daphne_dtbo_gen.tcl
+      - xilinx/daphne_ip_gen.tcl
+      - xilinx/daphne_vivado_flow.tcl
+      - xilinx/daphne_xgui_gen.tcl
+      - xilinx/daphne_board_env.tcl
+      - xilinx/vivado_impl_entry.tcl
+      - xilinx/scripts/axi_quad_spi_dtbo_patch.sed
+      - xilinx/vivado_batch.tcl
     file_type: user
   hooks:
     files:
-      - ../../scripts/fusesoc/vivado_batch_hook.sh
+      - scripts/fusesoc/vivado_batch_hook.sh
     file_type: user
 
 scripts:

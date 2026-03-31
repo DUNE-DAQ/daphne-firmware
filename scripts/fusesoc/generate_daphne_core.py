@@ -11,9 +11,6 @@ ROOT = Path(__file__).resolve().parents[2]
 TCL_PATH = ROOT / "xilinx" / "daphne_ip_gen.tcl"
 OUT_DIR = ROOT / "cores" / "generated"
 OUT_PATH = OUT_DIR / "daphne-ip.core"
-CORE_PREFIX = "../../"
-
-
 def sorted_relative_files(base: Path, pattern: str) -> list[str]:
     return sorted(
         p.relative_to(ROOT).as_posix() for p in base.rglob(pattern) if p.is_file()
@@ -25,7 +22,7 @@ def basename_filtered(paths: list[str], ignored: set[str]) -> list[str]:
 
 
 def core_relative(paths: list[str]) -> list[str]:
-    return [f"{CORE_PREFIX}{p}" for p in paths]
+    return paths
 
 
 def extract_quoted_list(text: str, pattern: str) -> list[str]:
@@ -71,7 +68,7 @@ def main() -> None:
     daq_xci_ignored = set(
         extract_quoted_list(
             tcl_text,
-            r'set xciDAQFiles \[ignore_files \$xciDAQFiles_aux "(.*?)"\]',
+            r"set xciDAQFiles \[ignore_files \$xciDAQFiles_aux \{(.*?)\}\]",
         )
     )
 
@@ -91,7 +88,7 @@ def main() -> None:
         basename_filtered(sorted_relative_files(rtl_root, "*.vhd"), rtl_ignored)
     )
     rtl_verilog = core_relative(sorted_relative_files(rtl_root, "*.v"))
-    rtl_top = [f"{CORE_PREFIX}ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd"]
+    rtl_top = ["ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd"]
 
     sim_vhdl = core_relative(sorted_relative_files(sim_root, "*.vhd"))
     sim_verilog = core_relative(sorted_relative_files(sim_root, "*.v"))
