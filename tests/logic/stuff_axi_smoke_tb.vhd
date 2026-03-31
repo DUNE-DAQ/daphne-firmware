@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.daphne3_package.all;
+use work.daphne_package.all;
 
 entity stuff_axi_smoke_tb is
 end stuff_axi_smoke_tb;

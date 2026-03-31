@@ -6,8 +6,8 @@ description: AXI-Lite smoke test for the DAPHNE self-trigger threshold register 
 filesets:
   rtl:
     files:
-      - ../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/thresholds.vhd
+      - ../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/thresholds.vhd
     file_type: vhdlSource
   tb:
     files:

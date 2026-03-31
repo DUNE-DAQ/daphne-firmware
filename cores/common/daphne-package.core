@@ -8,7 +8,7 @@ provider:
 filesets:
   rtl:
     files:
-      - ../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd
+      - ../../ip_repo/daphne_ip/rtl/daphne_package.vhd
     file_type: vhdlSource
 
 targets:

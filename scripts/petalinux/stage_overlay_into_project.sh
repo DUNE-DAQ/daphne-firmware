@@ -9,8 +9,9 @@ Copy the generated DAPHNE overlay artifacts from xilinx/output into the
 repo-owned meta-daphne layer inside an initialized PetaLinux project.
 
 Expected source artifacts:
-  - daphne3_st_OL_<gitsha>/
-  - daphne3_st_OL_<gitsha>.zip
+  - daphne_selftrigger_ol_<gitsha>/
+  - daphne_selftrigger_ol_<gitsha>.zip
+  - legacy daphne3_st_OL_<gitsha>/ and daphne3_st_OL_<gitsha>.zip are accepted
   - SHA256SUMS
 
 The staged canonical filenames are:
@@ -47,20 +48,38 @@ if [[ ! -d "$META_LAYER_DIR" ]]; then
   exit 2
 fi
 
-overlay_zip="$(
-  find "$OUTPUT_DIR" -maxdepth 1 -type f -name 'daphne3_st_OL_*.zip' | sort | tail -n 1
-)"
+overlay_zip=""
+for pattern in 'daphne_selftrigger_ol_*.zip' 'daphne3_st_OL_*.zip'; do
+  candidate="$(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "$pattern" | sort | tail -n 1)"
+  if [[ -n "$candidate" ]]; then
+    overlay_zip="$candidate"
+    break
+  fi
+done
 
 if [[ -z "$overlay_zip" ]]; then
-  echo "ERROR: no daphne3_st_OL_*.zip found in $OUTPUT_DIR" >&2
+  echo "ERROR: no daphne_selftrigger_ol_*.zip or daphne3_st_OL_*.zip found in $OUTPUT_DIR" >&2
   echo "Run scripts/package/complete_dtbo_bundle.sh first." >&2
   exit 2
 fi
 
 overlay_zip_base="$(basename "$overlay_zip")"
-git_sha="${overlay_zip_base#daphne3_st_OL_}"
+case "$overlay_zip_base" in
+  daphne_selftrigger_ol_*.zip)
+    overlay_prefix="daphne_selftrigger_ol_"
+    ;;
+  daphne3_st_OL_*.zip)
+    overlay_prefix="daphne3_st_OL_"
+    ;;
+  *)
+    echo "ERROR: unrecognized overlay zip name: $overlay_zip_base" >&2
+    exit 2
+    ;;
+esac
+
+git_sha="${overlay_zip_base#${overlay_prefix}}"
 git_sha="${git_sha%.zip}"
-overlay_dir="$OUTPUT_DIR/daphne3_st_OL_${git_sha}"
+overlay_dir="$OUTPUT_DIR/${overlay_prefix}${git_sha}"
 sha_file="$OUTPUT_DIR/SHA256SUMS"
 
 if [[ ! -d "$overlay_dir" ]]; then
@@ -68,8 +87,8 @@ if [[ ! -d "$overlay_dir" ]]; then
   exit 2
 fi
 
-dtbo_src="$overlay_dir/daphne3_st_OL_${git_sha}.dtbo"
-bin_src="$overlay_dir/daphne3_st_OL_${git_sha}.bin"
+dtbo_src="$overlay_dir/${overlay_prefix}${git_sha}.dtbo"
+bin_src="$overlay_dir/${overlay_prefix}${git_sha}.bin"
 json_src="$overlay_dir/shell.json"
 
 for f in "$dtbo_src" "$bin_src" "$json_src"; do

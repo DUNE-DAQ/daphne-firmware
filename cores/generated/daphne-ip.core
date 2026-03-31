@@ -1,0 +1,238 @@
+CAPI=2:
+
+name: dune-daq:daphne:daphne-ip:0.1.0
+description: Generated source manifest matching xilinx/daphne_ip_gen.tcl
+provider:
+  name: local
+
+filesets:
+  rtl_vhdl:
+    files:
+      - ../../ip_repo/daphne_ip/rtl/afe/spim_afe.vhd
+      - ../../ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
+      - ../../ip_repo/daphne_ip/rtl/afe/spim_dac2.vhd
+      - ../../ip_repo/daphne_ip/rtl/config/fanmon.vhd
+      - ../../ip_repo/daphne_ip/rtl/config/stuff.vhd
+      - ../../ip_repo/daphne_ip/rtl/dac/spim_dac.vhd
+      - ../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/febit3.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/front_end.vhd
+      - ../../ip_repo/daphne_ip/rtl/misc/outspybuff.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/hpf_pedestal_recovery_filter_trigger.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/Configurable_CFD.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/LocalPrimitives_CIEMAT.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/PeakDetector_SelfTrigger_CIEMAT.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/Self_Trigger_Primitive_Calculation.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/core.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/dsp_xc.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/st_xc.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/selftrig_core.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/st20_top.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/stc3.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/trig_xc.vhd
+      - ../../ip_repo/daphne_ip/rtl/spy/spybuff.vhd
+      - ../../ip_repo/daphne_ip/rtl/spy/spybuffers.vhd
+      - ../../ip_repo/daphne_ip/rtl/spy/spyram.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/endpoint.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/ep_axi.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/outputlogic_crc16.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_acmd_arb.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_cdr_sampler.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_cksum.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_clock_defs.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_code8b10bpkg.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_dec8b10b.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_defs.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_del.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_enc8b10b.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_endpoint.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_endpoint_wrapper.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_cdr.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_core.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_ctrl.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_ctrlmux.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_defs.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_regfile.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_sm.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_transactor.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_tstamp.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_idle_gen.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_lutram.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_mod.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_pktbuf.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_rx.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_rx_phy.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_rx_pkt.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_synchro.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_synchro_pulse.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_tx.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_tx_phy.vhd
+      - ../../ip_repo/daphne_ip/rtl/timing/pdts_tx_pkt.vhd
+    file_type: vhdlSource
+  rtl_verilog:
+    files:
+      - ../../ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/IIRFilter_afe_integrator_optimized.v
+      - ../../ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/k_low_pass_filter.v
+    file_type: verilogSource
+  rtl_top:
+    files:
+      - ../../ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd
+    file_type: vhdlSource
+  sim_vhdl:
+    files:
+      - ../../ip_repo/daphne_ip/sim/afe/AFE5808A.vhd
+      - ../../ip_repo/daphne_ip/sim/afe/spim_afe_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/cm/ADS1261.vhd
+      - ../../ip_repo/daphne_ip/sim/cm/cm_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/dac/AD5327.vhd
+      - ../../ip_repo/daphne_ip/sim/dac/spim_dac_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/frontend/AFE5808.vhd
+      - ../../ip_repo/daphne_ip/sim/frontend/febit3_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/frontend/frontend_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/selftrig/st40_top_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/selftrig/stc3_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/spy/spybuff_tb.vhd
+    file_type: vhdlSource
+  daq_vhdl_93:
+    files:
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/freq_ctr_div.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_axi4lite_decl.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_clock_div.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_ctrlreg_v.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_fabric_sel.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_freq_ctr.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_package.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_reg_types.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_roreg_v.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_trans_decl.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/transactor.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/transactor_cfg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/transactor_if.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/transactor_sm.vhd
+    file_type: vhdlSource
+  daq_vhdl_2008:
+    files:
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lib/axi4_conversion_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lib/axi4lite_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lib/axi4s_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lib/axi4s_xpm_fifo.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/common_stfc_lib/common_stfc_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/common_stfc_lib/reset_sync.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_128_bytewise_lut_python.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_256_bytewise_lut_python.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_512_bytewise_lut_python.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_64.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_64_bytewise_lut_python.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_64_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_8_bytewise_lut_python.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_8_wrapper.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_n_lut_based.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/addr_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/daphne_top.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/freq_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/hermes_core_version_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipb_axi4_lite_ctrl.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipb_rsts.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_tx_mux.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_ultrascale_combined_tx_path.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_ultrascale_pcs_pma.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_wib_eth_readout.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_axi4s_shim.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_decl.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_ibuf.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_out.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_timeslice.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_src_sel.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_syncreg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ultrascale_combined_tx_path.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ultrascale_pcs_pma.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/version_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/wib_eth_readout.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xgmii_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_clocking_wrapper.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_transport_axi4_lite_if.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_transport_multibuffer_cdc.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_transport_multibuffer_if.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_transport_multibuffer_rx_dpram.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_transport_multibuffer_tx_dpram.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_transport_ram_if.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/arp_mode_ctrl_ipb_reg_bank.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/ipbus_ctrlreg_nz_bank.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/ipbus_ctrlreg_nz_rst.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/ipbus_ctrlreg_src_addr.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/ipbus_decode_arp_mode_ctrl_mmap_ipb.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/ipbus_decode_udp_core_ctrl_mmap_ipb.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/ipbus_decode_udp_core_farm_mode_luts_mmap_ipb.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/ipbus_decode_udp_core_top_mmap_ipb.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/ipbus_statreg_bank.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/rx_filter_stage_1.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/rx_filter_stage_2.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/rx_filter_stage_3.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/rx_frame_sync_align.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/rx_frame_sync_align_small.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/rx_path_top.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_arp_handler.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_byte_slip.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_header_constructor.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_pass_in_handler.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_path_8b10b_crc_mii.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_path_crc_mii.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_path_farm_mode_poller.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_path_top.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_ping_chksm.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_ping_chksm_1bytew.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_ping_handler.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/tx_udp_handler.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_axi4s_crc_remove.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_axi4s_pipe.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_core_interface_wrapper_ipbus.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_core_ipb_reg_bank.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_core_ipb_rst_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_core_pkg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_core_settings_ipb_reg_bank.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_core_timer.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_core_xml_mm_scalable_top.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_farm_mode_luts_ipb_reg_bank.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_ip_chksm_calc.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_ip_pkt_len.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_ipbus_dpram.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/udp_core_lib/udp_proj_pkg.vhd
+    file_type: vhdlSource-2008
+  daq_verilog:
+    files:
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ethernet_common_125.v
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/gtwizard_ultrascale_v1_7_gthe4_common.v
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ultrascale_v1_7_12_gthe4_common_156_25.v
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_common_wrapper.v
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_gt_gthe4_common_wrapper.v
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_gt_gthe4_common_wrapper_125.v
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_reset_wrapper.v
+    file_type: verilogSource
+  daq_tcl:
+    files:
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/wib_top.tcl
+    file_type: tclSource
+
+targets:
+  default: &default_target
+    description: Synthesizable daphne_selftrigger_top PL source manifest
+    filesets:
+      - rtl_vhdl
+      - rtl_verilog
+      - daq_vhdl_93
+      - daq_vhdl_2008
+      - daq_verilog
+      - rtl_top
+  sim-src:
+    <<: *default_target
+    description: Source manifest including HDL test benches
+    filesets_append:
+      - sim_vhdl
+      - sim_verilog
+  vivado-src:
+    <<: *default_target
+    description: Source manifest plus Tcl/XCI collateral expected by Vivado
+    filesets_append:
+      - daq_tcl

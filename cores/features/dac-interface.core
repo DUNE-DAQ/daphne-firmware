@@ -10,12 +10,12 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
     files:
-      - ../../ip_repo/daphne3_ip/rtl/dac/spim_dac.vhd
+      - ../../ip_repo/daphne_ip/rtl/dac/spim_dac.vhd
     file_type: vhdlSource
   tb_legacy:
     files:
-      - ../../ip_repo/daphne3_ip/sim/dac/AD5327.vhd
-      - ../../ip_repo/daphne3_ip/sim/dac/spim_dac_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/dac/AD5327.vhd
+      - ../../ip_repo/daphne_ip/sim/dac/spim_dac_testbench.vhd
     file_type: vhdlSource
 
 targets:

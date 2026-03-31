@@ -12,9 +12,9 @@ smtbmc z3
 # assertions for reset defaults, partial-write rejection, and trigger pulse
 # width.
 plugin -i ghdl
-ghdl --std=08 daphne3_package.vhd fe_axi.vhd -e fe_axi
+ghdl --std=08 daphne_package.vhd fe_axi.vhd -e fe_axi
 prep -top fe_axi
 
 [files]
-../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd
-../../ip_repo/daphne3_ip/rtl/frontend/fe_axi.vhd
+../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd

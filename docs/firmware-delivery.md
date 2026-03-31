@@ -29,8 +29,8 @@ packaging outside the main Vivado build.
 
 After a successful Vivado run, once `xilinx/output/` contains:
 
-- `daphne3_st_<gitsha>.xsa`
-- `daphne3_st_<gitsha>.bin`
+- `daphne_selftrigger_<gitsha>.xsa`
+- `daphne_selftrigger_<gitsha>.bin`
 
 run:
 
@@ -53,9 +53,9 @@ Expected tools on `PATH`:
 
 Expected outputs:
 
-- `xilinx/output/daphne3_st_<gitsha>.dtbo`
-- `xilinx/output/daphne3_st_OL_<gitsha>/`
-- `xilinx/output/daphne3_st_OL_<gitsha>.zip`
+- `xilinx/output/daphne_selftrigger_<gitsha>.dtbo`
+- `xilinx/output/daphne_selftrigger_ol_<gitsha>/`
+- `xilinx/output/daphne_selftrigger_ol_<gitsha>.zip`
 - `xilinx/output/SHA256SUMS`
 
 ## What the known-good golden bundle tells us

@@ -10,17 +10,17 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
     files:
-      - ../../ip_repo/daphne3_ip/rtl/frontend/auto_afe.vhd
-      - ../../ip_repo/daphne3_ip/rtl/frontend/auto_fsm.vhd
-      - ../../ip_repo/daphne3_ip/rtl/frontend/fe_axi.vhd
-      - ../../ip_repo/daphne3_ip/rtl/frontend/febit3.vhd
-      - ../../ip_repo/daphne3_ip/rtl/frontend/front_end.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/auto_afe.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/auto_fsm.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/febit3.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/front_end.vhd
     file_type: vhdlSource
   rtl_axi_smoke:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
     files:
-      - ../../ip_repo/daphne3_ip/rtl/frontend/fe_axi.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
     file_type: vhdlSource
   tb_axi_smoke:
     files:
@@ -28,9 +28,9 @@ filesets:
     file_type: vhdlSource
   tb_legacy:
     files:
-      - ../../ip_repo/daphne3_ip/sim/frontend/AFE5808.vhd
-      - ../../ip_repo/daphne3_ip/sim/frontend/febit3_testbench.vhd
-      - ../../ip_repo/daphne3_ip/sim/frontend/frontend_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/frontend/AFE5808.vhd
+      - ../../ip_repo/daphne_ip/sim/frontend/febit3_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/frontend/frontend_testbench.vhd
     file_type: vhdlSource
   formal:
     files:

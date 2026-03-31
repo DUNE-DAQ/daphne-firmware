@@ -61,14 +61,14 @@ append_env_tcl DAPHNE_ETH_MODE
 append_env_tcl DAPHNE_GIT_SHA
 append_env_tcl DAPHNE_OUTPUT_DIR
 printf 'set script_dir [file dirname [file normalize [info script]]]\n' >>"$shim_tcl"
-printf 'source -notrace [file join $script_dir "daphne3_ip_gen.tcl"]\n' >>"$shim_tcl"
+printf 'source -notrace [file join $script_dir "daphne_ip_gen.tcl"]\n' >>"$shim_tcl"
 printf 'exit\n' >>"$shim_tcl"
 
 echo "INFO: Running packaging preflight for board=$BOARD eth_mode=$ETH_MODE."
 vivado -mode batch -source "$shim_tcl"
 
-component_xml="$ROOT_DIR/ip_repo/daphne3_ip/component.xml"
-eth_xci="$ROOT_DIR/ip_repo/daphne3_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
+component_xml="$ROOT_DIR/ip_repo/daphne_ip/component.xml"
+eth_xci="$ROOT_DIR/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
 eth_binding='CELL_NAME_core_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe'
 eth_xci_ref='src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci'
 

@@ -6,8 +6,8 @@ description: AXI-Lite smoke test for the DAPHNE frontend alignment and trigger r
 filesets:
   rtl:
     files:
-      - ../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd
-      - ../../ip_repo/daphne3_ip/rtl/frontend/fe_axi.vhd
+      - ../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+      - ../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
     file_type: vhdlSource
   tb:
     files:

@@ -3,7 +3,8 @@ supported: true
 fpga_part: xck26-sfvc784-2LV-c
 board_part: xilinx.com:k26c:part0:1.4
 pfm_name: xilinx:k26c:name:0.0
-constraint_file: xilinx/DAPHNE_V3_PIN_MAP.xdc
+constraint_file: xilinx/daphne_selftrigger_pin_map.xdc
 notes:
-  - Current firmware baseline validated around the Kria K26C SoM flow in `Daphne_MEZZ`.
+  - Current firmware baseline validated around the Kria K26C SoM flow in the
+    imported non-project Vivado tree.
   - This is the only board profile wired through the imported Tcl scripts today.
