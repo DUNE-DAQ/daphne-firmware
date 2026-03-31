@@ -18,5 +18,10 @@ fi
 
 for job in "$@"; do
   echo "Running formal scaffold $job"
-  sby -f "$job"
+  job_dir=$(dirname "$job")
+  job_file=$(basename "$job")
+  (
+    cd "$job_dir"
+    sby -f "$job_file"
+  )
 done
