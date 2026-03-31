@@ -119,7 +119,9 @@ then build outward toward the golden-package shape:
 
 1. qualify `.dtbo` generation from the repo build,
 2. compare the resulting DT outputs against the known-good golden DTB,
-3. define the board-owned DT inputs for MAC/IP defaults and optional IP,
-4. add boot-image assembly (`BOOT.BIN`, kernel, DTB),
-5. add full PetaLinux/rootfs packaging only after the firmware artifact chain is
+3. stage the generated overlay bundle into the PetaLinux project through
+   `scripts/petalinux/stage_overlay_into_project.sh`,
+4. define the board-owned DT inputs for MAC/IP defaults and optional IP,
+5. add boot-image assembly (`BOOT.BIN`, kernel, DTB),
+6. add full PetaLinux/rootfs packaging only after the firmware artifact chain is
    stable.
