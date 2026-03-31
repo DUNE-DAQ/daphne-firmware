@@ -24,6 +24,9 @@ current `Daphne_MEZZ` non-project Vivado flow and audited against the legacy
   contracts and future formal harnesses without disturbing the imported blob.
 - Started a repo-owned `petalinux/meta-daphne/` scaffold so `system.dtb`,
   overlay install, and service packaging ownership can move into this repo.
+- Added terminal-driven PetaLinux project/build wrappers so the repo can create
+  a KR260 project, apply the `.xsa`, build the image, and collect the outputs
+  into a stable bundle layout.
 
 ## Repository layout
 
@@ -111,6 +114,15 @@ The current isolation/formal-prep structure is described in
 `docs/dependency-transition-plan.md`, and the current qualified build
 checkpoint is recorded in `docs/build-baseline.md`. The current firmware
 artifact boundary is documented in `docs/firmware-delivery.md`.
+
+To drive the repo-owned PetaLinux flow after the hardware handoff is ready:
+
+```bash
+./scripts/petalinux/build_kr260_image.sh \
+  /path/to/petalinux-project \
+  /path/to/hw-handoff-dir \
+  --output-dir ./xilinx/output
+```
 
 Optional overrides:
 
