@@ -100,6 +100,41 @@ If you are in WSL2 and Vivado/Vitis 2024.1 are installed on Windows, use:
 ./scripts/wsl/run_wsl_vivado_chain.sh
 ```
 
+For WSL-driven Windows Vivado runs, keep `DAPHNE_OUTPUT_DIR` unset or set it to
+something relative to `xilinx/`, for example:
+
+```bash
+export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
+export DAPHNE_OUTPUT_DIR="./output-$DAPHNE_GIT_SHA"
+```
+
+Then expect the main artifacts under:
+
+```text
+xilinx/output-<gitsha>/
+```
+
+with files such as:
+
+```text
+daphne3_st_<gitsha>.bit
+daphne3_st_<gitsha>.bin
+daphne3_st_<gitsha>.xsa
+```
+
+Avoid setting `DAPHNE_OUTPUT_DIR` to a Linux absolute path like
+`$PWD/xilinx/output-<gitsha>` when the build runs through Windows Vivado from
+WSL.
+
+After the build, run:
+
+```bash
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
+```
+
+On WSL, this packaging script now auto-loads the Windows `xsct` wrapper if it
+is not already on `PATH`.
+
 See `docs/remote-vivado.md`, `docs/wsl-windows-vivado.md`, and
 `docs/agent-handoff.md`.
 

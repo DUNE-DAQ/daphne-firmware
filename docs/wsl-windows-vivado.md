@@ -63,6 +63,34 @@ This performs:
 
 and stores logs under `build/wsl-vivado/<timestamp>/`.
 
+## Output directory rule
+
+When Windows Vivado is launched from WSL, keep `DAPHNE_OUTPUT_DIR` unset or set
+it to a path that is relative to `xilinx/`.
+
+Good:
+
+```bash
+unset DAPHNE_OUTPUT_DIR
+```
+
+or:
+
+```bash
+export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
+export DAPHNE_OUTPUT_DIR="./output-$DAPHNE_GIT_SHA"
+```
+
+Avoid:
+
+```bash
+export DAPHNE_OUTPUT_DIR="$PWD/xilinx/output-$DAPHNE_GIT_SHA"
+```
+
+That last form is a Linux absolute path. The Windows-side Vivado Tcl does not
+translate it back into the WSL repo path, so the build may finish while the
+artifacts do not appear under the repo directory you expected.
+
 ## Important notes
 
 - `create_ip` is the currently qualified Ethernet mode for the WSL/Windows
@@ -77,20 +105,48 @@ and stores logs under `build/wsl-vivado/<timestamp>/`.
 
 ## Expected outputs
 
-The build should still populate `xilinx/output/` with the usual implementation
-artifacts, especially:
+With the default output location, the build populates:
+
+- `xilinx/output/`
+
+If you set:
+
+```bash
+export DAPHNE_OUTPUT_DIR="./output-$DAPHNE_GIT_SHA"
+```
+
+then the build populates:
+
+- `xilinx/output-<gitsha>/`
+
+In either case, expect the usual implementation artifacts, especially:
 
 - `.bit`
 - `.bin`
 - `.xsa`
 - implementation reports
 
-Then, from WSL with `xsct` and `dtc` available on `PATH`, finish the overlay
-packaging step outside Vivado:
+For a commit-specific run, the main files should be:
+
+- `xilinx/output-<gitsha>/daphne3_st_<gitsha>.bit`
+- `xilinx/output-<gitsha>/daphne3_st_<gitsha>.bin`
+- `xilinx/output-<gitsha>/daphne3_st_<gitsha>.xsa`
+
+Then finish the overlay packaging step outside Vivado:
 
 ```bash
 ./scripts/package/complete_dtbo_bundle.sh ./xilinx/output
 ```
+
+or, for a commit-specific run:
+
+```bash
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
+```
+
+When this script runs under WSL and `xsct` is not already on `PATH`, it
+automatically sources [setup_windows_xilinx.sh](/Users/marroyav/repo/daphne-firmware/scripts/wsl/setup_windows_xilinx.sh)
+to activate the Windows Vitis wrapper for the current process.
 
 The WSL wrapper also records:
 
