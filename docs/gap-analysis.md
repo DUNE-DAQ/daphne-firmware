@@ -53,6 +53,13 @@
   produce the full golden-style boot package with `BOOT.BIN`, kernel,
   `system.dtb`, rootfs image, and QSPI/eMMC staging artifacts.
 
+- Reliable Linux binding of the PL AXI I2C control path after overlay load.
+  This is now the highest-priority firmware integration blocker. The current
+  March 31, 2026 board validation at firmware commit `7f032ac` showed that the
+  PL app loads, but the expected Linux-visible PL I2C bus does not reappear on
+  target, which prevents clock-chip control and blocks the service bring-up
+  chain. See `docs/pl-i2c-binding-blocker.md`.
+
 - Linux/C++ dependency bundling inside this repo.
   The lockfile is mirrored, but the actual dependency tarball and deployment
   scripts still live with `daphne-server`.
@@ -68,5 +75,8 @@
    from the PetaLinux side without refactoring Hermes transport behavior.
 5. Add a repo-local post-build overlay packaging step from `.xsa` to `.dtbo`
    and qualify it against the known-good golden DTB.
-6. Add a PetaLinux-native deploy bundle flow that consumes the generated
+6. Fix the PL I2C Linux binding regression so the loaded overlay restores the
+   clock-chip control path on target and the server/service stack can use it
+   again.
+7. Add a PetaLinux-native deploy bundle flow that consumes the generated
    firmware outputs and co-installs `daphne-server`.
