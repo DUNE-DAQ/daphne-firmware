@@ -59,8 +59,9 @@ legacy generated manifest protects the current K26C delivery path from churn.
   AXI-Lite behavior: `config-control`, `frontend-control`, and `selftrigger`.
 - Imported legacy benches are kept attached to the AFE, DAC, spy-buffer, and
   frontend/self-trigger modules where they already existed.
-- Formal is only scaffolded for AXI-Lite leaf blocks. That is where bounded
-  invariants are straightforward enough to justify effort during the migration.
+- Formal now covers the AXI-Lite leaf blocks plus the isolated subsystem
+  boundary wrappers where reset and readiness contracts are explicit enough to
+  prove cheaply during the migration.
 
 ## What this does not do yet
 

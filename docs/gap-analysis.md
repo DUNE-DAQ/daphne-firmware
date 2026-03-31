@@ -11,7 +11,8 @@
   window, and PL-side board-control register bank.
 - Reusable FuseSoC module cores added for common, feature, and platform
   layers.
-- Formal verification scaffolds added for AXI-Lite leaf modules.
+- Formal verification harnesses added for AXI-Lite leaf modules and isolated
+  subsystem contracts.
 - Petalinux/dependency notes added for `daphne-server` compatibility.
 - WSL2-driven Windows Vivado/Vitis flow qualified for the current K26C
   hardware build path, with generated `.bit`, `.bin`, and `.xsa` artifacts.
@@ -29,9 +30,10 @@
   Local FuseSoC/GHDL smoke tests run here, but the qualified Vivado build path
   currently lives on the WSL2 host with Windows-installed Xilinx tools.
 
-- Useful formal properties, not just formal entry points.
-  SymbiYosys `.sby` scaffolds exist for the AXI-Lite leaf blocks, but property
-  harnesses still need to be written and qualified.
+- Full subsystem proofs beyond the current contract layer.
+  The repo now carries checked formal harnesses for the isolated wrappers and
+  AXI-Lite leaf blocks, but the imported frontend, timing endpoint, spy-memory,
+  and Hermes internals still sit outside formal scope.
 
 - Carrier support beyond the imported K26C baseline.
   The repo has a board abstraction point now, but `kr260` is only a scaffold
@@ -58,9 +60,9 @@
 
 1. Preserve the successful K26C hardware build as the pre-isolation baseline.
 2. Add neutral subsystem contracts and wrappers under `rtl/isolated/`.
-3. Add harness properties to the formal scaffolds for `fe_axi` and
-   `thresholds`, then extend the same contract style to timing/control and
-   trigger-descriptor boundaries.
+3. Extend the current contract-level proofs deeper into the imported frontend,
+   timing, spy-buffer, and Hermes implementations where the environment can be
+   bounded cleanly enough to justify the effort.
 4. Decide how device-tree and board-owned MAC/IP provisioning are generated
    from the PetaLinux side without refactoring Hermes transport behavior.
 5. Add a repo-local post-build overlay packaging step from `.xsa` to `.dtbo`

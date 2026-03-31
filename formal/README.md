@@ -1,43 +1,53 @@
-# Formal Verification Scaffold
+# Formal Verification
 
 Formal is realistic today only for small, leaf-level register/control blocks
 that are mostly synchronous RTL and do not depend on Vivado IP generation,
 block-design procedures, or Xilinx primitive-heavy datapaths.
 
-Current scaffolds:
+Current proof entry points:
 
+- `formal/sby/analog_control_boundary_contract.sby` for reset-qualified analog
+  readiness.
+- `formal/sby/control_plane_boundary_contract.sby` for the neutral control
+  wrapper contract.
 - `formal/sby/fe_axi_axi_lite.sby` for the frontend AXI-Lite control register
   block.
-- `formal/sby/frontend_boundary_gate.sby` for the neutral frontend alignment
-  validity gate.
+- `formal/sby/frontend_boundary_gate.sby` for the frontend alignment validity
+  gate.
+- `formal/sby/hermes_boundary_contract.sby` for the neutral Hermes handoff
+  contract.
 - `formal/sby/thresholds_axi_lite.sby` for the self-trigger threshold register
   bank.
-- `formal/sby/trigger_pipeline_boundary_gate.sby` for the neutral trigger
-  readiness gate.
-- `formal/sby/spy_buffer_boundary_gate.sby` for the neutral spy-buffer
-  readiness gate.
+- `formal/sby/timing_subsystem_boundary_contract.sby` for the neutral timing
+  wrapper contract.
+- `formal/sby/trigger_pipeline_boundary_gate.sby` for the trigger readiness
+  gate.
+- `formal/sby/spy_buffer_boundary_gate.sby` for the spy-buffer readiness gate.
 
-What these scaffolds are and are not:
+What these proofs are and are not:
 
 - They are checked-in proof entry points intended to survive refactors.
-- They are not yet complete behavioral proofs. The next step is to add a small
-  harness/binding layer that constrains the AXI-Lite environment and encodes
-  reset/write/read invariants.
+- They prove contract-level reset, gating, readback, and illegal-write
+  invariants for the current isolated wrappers and AXI-Lite leaf blocks.
+- They are not complete subsystem proofs for the imported frontend, self-
+  trigger algorithms, timing endpoint internals, or Hermes transport chain.
 - They assume a toolchain with `yosys`, `ghdl-yosys-plugin`, and
   `symbiyosys`.
 
-Suggested first properties:
+Properties currently checked:
 
-- Reset drives all architecturally visible registers to documented defaults.
-- Partial AXI writes do not modify state for modules that require `WSTRB=1111`.
-- Accepted writes eventually produce a matching readable register image where
-  the block exposes readback.
-- Trigger pulses self-clear within the documented number of cycles.
-- Boundary enable outputs are exactly the conjunction of
-  `config_ready && timing_ready && alignment_ready` where the new typed
-  readiness wrappers define those signals.
-- `alignment_valid` is exactly the conjunction of configuration ready, timing
-  ready, observed frontend-ready bits, and deasserted local reset controls.
+- Reset drives the architecturally visible AXI-Lite state to documented
+  defaults.
+- Partial AXI writes do not modify state for modules that require
+  `WSTRB = "1111"`.
+- Accepted writes produce a matching readable register image where the block
+  exposes readback.
+- The frontend trigger pulse and IDELAY load pulse self-clear after their
+  documented stretch intervals.
+- Boundary enable outputs are exactly the conjunction of the documented
+  readiness and reset qualifiers.
+- Neutral wrappers that are still stubs are proven to remain input-independent
+  and to expose only null/zero-valued outputs.
 
 Modules intentionally left out for now:
 
@@ -46,5 +56,6 @@ Modules intentionally left out for now:
 - These blocks either rely on Xilinx primitives, large imported subtrees, or
   open environment assumptions that make a useful proof much more expensive than
   the current migration phase can justify.
-- The new boundary proofs deliberately stop at the wrapper edge; they do not
-  yet prove the imported trigger or spy-memory implementations themselves.
+- The boundary proofs deliberately stop at the wrapper edge; they do not yet
+  prove the imported trigger, spy-memory, timing-endpoint, or transport
+  implementations themselves.

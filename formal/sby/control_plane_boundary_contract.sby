@@ -1,0 +1,18 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+# Boundary-level proof: the neutral control-plane wrapper currently exposes
+# only the null timing-control record and is independent of ignored inputs.
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd control_plane_boundary.vhd control_plane_boundary_formal.vhd -e control_plane_boundary_formal
+prep -top control_plane_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/control/control_plane_boundary.vhd
+../vhdl/control_plane_boundary_formal.vhd

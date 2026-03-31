@@ -24,6 +24,6 @@ targets:
   formal:
     filesets:
       - rtl
-    description: Formal proof scaffold for readiness-gated spy capture enable
+    description: Formal proof of readiness-gated spy capture enable and reset inhibition
     filesets_append:
       - formal

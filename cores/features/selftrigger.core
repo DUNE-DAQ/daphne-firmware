@@ -89,6 +89,6 @@ targets:
   formal:
     filesets:
       - rtl_thresholds
-    description: Formal scaffold for the threshold AXI-Lite register bank
+    description: Formal proof of the threshold AXI-Lite register bank reset, decode, and readback behavior
     filesets_append:
       - formal

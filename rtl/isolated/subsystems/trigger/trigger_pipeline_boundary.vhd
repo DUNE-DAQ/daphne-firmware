@@ -16,7 +16,8 @@ end entity trigger_pipeline_boundary;
 architecture rtl of trigger_pipeline_boundary is
 begin
   -- Future home for the cleaned trigger/filter/descriptor boundary.
-  trigger_enable_o <= readiness_i.config_ready and
+  trigger_enable_o <= (not reset) and
+                      readiness_i.config_ready and
                       readiness_i.timing_ready and
                       readiness_i.alignment_ready;
   descriptor_o <= TRIGGER_DESCRIPTOR_NULL;

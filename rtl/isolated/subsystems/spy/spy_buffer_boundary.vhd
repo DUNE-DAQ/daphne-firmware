@@ -16,7 +16,8 @@ begin
   -- Neutral boundary for gating spy capture. The imported implementation stays
   -- untouched; this wrapper exists so capture-readiness assumptions become
   -- explicit before any proof or rewiring work starts.
-  spy_enable_o <= readiness_i.config_ready and
+  spy_enable_o <= (not reset) and
+                  readiness_i.config_ready and
                   readiness_i.timing_ready and
                   readiness_i.alignment_ready;
 end architecture rtl;

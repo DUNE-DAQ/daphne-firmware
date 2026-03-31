@@ -12,8 +12,18 @@ filesets:
     files:
       - ../../rtl/isolated/subsystems/hermes/hermes_boundary.vhd
     file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/hermes_boundary_contract.sby
+    file_type: user
 
 targets:
   default:
     filesets:
       - rtl
+  formal:
+    filesets:
+      - rtl
+    description: Formal proof that the neutral Hermes boundary preserves the null handoff contract
+    filesets_append:
+      - formal

@@ -1,20 +1,19 @@
 [options]
 mode prove
-depth 20
+depth 45
 
 [engines]
 smtbmc z3
 
 [script]
-# Scaffold only. This currently checks that the RTL still elaborates through
-# the GHDL/Yosys flow while the modular refactor is ongoing.
-# TODO: add a formal harness with AXI-Lite environment assumptions and
-# assertions for reset defaults, partial-write rejection, and trigger pulse
-# width.
+# Prove reset defaults, control/status readback, global partial-write
+# rejection, IDELAY load pulse stretching, and trigger self-clear behavior for
+# the frontend AXI-Lite register block.
 plugin -i ghdl
-ghdl --std=08 daphne_package.vhd fe_axi.vhd -e fe_axi
-prep -top fe_axi
+ghdl --std=08 daphne_package.vhd fe_axi.vhd fe_axi_axi_formal.vhd -e fe_axi_axi_formal
+prep -top fe_axi_axi_formal
 
 [files]
 ../../ip_repo/daphne_ip/rtl/daphne_package.vhd
 ../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
+../vhdl/fe_axi_axi_formal.vhd

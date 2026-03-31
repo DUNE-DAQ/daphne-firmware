@@ -16,5 +16,20 @@ begin
   -- Neutral boundary for the AFE/DAC configuration path. The imported
   -- implementation remains untouched; this shell exists so the contract can be
   -- isolated from the downstream alignment and trigger logic.
-  analog_stat_o <= ANALOG_STATUS_NULL;
+  qualify_proc : process(all)
+    variable analog_stat_q : analog_status_t;
+  begin
+    analog_stat_q := ANALOG_STATUS_NULL;
+
+    if resetn_axi = '1' then
+      analog_stat_q.afe_ready := analog_ctrl_i.afe_resetn and
+                                 analog_ctrl_i.afe_config_valid;
+      analog_stat_q.dac_ready := analog_ctrl_i.dac_resetn and
+                                 analog_ctrl_i.dac_config_valid;
+      analog_stat_q.config_ready := analog_stat_q.afe_ready and
+                                    analog_stat_q.dac_ready;
+    end if;
+
+    analog_stat_o <= analog_stat_q;
+  end process qualify_proc;
 end architecture rtl;
