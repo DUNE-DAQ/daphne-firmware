@@ -177,9 +177,19 @@ begin
         assert invert_enable = DEFAULT_st_invert_command
             report "Invert mask did not reset to package default"
             severity failure;
+        axi_read(x"00000000", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"000000FF"
+            report "Fan-speed register did not reset to full-speed default"
+            severity failure;
         axi_read(x"0000001C", araddr, arvalid, rdata, rvalid, clk, readback);
         assert readback = x"01234567"
             report "Version register readback mismatch"
+            severity failure;
+
+        axi_write(x"00000000", x"00000055", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_read(x"00000000", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00000055"
+            report "Fan-speed register readback mismatch after write"
             severity failure;
 
         axi_write(x"00000018", x"00000015", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
