@@ -110,7 +110,8 @@ assembly.
 
 The first repo-owned scaffold for that phase now lives under
 `petalinux/meta-daphne/`, and the first project-integration helper lives at
-`scripts/petalinux/bootstrap_kr260_project.sh`.
+`scripts/petalinux/bootstrap_kr260_project.sh`. A terminal-driven project
+creation/import wrapper now lives at `scripts/petalinux/init_kr260_project.sh`.
 
 ## Recommended next milestone
 

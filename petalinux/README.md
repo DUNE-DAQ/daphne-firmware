@@ -13,6 +13,8 @@ Current contents:
   userspace, and service packaging ownership.
 - `config/kr260/` and `scripts/petalinux/bootstrap_kr260_project.sh` for
   attaching that layer to an initialized KR260 PetaLinux project.
+- `scripts/petalinux/init_kr260_project.sh` for terminal-driven project
+  creation/import plus hardware-handoff application.
 
 Still missing before this repo can be considered a full Petalinux deliverable:
 
@@ -31,6 +33,25 @@ Yocto ownership points now exist as repo-owned scaffolding under
 `petalinux/meta-daphne/`.
 
 ## Current bootstrap point
+
+For a full terminal-driven setup from a hardware handoff directory:
+
+```bash
+./scripts/petalinux/init_kr260_project.sh \
+  /path/to/petalinux-project \
+  /path/to/hw-handoff-dir \
+  --output-dir ./xilinx/output
+```
+
+That wrapper:
+
+- creates the project if needed,
+- runs `petalinux-config --get-hw-description`,
+- attaches `meta-daphne`,
+- optionally stages the generated overlay artifacts.
+
+If you already have an initialized project and only want to attach the layer,
+use the lower-level bootstrap script:
 
 To attach the repo-owned layer to an existing PetaLinux project:
 
