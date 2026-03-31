@@ -18,6 +18,12 @@ package daphne_subsystem_pkg is
     idelayctrl_ready : std_logic;
     format_ok        : std_logic;
     training_ok      : std_logic;
+    alignment_valid  : std_logic;
+  end record;
+
+  type frontend_prereq_t is record
+    config_ready : std_logic;
+    timing_ready : std_logic;
   end record;
 
   type timing_control_t is record
@@ -88,7 +94,13 @@ package daphne_subsystem_pkg is
   constant FRONTEND_ALIGNMENT_STATUS_NULL : frontend_alignment_status_t := (
     idelayctrl_ready => '0',
     format_ok        => '0',
-    training_ok      => '0'
+    training_ok      => '0',
+    alignment_valid  => '0'
+  );
+
+  constant FRONTEND_PREREQ_NULL : frontend_prereq_t := (
+    config_ready => '0',
+    timing_ready => '0'
   );
 
   constant TIMING_STATUS_NULL : timing_status_t := (

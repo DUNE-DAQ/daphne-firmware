@@ -8,6 +8,8 @@ Current scaffolds:
 
 - `formal/sby/fe_axi_axi_lite.sby` for the frontend AXI-Lite control register
   block.
+- `formal/sby/frontend_boundary_gate.sby` for the neutral frontend alignment
+  validity gate.
 - `formal/sby/thresholds_axi_lite.sby` for the self-trigger threshold register
   bank.
 - `formal/sby/trigger_pipeline_boundary_gate.sby` for the neutral trigger
@@ -34,6 +36,8 @@ Suggested first properties:
 - Boundary enable outputs are exactly the conjunction of
   `config_ready && timing_ready && alignment_ready` where the new typed
   readiness wrappers define those signals.
+- `alignment_valid` is exactly the conjunction of configuration ready, timing
+  ready, observed frontend-ready bits, and deasserted local reset controls.
 
 Modules intentionally left out for now:
 

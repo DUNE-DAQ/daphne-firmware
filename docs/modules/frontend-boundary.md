@@ -58,6 +58,21 @@ assumption: `16-bit`, `LSb-first`.
   later, but that is a different boundary and should not be conflated with the
   deserialize/alignment contract.
 
+## Qualified alignment state
+
+At the neutral wrapper layer, frontend alignment should only be treated as
+valid when all of the following are true:
+
+- analog configuration is ready
+- timing is ready
+- `idelayctrl_ready = 1`
+- training and format checks are both good
+- delay-control and SERDES resets are deasserted
+
+This gives the modular graph a proof-carrying notion of "trusted alignment"
+without claiming a full formal proof of the imported `front_end`/`febit3`
+primitive-heavy implementation.
+
 ## Isolation objective
 
 Make control-plane, analog-control, and timing preconditions explicit before

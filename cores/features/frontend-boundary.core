@@ -12,8 +12,18 @@ filesets:
     files:
       - ../../rtl/isolated/subsystems/frontend/frontend_boundary.vhd
     file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/frontend_boundary_gate.sby
+    file_type: user
 
 targets:
   default:
     filesets:
       - rtl
+  formal:
+    filesets:
+      - rtl
+    description: Formal proof scaffold for frontend alignment validity gating
+    filesets_append:
+      - formal
