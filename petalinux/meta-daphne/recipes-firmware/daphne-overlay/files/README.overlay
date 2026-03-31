@@ -1,0 +1,11 @@
+This package is the repo-owned hook point for installing DAPHNE firmware
+overlay assets into a PetaLinux image.
+
+Planned payload once the build handoff is wired:
+- daphne3_st_OL_<gitsha>.dtbo
+- daphne3_st_OL_<gitsha>.bin
+- shell.json
+
+Source of truth:
+- xilinx/output/
+- scripts/package/complete_dtbo_bundle.sh

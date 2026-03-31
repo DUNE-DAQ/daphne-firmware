@@ -1,0 +1,12 @@
+This package is the repo-owned hook point for DAPHNE bring-up service
+ownership inside the image.
+
+Intended service chain:
+- clockchip.service
+- firmware.service
+- endpoint.service
+- hermes.service
+- daphne.service
+
+The exact units should eventually be generated from repo-owned sources rather
+than from target-side ad hoc installation.

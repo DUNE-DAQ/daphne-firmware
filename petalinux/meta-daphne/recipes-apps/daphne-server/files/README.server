@@ -1,0 +1,9 @@
+This package is the repo-owned hook point for installing daphne-server into
+the PetaLinux image once the userspace build and dependency handoff are
+stabilized.
+
+Planned payload:
+- daphneServer binary
+- dependency runtime bundle
+- configuration files
+- service-unit dependencies

@@ -9,11 +9,13 @@ Current contents:
   against a Petalinux SDK/sysroot.
 - `daphne-server-deps.lock.cmake` copied from the current `daphne-server`
   checkout so the firmware repo records the expected pinned runtime bundle.
+- `meta-daphne/` as the first repo-owned scaffold for future DT, firmware,
+  userspace, and service packaging ownership.
 
 Still missing before this repo can be considered a full Petalinux deliverable:
 
-- a Yocto/Petalinux recipe or meta-layer to install the FPGA image, `.dtbo`,
-  and `daphne-server` binaries together;
+- a build-tested integration of `meta-daphne/` into a real KR260 PetaLinux
+  project;
 - a reproducible boot asset layout (`BOOT.BIN`, image bundle, overlay install
   path, service unit);
 - an automated handoff from the firmware build outputs
@@ -22,4 +24,6 @@ Still missing before this repo can be considered a full Petalinux deliverable:
 
 The modular FuseSoC split does not change these deploy-time gaps yet. The
 current deployable contract is still anchored on the working K26C Vivado batch
-flow plus the documented `daphne-server` runtime dependencies.
+flow plus the documented `daphne-server` runtime dependencies, but the missing
+Yocto ownership points now exist as repo-owned scaffolding under
+`petalinux/meta-daphne/`.
