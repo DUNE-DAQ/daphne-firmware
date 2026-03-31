@@ -108,6 +108,9 @@ The repo still does **not** yet generate:
 That work belongs to the next packaging phase around PetaLinux and boot-image
 assembly.
 
+The first repo-owned scaffold for that phase now lives under
+`petalinux/meta-daphne/`.
+
 ## Recommended next milestone
 
 Treat the stable overlay bundle as the immediate firmware artifact milestone,

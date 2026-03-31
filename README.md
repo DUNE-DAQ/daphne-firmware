@@ -22,6 +22,8 @@ current `Daphne_MEZZ` non-project Vivado flow and audited against the legacy
   captured that baseline for follow-on isolation work.
 - Started an additive `rtl/isolated/` scaffolding layer to prepare subsystem
   contracts and future formal harnesses without disturbing the imported blob.
+- Started a repo-owned `petalinux/meta-daphne/` scaffold so `system.dtb`,
+  overlay install, and service packaging ownership can move into this repo.
 
 ## Repository layout
 
@@ -35,7 +37,7 @@ current `Daphne_MEZZ` non-project Vivado flow and audited against the legacy
 - `tests/logic/`: HDL smoke tests.
 - `boards/`: board metadata and support status.
 - `petalinux/`: deployment-side toolchain/dependency notes for the Kria Linux
-  environment.
+  environment, including the first `meta-daphne/` layer scaffold.
 - `docs/`: source audit, server contract, modular architecture, and gap
   analysis.
 - `formal/`: SymbiYosys scaffolds for leaf blocks that are suitable for formal.

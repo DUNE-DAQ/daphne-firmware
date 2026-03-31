@@ -1,0 +1,16 @@
+/include/ "daphne-k26c-network.dtsi"
+
+/ {
+	/*
+	 * Repo-owned DT append point for DAPHNE on KR260.
+	 *
+	 * Keep BSP-owned base board description in the vendor layer. Add only
+	 * DAPHNE-specific policy here:
+	 *   - MAC identity
+	 *   - optional PS peripherals
+	 *   - firmware/overlay install assumptions
+	 *
+	 * The PL hardware description itself should continue to arrive via the
+	 * generated overlay path from the firmware build.
+	 */
+};

@@ -1,0 +1,27 @@
+/ {
+	/*
+	 * Board-owned network defaults belong in the platform software layer, not
+	 * in PL RTL.
+	 *
+	 * This file is intentionally conservative. It shows where KR260/DAPHNE
+	 * network identity will be owned once the repo controls the full DT build.
+	 *
+	 * Replace the placeholder MAC with board-inventory-driven values or a
+	 * reproducible derivation rule before enabling it for production.
+	 */
+
+	aliases {
+		ethernet_daphne_sgmii = &gem0;
+	};
+};
+
+&gem0 {
+	/*
+	 * The golden DTB uses GEM0 in SGMII mode with a fixed-link. Preserve that
+	 * ownership on the PS/device-tree side.
+	 */
+	phy-mode = "sgmii";
+	local-mac-address = [02 00 00 00 00 20];
+	mac-address = [02 00 00 00 00 20];
+	status = "okay";
+};
