@@ -128,9 +128,9 @@ In either case, expect the usual implementation artifacts, especially:
 
 For a commit-specific run, the main files should be:
 
-- `xilinx/output-<gitsha>/daphne3_st_<gitsha>.bit`
-- `xilinx/output-<gitsha>/daphne3_st_<gitsha>.bin`
-- `xilinx/output-<gitsha>/daphne3_st_<gitsha>.xsa`
+- `xilinx/output-<gitsha>/daphne_selftrigger_<gitsha>.bit`
+- `xilinx/output-<gitsha>/daphne_selftrigger_<gitsha>.bin`
+- `xilinx/output-<gitsha>/daphne_selftrigger_<gitsha>.xsa`
 
 Then finish the overlay packaging step outside Vivado:
 

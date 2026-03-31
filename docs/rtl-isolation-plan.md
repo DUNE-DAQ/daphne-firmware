@@ -20,7 +20,7 @@ documentation and wrapper layer on top of the imported source tree.
 
 ## Isolation model
 
-The imported RTL remains the source of truth under `ip_repo/daphne3_ip/`.
+The imported RTL remains the source of truth under `ip_repo/daphne_ip/`.
 The new isolation layer lives under `rtl/isolated/` and expresses the intended
 subsystem boundaries with neutral names.
 

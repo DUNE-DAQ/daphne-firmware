@@ -2,8 +2,8 @@ This package is the repo-owned hook point for installing DAPHNE firmware
 overlay assets into a PetaLinux image.
 
 Planned payload once the build handoff is wired:
-- daphne3_st_OL_<gitsha>.dtbo
-- daphne3_st_OL_<gitsha>.bin
+- daphne_selftrigger_ol_<gitsha>.dtbo
+- daphne_selftrigger_ol_<gitsha>.bin
 - shell.json
 
 Source of truth:

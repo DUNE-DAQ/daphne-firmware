@@ -12,9 +12,9 @@ smtbmc z3
 # TODO: add a harness that proves reset-to-all-ones behavior, address decode
 # coverage for channels 0..39, and rejection of partial writes.
 plugin -i ghdl
-ghdl --std=08 daphne3_package.vhd thresholds.vhd -e thresholds
+ghdl --std=08 daphne_package.vhd thresholds.vhd -e thresholds
 prep -top thresholds
 
 [files]
-../../ip_repo/daphne3_ip/rtl/daphne3_package.vhd
-../../ip_repo/daphne3_ip/rtl/selftrig/thresholds.vhd
+../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../ip_repo/daphne_ip/rtl/selftrig/thresholds.vhd

@@ -1,4 +1,4 @@
-# TCL script to build DAPHNE3 vivado design
+# TCL script to build daphne_selftrigger_top vivado design
 # Daniel Avila Gomez <daniel.avila@eia.edu.co - daniel.avila.gomez@cern.ch> and Jamieson Olsen <jamieson@fnal.gov>
 #
 # run: vivado -mode tcl -source vivado_batch.tcl
@@ -8,10 +8,10 @@ set scriptsVivadoVersion 2024.1
 set currentVivadoVersion [version -short]
 set script_dir [file dirname [file normalize [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
-set bd_file [file join $repo_root "bd" "DAPHNE_MEZ_SELFTRIGGER_V1" "DAPHNE_MEZ_SELFTRIGGER_V1.bd"]
-set bd_wrapper_vhd [file join $repo_root "bd" "DAPHNE_MEZ_SELFTRIGGER_V1" "hdl" "DAPHNE_MEZ_SELFTRIGGER_V1_wrapper.vhd"]
-set pinmap_xdc [file join $script_dir "DAPHNE_V3_PIN_MAP.xdc"]
-set dtbo_gen_tcl [file join $script_dir "daphne3_dtbo_gen.tcl"]
+set bd_file [file join $repo_root "bd" "daphne_selftrigger_bd" "daphne_selftrigger_bd.bd"]
+set bd_wrapper_vhd [file join $repo_root "bd" "daphne_selftrigger_bd" "hdl" "daphne_selftrigger_bd_wrapper.vhd"]
+set pinmap_xdc [file join $script_dir "daphne_selftrigger_pin_map.xdc"]
+set dtbo_gen_tcl [file join $script_dir "daphne_dtbo_gen.tcl"]
 set axi_quad_spi_patch [file join $script_dir "scripts" "axi_quad_spi_dtbo_patch.sed"]
 
 if { [string first $scriptsVivadoVersion $currentVivadoVersion] == -1 } {
@@ -89,38 +89,38 @@ puts "INFO: passing git commit number $v_git_sha to top level generic"
 
 # create the block design
 # this command also verifies if the block design already exists, if so, it deletes it in order to generate a newer version
-source -notrace [file join $script_dir "daphne3_bd_gen.tcl"]
+source -notrace [file join $script_dir "daphne_bd_gen.tcl"]
 read_bd $bd_file
 
 # # verify if the block design exists, if not, create it
-# set bdFile ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd
+# set bdFile ../bd/daphne_selftrigger_bd/daphne_selftrigger_bd.bd
 # if {![file exists $bdFile]} {
 #     # the file does not exist, create it, then read it
 #     # since sourcing the tcl file updates the IP catalog, we don't have to do it here
-#     source ./daphne3_bd_gen.tcl
-#     read_bd ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd
+#     source ./daphne_bd_gen.tcl
+#     read_bd ../bd/daphne_selftrigger_bd/daphne_selftrigger_bd.bd
 # } else {
 #     # the file exist
 #     # re package the IP to consider possible changes to its source files
 #     # running this command also updates the IP repo path and the Vivado IP catalog
 #     # this ensures that the block design is properly read
-#     source daphne3_ip_gen.tcl
+#     source daphne_ip_gen.tcl
 
 #     # update IP catalog
 #     set_property IP_REPO_PATHS ../ip_repo [current_project]
 #     update_ip_catalog 
 
 #     # read the block design
-#     read_bd ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd
+#     read_bd ../bd/daphne_selftrigger_bd/daphne_selftrigger_bd.bd
 
 #     # open the block design
-#     open_bd_design ../bd/DAPHNE_MEZ_SELFTRIGGER_V1/DAPHNE_MEZ_SELFTRIGGER_V1.bd
+#     open_bd_design ../bd/daphne_selftrigger_bd/daphne_selftrigger_bd.bd
 
 #     # upgrade the DAPHNE IP
-#     upgrade_ip [get_ips DAPHNE_MEZ_SELFTRIGGER_V1]
+#     upgrade_ip [get_ips daphne_selftrigger_bd]
 
 #     # re configure the version parameter of the IP with the current git commit number
-#     set_property CONFIG.version $v_git_sha [get_ips DAPHNE_MEZ_SELFTRIGGER_V1]
+#     set_property CONFIG.version $v_git_sha [get_ips daphne_selftrigger_bd]
 
 #     # regenerate layout so it looks cleaner
 #     regenerate_bd_layout
@@ -147,7 +147,7 @@ set_property synth_checkpoint_mode None [get_files $bd_file]
 generate_target all [get_files $bd_file]
 
 # synth design...
-synth_design -top DAPHNE_MEZ_SELFTRIGGER_V1_wrapper -directive $daphne_synth_directive
+synth_design -top daphne_selftrigger_bd_wrapper -directive $daphne_synth_directive
 if {$daphne_skip_post_synth_reports eq "1"} {
     puts "INFO: Skipping post-synth reports by request."
 } else {
@@ -159,7 +159,7 @@ if {$daphne_skip_post_synth_reports eq "1"} {
 if {$daphne_skip_post_synth_checkpoint eq "1"} {
     puts "INFO: Skipping post-synth checkpoint by request."
 } else {
-    write_checkpoint -force $outputDir/DAPHNE_MEZ_SELFTRIGGER_V1_synth.dcp
+    write_checkpoint -force $outputDir/daphne_selftrigger_bd_synth.dcp
 }
 
 # place...
@@ -173,7 +173,7 @@ report_timing -sort_by group -max_paths 100 -path_type summary -file $outputDir/
 # route...
 route_design -directive $daphne_route_directive
 phys_opt_design -directive $daphne_post_route_physopt_directive
-write_checkpoint -force $outputDir/DAPHNE_MEZ_SELFTRIGGER_V1_post_route.dcp
+write_checkpoint -force $outputDir/daphne_selftrigger_bd_post_route.dcp
 
 # generate reports...
 report_timing_summary -file $outputDir/post_route_timing_summary.rpt
@@ -183,18 +183,18 @@ report_utilization -file $outputDir/post_route_util.rpt
 report_power -file $outputDir/post_route_power.rpt
 report_drc -file $outputDir/post_imp_drc.rpt
 report_io -file $outputDir/io.rpt
-write_checkpoint -force $outputDir/DAPHNE_MEZ_SELFTRIGGER_V1_post_impl.dcp
+write_checkpoint -force $outputDir/daphne_selftrigger_bd_post_impl.dcp
 
 # generate bitstream...
-write_bitstream -force -bin_file $outputDir/daphne3_st_$git_sha.bit
-# write_bitstream -force -bin_file $outputDir/daphne3.bit
+write_bitstream -force -bin_file $outputDir/daphne_selftrigger_$git_sha.bit
+# write_bitstream -force -bin_file $outputDir/daphne.bit
 
 # write out ILA debug probes file
 # write_debug_probes -force $outputDir/probes.ltx
 
 # export the implemented hardware system to the Vitis environment
-write_hw_platform -fixed -force -include_bit -file $outputDir/daphne3_st_$git_sha.xsa
-# write_hw_platform -fixed -force -file $outputDir/daphne3.xsa
+write_hw_platform -fixed -force -include_bit -file $outputDir/daphne_selftrigger_$git_sha.xsa
+# write_hw_platform -fixed -force -file $outputDir/daphne.xsa
  
 # define if the script is running on Windows or Linux
 if {$tcl_platform(os) eq "Linux"} {
@@ -203,7 +203,7 @@ if {$tcl_platform(os) eq "Linux"} {
     # since we are running on Linux, we can generate everything up to the overlay folder
     # including .bin .dtbo and .json files
     # now package the overlay needed files
-    set overlayDir [file join $outputDir "daphne3_st_OL_$git_sha"]
+    set overlayDir [file join $outputDir "daphne_selftrigger_ol_$git_sha"]
     file mkdir $overlayDir
  
     # check if vitis is on PATH
@@ -220,13 +220,13 @@ if {$tcl_platform(os) eq "Linux"} {
  
         # run the XSCT script
         puts "INFO: Generating Device Tree files."
-        if {[catch {exec $xsct_exe $dtbo_gen_tcl "$outputDir/daphne3_st_$git_sha.xsa" $outputDir $git_sha 2>@1} result]} {
+        if {[catch {exec $xsct_exe $dtbo_gen_tcl "$outputDir/daphne_selftrigger_$git_sha.xsa" $outputDir $git_sha 2>@1} result]} {
             error "ERROR: xsct command failed:\n$result"
         }
         puts "INFO: Device Tree files have been generated."
  
         # locate the DTSI file
-        set pl_dtsi_path [glob -nocomplain -types f "$outputDir/daphne3_st_$git_sha/*/*/*/*/*/*/pl.dtsi"]
+        set pl_dtsi_path [glob -nocomplain -types f "$outputDir/daphne_selftrigger_$git_sha/*/*/*/*/*/*/pl.dtsi"]
  
         # add missing lines for AXI Quad SPI module
         puts "INFO: Adding missing lines for AXI Quad SPI module in the dtsi file."
@@ -235,7 +235,7 @@ if {$tcl_platform(os) eq "Linux"} {
  
         # compile the Device Tree
         puts "INFO: Compiling Device Tree."
-        if {[catch {exec dtc -@ -O dtb -o $outputDir/daphne3_st_$git_sha.dtbo $pl_dtsi_path 2>@1} result]} {
+        if {[catch {exec dtc -@ -O dtb -o $outputDir/daphne_selftrigger_$git_sha.dtbo $pl_dtsi_path 2>@1} result]} {
             error "ERROR: dtc command failed:\n$result"
         }        
         puts "INFO: Device Tree files have been compiled."
@@ -247,13 +247,13 @@ if {$tcl_platform(os) eq "Linux"} {
  
         # now, move all the necessary files to the overlay folder
         puts "INFO: Creating Overlay folder."
-        file rename -force $outputDir/daphne3_st_$git_sha.dtbo $overlayDir/daphne3_st_OL_$git_sha.dtbo
-        file rename -force $outputDir/daphne3_st_$git_sha.bin $overlayDir/daphne3_st_OL_$git_sha.bin
+        file rename -force $outputDir/daphne_selftrigger_$git_sha.dtbo $overlayDir/daphne_selftrigger_ol_$git_sha.dtbo
+        file rename -force $outputDir/daphne_selftrigger_$git_sha.bin $overlayDir/daphne_selftrigger_ol_$git_sha.bin
         file rename -force $outputDir/shell.json $overlayDir/shell.json
  
         # zip the resulting folder 
         cd $outputDir
-        exec zip -r daphne3_st_OL_$git_sha.zip daphne3_st_OL_$git_sha
+        exec zip -r daphne_selftrigger_ol_$git_sha.zip daphne_selftrigger_ol_$git_sha
         puts "INFO: Successfully generated Device Tree Overlay folder."
  
         # finally, we're ready to go, so we can exit Vivado
@@ -286,7 +286,7 @@ if {$tcl_platform(os) eq "Linux"} {
  
         # run the XSCT script
         puts "INFO: Generating Device Tree files."
-        if {[catch {exec $xsct_exe -eval "hsi::open_hw_design $outputDir/daphne3_st_$git_sha.xsa; createdts -hw $outputDir/daphne3_st_$git_sha.xsa -zocl -platform-name daphne3_st_$git_sha -git-branch xlnx_rel_v2022.2 -overlay -out $outputDir/daphne3_st_$git_sha; exit" 2>@1} result]} {
+        if {[catch {exec $xsct_exe -eval "hsi::open_hw_design $outputDir/daphne_selftrigger_$git_sha.xsa; createdts -hw $outputDir/daphne_selftrigger_$git_sha.xsa -zocl -platform-name daphne_selftrigger_$git_sha -git-branch xlnx_rel_v2022.2 -overlay -out $outputDir/daphne_selftrigger_$git_sha; exit" 2>@1} result]} {
             error "ERROR: xsct command failed:\n$result"
         }
         puts "INFO: Device Tree files have been generated."

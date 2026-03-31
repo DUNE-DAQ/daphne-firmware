@@ -1,6 +1,6 @@
 # Memory Map
 
-List of all the register addresses present in DAPHNE3/MEZZ's firmware.
+List of all the register addresses present in daphne_selftrigger_top/MEZZ's firmware.
 
 ## SPI Master Control for AFE chips AXI-4 Lite Slave Interface: `AFE_SPI_S_AXI`
 **Base Address:** `0x8000_0000`

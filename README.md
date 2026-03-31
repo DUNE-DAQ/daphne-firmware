@@ -1,8 +1,8 @@
 # daphne-firmware
 
 Merged working area for the DAPHNE mezzanine firmware, starting from the
-current `Daphne_MEZZ` non-project Vivado flow and audited against the legacy
-`firmware_vivado/DAPHNE_MEZ_SELF_TRIG_SRC_V15.zip` project-mode snapshot.
+current non-project Vivado flow and audited against the legacy project-mode
+snapshot.
 
 ## Current status
 
@@ -30,7 +30,7 @@ current `Daphne_MEZZ` non-project Vivado flow and audited against the legacy
 
 ## Repository layout
 
-- `ip_repo/daphne3_ip/`: imported PL RTL, simulation sources, and Hermes/DAQ
+- `ip_repo/daphne_ip/`: imported PL RTL, simulation sources, and Hermes/DAQ
   source tree.
 - `xilinx/`: imported non-project Vivado scripts, now parameterized by board.
 - `cores/tests/`: FuseSoC cores.
@@ -117,9 +117,9 @@ xilinx/output-<gitsha>/
 with files such as:
 
 ```text
-daphne3_st_<gitsha>.bit
-daphne3_st_<gitsha>.bin
-daphne3_st_<gitsha>.xsa
+daphne_selftrigger_<gitsha>.bit
+daphne_selftrigger_<gitsha>.bin
+daphne_selftrigger_<gitsha>.xsa
 ```
 
 Avoid setting `DAPHNE_OUTPUT_DIR` to a Linux absolute path like
@@ -170,11 +170,11 @@ export DAPHNE_MAX_THREADS=8
 
 ## Source decisions
 
-The working baseline is the current `Daphne_MEZZ` tree. The legacy zip was used
-as a reference source, not as the primary import, because the current tree
-already contains the newer non-project flow, the expanded timing/self-trigger
-logic, and the integrated Hermes source tree. Details are recorded in
-`docs/source-audit.md`.
+The working baseline is the current imported non-project Vivado tree. The
+legacy zip was used as a reference source, not as the primary import, because
+the current tree already contains the newer non-project flow, the expanded
+timing/self-trigger logic, and the integrated Hermes source tree. Details are
+recorded in `docs/source-audit.md`.
 
 ## FuseSoC structure
 
@@ -197,8 +197,8 @@ logic, and the integrated Hermes source tree. Details are recorded in
   boundaries directly in the FuseSoC graph.
 - `cores/features/daphne-modular.core` reassembles the top-level RTL from the
   modular blocks without changing the currently qualified Vivado flow.
-- `cores/generated/daphne3-ip.core` is generated from the source-selection rules
-  in `xilinx/daphne3_ip_gen.tcl` and remains the compatibility path for the
+- `cores/generated/daphne-ip.core` is generated from the source-selection rules
+  in `xilinx/daphne_ip_gen.tcl` and remains the compatibility path for the
   current K26C Vivado build.
 - `cores/platform/k26c-platform.core` keeps the working legacy K26C path.
 - `cores/platform/k26c-modular-platform.core` is the source-only platform

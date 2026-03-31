@@ -10,34 +10,34 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
     files:
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/baseline.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/bicocca_selftrig/hpf_pedestal_recovery_filter_trigger.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/ciemat_selftrig/Configurable_CFD.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/ciemat_selftrig/LocalPrimitives_CIEMAT.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/ciemat_selftrig/PeakDetector_SelfTrigger_CIEMAT.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/ciemat_selftrig/Self_Trigger_Primitive_Calculation.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/core.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/dual_st20_top.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/eia_selftrig/dsp_xc.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/eia_selftrig/st_xc.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/selftrig_core.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/st20_top.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/st40_top.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/stc3.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/thresholds.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/trig.vhd
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/trig_xc.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/baseline.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/hpf_pedestal_recovery_filter_trigger.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/Configurable_CFD.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/LocalPrimitives_CIEMAT.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/PeakDetector_SelfTrigger_CIEMAT.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/Self_Trigger_Primitive_Calculation.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/core.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/dual_st20_top.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/dsp_xc.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/st_xc.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/selftrig_core.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/st20_top.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/st40_top.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/stc3.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/thresholds.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/trig.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/trig_xc.vhd
     file_type: vhdlSource
   rtl_thresholds:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
     files:
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/thresholds.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/thresholds.vhd
     file_type: vhdlSource
   rtl_verilog:
     files:
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/bicocca_selftrig/IIRFilter_afe_integrator_optimized.v
-      - ../../ip_repo/daphne3_ip/rtl/selftrig/bicocca_selftrig/k_low_pass_filter.v
+      - ../../ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/IIRFilter_afe_integrator_optimized.v
+      - ../../ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/k_low_pass_filter.v
     file_type: verilogSource
   tb_axi_smoke:
     files:
@@ -45,13 +45,13 @@ filesets:
     file_type: vhdlSource
   tb_legacy_vhdl:
     files:
-      - ../../ip_repo/daphne3_ip/sim/selftrig/st40_top_testbench.vhd
-      - ../../ip_repo/daphne3_ip/sim/selftrig/stc3_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/selftrig/st40_top_testbench.vhd
+      - ../../ip_repo/daphne_ip/sim/selftrig/stc3_testbench.vhd
     file_type: vhdlSource
   tb_legacy_data:
     files:
-      - ../../ip_repo/daphne3_ip/sim/selftrig/st40_top_testbench.txt
-      - ../../ip_repo/daphne3_ip/sim/selftrig/stc3_testbench.txt
+      - ../../ip_repo/daphne_ip/sim/selftrig/st40_top_testbench.txt
+      - ../../ip_repo/daphne_ip/sim/selftrig/stc3_testbench.txt
     file_type: user
   formal:
     files:

@@ -8,9 +8,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-TCL_PATH = ROOT / "xilinx" / "daphne3_ip_gen.tcl"
+TCL_PATH = ROOT / "xilinx" / "daphne_ip_gen.tcl"
 OUT_DIR = ROOT / "cores" / "generated"
-OUT_PATH = OUT_DIR / "daphne3-ip.core"
+OUT_PATH = OUT_DIR / "daphne-ip.core"
 CORE_PREFIX = "../../"
 
 
@@ -75,23 +75,23 @@ def main() -> None:
         )
     )
 
-    rtl_root = ROOT / "ip_repo" / "daphne3_ip" / "rtl"
-    sim_root = ROOT / "ip_repo" / "daphne3_ip" / "sim"
+    rtl_root = ROOT / "ip_repo" / "daphne_ip" / "rtl"
+    sim_root = ROOT / "ip_repo" / "daphne_ip" / "sim"
     daq_root = (
         ROOT
         / "ip_repo"
-        / "daphne3_ip"
+        / "daphne_ip"
         / "src"
         / "dune.daq_user_hermes_daphne_1.0"
         / "src"
     )
-    ips_root = ROOT / "ip_repo" / "daphne3_ip" / "ips"
+    ips_root = ROOT / "ip_repo" / "daphne_ip" / "ips"
 
     rtl_vhdl = core_relative(
         basename_filtered(sorted_relative_files(rtl_root, "*.vhd"), rtl_ignored)
     )
     rtl_verilog = core_relative(sorted_relative_files(rtl_root, "*.v"))
-    rtl_top = [f"{CORE_PREFIX}ip_repo/daphne3_ip/rtl/daphne3.vhd"]
+    rtl_top = [f"{CORE_PREFIX}ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd"]
 
     sim_vhdl = core_relative(sorted_relative_files(sim_root, "*.vhd"))
     sim_verilog = core_relative(sorted_relative_files(sim_root, "*.v"))
@@ -115,8 +115,8 @@ def main() -> None:
     lines = [
         "CAPI=2:",
         "",
-        "name: dune-daq:daphne:daphne3-ip:0.1.0",
-        "description: Generated source manifest matching xilinx/daphne3_ip_gen.tcl",
+        "name: dune-daq:daphne:daphne-ip:0.1.0",
+        "description: Generated source manifest matching xilinx/daphne_ip_gen.tcl",
         "provider:",
         "  name: local",
         "",
@@ -139,7 +139,7 @@ def main() -> None:
             "",
             "targets:",
             "  default: &default_target",
-            "    description: Synthesizable DAPHNE3 PL source manifest",
+            "    description: Synthesizable daphne_selftrigger_top PL source manifest",
             "    filesets:",
             "      - rtl_vhdl",
             "      - rtl_verilog",

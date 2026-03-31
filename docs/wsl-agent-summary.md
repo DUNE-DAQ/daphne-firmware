@@ -56,7 +56,7 @@ set ::env(DAPHNE_BOARD_PART) "xilinx.com:k26c:part0:1.4"
 set ::env(DAPHNE_PFM_NAME) "xilinx:k26c:name:0.0"
 set ::env(DAPHNE_BOARD) "k26c"
 set ::env(DAPHNE_ETH_MODE) "create_ip"
-source -notrace [file join $script_dir "daphne3_ip_gen.tcl"]
+source -notrace [file join $script_dir "daphne_ip_gen.tcl"]
 exit
 ```
 
@@ -110,8 +110,8 @@ value.
 
 1. Re-run manual preflight with `pushd`.
 2. Confirm these files exist after preflight:
-   - `ip_repo/daphne3_ip/component.xml`
-   - `ip_repo/daphne3_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci`
+   - `ip_repo/daphne_ip/component.xml`
+   - `ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci`
 3. Re-run manual build with `pushd`.
 4. Capture resulting artifacts under `xilinx/output/`.
 5. If the build succeeds again, decide whether to:

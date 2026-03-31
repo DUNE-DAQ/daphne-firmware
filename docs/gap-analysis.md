@@ -4,7 +4,7 @@
 
 - Fresh `daphne-firmware` git repository created and connected to the empty
   GitHub remote.
-- Current `Daphne_MEZZ` source tree imported as the baseline.
+- Current imported non-project Vivado tree used as the baseline.
 - Board-dependent Tcl settings parameterized.
 - Initial board metadata added.
 - FuseSoC HDL smoke tests added for the frontend trigger path, threshold
