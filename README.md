@@ -100,6 +100,13 @@ If you are in WSL2 and Vivado/Vitis 2024.1 are installed on Windows, use:
 ./scripts/wsl/run_wsl_vivado_chain.sh
 ```
 
+`run_wsl_vivado_chain.sh` is the single-command path. It runs:
+
+- Windows-tool sanity check
+- Vivado preflight
+- synth/implementation
+- DT overlay packaging
+
 For WSL-driven Windows Vivado runs, keep `DAPHNE_OUTPUT_DIR` unset or set it to
 something relative to `xilinx/`, for example:
 
