@@ -58,6 +58,20 @@ Expected outputs:
 - `xilinx/output/daphne_selftrigger_ol_<gitsha>.zip`
 - `xilinx/output/SHA256SUMS`
 
+## Current highest-priority blocker
+
+A successful overlay package is not yet sufficient for target deployment.
+
+The March 31, 2026 board validation of firmware commit `7f032ac` showed that
+the overlay loads through `xmutil`, but the expected Linux-visible PL I2C path
+for the clock generator does not reappear on target. That blocks the clock-chip
+bring-up path used by `daphne-server` and therefore blocks endpoint/service
+validation.
+
+Treat PL I2C recovery after overlay load as the first firmware-delivery
+acceptance criterion. Details and target-side evidence live in
+`docs/pl-i2c-binding-blocker.md`.
+
 ## What the known-good golden bundle tells us
 
 The validated package under `~/golden/daphne14-2026-03-12/` is a **full boot
