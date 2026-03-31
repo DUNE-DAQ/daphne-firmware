@@ -21,6 +21,7 @@ Current contract set:
 - `analog-control`
 - `control-plane`
 - `frontend-boundary`
+- `timing-endpoint`
 - `timing-subsystem`
 - `trigger-pipeline`
 - `spy-buffer`

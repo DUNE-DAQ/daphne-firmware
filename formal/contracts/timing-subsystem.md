@@ -30,6 +30,16 @@ changing the established timing concepts.
 - Local-clock mode is permitted, but it carries different timestamp semantics
   and must not be confused with endpoint-synchronized operation.
 
+### Timing endpoint contract focus
+
+- `RST` must remain asserted during startup until clock validity is established.
+- `RDY` gates the validity of timestamp and sync outputs.
+- Command `0` is the only command assumed to request sync generation.
+- `TX_DISABLE` stays asserted unless the endpoint is ready and the environment
+  explicitly requests transmission.
+- `LOS` is an observation/debug input and must not affect the visible contract
+  outputs.
+
 ## Evidence target
 
 - formal at the AXI/control boundary

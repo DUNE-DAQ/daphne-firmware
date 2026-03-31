@@ -1,0 +1,27 @@
+CAPI=2:
+
+name: dune-daq:daphne:timing-endpoint-contract:0.1.0
+description: Guide-driven timing endpoint integration contract wrapper and proof harness
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ../../rtl/isolated/subsystems/timing/timing_endpoint_contract.vhd
+    file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/timing_endpoint_contract.sby
+    file_type: user
+
+targets:
+  default:
+    filesets:
+      - rtl
+  formal:
+    description: Formal proof for reset, ready, timestamp, sync, and TX disable contract semantics
+    filesets:
+      - rtl
+    filesets_append:
+      - formal

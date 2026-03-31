@@ -1,0 +1,18 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+# Guide-level timing endpoint contract wrapper:
+# reset/ready gating, timestamp validity, sync-command handling, and TX disable
+# expectations are modeled at the integration boundary only.
+plugin -i ghdl
+ghdl --std=08 timing_endpoint_contract.vhd timing_endpoint_contract_formal.vhd -e timing_endpoint_contract_formal
+prep -top timing_endpoint_contract_formal
+
+[files]
+../../rtl/isolated/subsystems/timing/timing_endpoint_contract.vhd
+../vhdl/timing_endpoint_contract_formal.vhd

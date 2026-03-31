@@ -18,6 +18,8 @@ Current proof entry points:
   contract.
 - `formal/sby/thresholds_axi_lite.sby` for the self-trigger threshold register
   bank.
+- `formal/sby/timing_endpoint_contract.sby` for the guide-driven timing
+  endpoint integration contract wrapper.
 - `formal/sby/timing_subsystem_boundary_contract.sby` for the neutral timing
   wrapper contract.
 - `formal/sby/trigger_pipeline_boundary_gate.sby` for the trigger readiness
@@ -59,3 +61,6 @@ Modules intentionally left out for now:
 - The boundary proofs deliberately stop at the wrapper edge; they do not yet
   prove the imported trigger, spy-memory, timing-endpoint, or transport
   implementations themselves.
+- The timing endpoint contract proof captures wrapper/integration semantics
+  for reset, ready, timestamp validity, command-zero sync handling, and TX
+  disable behavior. It does not prove the imported PDTS endpoint algorithm.
