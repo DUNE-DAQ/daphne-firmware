@@ -83,6 +83,7 @@ Current board-supported path:
 
 ```bash
 export DAPHNE_BOARD=k26c
+export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
 ./scripts/fusesoc/fusesoc.sh run --target=impl dune-daq:daphne:k26c-platform:0.1.0
 ```
 
@@ -95,6 +96,8 @@ export DAPHNE_BOARD=k26c
 
 This target still preserves the qualified `xilinx/vivado_batch.tcl` flow; the
 change is that FuseSoC now owns the top-level entry point and work root.
+If you call `fusesoc run` directly, set `DAPHNE_GIT_SHA` first so the legacy
+artifact naming keeps the real commit instead of falling back to `0000000`.
 
 If Vivado runs on a remote server instead of the local workstation, use the
 repo-local runbook and wrapper:
@@ -118,7 +121,8 @@ If you are in WSL2 and Vivado/Vitis 2024.1 are installed on Windows, use:
 - DT overlay packaging
 
 For WSL-driven Windows Vivado runs, keep `DAPHNE_OUTPUT_DIR` unset or set it to
-something relative to `xilinx/`, for example:
+something relative to the staged `xilinx/` directory in the active FuseSoC
+work root, for example:
 
 ```bash
 export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
@@ -128,7 +132,7 @@ export DAPHNE_OUTPUT_DIR="./output-$DAPHNE_GIT_SHA"
 Then expect the main artifacts under:
 
 ```text
-xilinx/output-<gitsha>/
+<work-root>/xilinx/output-<gitsha>/
 ```
 
 with files such as:
@@ -139,14 +143,14 @@ daphne_selftrigger_<gitsha>.bin
 daphne_selftrigger_<gitsha>.xsa
 ```
 
-Avoid setting `DAPHNE_OUTPUT_DIR` to a Linux absolute path like
-`$PWD/xilinx/output-<gitsha>` when the build runs through Windows Vivado from
-WSL.
+Avoid setting `DAPHNE_OUTPUT_DIR` to a Linux absolute path outside the active
+FuseSoC work root when the build runs through Windows Vivado from WSL.
 
-After the build, run:
+After the build, run the DT overlay packaging step against that work-root
+artifact directory:
 
 ```bash
-./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
+./scripts/package/complete_dtbo_bundle.sh <work-root>/xilinx/output-$DAPHNE_GIT_SHA
 ```
 
 On WSL, this packaging script now auto-loads the Windows `xsct` wrapper if it
