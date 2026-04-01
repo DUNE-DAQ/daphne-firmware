@@ -1,0 +1,29 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-capture-to-trigger-bank:0.1.0
+description: Per-AFE adapter from frontend capture lanes to trigger sample banks
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/trigger/afe_capture_to_trigger_bank.vhd
+    file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/afe_capture_to_trigger_bank_contract.sby
+    file_type: user
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl
+  formal:
+    <<: *default_target
+    description: Formal proof of the per-AFE capture-to-trigger adapter
+    filesets_append:
+      - formal

@@ -1,0 +1,17 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 daphne_package.vhd daphne_subsystem_pkg.vhd afe_capture_to_trigger_bank.vhd afe_capture_to_trigger_bank_formal.vhd -e afe_capture_to_trigger_bank_formal
+prep -top afe_capture_to_trigger_bank_formal
+
+[files]
+../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/trigger/afe_capture_to_trigger_bank.vhd
+../vhdl/afe_capture_to_trigger_bank_formal.vhd

@@ -1,0 +1,15 @@
+[options]
+mode bmc
+depth 8
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 frontend_register_slice.vhd frontend_register_slice_formal.vhd -e frontend_register_slice_formal
+prep -top frontend_register_slice_formal
+
+[files]
+../../rtl/isolated/subsystems/frontend/frontend_register_slice.vhd
+../vhdl/frontend_register_slice_formal.vhd
