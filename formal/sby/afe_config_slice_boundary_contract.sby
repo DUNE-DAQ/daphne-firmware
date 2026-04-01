@@ -1,0 +1,16 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd afe_config_slice_boundary.vhd afe_config_slice_boundary_formal.vhd -e afe_config_slice_boundary_formal
+prep -top afe_config_slice_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/analog/afe_config_slice_boundary.vhd
+../vhdl/afe_config_slice_boundary_formal.vhd

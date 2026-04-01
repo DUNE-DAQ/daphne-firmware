@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:self-trigger-xcorr-channel:0.1.0
+description: Channel-local wrapper around the imported cross-correlation self-trigger path
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:selftrigger:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

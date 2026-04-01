@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-config-bank:0.1.0
+description: Parameterized bank of isolated per-AFE configuration slices and qualified ready status
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:afe-analog-island:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/analog/afe_config_bank.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

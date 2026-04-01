@@ -9,6 +9,7 @@ filesets:
   rtl_vhdl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-primitives:0.1.0
     files:
       - ../../ip_repo/daphne_ip/rtl/selftrig/baseline.vhd
       - ../../ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/hpf_pedestal_recovery_filter_trigger.vhd

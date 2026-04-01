@@ -24,9 +24,6 @@ use IEEE.STD_LOGIC_1164.ALL;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -107,15 +104,16 @@ end process Get_Config_Params;
 ----------------------- GENERATE DELAY OF INPUT REGISTER SIGNAL DIN: Max delay of 32 clk tics    -----------------------
 
 gendelay: for i in 27 downto 0 generate
-
-        srlc32e_0_inst : srlc32e
+        delay_line_inst : entity work.configurable_delay_line
+        generic map(
+            WIDTH_G     => 1,
+            MAX_DELAY_G => 32
+        )
         port map(
-            clk             => clock,
-            ce              => '1',
-            a               => config_delay_reg, -- 
-            d               => din_reg(i),       -- real time AFE data
-            q               => din_delay(i),
-            q31             => open 
+            clock_i     => clock,
+            din_i(0)    => din_reg(i),
+            delay_i     => config_delay_reg,
+            dout_o(0)   => din_delay(i)
         );
 
 end generate gendelay;

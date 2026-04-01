@@ -17,6 +17,8 @@ snapshot.
   register block.
 - Added formal verification scaffolds for the AXI-Lite leaf blocks where a
   proof has a realistic cost/benefit ratio during the migration.
+- Added vendor-neutral delay/FIFO primitives so the isolated self-trigger path
+  can be analyzed locally without Vivado `unisim` / `xpm`.
 - Recorded the PS-side deployment contract needed by `daphne-server`.
 - Qualified a WSL2-driven Windows Vivado/Vitis K26C hardware build flow and
   captured that baseline for follow-on isolation work.
@@ -84,7 +86,7 @@ Current board-supported path:
 ```bash
 export DAPHNE_BOARD=k26c
 export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
-./scripts/fusesoc/build_platform.sh
+./scripts/fusesoc/fusesoc.sh run --target=impl dune-daq:daphne:k26c-platform:0.1.0
 ```
 
 The convenience wrapper now dispatches through the same FuseSoC target:
@@ -92,13 +94,6 @@ The convenience wrapper now dispatches through the same FuseSoC target:
 ```bash
 export DAPHNE_BOARD=k26c
 ./scripts/fusesoc/run_vivado_batch.sh
-```
-
-To select the modular platform graph explicitly instead of the legacy source
-manifest, use:
-
-```bash
-./scripts/fusesoc/build_platform.sh --modular
 ```
 
 This target still preserves the qualified `xilinx/vivado_batch.tcl` flow; the
@@ -214,8 +209,25 @@ recorded in `docs/source-audit.md`.
   frontend alignment contract separately from downstream trigger semantics.
 - `cores/common/daphne-subsystem-types.core` carries the neutral typed records
   used by the isolation/formal-prep wrapper layer.
+- `cores/common/daphne-subsystem-primitives.core` carries vendor-neutral delay
+  and FIFO blocks used to peel Xilinx primitive dependencies out of the
+  isolated self-trigger path.
 - `cores/features/analog-control.core` captures the AFE/DAC configuration
   readiness boundary that must settle before frontend alignment.
+- `cores/features/afe-config-slice.core`,
+  `cores/features/afe-analog-island.core`,
+  `cores/features/afe-config-bank.core`,
+  `cores/features/afe-subsystem-island.core`,
+  `cores/features/afe-subsystem-fabric.core`,
+  `cores/features/afe-config-slice-boundary.core`,
+  `cores/features/afe-capture-slice.core`,
+  `cores/features/afe-capture-slice-boundary.core`,
+  `cores/features/frontend-bitlane.core`,
+  `cores/features/frontend-capture-bank.core`,
+  `cores/features/frontend-registers.core`,
+  and `cores/features/frontend-island.core` split the current frontend/AFE path
+  into smaller reusable IP blocks while keeping the imported monolithic path
+  available.
 - `cores/features/control-plane.core`,
   `cores/features/frontend-boundary.core`,
   `cores/features/spy-buffer-boundary.core`,
@@ -223,14 +235,38 @@ recorded in `docs/source-audit.md`.
   `cores/features/trigger-pipeline.core`, and
   `cores/features/hermes-boundary.core` expose the additive subsystem
   boundaries directly in the FuseSoC graph.
-- `cores/features/daphne-modular.core` reassembles the top-level RTL from the
-  modular blocks without changing the currently qualified Vivado flow.
+- `cores/features/daphne-composable.core` is the fine-grained subsystem graph
+  intended to seed future partial and parameterized gateware builds.
+- `cores/features/self-trigger-xcorr-channel.core`,
+  `cores/features/peak-descriptor-channel.core`, and
+  `cores/features/afe-trigger-bank.core` split the existing one-channel
+  self-trigger path into reusable trigger and descriptor slices while keeping
+  frame ownership outside the slices for now.
+- `cores/features/stc3-record-builder.core`,
+  `cores/features/afe-selftrigger-island.core`,
+  `cores/features/selftrigger-fabric.core`, and
+  `cores/features/frontend-to-selftrigger-adapter.core` now capture the first
+  composable self-trigger assembly layers above the per-channel slices.
+- The isolated self-trigger graph now analyzes locally through the per-channel
+  trigger/descriptor slices, `stc3_record_builder`, AFE trigger bank,
+  per-AFE self-trigger island, and the AFE subsystem fabric without Vivado
+  vendor libraries.
+- `cores/features/daphne-composable-top.core` is the first source-only top
+  shell. It currently wires `frontend_island` into the new self-trigger fabric
+  and holds the feature generics that the full composable project will grow
+  around.
+- `cores/features/daphne-modular.core` remains as the older transitional
+  source-graph wrapper. New decomposition work should land in
+  `daphne-composable`.
 - `cores/generated/daphne-ip.core` is generated from the source-selection rules
   in `xilinx/daphne_ip_gen.tcl` and remains the compatibility path for the
   current K26C Vivado build.
 - `cores/platform/k26c-platform.core` keeps the working legacy K26C path.
 - `cores/platform/k26c-modular-platform.core` is the source-only platform
-  wrapper for the emerging modular graph.
+  wrapper for the older transitional modular graph and should not receive new
+  feature decomposition work.
+- `cores/platform/k26c-composable-platform.core` is the source-only platform
+  wrapper for the finer-grained composable subsystem graph.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache
   directories so the workflow does not depend on global user configuration.
 - `scripts/fusesoc/run_logic_test.sh` now exercises the module-level smoke
@@ -240,11 +276,17 @@ recorded in `docs/source-audit.md`.
 
 - `config-control`, `frontend-control`, and `selftrigger` expose `sim` targets
   backed by GHDL smoke benches.
+- `frontend-registers` and `afe-config-slice` expose smaller GHDL smoke targets
+  for the isolated control primitives that future partial builds will reuse.
 - `afe-interface`, `dac-interface`, and `spy-buffer` expose `sim` targets that
   retain the imported legacy benches under vendor-library simulators such as
   XSim.
-- `frontend-control` and `selftrigger` expose `formal` scaffolds that pin the
-  expected SymbiYosys proof entry points for the AXI-Lite register blocks.
+- `frontend-registers`, `afe-config-slice-boundary`, `afe-capture-slice-boundary`,
+  and `selftrigger` expose checked proof entry points for their interface
+  contracts.
+- The new trigger/descriptor wrappers are source-only preparation work around
+  the imported `trig_xc` and legacy peak-descriptor calculator; they are not yet
+  integrated as the top-level frame source.
 - Timing, Hermes transport, and the full frontend datapath are documented as
   future formal candidates, not present-day proof targets.
 

@@ -1,0 +1,21 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-trigger-bank:0.1.0
+description: Per-AFE bank wrapper combining channel-local self-trigger and peak-descriptor slices
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:self-trigger-xcorr-channel:0.1.0
+      - dune-daq:daphne:peak-descriptor-channel:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/trigger/afe_trigger_bank.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

@@ -1,0 +1,23 @@
+CAPI=2:
+
+name: dune-daq:daphne:daphne-composable-top:0.1.0
+description: Source-only composable DAPHNE top shell for parameterized AFE-count builds
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:frontend-island:0.1.0
+      - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
+      - dune-daq:daphne:selftrigger-fabric:0.1.0
+    files:
+      - ../../rtl/isolated/tops/daphne_composable_top.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

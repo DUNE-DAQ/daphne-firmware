@@ -24,9 +24,6 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values

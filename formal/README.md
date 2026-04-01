@@ -6,20 +6,28 @@ block-design procedures, or Xilinx primitive-heavy datapaths.
 
 Current proof entry points:
 
+- `formal/sby/afe_config_slice_boundary_contract.sby` for reset-qualified
+  per-AFE configuration readiness.
+- `formal/sby/afe_capture_slice_boundary_contract.sby` for reset-qualified
+  per-AFE capture validity.
 - `formal/sby/analog_control_boundary_contract.sby` for reset-qualified analog
   readiness.
 - `formal/sby/control_plane_boundary_contract.sby` for the neutral control
   wrapper contract.
+- `formal/sby/configurable_delay_line_contract.sby` for the vendor-neutral
+  configurable delay primitive that replaces imported `SRLC32E` delay chains.
 - `formal/sby/fe_axi_axi_lite.sby` for the frontend AXI-Lite control register
   block.
+- `formal/sby/fixed_delay_line_contract.sby` for the vendor-neutral fixed
+  sample-delay primitive used in the isolated self-trigger path.
 - `formal/sby/frontend_boundary_gate.sby` for the frontend alignment validity
   gate.
+- `formal/sby/frontend_to_selftrigger_adapter_contract.sby` for the frontend
+  capture to self-trigger channel-map and truncation contract.
 - `formal/sby/hermes_boundary_contract.sby` for the neutral Hermes handoff
   contract.
 - `formal/sby/thresholds_axi_lite.sby` for the self-trigger threshold register
   bank.
-- `formal/sby/timing_endpoint_contract.sby` for the guide-driven timing
-  endpoint integration contract wrapper.
 - `formal/sby/timing_subsystem_boundary_contract.sby` for the neutral timing
   wrapper contract.
 - `formal/sby/trigger_pipeline_boundary_gate.sby` for the trigger readiness
@@ -48,6 +56,13 @@ Properties currently checked:
   documented stretch intervals.
 - Boundary enable outputs are exactly the conjunction of the documented
   readiness and reset qualifiers.
+- Per-AFE slice boundaries stay invalid/unsafe while taps are loading or while
+  local configuration transactions are busy.
+- The frontend-to-selftrigger adapter preserves per-AFE channel ordering,
+  drops the frame lane, and truncates 16-bit capture samples to the 14-bit
+  trigger path exactly as the legacy self-trigger path expects.
+- The vendor-neutral delay primitives preserve the same bounded sample-history
+  selection contract as the isolated self-trigger wrappers that consume them.
 - Neutral wrappers that are still stubs are proven to remain input-independent
   and to expose only null/zero-valued outputs.
 
@@ -61,6 +76,3 @@ Modules intentionally left out for now:
 - The boundary proofs deliberately stop at the wrapper edge; they do not yet
   prove the imported trigger, spy-memory, timing-endpoint, or transport
   implementations themselves.
-- The timing endpoint contract proof captures wrapper/integration semantics
-  for reset, ready, timestamp validity, command-zero sync handling, and TX
-  disable behavior. It does not prove the imported PDTS endpoint algorithm.

@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:selftrigger-fabric:0.1.0
+description: Flat multi-AFE self-trigger composition built from per-AFE islands
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:afe-selftrigger-island:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/trigger/selftrigger_fabric.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

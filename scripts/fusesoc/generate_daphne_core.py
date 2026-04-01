@@ -11,6 +11,18 @@ ROOT = Path(__file__).resolve().parents[2]
 TCL_PATH = ROOT / "xilinx" / "daphne_ip_gen.tcl"
 OUT_DIR = ROOT / "cores" / "generated"
 OUT_PATH = OUT_DIR / "daphne-ip.core"
+CORE_PREFIX = "../../"
+EXTRA_RTL_VHDL = [
+    "rtl/isolated/common/daphne_subsystem_pkg.vhd",
+    "rtl/isolated/common/primitives/configurable_delay_line.vhd",
+    "rtl/isolated/common/primitives/fixed_delay_line.vhd",
+    "rtl/isolated/common/primitives/sync_fifo_fwft.vhd",
+    "rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd",
+    "rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd",
+    "rtl/isolated/subsystems/trigger/stc3_record_builder.vhd",
+]
+
+
 def sorted_relative_files(base: Path, pattern: str) -> list[str]:
     return sorted(
         p.relative_to(ROOT).as_posix() for p in base.rglob(pattern) if p.is_file()
@@ -22,7 +34,7 @@ def basename_filtered(paths: list[str], ignored: set[str]) -> list[str]:
 
 
 def core_relative(paths: list[str]) -> list[str]:
-    return paths
+    return [f"{CORE_PREFIX}{p}" for p in paths]
 
 
 def extract_quoted_list(text: str, pattern: str) -> list[str]:
@@ -30,6 +42,15 @@ def extract_quoted_list(text: str, pattern: str) -> list[str]:
     if not match:
         raise RuntimeError(f"Could not find pattern: {pattern}")
     return re.findall(r'"([^"]+)"', match.group(1))
+
+
+def extract_quoted_list_any(text: str, patterns: list[str]) -> list[str]:
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.S)
+        if match:
+            return re.findall(r'"([^"]+)"', match.group(1))
+    joined = " | ".join(patterns)
+    raise RuntimeError(f"Could not find any expected pattern: {joined}")
 
 
 def emit_fileset(
@@ -66,9 +87,12 @@ def main() -> None:
         extract_quoted_list(tcl_text, r"set wibTypeExceptionList \{(.*?)\}")
     )
     daq_xci_ignored = set(
-        extract_quoted_list(
+        extract_quoted_list_any(
             tcl_text,
-            r"set xciDAQFiles \[ignore_files \$xciDAQFiles_aux \{(.*?)\}\]",
+            [
+                r'set xciDAQFiles \[ignore_files \$xciDAQFiles_aux "(.*?)"\]',
+                r"set xciDAQFiles \[ignore_files \$xciDAQFiles_aux \{(.*?)\}\]",
+            ],
         )
     )
 
@@ -85,10 +109,11 @@ def main() -> None:
     ips_root = ROOT / "ip_repo" / "daphne_ip" / "ips"
 
     rtl_vhdl = core_relative(
-        basename_filtered(sorted_relative_files(rtl_root, "*.vhd"), rtl_ignored)
+        EXTRA_RTL_VHDL
+        + basename_filtered(sorted_relative_files(rtl_root, "*.vhd"), rtl_ignored)
     )
     rtl_verilog = core_relative(sorted_relative_files(rtl_root, "*.v"))
-    rtl_top = ["ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd"]
+    rtl_top = [f"{CORE_PREFIX}ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd"]
 
     sim_vhdl = core_relative(sorted_relative_files(sim_root, "*.vhd"))
     sim_verilog = core_relative(sorted_relative_files(sim_root, "*.v"))

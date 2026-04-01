@@ -2,9 +2,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity trig_xc is
 port(
     clock: in std_logic;
@@ -84,25 +81,29 @@ begin
     -- trigger goes between the adhoc conditions or the EIA self trigger condition
     triggered_i <= '1' when ( ( ti_trigger=adhoc and ti_trigger_stbr='1' ) or ( triggered_i_module='1' ) ) else '0';
 
-    -- add in some fake/synthetic latency, adjust it so total trigger latency is 64 clocks
-    srlc32e_0_inst : srlc32e
+    -- Keep the legacy synthetic trigger latency at 64 clocks, but express it
+    -- through a vendor-neutral fixed delay line so this path elaborates
+    -- without Xilinx primitive libraries.
+    trigger_latency_stage0_inst : entity work.fixed_delay_line
+    generic map (
+        WIDTH_G => 1,
+        DELAY_G => 32
+    )
     port map (
-        clk => clock,
-        ce  => '1',
-        a   => "11111",
-        d   => triggered_i,
-        q   => open,
-        q31 => triggered_dly32_i
+        clock_i    => clock,
+        din_i(0)   => triggered_i,
+        dout_o(0)  => triggered_dly32_i
     );
 
-    srlc32e_1_inst : srlc32e
+    trigger_latency_stage1_inst : entity work.fixed_delay_line
+    generic map (
+        WIDTH_G => 1,
+        DELAY_G => 32
+    )
     port map (
-        clk => clock,
-        ce  => '1',
-        a   => "11111",
-        d   => triggered_dly32_i,
-        q   => trig,
-        q31 => open
+        clock_i    => clock,
+        din_i(0)   => triggered_dly32_i,
+        dout_o(0)  => trig
     );
 
     -- store the sample and timestamp that caused the trigger

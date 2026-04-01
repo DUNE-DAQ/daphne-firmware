@@ -1,0 +1,15 @@
+[options]
+mode prove
+depth 4
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 fixed_delay_line.vhd fixed_delay_line_formal.vhd -e fixed_delay_line_formal
+prep -top fixed_delay_line_formal
+
+[files]
+../../rtl/isolated/common/primitives/fixed_delay_line.vhd
+../vhdl/fixed_delay_line_formal.vhd

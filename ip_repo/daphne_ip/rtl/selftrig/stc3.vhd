@@ -30,6 +30,8 @@ use unisim.vcomponents.all;
 library xpm;
 use xpm.vcomponents.all;
 
+use work.daphne_subsystem_pkg.all;
+
 entity stc3 is
 -- generic( baseline_runlength: integer := 256 ); -- options 32, 64, 128, or 256
 port(
@@ -71,61 +73,20 @@ port(
 end stc3;
 
 architecture stc3_arch of stc3 is
-
-type array_10x14_type is array(9 downto 0) of std_logic_vector(13 downto 0);
-signal din_delay: array_10x14_type;
-
-signal R0, R1, R2, R3, R4, R5: std_logic_vector(13 downto 0);
-signal block_count: integer range 0 to 31 := 0;
-
-type state_type is (rst, wait4trig, w0, w1, w2, w3, h0, h1, h2, h3, h4, h5, h6, h7, h8, 
-                    d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, 
-                    d16, d17, d18, d19, d20, d21, d22, d23, d24, d25, d26, d27, d28, d29, d30, d31);
-signal state: state_type;
-
-type trigger_counter_state_type is (rst_trggr, wait4trig_trggr, rising_triggered);
-signal trigger_counter_state: trigger_counter_state_type;
-
-signal trig_sample_ts, sample0_ts: std_logic_vector(63 downto 0) := (others=>'0');
+signal trig_sample_ts: std_logic_vector(63 downto 0) := (others=>'0');
 signal calculated_baseline, trig_sample_dat: std_logic_vector(13 downto 0) := (others=>'0');
 signal triggered: std_logic := '0';
 signal clean_forcetrig: std_logic := '0';
 signal forcetrig_reg: std_logic_vector(1 downto 0) := "00";
-signal FIFO_din: std_logic_vector(71 downto 0) := (others=>'0');
-signal FIFO_wr_en, FIFO_sleep: std_logic := '0';
-signal marker: std_logic_vector(7 downto 0) := X"00";
-signal prog_empty, prog_full: std_logic;
-signal fifo_word_count: std_logic_vector(12 downto 0);
 signal enable: std_logic;
-
-signal record_count_reg: std_logic_vector(63 downto 0) := (others=>'0');
-signal busydrop_count_reg: std_logic_vector(63 downto 0) := (others=>'0');
-signal fulldrop_count_reg: std_logic_vector(63 downto 0) := (others=>'0');
-signal busydrop_reg: std_logic := '0';
-signal fsm_busy: std_logic := '0';
 
 signal triggered_bicocca: std_logic := '0';
 signal afe_dat_filtered: std_logic_vector(13 downto 0);
 signal afe_dat_filtered_TP: std_logic_vector(13 downto 0);
-signal trigCount: unsigned(63 downto 0) := (others => '0');
-signal packCount: unsigned(63 downto 0) := (others => '0');
+signal trigCount: std_logic_vector(63 downto 0) := (others => '0');
+signal packCount: std_logic_vector(63 downto 0) := (others => '0');
 
-signal Data_Available_aux: std_logic; -- ACTIVE HIGH when Frame Finite State Machine is in WaitingFor Trig MODE
 signal Match_TP_With_FRAME: std_logic; -- ACTIVE HIGH when LOCAL primitives are calculated
-signal Time_Peak_aux: std_logic_vector(8 downto 0); -- Time in Samples to achieve de Max peak
-signal Time_Pulse_UB_aux: std_logic_vector(8 downto 0); -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
-signal Time_Pulse_OB_aux: std_logic_vector(9 downto 0); -- Time in Samples of the light pulse signal is OVER BASELINE (undershoot)
-signal Max_Peak_aux: std_logic_vector(13 downto 0); -- Amplitude in ADC counts od the peak
-signal Charge_aux: std_logic_vector(22 downto 0); -- Charge of the light pulse (without undershoot) in ADC*samples
-signal Number_Peaks_UB_aux: std_logic_vector(3 downto 0); -- Number of peaks detected when signal is UNDER BASELINE (without undershoot).  
-signal Number_Peaks_OB_aux: std_logic_vector(3 downto 0); -- Number of peaks detected when signal is OVER BASELINE (undershoot).  
-signal Amplitude_aux: std_logic_vector(14 downto 0); -- Real Time calculated AMPLITUDE
-signal Peak_Current_aux: std_logic; -- ACTIVE HIGH when a peak is detected
-signal Slope_Current_aux: std_logic_vector(13 downto 0); -- Real Time calculated SLOPE
-signal Slope_Threshold_aux: std_logic_vector(6 downto 0); -- Threshold over the slope to detect Peaks
-signal Detection_aux: std_logic; -- ACTIVE HIGH when primitives are being calculated (during light pulse)
-signal Sending_aux: std_logic; -- ACTIVE HIGH when colecting data for self-trigger frame
-signal Info_Previous_aux: std_logic; -- ACTIVE HIGH when self-trigger is produced by a waveform between two frames 
 signal Data_Available_Trailer_aux: std_logic; -- ACTIVE HIGH when metadata is ready
 signal Trailer_Word_0_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
 signal Trailer_Word_1_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
@@ -139,18 +100,12 @@ signal Trailer_Word_8_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with m
 signal Trailer_Word_9_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
 signal Trailer_Word_10_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
 signal Trailer_Word_11_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_0_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_1_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_2_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_3_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_4_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_5_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_6_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_7_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_8_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_9_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_10_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER
-signal Trailer_Word_11_reg: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives) REGISTER   
+signal xcorr_control_s: trigger_xcorr_control_t := TRIGGER_XCORR_CONTROL_NULL;
+signal trigger_builder_s: trigger_xcorr_result_t := TRIGGER_XCORR_RESULT_NULL;
+signal descriptor_control_s: peak_descriptor_control_t := PEAK_DESCRIPTOR_CONTROL_NULL;
+signal descriptor_result_s: peak_descriptor_result_t := PEAK_DESCRIPTOR_RESULT_NULL;
+signal trailer_builder_s: peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
+signal frame_match_s: std_logic;
 
 -- component baseline
 -- generic( baseline_runlength: integer := 256 );
@@ -259,81 +214,6 @@ clean_forcetrig <= '1' when (forcetrig_reg="01") else '0';
 -- enable <= '0' when (threshold="1111111111") else '1';
 enable <= '0' when (threshold_xc=X"FFFFFFF") else '1';
 
--- assume trigger latency is 192 clocks
--- + 64 pre-trigger samples = total delay is ~256 clocks
--- use 32 bit shift register primitives (srlc32e) for this
-
-din_delay(0) <= din;
-
-gen_delay_bit: for b in 13 downto 0 generate
-    gen_delay_srlc: for s in 7 downto 0 generate
-
-        srlc32e_0_inst : srlc32e
-        port map(
-            clk => clock,
-            ce => '1',
-            a => signal_delay,
-            d => din_delay(s)(b),
-            q => open,
-            q31 => din_delay(s+1)(b) -- fixed delay 32
-        );
-
-    end generate gen_delay_srlc;
-end generate gen_delay_bit;
-
--- din_delay(0) = din live no delay
--- din_delay(1) = din delayed by 32 clocks
--- din_delay(2) = din delayed by 64 clocks
--- din_delay(3) = din delayed by 96 clocks
--- din_delay(4) = din delayed by 128 clocks
--- din_delay(5) = din delayed by 160 clocks
--- din_delay(6) = din delayed by 192 clocks
--- din_delay(7) = din delayed by 224 clocks
--- din_delay(8) = din delayed by 256 clocks
--- din_delay(9) = din delayed by 288 clocks
-
--- the last delay segment needs to be fine tuned to line up with FSM d* states
-
-gen_delay2_bit: for b in 13 downto 0 generate
-
-    last_srlc32e_inst : srlc32e
-    port map(
-        clk => clock,
-        ce => '1',
-        a => "01001", -- fine tune this delay 
-        d => din_delay(8)(b),
-        q => din_delay(9)(b),
-        q31 => open
-    );
-
-end generate gen_delay2_bit;
-
--- now compute the average signal baseline level over the last N samples
-
--- baseline_inst: baseline
--- generic map ( baseline_runlength => baseline_runlength ) -- must be 32, 64, 128, or 256
--- port map(
---     clock => clock,
---     reset => reset,
---     din => din_delay(0), -- this looks at LIVE AFE data, not the delayed data
---     bline => calculated_baseline
--- );
-
--- for dense data packing 14 bit samples into 64 bit words,
--- we need to access up to last 6 samples at once...
-
-pack_proc: process(clock)
-begin
-    if rising_edge(clock) then
-        R0 <= din_delay(9);
-        R1 <= R0;
-        R2 <= R1;
-        R3 <= R2;
-        R4 <= R3;
-        R5 <= R4;
-    end if;
-end process pack_proc;       
-
 -- trig_inst: trig
 -- port map(
 --      clock => clock,
@@ -349,435 +229,81 @@ end process pack_proc;
 --      trig_sample_ts => trig_sample_ts 
 -- );        
 
-bicocca_eia_trig_inst: trig_xc
-port map(
-    clock => clock,
-    reset => reset,
-    din => din_delay(0), -- watching live AFE data
-    enable => enable,
-    afe_comp_enable => afe_comp_enable,
-    invert_enable => invert_enable,
-    adhoc => adhoc,
+xcorr_control_s <= (
+    enable                 => enable,
+    afe_comp_enable        => afe_comp_enable,
+    invert_enable          => invert_enable,
     filter_output_selector => filter_output_selector,
-    ti_trigger => ti_trigger,
-    ti_trigger_stbr => ti_trigger_stbr,
-    threshold_xc => threshold_xc, -- cross correlation trigger threshold
-    ts => timestamp,
-    baseline => calculated_baseline,
-    dout1 => afe_dat_filtered,
-    dout2 => afe_dat_filtered_TP,
-    trig_sample_dat => trig_sample_dat,
-    trig_sample_ts => trig_sample_ts,
-    trig => triggered_bicocca
+    threshold_xc           => threshold_xc,
+    adhoc                  => adhoc,
+    ti_trigger             => ti_trigger,
+    ti_trigger_stbr        => ti_trigger_stbr
 );
 
--- assign trigger signal
-triggered <= triggered_bicocca;
-
-------------------- SELF-TRIGGER AND LOCAL PRIMITIVE CALCULATION DEVELOPED AT CIEMAT -------------------
--- reset_ciemat <= '1' when (reset='1' or state=wait4trig) else '0';
-ciemat_trig_inst: Self_Trigger_Primitive_Calculation
+xcorr_channel_inst: entity work.self_trigger_xcorr_channel
 port map(
-    clock                       => clock,                               -- AFE clock
-    reset                       => reset,                               -- Reset signal. ACTIVE HIGH
-    din                         => afe_dat_filtered_TP,                 -- Data coming from the Filter Block / Raw data form AFEs
-    Config_Param                => st_config,                           -- Configure parameters for filtering & self-trigger blocks
-    Ext_Self_Trigger            => triggered_bicocca,                   -- External Self-Trigger coming from another block
-    Match_with_Frame            => Match_TP_With_FRAME,                 -- External signal that allows being matched with the frame construction
-    Self_Trigger                => open,                                -- Self-Trigger signal coming from the Self-Trigger Block
-    Data_Available              => open,                                -- ACTIVE HIGH when LOCAL primitives are calculated
-    Time_Peak                   => open,                                -- Time in Samples to achieve the max peak
-    Time_Over_Baseline          => open,                                -- Time in samples of the light pulse signal is UNDER BASELINE (without undershoot)
-    Time_Start                  => open,                                -- Time in Samples of the light pulse signal is OVER BASELINE (undershoot)
-    ADC_Peak                    => open,                                -- Amplitude in ADC counts of the peak
-    ADC_Integral                => open,                                -- Charge of the light pulse (without undershoot) in ADC*samples
-    Number_Peaks                => open,                                -- Number of peaks detected when signal is UNDER BASELINE (without undershoot)
-    Baseline                    => calculated_baseline,                 -- Real Time calculated BASELINE
-    Amplitude                   => open,                                -- Real Time calculated AMPLITUDE
-    Peak_Current                => open,                                -- ACTIVE HIGH when a peak is detected
-    Slope_Current               => open,                                -- Real Time calculated SLOPE
-    Slope_Threshold             => open,                                -- Threshold over the slope to detect Peaks
-    Detection                   => open,                                -- ACTIVE HIGH when primitives are being calculated (during light pulse)
-    Sending                     => open,                                -- ACTIVE HIGH when colecting data for self-trigger frame
-    Info_Previous               => Info_Previous_aux,                   -- ACTIVE HIGH when self_trigger is produced by a waveform between two frames
-    Data_Available_Trailer      => Data_Available_Trailer_aux,          -- ACTIVE HIGH when metadata is ready
-    Trailer_Word_0              => Trailer_Word_0_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_1              => Trailer_Word_1_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_2              => Trailer_Word_2_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_3              => Trailer_Word_3_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_4              => Trailer_Word_4_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_5              => Trailer_Word_5_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_6              => Trailer_Word_6_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_7              => Trailer_Word_7_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_8              => Trailer_Word_8_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_9              => Trailer_Word_9_aux,                  -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_10             => Trailer_Word_10_aux,                 -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_11             => Trailer_Word_11_aux                  -- TRAILER WORD with metada (Local Trigger Primitives)
+    clock_i     => clock,
+    reset_i     => reset,
+    din_i       => din,
+    timestamp_i => timestamp,
+    control_i   => xcorr_control_s,
+    result_o    => trigger_builder_s
 );
 
--- prepare data for data format
-Local_primitives_frame: process(clock, reset, Data_Available_Trailer_aux)
-begin
-    if rising_edge(clock) then
-        if (reset='1') then
-            Trailer_Word_0_reg <= (others => '0');
-            Trailer_Word_1_reg <= (others => '0');
-            Trailer_Word_2_reg <= (others => '0');
-            Trailer_Word_3_reg <= (others => '0');
-            Trailer_Word_4_reg <= (others => '0');
-            Trailer_Word_5_reg <= (others => '0');
-            Trailer_Word_6_reg <= (others => '0');
-            Trailer_Word_7_reg <= (others => '0');
-            Trailer_Word_8_reg <= (others => '0');
-            Trailer_Word_9_reg <= (others => '0');
-            Trailer_Word_10_reg <= (others => '0');
-            Trailer_Word_11_reg <= (others => '0');
-        elsif (Data_Available_Trailer_aux='1') then
-            Trailer_Word_0_reg <= Trailer_Word_0_aux;
-            Trailer_Word_1_reg <= Trailer_Word_1_aux;
-            Trailer_Word_2_reg <= Trailer_Word_2_aux;
-            Trailer_Word_3_reg <= Trailer_Word_3_aux;
-            Trailer_Word_4_reg <= Trailer_Word_4_aux;
-            Trailer_Word_5_reg <= Trailer_Word_5_aux;
-            Trailer_Word_6_reg <= Trailer_Word_6_aux;
-            Trailer_Word_7_reg <= Trailer_Word_7_aux;
-            Trailer_Word_8_reg <= Trailer_Word_8_aux;
-            Trailer_Word_9_reg <= Trailer_Word_9_aux;
-            Trailer_Word_10_reg <= Trailer_Word_10_aux;
-            Trailer_Word_11_reg <= Trailer_Word_11_aux;
-        end if;
-    end if;
-end process Local_primitives_frame;
+triggered <= trigger_builder_s.trigger_pulse;
+calculated_baseline <= trigger_builder_s.baseline;
+afe_dat_filtered <= trigger_builder_s.monitor_sample;
+trig_sample_dat <= trigger_builder_s.trigger_sample;
+trig_sample_ts <= trigger_builder_s.trigger_timestamp;
 
--- process to match the creation of trailers with current frame packet
-Match_Process: process(reset, state)
-begin
-    if (reset='1') then
-        Match_TP_With_FRAME <= '0';
-    else
-        if (state=wait4trig) then
-            Match_TP_With_FRAME <= '1';
-        else
-            Match_TP_With_FRAME <= '0';
-        end if;
-    end if;
-end process Match_Process;
-
--- process to count amount of generated triggers
-count_proc: process(clock)
-begin
-    if rising_edge(clock) then
-        if ( reset='1' or reset_st_counters='1' or enable='0' ) then
-            trigCount <= (others => '0');
-            trigger_counter_state <= rst_trggr;
-        else
-            case(trigger_counter_state) is 
-                when rst_trggr => 
-                    trigger_counter_state <= wait4trig_trggr;
-                when wait4trig_trggr => 
-                    if ( triggered='1') then
-                        trigCount <= trigCount + 1;
-                        trigger_counter_state <= rising_triggered;
-                    else
-                        trigger_counter_state <= wait4trig_trggr;
-                    end if;
-                when rising_triggered =>
-                    if ( triggered='1') then
-                        trigger_counter_state <= rising_triggered;
-                    else
-                        trigger_counter_state <= wait4trig_trggr;
-                    end if;
-                when others =>
-                    trigger_counter_state <= rst_trggr;
-            end case;
-        end if;
-    end if;
-end process count_proc;
-
--- diagnostic counter records the number of output records generated
--- this includes forcetrig (from user) and triggered (from data).
--- this counter is cleared when threshold is force to 0x3FF
-
-record_count_proc: process(clock)
-begin
-    if rising_edge(clock) then
-        if (threshold_xc=X"FFFFFFF") then
-            record_count_reg <= (others=>'0');
-        elsif (state=h0) then
-            record_count_reg <= std_logic_vector( unsigned(record_count_reg) + 1);
-        end if;
-    end if;
-end process record_count_proc;
-
-record_count <= record_count_reg;
-
--- diagnostic counter records the number of times a trigger is ignored
--- because the FIFO is nearly full (prog_full='1')
--- this counter is cleared when threshold is force to 0x3FF
-
-fulldrop_proc: process(clock)
-begin
-    if rising_edge(clock) then
-        if (threshold_xc=X"FFFFFFF") then
-            fulldrop_count_reg <= (others=>'0');
-        elsif ((triggered='1' or clean_forcetrig='1') and prog_full='1' and state=wait4trig) then
-            fulldrop_count_reg <= std_logic_vector( unsigned(fulldrop_count_reg) + 1);
-        end if;
-    end if;
-end process fulldrop_proc;
-
-full_count <= fulldrop_count_reg;
-
--- diagnostic counter records the number of times a trigger is ignored
--- because the state machine is BUSY doing stuff. use a flag (busydrop_reg)
--- to prevent multiple trigger pulses from 
--- this counter is cleared when threshold is force to 0x3FF
-
-fsm_busy <= '0' when (state=rst) else
-            '0' when (state=wait4trig) else
-            '1';
-
-busydrop_proc: process(clock)
-begin
-    if rising_edge(clock) then
-        if (threshold_xc=X"FFFFFFF") then
-            busydrop_count_reg <= (others=>'0');
-        elsif ((triggered='1' or clean_forcetrig='1') and fsm_busy='1' and busydrop_reg='0') then
-            busydrop_count_reg <= std_logic_vector( unsigned(busydrop_count_reg) + 1);
-            busydrop_reg <= '1';
-        end if;
-
-        if (busydrop_reg='1' and fsm_busy='0') then -- clear the flag as we return to idle
-            busydrop_reg <= '0';
-        end if;
-    end if;
-end process busydrop_proc;
-
-busy_count <= busydrop_count_reg;
-
--- big FSM waits for trigger condition then dense pack assembly of the output frame 
--- as it is being written to the output FIFO *IN ORDER* (there is no "jumping back" to update
--- the header!)
-
--- one BLOCK = 32 14-bit samples DENSE PACKED into 7 64-bit words
--- one SUPERBLOCK = 32 blocks = 1024 samples = 224 64 bit words
-
--- sample0 is the first sample packed into the output record
--- sample0...sample63 = pretrigger
--- sample64 = trigger sample
--- sample65...sample1023 = post trigger
--- the timestamp value recorded in the output record corresponds to sample0 NOT the trigger sample!
-
-builder_fsm_proc: process(clock)
-begin
-    if rising_edge(clock) then
-        if (reset='1' or reset_st_counters='1') then
-            state <= rst;
-            packCount <= (others => '0');
-        else
-            case(state) is
-                when rst =>
-                    state <= wait4trig;
-                when wait4trig => 
-                    if ((triggered='1' or clean_forcetrig='1') and enable='1' and prog_full='0') then -- start packing!
-                        block_count <= 0;
-                        packCount <= packCount + 1;
-                        state <= w0; 
-                    else
-                        state <= wait4trig;
-                    end if;
-
-                when w0 => state <= w1; -- a few wait states while the FIFO wakes up from sleep mode...
-                when w1 => state <= w2;
-                when w2 => state <= w3;
-                when w3 => state <= h0;                   
-
-                -- begin assembly of output record 
-                -- the output buffer is a FIFO so this MUST be done IN ORDER!
-
-                when h0 => state <= h1; -- header words
-                when h1 => state <= h2;
-                when h2 => state <= h3;
-                when h3 => state <= h4;
-                when h4 => state <= h5;
-                when h5 => state <= h6;
-                when h6 => state <= h7;
-                when h7 => state <= h8;
-                when h8 => state <= d0;
-
-                when d0 => state <= d1; -- begin dense pack data block
-                when d1 => state <= d2;
-                when d2 => state <= d3;
-                when d3 => state <= d4;
-                when d4 => state <= d5; 
-                when d5 => state <= d6;
-                when d6 => state <= d7;
-                when d7 => state <= d8;
-                when d8 => state <= d9; 
-                when d9 => state <= d10;
-                when d10 => state <= d11;
-                when d11 => state <= d12;
-                when d12 => state <= d13;
-                when d13 => state <= d14; 
-                when d14 => state <= d15;
-                when d15 => state <= d16;
-                when d16 => state <= d17;
-                when d17 => state <= d18; 
-                when d18 => state <= d19;
-                when d19 => state <= d20;
-                when d20 => state <= d21;
-                when d21 => state <= d22;
-                when d22 => state <= d23;
-                when d23 => state <= d24;
-                when d24 => state <= d25;
-                when d25 => state <= d26;
-                when d26 => state <= d27;
-                when d27 => state <= d28;
-                when d28 => state <= d29;
-                when d29 => state <= d30;
-                when d30 => state <= d31;
-
-                when d31 =>
-                    if (block_count=31) then -- done with packing data samples, return to idle
-                        state <= wait4trig;
-                    else
-                        block_count <= block_count + 1;
-                        state <= d0;
-                    end if;
-
-                when others => 
-                    state <= rst;
-            end case;
-        end if;
-    end if;
-end process builder_fsm_proc;
-
--- the timestamp encoded in the output record header corresponds to sample0, NOT the trigger sample!
--- since there are 64 pre-trigger samples, this difference is fixed at ~64.
-
-sample0_ts <= std_logic_vector( unsigned(trig_sample_ts) - 64 );
-
--- the upper byte of the FIFO is used for a marker to indicate the first and last words of the 
--- output record. this is done to make the next stage selector logic easier.
-
-marker <= X"BE" when (state=h1) else  -- mark first word
-          X"ED" when (state=d27 and block_count=31) else -- mark the last word
-          X"00";
-
--- mux to determine what is written into the output FIFO, note this is 72 bits to match ultraram bus
--- this output FIFO is deep enough to hold MANY output records.
-
-FIFO_din <= --marker & X"00000000" & link_id & slot_id & crate_id & detector_id & version_id when (state=h0) else
-            marker & sample0_ts when (state=h1) else -- timestamp of sample0 (NOT the trigger sample!)
-            marker & ch_id(7 downto 0) & version(3 downto 0) & "000000" & calculated_baseline(13 downto 0) & "00" & threshold_xc(13 downto 0) & "00" & trig_sample_dat(13 downto 0) when (state=h2) else
-            -- marker & X"000000000000" & "000" & fifo_word_count when (state=h3) else -- report how many words are currently in the FIFO
-            marker & Trailer_Word_1_reg(31 downto 0) & Trailer_Word_0_reg(31 downto 0) when (state=h3) else -- reserved for header 3 (words currently in FIFO) (NOW: trigger primitives)
-            marker & Trailer_Word_3_reg(31 downto 0) & Trailer_Word_2_reg(31 downto 0) when (state=h4) else -- reserved for header 5 (NOW: trigger primitives)
-            marker & Trailer_Word_5_reg(31 downto 0) & Trailer_Word_4_reg(31 downto 0) when (state=h5) else -- reserved for header 6 (NOW: trigger primitives)
-            marker & Trailer_Word_7_reg(31 downto 0) & Trailer_Word_6_reg(31 downto 0) when (state=h6) else -- reserved for header 7 (NOW: trigger primitives)
-            marker & Trailer_Word_9_reg(31 downto 0) & Trailer_Word_8_reg(31 downto 0) when (state=h7) else -- reserved for header 8 (NOW: trigger primitives)
-            marker & Trailer_Word_11_reg(31 downto 0) & Trailer_Word_10_reg(31 downto 0) when (state=h8) else -- reserved for header 8 (NOW: trigger primitives)
-            marker & R0(7 downto 0) & R1 & R2 & R3 & R4                    when (state=d0) else -- sample4l ... sample0
-            marker & R0(1 downto 0) & R1 & R2 & R3 & R4 & R5(13 downto 8)  when (state=d5) else -- sample9l ... sample4h
-            marker & R0(9 downto 0) & R1 & R2 & R3 & R4(13 downto 2)       when (state=d9) else -- sample13l ... sample9h
-            marker & R0(3 downto 0) & R1 & R2 & R3 & R4 & R5(13 downto 10) when (state=d14) else -- sample18l ... sample13h
-            marker & R0(11 downto 0) & R1 & R2 & R3 & R4(13 downto 4)      when (state=d18) else -- sample22l ... sample18h
-            marker & R0(5 downto 0) & R1 & R2 & R3 & R4 & R5(13 downto 12) when (state=d23) else -- sample27l ... sample22h
-            marker & R0 & R1 & R2 & R3 & R4(13 downto 6)                   when (state=d27) else -- sample31 ... sample27h
-            X"000000000000000000";
-
--- output FIFO write enable
-
-FIFO_wr_en <= -- '1' when (state=h0) else  
-              '1' when (state=h1) else
-              '1' when (state=h2) else
-              '1' when (state=h3) else
-              '1' when (state=h4) else
-              '1' when (state=h5) else
-              '1' when (state=h6) else
-              '1' when (state=h7) else
-              '1' when (state=h8) else
-              '1' when (state=d0) else
-              '1' when (state=d5) else
-              '1' when (state=d9) else
-              '1' when (state=d14) else
-              '1' when (state=d18) else
-              '1' when (state=d23) else
-              '1' when (state=d27) else -- note no trailer words!
-              '0';
-
-FIFO_sleep <= '1' when (state=rst) else
-              '1' when (state=wait4trig) else
-              '0';
-
--- UltraRAM sync FIFO macro
--- 4k words deep x 72 bits wide (this is enough to hold 17 hits!)
--- first word fall through (FWFT)
-
--- writes into the output FIFO are not continuous; they stutter due to the 
--- dense packing cadence (d0, d5, d9) and are on average active only 1 out
--- of every 5 clocks. this means that the downstream logic reading from 
--- this FIFO needs to hold off, and let this output FIFO really fill up
--- before starting to read it out. in other words, the output FIFO should
--- continue to report that it is empty until it has nearly all of an
--- output record stored in it.
-
--- if another trigger occurs while this FSM is busy, it will be IGNORED!
--- triggers are ONLY monitored when the FSM is in the "wait4trig" state!
-
-output_fifo_inst : xpm_fifo_sync
-generic map (
-   CASCADE_HEIGHT => 0,
-   DOUT_RESET_VALUE => "0",
-   ECC_MODE => "no_ecc",
-   EN_SIM_ASSERT_ERR => "warning",
-   FIFO_MEMORY_TYPE => "ultra", -- use UltraRAM blocks
-   FIFO_READ_LATENCY => 0,  -- FWFT
-   FIFO_WRITE_DEPTH => 4096,
-   FULL_RESET_VALUE => 0,
-   PROG_EMPTY_THRESH => 220, 
-   PROG_FULL_THRESH => 200,
-   RD_DATA_COUNT_WIDTH => 13,
-   READ_DATA_WIDTH => 72,
-   READ_MODE => "fwft",
-   SIM_ASSERT_CHK => 0,
-   USE_ADV_FEATURES => "0707",
-   WAKEUP_TIME => 0, -- 0=No Sleep (till Brooklyn), 2=use sleep pin
-   WRITE_DATA_WIDTH => 72,
-   WR_DATA_COUNT_WIDTH => 13
-)
-port map (
-   almost_empty => open,
-   almost_full => open,
-   data_valid => open,
-   dbiterr => open,
-   dout => dout,
-   empty => open,
-   full => open,
-   overflow => open,
-   prog_empty => prog_empty, 
-   prog_full => prog_full,
-   rd_data_count => open,
-   rd_rst_busy => open,
-   sbiterr => open,
-   underflow => open,
-   wr_ack => open,
-   wr_data_count => fifo_word_count, -- number of words in the FIFO
-   wr_rst_busy => open,
-   din => FIFO_din,
-   injectdbiterr => '0',
-   injectsbiterr => '0',
-   rd_en => rd_en,
-   rst => reset,
-   sleep => FIFO_sleep,
-   wr_clk => clock,
-   wr_en => FIFO_wr_en
+descriptor_control_s <= (
+    config      => st_config,
+    frame_match => Match_TP_With_FRAME
 );
 
-ready <= not prog_empty;
+descriptor_channel_inst: entity work.peak_descriptor_channel
+port map(
+    clock_i   => clock,
+    reset_i   => reset,
+    trigger_i => trigger_builder_s,
+    control_i => descriptor_control_s,
+    result_o  => descriptor_result_s,
+    trailer_o => trailer_builder_s
+);
+
+Data_Available_Trailer_aux <= descriptor_result_s.trailer_available;
+
+Match_TP_With_FRAME <= frame_match_s;
+
+record_builder_inst: entity work.stc3_record_builder
+port map(
+    ch_id_i             => ch_id,
+    version_i           => version,
+    threshold_xc_i      => threshold_xc,
+    signal_delay_i      => signal_delay,
+    clock_i             => clock,
+    reset_i             => reset,
+    reset_st_counters_i => reset_st_counters,
+    enable_i            => enable,
+    force_trigger_i     => clean_forcetrig,
+    din_i               => din,
+    trigger_i           => trigger_builder_s,
+    trailer_capture_i   => Data_Available_Trailer_aux,
+    trailer_i           => trailer_builder_s,
+    frame_match_o       => frame_match_s,
+    record_count_o      => record_count,
+    full_count_o        => full_count,
+    busy_count_o        => busy_count,
+    trigger_count_o     => trigCount,
+    packet_count_o      => packCount,
+    delayed_sample_o    => st_afe_dat_filtered,
+    ready_o             => ready,
+    rd_en_i             => rd_en,
+    dout_o              => dout
+);
+
 trigger_output <= triggered;
-st_afe_dat_filtered <= din_delay(9);
-TCount <= std_logic_vector(trigCount); 
-Pcount <= std_logic_vector(packCount); 
+TCount <= trigCount;
+PCount <= packCount;
 
 end stc3_arch;
