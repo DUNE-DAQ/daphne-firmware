@@ -13,14 +13,14 @@ filesets:
       - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
       - dune-daq:daphne:daphne-composable-core-top:0.1.0
     files:
-      - ../../rtl/isolated/tops/daphne_composable_frontend_shell.vhd
+      - rtl/isolated/tops/daphne_composable_frontend_shell.vhd
     file_type: vhdlSource
   rtl_validate:
     depend:
       - dune-daq:daphne:daphne-composable-frontend-shell-selftrigger-off:0.1.0
   tb_smoke:
     files:
-      - ../../tests/logic/daphne_composable_frontend_shell_smoke_tb.vhd
+      - tests/logic/daphne_composable_frontend_shell_smoke_tb.vhd
     file_type: vhdlSource
 
 targets:

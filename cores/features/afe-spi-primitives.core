@@ -8,8 +8,8 @@ provider:
 filesets:
   rtl:
     files:
-      - ../../ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
-      - ../../ip_repo/daphne_ip/rtl/afe/spim_dac2.vhd
+      - ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
+      - ip_repo/daphne_ip/rtl/afe/spim_dac2.vhd
     file_type: vhdlSource
 
 targets:

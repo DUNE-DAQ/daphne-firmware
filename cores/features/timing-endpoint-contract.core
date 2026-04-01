@@ -8,7 +8,7 @@ provider:
 filesets:
   rtl:
     files:
-      - ../../rtl/isolated/subsystems/timing/timing_endpoint_contract.vhd
+      - rtl/isolated/subsystems/timing/timing_endpoint_contract.vhd
     file_type: vhdlSource
   formal:
     files:

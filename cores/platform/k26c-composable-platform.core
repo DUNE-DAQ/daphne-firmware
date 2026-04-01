@@ -11,45 +11,45 @@ filesets:
       - dune-daq:daphne:daphne-composable-top:0.1.0
       - dune-daq:daphne:daphne-composable:0.1.0
     files:
-      - ../../boards/k26c/board.yml
-      - ../../Memory_Map.md
-      - ../../petalinux/README.md
-      - ../../petalinux/daphne-server-deps.lock.cmake
-      - ../../petalinux/toolchains/aarch64-petalinux.cmake
-      - ../../xilinx/daphne_selftrigger_pin_map.xdc
-      - ../../xilinx/daphne_bd_gen.tcl
-      - ../../xilinx/daphne_dtbo_gen.tcl
-      - ../../xilinx/daphne_ip_gen.tcl
-      - ../../xilinx/daphne_vivado_flow.tcl
-      - ../../xilinx/daphne_xgui_gen.tcl
-      - ../../xilinx/daphne_board_env.tcl
-      - ../../xilinx/vivado_impl_entry.tcl
-      - ../../xilinx/scripts/axi_quad_spi_dtbo_patch.sed
-      - ../../xilinx/vivado_batch.tcl
+      - boards/k26c/board.yml
+      - Memory_Map.md
+      - petalinux/README.md
+      - petalinux/daphne-server-deps.lock.cmake
+      - petalinux/toolchains/aarch64-petalinux.cmake
+      - xilinx/daphne_selftrigger_pin_map.xdc
+      - xilinx/daphne_bd_gen.tcl
+      - xilinx/daphne_dtbo_gen.tcl
+      - xilinx/daphne_ip_gen.tcl
+      - xilinx/daphne_vivado_flow.tcl
+      - xilinx/daphne_xgui_gen.tcl
+      - xilinx/daphne_board_env.tcl
+      - xilinx/vivado_impl_entry.tcl
+      - xilinx/scripts/axi_quad_spi_dtbo_patch.sed
+      - xilinx/vivado_batch.tcl
     file_type: user
   validate_rtl:
     depend:
       - dune-daq:daphne:daphne-composable-core-top-selftrigger-off:0.1.0
     files:
-      - ../../tests/logic/daphne_composable_core_top_smoke_tb.vhd
+      - tests/logic/daphne_composable_core_top_smoke_tb.vhd
     file_type: vhdlSource
   validate_optional_off_rtl:
     depend:
       - dune-daq:daphne:daphne-composable-core-top-selftrigger-off:0.1.0
     files:
-      - ../../tests/logic/daphne_composable_core_top_optional_off_smoke_tb.vhd
+      - tests/logic/daphne_composable_core_top_optional_off_smoke_tb.vhd
     file_type: vhdlSource
   validate_frontend_shell_rtl:
     depend:
       - dune-daq:daphne:daphne-composable-frontend-shell-selftrigger-off:0.1.0
     files:
-      - ../../tests/logic/daphne_composable_frontend_shell_smoke_tb.vhd
+      - tests/logic/daphne_composable_frontend_shell_smoke_tb.vhd
     file_type: vhdlSource
   validate_public_top_rtl:
     depend:
       - dune-daq:daphne:daphne-composable-top-validate:0.1.0
     files:
-      - ../../tests/logic/daphne_composable_top_smoke_tb.vhd
+      - tests/logic/daphne_composable_top_smoke_tb.vhd
     file_type: vhdlSource
 
 targets:

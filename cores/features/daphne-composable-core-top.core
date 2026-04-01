@@ -13,18 +13,18 @@ filesets:
       - dune-daq:daphne:timing-subsystem:0.1.0
       - dune-daq:daphne:hermes-boundary:0.1.0
     files:
-      - ../../rtl/isolated/tops/daphne_composable_core_top.vhd
+      - rtl/isolated/tops/daphne_composable_core_top.vhd
     file_type: vhdlSource
   rtl_validate:
     depend:
       - dune-daq:daphne:daphne-composable-core-top-selftrigger-off:0.1.0
   tb_smoke:
     files:
-      - ../../tests/logic/daphne_composable_core_top_smoke_tb.vhd
+      - tests/logic/daphne_composable_core_top_smoke_tb.vhd
     file_type: vhdlSource
   tb_optional_off:
     files:
-      - ../../tests/logic/daphne_composable_core_top_optional_off_smoke_tb.vhd
+      - tests/logic/daphne_composable_core_top_optional_off_smoke_tb.vhd
     file_type: vhdlSource
 
 targets:

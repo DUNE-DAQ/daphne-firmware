@@ -8,9 +8,9 @@ provider:
 filesets:
   rtl:
     files:
-      - ../../rtl/isolated/common/primitives/configurable_delay_line.vhd
-      - ../../rtl/isolated/common/primitives/fixed_delay_line.vhd
-      - ../../rtl/isolated/common/primitives/sync_fifo_fwft.vhd
+      - rtl/isolated/common/primitives/configurable_delay_line.vhd
+      - rtl/isolated/common/primitives/fixed_delay_line.vhd
+      - rtl/isolated/common/primitives/sync_fifo_fwft.vhd
     file_type: vhdlSource
 
 targets:

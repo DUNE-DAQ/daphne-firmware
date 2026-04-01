@@ -13,7 +13,7 @@ filesets:
       - dune-daq:daphne:frontend-capture-bank:0.1.0
       - dune-daq:daphne:frontend-registers:0.1.0
     files:
-      - ../../rtl/isolated/subsystems/frontend/frontend_island.vhd
+      - rtl/isolated/subsystems/frontend/frontend_island.vhd
     file_type: vhdlSource
 
 targets:

@@ -8,7 +8,7 @@ provider:
 filesets:
   rtl:
     files:
-      - ../../rtl/isolated/subsystems/frontend/frontend_common.vhd
+      - rtl/isolated/subsystems/frontend/frontend_common.vhd
     file_type: vhdlSource
 
 targets:

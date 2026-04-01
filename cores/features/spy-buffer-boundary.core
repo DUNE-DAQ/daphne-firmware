@@ -10,7 +10,7 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
     files:
-      - ../../rtl/isolated/subsystems/spy/spy_buffer_boundary.vhd
+      - rtl/isolated/subsystems/spy/spy_buffer_boundary.vhd
     file_type: vhdlSource
   formal:
     files:

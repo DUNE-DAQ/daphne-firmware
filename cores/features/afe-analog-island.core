@@ -12,7 +12,7 @@ filesets:
       - dune-daq:daphne:afe-config-slice:0.1.0
       - dune-daq:daphne:afe-config-slice-boundary:0.1.0
     files:
-      - ../../rtl/isolated/subsystems/analog/afe_analog_island.vhd
+      - rtl/isolated/subsystems/analog/afe_analog_island.vhd
     file_type: vhdlSource
 
 targets:
