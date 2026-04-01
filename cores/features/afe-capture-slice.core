@@ -11,7 +11,7 @@ filesets:
       - dune-daq:daphne:daphne-package:0.1.0
       - dune-daq:daphne:frontend-bitlane:0.1.0
     files:
-      - ../../rtl/isolated/subsystems/frontend/afe_capture_slice.vhd
+      - rtl/isolated/subsystems/frontend/afe_capture_slice.vhd
     file_type: vhdlSource
 
 targets:

@@ -10,7 +10,7 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
     files:
-      - ../../rtl/isolated/subsystems/frontend/frontend_island_validate_stub.vhd
+      - rtl/isolated/subsystems/frontend/frontend_island_validate_stub.vhd
     file_type: vhdlSource
 
 targets:

@@ -10,41 +10,41 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
     files:
-      - ../../ip_repo/daphne_ip/rtl/timing/endpoint.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/ep_axi.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/outputlogic_crc16.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_acmd_arb.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_cdr_sampler.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_cksum.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_clock_defs.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_code8b10bpkg.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_dec8b10b.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_defs.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_del.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_enc8b10b.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_endpoint.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_endpoint_wrapper.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_cdr.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_core.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_ctrl.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_ctrlmux.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_defs.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_regfile.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_sm.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_transactor.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_ep_tstamp.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_idle_gen.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_lutram.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_mod.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_pktbuf.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_rx.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_rx_phy.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_rx_pkt.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_synchro.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_synchro_pulse.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_tx.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_tx_phy.vhd
-      - ../../ip_repo/daphne_ip/rtl/timing/pdts_tx_pkt.vhd
+      - ip_repo/daphne_ip/rtl/timing/endpoint.vhd
+      - ip_repo/daphne_ip/rtl/timing/ep_axi.vhd
+      - ip_repo/daphne_ip/rtl/timing/outputlogic_crc16.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_acmd_arb.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_cdr_sampler.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_cksum.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_clock_defs.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_code8b10bpkg.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_dec8b10b.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_defs.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_del.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_enc8b10b.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_endpoint.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_endpoint_wrapper.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_ep_cdr.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_ep_core.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_ep_ctrl.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_ep_ctrlmux.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_ep_defs.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_ep_regfile.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_ep_sm.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_ep_transactor.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_ep_tstamp.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_idle_gen.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_lutram.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_mod.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_pktbuf.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_rx.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_rx_phy.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_rx_pkt.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_synchro.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_synchro_pulse.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_tx.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_tx_phy.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_tx_pkt.vhd
     file_type: vhdlSource
 
 targets:

@@ -10,7 +10,7 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
     files:
-      - ../../rtl/isolated/subsystems/control/control_plane_boundary.vhd
+      - rtl/isolated/subsystems/control/control_plane_boundary.vhd
     file_type: vhdlSource
   formal:
     files:

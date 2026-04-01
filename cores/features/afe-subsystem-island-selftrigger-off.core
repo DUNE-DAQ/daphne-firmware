@@ -12,7 +12,7 @@ filesets:
       - dune-daq:daphne:afe-analog-island:0.1.0
       - dune-daq:daphne:afe-selftrigger-island-validate-stub:0.1.0
     files:
-      - ../../rtl/isolated/subsystems/afe/afe_subsystem_island.vhd
+      - rtl/isolated/subsystems/afe/afe_subsystem_island.vhd
     file_type: vhdlSource
 
 targets:

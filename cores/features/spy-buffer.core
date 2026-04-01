@@ -8,14 +8,14 @@ provider:
 filesets:
   rtl:
     files:
-      - ../../ip_repo/daphne_ip/rtl/misc/outspybuff.vhd
-      - ../../ip_repo/daphne_ip/rtl/spy/spybuff.vhd
-      - ../../ip_repo/daphne_ip/rtl/spy/spybuffers.vhd
-      - ../../ip_repo/daphne_ip/rtl/spy/spyram.vhd
+      - ip_repo/daphne_ip/rtl/misc/outspybuff.vhd
+      - ip_repo/daphne_ip/rtl/spy/spybuff.vhd
+      - ip_repo/daphne_ip/rtl/spy/spybuffers.vhd
+      - ip_repo/daphne_ip/rtl/spy/spyram.vhd
     file_type: vhdlSource
   tb_legacy:
     files:
-      - ../../ip_repo/daphne_ip/sim/spy/spybuff_tb.vhd
+      - ip_repo/daphne_ip/sim/spy/spybuff_tb.vhd
     file_type: vhdlSource
 
 targets:

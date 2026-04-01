@@ -11,13 +11,13 @@ filesets:
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
       - dune-daq:daphne:afe-spi-primitives:0.1.0
     files:
-      - ../../rtl/isolated/subsystems/analog/afe_config_slice.vhd
+      - rtl/isolated/subsystems/analog/afe_config_slice.vhd
     file_type: vhdlSource
   tb_smoke:
     depend:
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
     files:
-      - ../../tests/logic/afe_config_slice_smoke_tb.vhd
+      - tests/logic/afe_config_slice_smoke_tb.vhd
     file_type: vhdlSource
 
 targets:

@@ -11,7 +11,7 @@ filesets:
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
       - dune-daq:daphne:afe-analog-island:0.1.0
     files:
-      - ../../rtl/isolated/subsystems/analog/afe_config_bank.vhd
+      - rtl/isolated/subsystems/analog/afe_config_bank.vhd
     file_type: vhdlSource
 
 targets:

@@ -10,12 +10,12 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
     files:
-      - ../../ip_repo/daphne_ip/rtl/config/fanmon.vhd
-      - ../../ip_repo/daphne_ip/rtl/config/stuff.vhd
+      - ip_repo/daphne_ip/rtl/config/fanmon.vhd
+      - ip_repo/daphne_ip/rtl/config/stuff.vhd
     file_type: vhdlSource
   tb_axi_smoke:
     files:
-      - ../../tests/logic/stuff_axi_smoke_tb.vhd
+      - tests/logic/stuff_axi_smoke_tb.vhd
     file_type: vhdlSource
 
 targets:
