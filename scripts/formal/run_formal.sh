@@ -12,6 +12,8 @@ if [ "$#" -eq 0 ]; then
   set -- \
     "$ROOT_DIR/formal/sby/analog_control_boundary_contract.sby" \
     "$ROOT_DIR/formal/sby/control_plane_boundary_contract.sby" \
+    "$ROOT_DIR/formal/sby/daphne_composable_core_top_contract.sby" \
+    "$ROOT_DIR/formal/sby/daphne_composable_frontend_shell_contract.sby" \
     "$ROOT_DIR/formal/sby/fe_axi_axi_lite.sby" \
     "$ROOT_DIR/formal/sby/frontend_boundary_gate.sby" \
     "$ROOT_DIR/formal/sby/hermes_boundary_contract.sby" \

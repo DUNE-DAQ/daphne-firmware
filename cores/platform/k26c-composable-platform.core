@@ -29,19 +29,19 @@ filesets:
     file_type: user
   validate_rtl:
     depend:
-      - dune-daq:daphne:daphne-composable-core-top:0.1.0
+      - dune-daq:daphne:daphne-composable-core-top-selftrigger-off:0.1.0
     files:
       - ../../tests/logic/daphne_composable_core_top_smoke_tb.vhd
     file_type: vhdlSource
   validate_optional_off_rtl:
     depend:
-      - dune-daq:daphne:daphne-composable-core-top:0.1.0
+      - dune-daq:daphne:daphne-composable-core-top-selftrigger-off:0.1.0
     files:
       - ../../tests/logic/daphne_composable_core_top_optional_off_smoke_tb.vhd
     file_type: vhdlSource
   validate_frontend_shell_rtl:
     depend:
-      - dune-daq:daphne:daphne-composable-frontend-shell:0.1.0
+      - dune-daq:daphne:daphne-composable-frontend-shell-selftrigger-off:0.1.0
     files:
       - ../../tests/logic/daphne_composable_frontend_shell_smoke_tb.vhd
     file_type: vhdlSource

@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-selftrigger-island-validate-stub:0.1.0
+description: Validate-only stub for the per-AFE self-trigger island used by offline composable targets
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/trigger/afe_selftrigger_island_validate_stub.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-subsystem-fabric-selftrigger-off:0.1.0
+description: Flat multi-AFE composition of reusable per-AFE subsystem islands for offline validation with self-trigger dependencies removed
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:afe-subsystem-island-selftrigger-off:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/afe/afe_subsystem_fabric.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

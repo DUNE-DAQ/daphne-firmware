@@ -1,0 +1,22 @@
+CAPI=2:
+
+name: dune-daq:daphne:daphne-composable-frontend-shell-selftrigger-off:0.1.0
+description: Vendor-neutral frontend-facing composable shell for offline validation with self-trigger dependencies removed
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
+      - dune-daq:daphne:daphne-composable-core-top-selftrigger-off:0.1.0
+    files:
+      - ../../rtl/isolated/tops/daphne_composable_frontend_shell.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

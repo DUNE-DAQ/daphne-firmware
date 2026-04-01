@@ -15,19 +15,23 @@ filesets:
     files:
       - ../../rtl/isolated/tops/daphne_composable_frontend_shell.vhd
     file_type: vhdlSource
+  rtl_validate:
+    depend:
+      - dune-daq:daphne:daphne-composable-frontend-shell-selftrigger-off:0.1.0
   tb_smoke:
     files:
       - ../../tests/logic/daphne_composable_frontend_shell_smoke_tb.vhd
     file_type: vhdlSource
 
 targets:
-  default: &default_target
+  default:
     filesets:
       - rtl
   sim:
-    <<: *default_target
     description: GHDL smoke validation of the frontend-facing composable shell
     default_tool: ghdl
+    filesets:
+      - rtl_validate
     filesets_append:
       - tb_smoke
     toplevel: daphne_composable_frontend_shell_smoke_tb

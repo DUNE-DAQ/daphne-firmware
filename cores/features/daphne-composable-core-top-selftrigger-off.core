@@ -1,0 +1,22 @@
+CAPI=2:
+
+name: dune-daq:daphne:daphne-composable-core-top-selftrigger-off:0.1.0
+description: Vendor-neutral composable DAPHNE core shell for offline validation with self-trigger dependencies removed
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:afe-subsystem-fabric-selftrigger-off:0.1.0
+      - dune-daq:daphne:timing-subsystem:0.1.0
+      - dune-daq:daphne:hermes-boundary:0.1.0
+    files:
+      - ../../rtl/isolated/tops/daphne_composable_core_top.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
