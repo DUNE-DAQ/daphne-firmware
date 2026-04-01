@@ -17,11 +17,17 @@ end entity frontend_to_selftrigger_adapter;
 architecture rtl of frontend_to_selftrigger_adapter is
 begin
   gen_afe : for afe_idx in 0 to AFE_COUNT_G - 1 generate
+    signal trigger_samples_afe_s : sample14_array_t(0 to 7);
+  begin
+    afe_adapter_inst : entity work.afe_capture_to_trigger_bank
+      port map (
+        afe_dout_i        => afe_dout_i(afe_idx),
+        trigger_samples_o => trigger_samples_afe_s
+      );
+
     gen_channel : for ch_idx in 0 to 7 generate
     begin
-      -- Match the legacy selftrig_core contract: discard the frame lane (8)
-      -- and truncate 16-bit frontend samples down to the 14-bit trigger path.
-      trigger_samples_o((afe_idx * 8) + ch_idx) <= afe_dout_i(afe_idx)(ch_idx)(15 downto 2);
+      trigger_samples_o((afe_idx * 8) + ch_idx) <= trigger_samples_afe_s(ch_idx);
     end generate gen_channel;
   end generate gen_afe;
 end architecture rtl;

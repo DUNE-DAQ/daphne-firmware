@@ -20,8 +20,11 @@ filesets:
       - dune-daq:daphne:afe-capture-slice-boundary:0.1.0
       - dune-daq:daphne:frontend-common:0.1.0
       - dune-daq:daphne:frontend-capture-bank:0.1.0
+      - dune-daq:daphne:frontend-register-slice:0.1.0
+      - dune-daq:daphne:frontend-register-bank:0.1.0
       - dune-daq:daphne:frontend-registers:0.1.0
       - dune-daq:daphne:frontend-island:0.1.0
+      - dune-daq:daphne:afe-capture-to-trigger-bank:0.1.0
       - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
       - dune-daq:daphne:self-trigger-xcorr-channel:0.1.0
       - dune-daq:daphne:peak-descriptor-channel:0.1.0

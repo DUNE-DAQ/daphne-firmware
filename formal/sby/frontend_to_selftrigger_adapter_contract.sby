@@ -7,11 +7,12 @@ smtbmc z3
 
 [script]
 plugin -i ghdl
-ghdl --std=08 daphne_package.vhd daphne_subsystem_pkg.vhd frontend_to_selftrigger_adapter.vhd frontend_to_selftrigger_adapter_formal.vhd -e frontend_to_selftrigger_adapter_formal
+ghdl --std=08 daphne_package.vhd daphne_subsystem_pkg.vhd afe_capture_to_trigger_bank.vhd frontend_to_selftrigger_adapter.vhd frontend_to_selftrigger_adapter_formal.vhd -e frontend_to_selftrigger_adapter_formal
 prep -top frontend_to_selftrigger_adapter_formal
 
 [files]
 ../../ip_repo/daphne_ip/rtl/daphne_package.vhd
 ../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/trigger/afe_capture_to_trigger_bank.vhd
 ../../rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd
 ../vhdl/frontend_to_selftrigger_adapter_formal.vhd

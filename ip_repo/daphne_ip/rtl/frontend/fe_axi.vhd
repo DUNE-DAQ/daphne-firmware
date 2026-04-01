@@ -103,10 +103,15 @@ architecture fe_axi_arch of fe_axi is
 	signal aw_en: std_logic;
 
 	signal idelay_tap_reg: array_5x9_type;
-    signal idelay_load0_reg, idelay_load1_reg, idelay_load2_reg: std_logic_vector(4 downto 0) := "00000";
+    signal idelay_load_reg: std_logic_vector(4 downto 0);
     signal iserdes_bitslip_reg: array_5x4_type;
     signal control_reg: std_logic_vector(31 downto 0) := (others=>'0');
     signal trig_reg: std_logic_vector(5 downto 0) := "000000";
+    signal register_advance: std_logic;
+    signal tap_write_reg: std_logic_vector(4 downto 0);
+    signal tap_write_data: array_5x9_type;
+    signal bitslip_write_reg: std_logic_vector(4 downto 0);
+    signal bitslip_write_data: array_5x4_type;
 
     -- register offsets are relative to the base address specified for this AXI-LITE slave instance
 
@@ -215,24 +220,40 @@ begin
 	-- and the slave is ready to accept the write address and write data.
 
 	reg_wren <= axi_wready and S_AXI_WVALID and axi_awready and S_AXI_AWVALID ;
+    register_advance <= '0' when (reg_wren = '1' and S_AXI_WSTRB = "1111") else '1';
+
+    tap_write_reg(0) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = TAP0_OFFSET) else '0';
+    tap_write_reg(1) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = TAP1_OFFSET) else '0';
+    tap_write_reg(2) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = TAP2_OFFSET) else '0';
+    tap_write_reg(3) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = TAP3_OFFSET) else '0';
+    tap_write_reg(4) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = TAP4_OFFSET) else '0';
+    tap_write_data <= (others => S_AXI_WDATA(8 downto 0));
+
+    bitslip_write_reg(0) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = SLP0_OFFSET) else '0';
+    bitslip_write_reg(1) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = SLP1_OFFSET) else '0';
+    bitslip_write_reg(2) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = SLP2_OFFSET) else '0';
+    bitslip_write_reg(3) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = SLP3_OFFSET) else '0';
+    bitslip_write_reg(4) <= '1' when (reg_wren = '1' and S_AXI_WSTRB = "1111" and axi_awaddr(5 downto 0) = SLP4_OFFSET) else '0';
+    bitslip_write_data <= (others => S_AXI_WDATA(3 downto 0));
+
+    frontend_register_bank_inst : entity work.frontend_register_bank
+      port map (
+        clk_i             => S_AXI_ACLK,
+        resetn_i          => S_AXI_ARESETN,
+        advance_i         => register_advance,
+        tap_write_i       => tap_write_reg,
+        tap_value_i       => tap_write_data,
+        bitslip_write_i   => bitslip_write_reg,
+        bitslip_value_i   => bitslip_write_data,
+        idelay_tap_o      => idelay_tap_reg,
+        idelay_load_o     => idelay_load_reg,
+        iserdes_bitslip_o => iserdes_bitslip_reg
+      );
 
 	process (S_AXI_ACLK)
 	begin
 	  if rising_edge(S_AXI_ACLK) then 
 	    if (S_AXI_ARESETN = '0') then
-          idelay_tap_reg(0) <= (others=>'0');
-          idelay_tap_reg(1) <= (others=>'0');
-          idelay_tap_reg(2) <= (others=>'0');
-          idelay_tap_reg(3) <= (others=>'0');
-          idelay_tap_reg(4) <= (others=>'0');
-          idelay_load0_reg <= "00000";
-          idelay_load1_reg <= "00000";
-          idelay_load2_reg <= "00000";
-          iserdes_bitslip_reg(0) <= (others=>'0');
-          iserdes_bitslip_reg(1) <= (others=>'0');
-          iserdes_bitslip_reg(2) <= (others=>'0');
-          iserdes_bitslip_reg(3) <= (others=>'0');
-          iserdes_bitslip_reg(4) <= (others=>'0');
           control_reg <= (others=>'0');
           trig_reg <= "000000";
 	    else
@@ -249,53 +270,8 @@ begin
 	          when TRIG_OFFSET => 
                 trig_reg(0) <= '1';
 
-	          when TAP0_OFFSET => 
-                idelay_tap_reg(0) <= S_AXI_WDATA(8 downto 0);
-                idelay_load0_reg(0) <= '1';
-
-	          when TAP1_OFFSET => 
-                idelay_tap_reg(1) <= S_AXI_WDATA(8 downto 0);
-                idelay_load0_reg(1) <= '1';
-
-	          when TAP2_OFFSET => 
-                idelay_tap_reg(2) <= S_AXI_WDATA(8 downto 0);
-                idelay_load0_reg(2) <= '1';
-
-	          when TAP3_OFFSET => 
-                idelay_tap_reg(3) <= S_AXI_WDATA(8 downto 0);
-                idelay_load0_reg(3) <= '1';
-
-	          when TAP4_OFFSET => 
-                idelay_tap_reg(4) <= S_AXI_WDATA(8 downto 0);
-                idelay_load0_reg(4) <= '1';
-
-              when SLP0_OFFSET =>
-                iserdes_bitslip_reg(0) <= S_AXI_WDATA(3 downto 0);
-
-              when SLP1_OFFSET =>
-                iserdes_bitslip_reg(1) <= S_AXI_WDATA(3 downto 0);
-
-              when SLP2_OFFSET =>
-                iserdes_bitslip_reg(2) <= S_AXI_WDATA(3 downto 0);
-
-              when SLP3_OFFSET =>
-                iserdes_bitslip_reg(3) <= S_AXI_WDATA(3 downto 0);
-
-              when SLP4_OFFSET =>
-                iserdes_bitslip_reg(4) <= S_AXI_WDATA(3 downto 0);
-
 	          when others =>
-                control_reg <= control_reg;
-                idelay_tap_reg(0) <= idelay_tap_reg(0);
-                idelay_tap_reg(1) <= idelay_tap_reg(1);
-                idelay_tap_reg(2) <= idelay_tap_reg(2);
-                idelay_tap_reg(3) <= idelay_tap_reg(3);
-                idelay_tap_reg(4) <= idelay_tap_reg(4);
-                iserdes_bitslip_reg(0) <= iserdes_bitslip_reg(0);
-                iserdes_bitslip_reg(1) <= iserdes_bitslip_reg(1);
-                iserdes_bitslip_reg(2) <= iserdes_bitslip_reg(2);
-                iserdes_bitslip_reg(3) <= iserdes_bitslip_reg(3);
-                iserdes_bitslip_reg(4) <= iserdes_bitslip_reg(4);
+                null;
 	        end case;
 
           else 
@@ -315,10 +291,6 @@ begin
             -- idelay load pulse comes from AXICLK 100MHz and crosses into clk125 domain
             -- OK to make this two AXICLKs wide, and again, make this signal from a single register (idelay_load2_reg)
             -- and NOT a combi function of multiple registers to be cleaner.
-
-            idelay_load2_reg <= idelay_load1_reg or idelay_load0_reg;
-            idelay_load1_reg <= idelay_load0_reg;
-            idelay_load0_reg <= "00000";
 
 	      end if;
 	    end if;
@@ -460,7 +432,7 @@ begin
     -- (idelay_load2_reg) guarantees this is the case.
 
     trig <= trig_reg(5);
-    idelay_load <= idelay_load2_reg; 
+    idelay_load <= idelay_load_reg; 
 
     iserdes_bitslip(0) <= iserdes_bitslip_reg(0);
     iserdes_bitslip(1) <= iserdes_bitslip_reg(1);

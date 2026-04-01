@@ -10,6 +10,7 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:afe-capture-to-trigger-bank:0.1.0
     files:
       - ../../rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd
     file_type: vhdlSource

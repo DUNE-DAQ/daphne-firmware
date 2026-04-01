@@ -9,6 +9,7 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:frontend-register-bank:0.1.0
     files:
       - ../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
     file_type: vhdlSource
