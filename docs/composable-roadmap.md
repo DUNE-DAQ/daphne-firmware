@@ -25,6 +25,7 @@ full composable gateware flow:
 - vendor-neutral frontend-facing shell between frontend capture and the core-top
 - composable K26C platform manifest with a working offline `validate` target
 - explicit optional-off smoke/validate targets for the vendor-neutral shell
+- first public-top offline validate path through a stubbed `frontend_island`
 
 The older `daphne-modular` / `k26c-modular-platform` path is now transitional.
 Keep it only as a compatibility stepping stone; new decomposition work should
@@ -117,3 +118,6 @@ matches the current timing-friendly ownership in `stc3`.
 5. Keep the new `validate_frontend_shell` target passing so the public-shell
    seam stays locally testable while the real frontend island remains vendor-
    specific.
+6. Keep the new `validate_public_top` target passing so the public composable
+   top stays locally testable even while the real frontend island remains
+   vendor-specific.

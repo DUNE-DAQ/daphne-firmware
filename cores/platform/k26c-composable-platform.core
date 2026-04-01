@@ -45,6 +45,12 @@ filesets:
     files:
       - ../../tests/logic/daphne_composable_frontend_shell_smoke_tb.vhd
     file_type: vhdlSource
+  validate_public_top_rtl:
+    depend:
+      - dune-daq:daphne:daphne-composable-top-validate:0.1.0
+    files:
+      - ../../tests/logic/daphne_composable_top_smoke_tb.vhd
+    file_type: vhdlSource
 
 targets:
   default:
@@ -83,6 +89,19 @@ targets:
     filesets:
       - validate_frontend_shell_rtl
     toplevel: daphne_composable_frontend_shell_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us
+  validate_public_top:
+    description: GHDL validation of the public composable top using a validate-only frontend-island stub and disabled optional subsystems
+    default_tool: ghdl
+    filesets:
+      - validate_public_top_rtl
+    toplevel: daphne_composable_top_smoke_tb
     tools:
       ghdl:
         analyze_options:

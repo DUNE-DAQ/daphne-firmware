@@ -15,8 +15,36 @@ filesets:
     files:
       - ../../rtl/isolated/tops/daphne_composable_top.vhd
     file_type: vhdlSource
+  rtl_validate:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:frontend-island-validate-stub:0.1.0
+      - dune-daq:daphne:daphne-composable-frontend-shell-selftrigger-off:0.1.0
+    files:
+      - ../../rtl/isolated/tops/daphne_composable_top.vhd
+    file_type: vhdlSource
+  tb_smoke:
+    files:
+      - ../../tests/logic/daphne_composable_top_smoke_tb.vhd
+    file_type: vhdlSource
 
 targets:
   default:
     filesets:
       - rtl
+  sim:
+    description: GHDL smoke validation of the public composable top using a validate-only frontend-island stub
+    default_tool: ghdl
+    filesets:
+      - rtl_validate
+    filesets_append:
+      - tb_smoke
+    toplevel: daphne_composable_top_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us

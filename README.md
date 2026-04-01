@@ -303,6 +303,9 @@ recorded in `docs/source-audit.md`.
   with timing, Hermes, and self-trigger disabled explicitly.
 - `daphne-composable-frontend-shell` now exposes a GHDL smoke target, and
   `k26c-composable-platform` mirrors it as `validate_frontend_shell`.
+- `daphne-composable-top` now also exposes a GHDL smoke target behind a
+  validate-only `frontend_island` stub, and `k26c-composable-platform`
+  mirrors it as `validate_public_top`.
 - The new trigger/descriptor wrappers are source-only preparation work around
   the imported `trig_xc` and legacy peak-descriptor calculator; they are not yet
   integrated as the top-level frame source.
