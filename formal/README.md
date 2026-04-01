@@ -20,6 +20,9 @@ Current proof entry points:
 - `formal/sby/daphne_composable_frontend_shell_contract.sby` for the public
   composable frontend shell pass-through contract and disabled optional-boundary
   behavior.
+- `formal/sby/daphne_composable_top_contract.sby` for the public composable top
+  validate path through the stubbed frontend island and disabled optional
+  subsystems.
 - `formal/sby/configurable_delay_line_contract.sby` for the vendor-neutral
   configurable delay primitive that replaces imported `SRLC32E` delay chains.
 - `formal/sby/fe_axi_axi_lite.sby` for the frontend AXI-Lite control register
