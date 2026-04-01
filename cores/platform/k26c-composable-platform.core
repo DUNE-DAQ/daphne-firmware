@@ -33,6 +33,12 @@ filesets:
     files:
       - ../../tests/logic/daphne_composable_core_top_smoke_tb.vhd
     file_type: vhdlSource
+  validate_optional_off_rtl:
+    depend:
+      - dune-daq:daphne:daphne-composable-core-top:0.1.0
+    files:
+      - ../../tests/logic/daphne_composable_core_top_optional_off_smoke_tb.vhd
+    file_type: vhdlSource
 
 targets:
   default:
@@ -45,6 +51,19 @@ targets:
     filesets:
       - validate_rtl
     toplevel: daphne_composable_core_top_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us
+  validate_optional_off:
+    description: GHDL validation of the vendor-free composable core shell with timing, Hermes, and self-trigger disabled
+    default_tool: ghdl
+    filesets:
+      - validate_optional_off_rtl
+    toplevel: daphne_composable_core_top_optional_off_smoke_tb
     tools:
       ghdl:
         analyze_options:

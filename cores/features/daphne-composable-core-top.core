@@ -19,6 +19,10 @@ filesets:
     files:
       - ../../tests/logic/daphne_composable_core_top_smoke_tb.vhd
     file_type: vhdlSource
+  tb_optional_off:
+    files:
+      - ../../tests/logic/daphne_composable_core_top_optional_off_smoke_tb.vhd
+    file_type: vhdlSource
 
 targets:
   default: &default_target
@@ -31,6 +35,20 @@ targets:
     filesets_append:
       - tb_smoke
     toplevel: daphne_composable_core_top_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us
+  sim_optional_off:
+    <<: *default_target
+    description: GHDL smoke validation of the vendor-free composable core shell with timing, Hermes, and self-trigger disabled
+    default_tool: ghdl
+    filesets_append:
+      - tb_optional_off
+    toplevel: daphne_composable_core_top_optional_off_smoke_tb
     tools:
       ghdl:
         analyze_options:
