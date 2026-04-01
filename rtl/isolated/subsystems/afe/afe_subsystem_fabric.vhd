@@ -7,7 +7,8 @@ entity afe_subsystem_fabric is
   generic (
     AFE_COUNT_G        : positive range 1 to 5 := 5;
     CHANNELS_PER_AFE_G : positive := 8;
-    CHANNEL_ID_BASE_G  : natural  := 0
+    CHANNEL_ID_BASE_G  : natural  := 0;
+    ENABLE_SELFTRIGGER_G : boolean := true
   );
   port (
     clock_i             : in  std_logic;
@@ -88,7 +89,8 @@ begin
     afe_island_inst : entity work.afe_subsystem_island
       generic map (
         CHANNELS_PER_AFE_G => CHANNELS_PER_AFE_G,
-        CHANNEL_ID_BASE_G  => CHANNEL_ID_BASE_G + CHANNEL_BASE_C
+        CHANNEL_ID_BASE_G  => CHANNEL_ID_BASE_G + CHANNEL_BASE_C,
+        ENABLE_SELFTRIGGER_G => ENABLE_SELFTRIGGER_G
       )
       port map (
         clock_i             => clock_i,

@@ -222,6 +222,8 @@ recorded in `docs/source-audit.md`.
   `cores/features/afe-config-slice-boundary.core`,
   `cores/features/afe-capture-slice.core`,
   `cores/features/afe-capture-slice-boundary.core`,
+  `cores/features/frontend-register-slice.core`,
+  `cores/features/frontend-register-bank.core`,
   `cores/features/frontend-bitlane.core`,
   `cores/features/frontend-capture-bank.core`,
   `cores/features/frontend-registers.core`,
@@ -244,17 +246,18 @@ recorded in `docs/source-audit.md`.
   frame ownership outside the slices for now.
 - `cores/features/stc3-record-builder.core`,
   `cores/features/afe-selftrigger-island.core`,
-  `cores/features/selftrigger-fabric.core`, and
+  `cores/features/selftrigger-fabric.core`,
+  `cores/features/afe-capture-to-trigger-bank.core`, and
   `cores/features/frontend-to-selftrigger-adapter.core` now capture the first
-  composable self-trigger assembly layers above the per-channel slices.
+  composable trigger assembly layers above the per-channel slices.
 - The isolated self-trigger graph now analyzes locally through the per-channel
   trigger/descriptor slices, `stc3_record_builder`, AFE trigger bank,
   per-AFE self-trigger island, and the AFE subsystem fabric without Vivado
   vendor libraries.
 - `cores/features/daphne-composable-top.core` is the first source-only top
-  shell. It currently wires `frontend_island` into the new self-trigger fabric
-  and holds the feature generics that the full composable project will grow
-  around.
+  shell. It currently wires `frontend_island` into the per-AFE adapter/fabric
+  path and then into `afe_subsystem_fabric`, so analog configuration and
+  self-trigger ownership now line up at the AFE boundary.
 - `cores/features/daphne-modular.core` remains as the older transitional
   source-graph wrapper. New decomposition work should land in
   `daphne-composable`.
