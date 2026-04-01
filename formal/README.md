@@ -14,6 +14,12 @@ Current proof entry points:
   readiness.
 - `formal/sby/control_plane_boundary_contract.sby` for the neutral control
   wrapper contract.
+- `formal/sby/daphne_composable_core_top_contract.sby` for the vendor-neutral
+  composable shell contract when timing, Hermes, and self-triggering are
+  disabled.
+- `formal/sby/daphne_composable_frontend_shell_contract.sby` for the public
+  composable frontend shell pass-through contract and disabled optional-boundary
+  behavior.
 - `formal/sby/configurable_delay_line_contract.sby` for the vendor-neutral
   configurable delay primitive that replaces imported `SRLC32E` delay chains.
 - `formal/sby/fe_axi_axi_lite.sby` for the frontend AXI-Lite control register

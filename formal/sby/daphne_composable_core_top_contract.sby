@@ -1,0 +1,26 @@
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd spim_afe1.vhd spim_dac2.vhd afe_config_slice.vhd afe_config_slice_boundary.vhd afe_analog_island.vhd afe_selftrigger_island_validate_stub.vhd afe_subsystem_island.vhd afe_subsystem_fabric.vhd timing_subsystem_boundary.vhd hermes_boundary.vhd daphne_composable_core_top.vhd daphne_composable_core_top_formal.vhd -e daphne_composable_core_top_formal
+prep -top daphne_composable_core_top_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
+../../ip_repo/daphne_ip/rtl/afe/spim_dac2.vhd
+../../rtl/isolated/subsystems/analog/afe_config_slice.vhd
+../../rtl/isolated/subsystems/analog/afe_config_slice_boundary.vhd
+../../rtl/isolated/subsystems/analog/afe_analog_island.vhd
+../../rtl/isolated/subsystems/trigger/afe_selftrigger_island_validate_stub.vhd
+../../rtl/isolated/subsystems/afe/afe_subsystem_island.vhd
+../../rtl/isolated/subsystems/afe/afe_subsystem_fabric.vhd
+../../rtl/isolated/subsystems/timing/timing_subsystem_boundary.vhd
+../../rtl/isolated/subsystems/hermes/hermes_boundary.vhd
+../../rtl/isolated/tops/daphne_composable_core_top.vhd
+../vhdl/daphne_composable_core_top_formal.vhd
