@@ -23,6 +23,7 @@ full composable gateware flow:
 - first composable top shell
 - vendor-neutral composable core-top shell with timing and Hermes boundaries
 - composable K26C platform manifest with a working offline `validate` target
+- explicit optional-off smoke/validate targets for the vendor-neutral shell
 
 The older `daphne-modular` / `k26c-modular-platform` path is now transitional.
 Keep it only as a compatibility stepping stone; new decomposition work should
@@ -106,3 +107,5 @@ matches the current timing-friendly ownership in `stc3`.
 3. Keep the new `k26c-composable-platform` `validate` target passing under
    GHDL, then move to a real Vivado implementation target once the top-level
    shell owns pins, clocks, and resets cleanly.
+4. Keep the matching `validate_optional_off` target passing so the null/disabled
+   boundary contracts stay explicit while the shell grows.

@@ -295,6 +295,9 @@ recorded in `docs/source-audit.md`.
 - `daphne-composable-core-top` and `k26c-composable-platform` now expose
   vendor-neutral GHDL smoke validation for the isolated shell, including the
   timing and Hermes boundary wrappers.
+- `daphne-composable-core-top` and `k26c-composable-platform` also expose
+  `sim_optional_off` / `validate_optional_off` targets to check the same shell
+  with timing, Hermes, and self-trigger disabled explicitly.
 - The new trigger/descriptor wrappers are source-only preparation work around
   the imported `trig_xc` and legacy peak-descriptor calculator; they are not yet
   integrated as the top-level frame source.
