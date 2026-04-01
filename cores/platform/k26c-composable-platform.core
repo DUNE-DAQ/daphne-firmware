@@ -39,6 +39,12 @@ filesets:
     files:
       - ../../tests/logic/daphne_composable_core_top_optional_off_smoke_tb.vhd
     file_type: vhdlSource
+  validate_frontend_shell_rtl:
+    depend:
+      - dune-daq:daphne:daphne-composable-frontend-shell:0.1.0
+    files:
+      - ../../tests/logic/daphne_composable_frontend_shell_smoke_tb.vhd
+    file_type: vhdlSource
 
 targets:
   default:
@@ -64,6 +70,19 @@ targets:
     filesets:
       - validate_optional_off_rtl
     toplevel: daphne_composable_core_top_optional_off_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us
+  validate_frontend_shell:
+    description: GHDL validation of the frontend-facing composable shell behind the K26C platform graph
+    default_tool: ghdl
+    filesets:
+      - validate_frontend_shell_rtl
+    toplevel: daphne_composable_frontend_shell_smoke_tb
     tools:
       ghdl:
         analyze_options:
