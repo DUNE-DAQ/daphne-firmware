@@ -21,7 +21,8 @@ full composable gateware flow:
 - flat multi-AFE self-trigger fabric
 - frontend-to-selftrigger adapter fabric
 - first composable top shell
-- source-only composable K26C platform manifest
+- vendor-neutral composable core-top shell with timing and Hermes boundaries
+- composable K26C platform manifest with a working offline `validate` target
 
 The older `daphne-modular` / `k26c-modular-platform` path is now transitional.
 Keep it only as a compatibility stepping stone; new decomposition work should
@@ -63,13 +64,16 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
 4. Grow the first composable top-level shell.
    - The repo now has a source-only `daphne_composable_top` that wires
      `frontend_island -> frontend_to_selftrigger_adapter -> afe_subsystem_fabric`.
+   - The repo also now has `daphne_composable_core_top`, a vendor-neutral shell
+     that wraps the AFE subsystem fabric with the current timing and Hermes
+     boundaries so the platform can be validated offline.
    - Self-trigger enable now lives inside the AFE subsystem island/fabric,
      which keeps analog configuration and trigger ownership aligned per AFE.
-   - Next additions should pull timing, spybuffer, and Hermes into that shell
-     without changing its public generic contract.
+   - Next additions should pull spybuffer and the public frontend-facing reset
+     contract into that shell without changing its generic contract.
 
-5. Add a real composable platform `impl` target only after the shell has a
-   stable top-level entity and pin/clock ownership.
+5. Keep the composable platform validate target green, then add a real `impl`
+   target only after the shell has stable top-level entity and pin/clock ownership.
 
 ## Trigger and descriptor split
 
@@ -99,5 +103,6 @@ matches the current timing-friendly ownership in `stc3`.
 
 1. Keep proving boundary contracts with SymbiYosys as slices are added.
 2. Keep small GHDL smoke benches on slice-level control blocks.
-3. When the composable top exists, add source-only `--setup` validation in
-   FuseSoC first, then move to Vivado implementation.
+3. Keep the new `k26c-composable-platform` `validate` target passing under
+   GHDL, then move to a real Vivado implementation target once the top-level
+   shell owns pins, clocks, and resets cleanly.

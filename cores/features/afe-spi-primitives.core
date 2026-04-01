@@ -1,0 +1,18 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-spi-primitives:0.1.0
+description: Minimal SPI primitive set for isolated AFE and DAC configuration slices
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ../../ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
+      - ../../ip_repo/daphne_ip/rtl/afe/spim_dac2.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

@@ -1,0 +1,21 @@
+CAPI=2:
+
+name: dune-daq:daphne:selftrigger-peak-descriptor-import:0.1.0
+description: Minimal imported peak-descriptor files for the isolated composable wrappers
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:selftrigger-import-common:0.1.0
+    files:
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/PeakDetector_SelfTrigger_CIEMAT.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/LocalPrimitives_CIEMAT.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/Self_Trigger_Primitive_Calculation.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

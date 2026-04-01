@@ -32,6 +32,7 @@ filesets:
       - dune-daq:daphne:stc3-record-builder:0.1.0
       - dune-daq:daphne:afe-selftrigger-island:0.1.0
       - dune-daq:daphne:selftrigger-fabric:0.1.0
+      - dune-daq:daphne:daphne-composable-core-top:0.1.0
       - dune-daq:daphne:daphne-composable-top:0.1.0
   subsystems:
     depend:
@@ -41,7 +42,6 @@ filesets:
       - dune-daq:daphne:dac-interface:0.1.0
       - dune-daq:daphne:hermes-boundary:0.1.0
       - dune-daq:daphne:hermes-transport:0.1.0
-      - dune-daq:daphne:selftrigger:0.1.0
       - dune-daq:daphne:spy-buffer:0.1.0
       - dune-daq:daphne:spy-buffer-boundary:0.1.0
       - dune-daq:daphne:timing-endpoint:0.1.0
