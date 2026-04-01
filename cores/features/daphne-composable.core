@@ -33,6 +33,7 @@ filesets:
       - dune-daq:daphne:afe-selftrigger-island:0.1.0
       - dune-daq:daphne:selftrigger-fabric:0.1.0
       - dune-daq:daphne:daphne-composable-core-top:0.1.0
+      - dune-daq:daphne:daphne-composable-frontend-shell:0.1.0
       - dune-daq:daphne:daphne-composable-top:0.1.0
   subsystems:
     depend:

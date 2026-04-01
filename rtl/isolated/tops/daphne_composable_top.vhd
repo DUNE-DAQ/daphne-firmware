@@ -93,12 +93,6 @@ end entity daphne_composable_top;
 architecture rtl of daphne_composable_top is
   signal frontend_dout_s       : array_5x9x16_type;
   signal frontend_trig_s       : std_logic;
-  signal trigger_samples_s     : sample14_array_t(0 to (AFE_COUNT_G * 8) - 1);
-  signal timing_status_s       : timing_status_t;
-  signal timing_timestamp_s    : std_logic_vector(63 downto 0);
-  signal timing_sync_s         : std_logic_vector(7 downto 0);
-  signal timing_sync_stb_s     : std_logic;
-  signal effective_timestamp_s : std_logic_vector(63 downto 0);
 begin
   frontend_island_inst : entity work.frontend_island
     generic map (
@@ -138,104 +132,69 @@ begin
       S_AXI_RREADY  => frontend_axi_rready
     );
 
-  frontend_to_trigger_inst : entity work.frontend_to_selftrigger_adapter
-    generic map (
-      AFE_COUNT_G => AFE_COUNT_G
-    )
-    port map (
-      afe_dout_i        => frontend_dout_s,
-      trigger_samples_o => trigger_samples_s
-    );
-
-  frontend_dout_o <= frontend_dout_s;
-  frontend_trig_o <= frontend_trig_s;
-
-  timing_boundary_inst : entity work.timing_subsystem_boundary
-    port map (
-      clk_axi       => timing_clk_axi_i,
-      resetn_axi    => timing_resetn_axi_i,
-      timing_ctrl_i => timing_ctrl_i,
-      timing_stat_o => timing_status_s,
-      timestamp_o   => timing_timestamp_s,
-      sync_o        => timing_sync_s,
-      sync_stb_o    => timing_sync_stb_s
-    );
-
-  timing_stat_o      <= timing_status_s;
-  timing_timestamp_o <= timing_timestamp_s;
-  timing_sync_o      <= timing_sync_s;
-  timing_sync_stb_o  <= timing_sync_stb_s;
-
-  effective_timestamp_s <= timing_timestamp_s
-                           when (ENABLE_TIMING_G and timing_status_s.timestamp_valid = '1')
-                           else timestamp_i;
-
-  gen_hermes_enabled : if ENABLE_HERMES_G generate
-  begin
-    hermes_boundary_inst : entity work.hermes_boundary
-      port map (
-        clk                => clock,
-        reset              => not frontend_axi_aresetn,
-        descriptor_i       => hermes_descriptor_i,
-        descriptor_taken_o => hermes_descriptor_taken_o,
-        hermes_stat_o      => hermes_stat_o
-      );
-  end generate gen_hermes_enabled;
-
-  gen_hermes_disabled : if not ENABLE_HERMES_G generate
-  begin
-    hermes_descriptor_taken_o <= '0';
-    hermes_stat_o             <= HERMES_BOUNDARY_STATUS_NULL;
-  end generate gen_hermes_disabled;
-
-  afe_subsystem_fabric_inst : entity work.afe_subsystem_fabric
+  frontend_shell_inst : entity work.daphne_composable_frontend_shell
     generic map (
       AFE_COUNT_G          => AFE_COUNT_G,
-      CHANNELS_PER_AFE_G   => 8,
-      ENABLE_SELFTRIGGER_G => ENABLE_SELFTRIGGER_G
+      ENABLE_SELFTRIGGER_G => ENABLE_SELFTRIGGER_G,
+      ENABLE_TIMING_G      => ENABLE_TIMING_G,
+      ENABLE_HERMES_G      => ENABLE_HERMES_G,
+      ENABLE_SPYBUFFER_G   => ENABLE_SPYBUFFER_G
     )
     port map (
-      clock_i             => clock,
-      reset_i             => not frontend_axi_aresetn,
-      reset_st_counters_i => reset_st_counters_i,
-      config_valid_i      => config_valid_i,
-      config_cmd_i        => config_cmd_i,
-      config_status_o     => config_status_o,
-      afe_miso_i          => afe_miso_i,
-      afe_sclk_o          => afe_sclk_o,
-      afe_sen_o           => afe_sen_o,
-      afe_mosi_o          => afe_mosi_o,
-      trim_sclk_o         => trim_sclk_o,
-      trim_mosi_o         => trim_mosi_o,
-      trim_ldac_n_o       => trim_ldac_n_o,
-      trim_sync_n_o       => trim_sync_n_o,
-      offset_sclk_o       => offset_sclk_o,
-      offset_mosi_o       => offset_mosi_o,
-      offset_ldac_n_o     => offset_ldac_n_o,
-      offset_sync_n_o     => offset_sync_n_o,
-      timestamp_i         => effective_timestamp_s,
-      version_i           => version_i,
-      signal_delay_i      => signal_delay_i,
-      descriptor_config_i => descriptor_config_i,
-      force_trigger_i     => force_trigger_i,
-      din_i               => trigger_samples_s,
-      trigger_control_i   => trigger_control_i,
-      trigger_result_o    => trigger_result_o,
-      descriptor_result_o => descriptor_result_o,
-      record_count_o      => record_count_o,
-      full_count_o        => full_count_o,
-      busy_count_o        => busy_count_o,
-      trigger_count_o     => trigger_count_o,
-      packet_count_o      => packet_count_o,
-      delayed_sample_o    => delayed_sample_o,
-      ready_o             => ready_o,
-      rd_en_i             => rd_en_i,
-      dout_o              => dout_o
+      clock_i                   => clock,
+      frontend_resetn_i         => frontend_axi_aresetn,
+      timing_clk_axi_i          => timing_clk_axi_i,
+      timing_resetn_axi_i       => timing_resetn_axi_i,
+      timing_ctrl_i             => timing_ctrl_i,
+      timing_stat_o             => timing_stat_o,
+      timing_timestamp_o        => timing_timestamp_o,
+      timing_sync_o             => timing_sync_o,
+      timing_sync_stb_o         => timing_sync_stb_o,
+      hermes_descriptor_i       => hermes_descriptor_i,
+      hermes_descriptor_taken_o => hermes_descriptor_taken_o,
+      hermes_stat_o             => hermes_stat_o,
+      config_valid_i            => config_valid_i,
+      config_cmd_i              => config_cmd_i,
+      config_status_o           => config_status_o,
+      afe_miso_i                => afe_miso_i,
+      afe_sclk_o                => afe_sclk_o,
+      afe_sen_o                 => afe_sen_o,
+      afe_mosi_o                => afe_mosi_o,
+      trim_sclk_o               => trim_sclk_o,
+      trim_mosi_o               => trim_mosi_o,
+      trim_ldac_n_o             => trim_ldac_n_o,
+      trim_sync_n_o             => trim_sync_n_o,
+      offset_sclk_o             => offset_sclk_o,
+      offset_mosi_o             => offset_mosi_o,
+      offset_ldac_n_o           => offset_ldac_n_o,
+      offset_sync_n_o           => offset_sync_n_o,
+      reset_st_counters_i       => reset_st_counters_i,
+      force_trigger_i           => force_trigger_i,
+      timestamp_i               => timestamp_i,
+      version_i                 => version_i,
+      signal_delay_i            => signal_delay_i,
+      descriptor_config_i       => descriptor_config_i,
+      frontend_dout_i           => frontend_dout_s,
+      frontend_trig_i           => frontend_trig_s,
+      trigger_control_i         => trigger_control_i,
+      rd_en_i                   => rd_en_i,
+      frontend_dout_o           => frontend_dout_o,
+      frontend_trig_o           => frontend_trig_o,
+      trigger_result_o          => trigger_result_o,
+      descriptor_result_o       => descriptor_result_o,
+      record_count_o            => record_count_o,
+      full_count_o              => full_count_o,
+      busy_count_o              => busy_count_o,
+      trigger_count_o           => trigger_count_o,
+      packet_count_o            => packet_count_o,
+      delayed_sample_o          => delayed_sample_o,
+      ready_o                   => ready_o,
+      dout_o                    => dout_o
     );
 
   -- ENABLE_TIMING_G / ENABLE_HERMES_G / ENABLE_SPYBUFFER_G are carried here so
   -- this top can grow into the full composable shell without changing its public
-  -- generic contract. The first useful cut now composes frontend + per-AFE analog
-  -- config + per-AFE selftrigger inside the same subsystem fabric, while timing
-  -- and Hermes are explicit top-shell boundaries.
+  -- generic contract. The frontend-facing top now delegates adapter/timing/Hermes/
+  -- AFE ownership to daphne_composable_frontend_shell so the public shell seam can
+  -- be validated offline without pulling in the vendor-specific frontend island.
 end architecture rtl;

@@ -22,6 +22,7 @@ full composable gateware flow:
 - frontend-to-selftrigger adapter fabric
 - first composable top shell
 - vendor-neutral composable core-top shell with timing and Hermes boundaries
+- vendor-neutral frontend-facing shell between frontend capture and the core-top
 - composable K26C platform manifest with a working offline `validate` target
 - explicit optional-off smoke/validate targets for the vendor-neutral shell
 
@@ -68,10 +69,14 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
    - The repo also now has `daphne_composable_core_top`, a vendor-neutral shell
      that wraps the AFE subsystem fabric with the current timing and Hermes
      boundaries so the platform can be validated offline.
+   - The repo now also has `daphne_composable_frontend_shell`, which sits one
+     layer closer to the public top: it owns the frontend sample handoff into
+     the vendor-neutral core-top and validates that seam without requiring the
+     vendor-specific frontend island.
    - Self-trigger enable now lives inside the AFE subsystem island/fabric,
      which keeps analog configuration and trigger ownership aligned per AFE.
-   - Next additions should pull spybuffer and the public frontend-facing reset
-     contract into that shell without changing its generic contract.
+   - Next additions should pull spybuffer and the remaining public reset
+     contract into that shell family without changing the generic contract.
 
 5. Keep the composable platform validate target green, then add a real `impl`
    target only after the shell has stable top-level entity and pin/clock ownership.
@@ -109,3 +114,6 @@ matches the current timing-friendly ownership in `stc3`.
    shell owns pins, clocks, and resets cleanly.
 4. Keep the matching `validate_optional_off` target passing so the null/disabled
    boundary contracts stay explicit while the shell grows.
+5. Keep the new `validate_frontend_shell` target passing so the public-shell
+   seam stays locally testable while the real frontend island remains vendor-
+   specific.

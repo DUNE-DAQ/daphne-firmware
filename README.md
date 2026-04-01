@@ -261,6 +261,9 @@ recorded in `docs/source-audit.md`.
 - `cores/features/daphne-composable-core-top.core` is the vendor-neutral
   composable shell used for offline validation. It already instantiates the
   timing and Hermes boundary wrappers around the AFE subsystem fabric.
+- `cores/features/daphne-composable-frontend-shell.core` is the next shell up:
+  it owns the frontend sample handoff into the composable core-top while
+  staying vendor-neutral and locally testable.
 - `cores/features/daphne-modular.core` remains as the older transitional
   source-graph wrapper. New decomposition work should land in
   `daphne-composable`.
@@ -298,6 +301,8 @@ recorded in `docs/source-audit.md`.
 - `daphne-composable-core-top` and `k26c-composable-platform` also expose
   `sim_optional_off` / `validate_optional_off` targets to check the same shell
   with timing, Hermes, and self-trigger disabled explicitly.
+- `daphne-composable-frontend-shell` now exposes a GHDL smoke target, and
+  `k26c-composable-platform` mirrors it as `validate_frontend_shell`.
 - The new trigger/descriptor wrappers are source-only preparation work around
   the imported `trig_xc` and legacy peak-descriptor calculator; they are not yet
   integrated as the top-level frame source.
