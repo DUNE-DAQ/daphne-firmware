@@ -9,7 +9,7 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
-      - dune-daq:daphne:selftrigger:0.1.0
+      - dune-daq:daphne:selftrigger-xcorr-import:0.1.0
     files:
       - ../../rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd
     file_type: vhdlSource

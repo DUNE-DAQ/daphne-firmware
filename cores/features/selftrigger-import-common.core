@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:selftrigger-import-common:0.1.0
+description: Minimal imported self-trigger support files shared by the isolated xcorr and peak-descriptor wrappers
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-primitives:0.1.0
+    files:
+      - ../../ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/Configurable_CFD.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

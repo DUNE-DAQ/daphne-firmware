@@ -27,9 +27,28 @@ filesets:
       - ../../xilinx/scripts/axi_quad_spi_dtbo_patch.sed
       - ../../xilinx/vivado_batch.tcl
     file_type: user
+  validate_rtl:
+    depend:
+      - dune-daq:daphne:daphne-composable-core-top:0.1.0
+    files:
+      - ../../tests/logic/daphne_composable_core_top_smoke_tb.vhd
+    file_type: vhdlSource
 
 targets:
   default:
     description: Source-only platform manifest for the composable K26C subsystem graph and top shell
     filesets:
       - platform
+  validate:
+    description: GHDL validation of the vendor-free composable core shell behind the K26C platform graph
+    default_tool: ghdl
+    filesets:
+      - validate_rtl
+    toplevel: daphne_composable_core_top_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us

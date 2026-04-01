@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:selftrigger-xcorr-import:0.1.0
+description: Minimal imported cross-correlation self-trigger files for the isolated composable wrappers
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:selftrigger-import-common:0.1.0
+    files:
+      - ../../ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/hpf_pedestal_recovery_filter_trigger.vhd
+      - ../../ip_repo/daphne_ip/rtl/selftrig/trig_xc.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

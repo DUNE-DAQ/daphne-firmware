@@ -258,6 +258,9 @@ recorded in `docs/source-audit.md`.
   shell. It currently wires `frontend_island` into the per-AFE adapter/fabric
   path and then into `afe_subsystem_fabric`, so analog configuration and
   self-trigger ownership now line up at the AFE boundary.
+- `cores/features/daphne-composable-core-top.core` is the vendor-neutral
+  composable shell used for offline validation. It already instantiates the
+  timing and Hermes boundary wrappers around the AFE subsystem fabric.
 - `cores/features/daphne-modular.core` remains as the older transitional
   source-graph wrapper. New decomposition work should land in
   `daphne-composable`.
@@ -268,8 +271,10 @@ recorded in `docs/source-audit.md`.
 - `cores/platform/k26c-modular-platform.core` is the source-only platform
   wrapper for the older transitional modular graph and should not receive new
   feature decomposition work.
-- `cores/platform/k26c-composable-platform.core` is the source-only platform
-  wrapper for the finer-grained composable subsystem graph.
+- `cores/platform/k26c-composable-platform.core` is the composable platform
+  wrapper for the finer-grained subsystem graph. It now exposes a GHDL-backed
+  `validate` target so the isolated shell can be compiled and smoke-tested
+  without Vivado.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache
   directories so the workflow does not depend on global user configuration.
 - `scripts/fusesoc/run_logic_test.sh` now exercises the module-level smoke
@@ -287,6 +292,9 @@ recorded in `docs/source-audit.md`.
 - `frontend-registers`, `afe-config-slice-boundary`, `afe-capture-slice-boundary`,
   and `selftrigger` expose checked proof entry points for their interface
   contracts.
+- `daphne-composable-core-top` and `k26c-composable-platform` now expose
+  vendor-neutral GHDL smoke validation for the isolated shell, including the
+  timing and Hermes boundary wrappers.
 - The new trigger/descriptor wrappers are source-only preparation work around
   the imported `trig_xc` and legacy peak-descriptor calculator; they are not yet
   integrated as the top-level frame source.
