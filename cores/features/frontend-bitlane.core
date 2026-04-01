@@ -1,0 +1,17 @@
+CAPI=2:
+
+name: dune-daq:daphne:frontend-bitlane:0.1.0
+description: Single LVDS frontend deserializer bit-lane primitive
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ../../ip_repo/daphne_ip/rtl/frontend/febit3.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

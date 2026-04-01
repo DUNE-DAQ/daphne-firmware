@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-capture-slice:0.1.0
+description: Per-AFE capture/alignment slice built from nine frontend bit-lanes
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:frontend-bitlane:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/frontend/afe_capture_slice.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

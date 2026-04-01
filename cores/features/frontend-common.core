@@ -1,0 +1,17 @@
+CAPI=2:
+
+name: dune-daq:daphne:frontend-common:0.1.0
+description: Shared frontend/common ownership for IDELAYCTRL, forwarded AFE clock, and cross-domain pulse resync
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ../../rtl/isolated/subsystems/frontend/frontend_common.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

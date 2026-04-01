@@ -1,0 +1,29 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-capture-slice-boundary:0.1.0
+description: Neutral per-AFE alignment-validity boundary wrapper
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/frontend/afe_capture_slice_boundary.vhd
+    file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/afe_capture_slice_boundary_contract.sby
+    file_type: user
+
+targets:
+  default:
+    filesets:
+      - rtl
+  formal:
+    filesets:
+      - rtl
+    description: Formal proof of reset-qualified per-AFE capture validity
+    filesets_append:
+      - formal
