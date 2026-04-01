@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:frontend-island-validate-stub:0.1.0
+description: Validate-only stub for the vendor-heavy frontend island used by offline public-top targets
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/frontend/frontend_island_validate_stub.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
