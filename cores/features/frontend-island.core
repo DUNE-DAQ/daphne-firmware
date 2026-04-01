@@ -1,0 +1,22 @@
+CAPI=2:
+
+name: dune-daq:daphne:frontend-island:0.1.0
+description: Parameterized frontend island combining shared frontend/common logic, capture bank, and AXI-Lite control
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:frontend-common:0.1.0
+      - dune-daq:daphne:frontend-capture-bank:0.1.0
+      - dune-daq:daphne:frontend-registers:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/frontend/frontend_island.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

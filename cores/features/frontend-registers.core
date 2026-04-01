@@ -1,0 +1,46 @@
+CAPI=2:
+
+name: dune-daq:daphne:frontend-registers:0.1.0
+description: Frontend alignment/control AXI-Lite register block
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+    files:
+      - ../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
+    file_type: vhdlSource
+  tb_axi_smoke:
+    files:
+      - ../../tests/logic/fe_axi_smoke_tb.vhd
+    file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/fe_axi_axi_lite.sby
+    file_type: user
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl
+  sim:
+    <<: *default_target
+    description: GHDL smoke test for the frontend AXI-Lite register path
+    default_tool: ghdl
+    filesets_append:
+      - tb_axi_smoke
+    toplevel: fe_axi_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us
+  formal:
+    <<: *default_target
+    description: Formal proof of the frontend AXI-Lite register interface
+    filesets_append:
+      - formal

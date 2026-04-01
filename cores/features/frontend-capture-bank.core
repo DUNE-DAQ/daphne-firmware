@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:frontend-capture-bank:0.1.0
+description: Parameterized frontend capture bank composed from per-AFE slices
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:afe-capture-slice:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/frontend/frontend_capture_bank.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

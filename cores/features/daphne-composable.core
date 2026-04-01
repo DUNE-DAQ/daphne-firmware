@@ -18,6 +18,7 @@ filesets:
       - dune-daq:daphne:frontend-bitlane:0.1.0
       - dune-daq:daphne:afe-capture-slice:0.1.0
       - dune-daq:daphne:afe-capture-slice-boundary:0.1.0
+      - dune-daq:daphne:frontend-common:0.1.0
       - dune-daq:daphne:frontend-capture-bank:0.1.0
       - dune-daq:daphne:frontend-registers:0.1.0
       - dune-daq:daphne:frontend-island:0.1.0
