@@ -42,6 +42,21 @@ entity daphne_composable_top is
     frontend_axi_rresp    : out std_logic_vector(1 downto 0);
     frontend_axi_rvalid   : out std_logic;
     frontend_axi_rready   : in  std_logic;
+    config_valid_i        : in  std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    config_cmd_i          : in  afe_config_command_bank_t(0 to AFE_COUNT_G - 1);
+    config_status_o       : out afe_config_status_bank_t(0 to AFE_COUNT_G - 1);
+    afe_miso_i            : in  std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    afe_sclk_o            : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    afe_sen_o             : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    afe_mosi_o            : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    trim_sclk_o           : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    trim_mosi_o           : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    trim_ldac_n_o         : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    trim_sync_n_o         : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    offset_sclk_o         : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    offset_mosi_o         : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    offset_ldac_n_o       : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
+    offset_sync_n_o       : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
     reset_st_counters_i   : in  std_logic;
     force_trigger_i       : in  std_logic;
     timestamp_i           : in  std_logic_vector(63 downto 0);
@@ -120,53 +135,53 @@ begin
   frontend_dout_o <= frontend_dout_s;
   frontend_trig_o <= frontend_trig_s;
 
-  gen_selftrigger_enabled : if ENABLE_SELFTRIGGER_G generate
-  begin
-    selftrigger_fabric_inst : entity work.selftrigger_fabric
-      generic map (
-        AFE_COUNT_G        => AFE_COUNT_G,
-        CHANNELS_PER_AFE_G => 8
-      )
-      port map (
-        clock_i             => clock,
-        reset_i             => not frontend_axi_aresetn,
-        reset_st_counters_i => reset_st_counters_i,
-        timestamp_i         => timestamp_i,
-        version_i           => version_i,
-        signal_delay_i      => signal_delay_i,
-        descriptor_config_i => descriptor_config_i,
-        force_trigger_i     => force_trigger_i,
-        din_i               => trigger_samples_s,
-        trigger_control_i   => trigger_control_i,
-        trigger_result_o    => trigger_result_o,
-        descriptor_result_o => descriptor_result_o,
-        record_count_o      => record_count_o,
-        full_count_o        => full_count_o,
-        busy_count_o        => busy_count_o,
-        trigger_count_o     => trigger_count_o,
-        packet_count_o      => packet_count_o,
-        delayed_sample_o    => delayed_sample_o,
-        ready_o             => ready_o,
-        rd_en_i             => rd_en_i,
-        dout_o              => dout_o
-      );
-  end generate gen_selftrigger_enabled;
-
-  gen_selftrigger_disabled : if not ENABLE_SELFTRIGGER_G generate
-  begin
-    trigger_result_o    <= (others => TRIGGER_XCORR_RESULT_NULL);
-    descriptor_result_o <= (others => PEAK_DESCRIPTOR_RESULT_NULL);
-    record_count_o      <= (others => (others => '0'));
-    full_count_o        <= (others => (others => '0'));
-    busy_count_o        <= (others => (others => '0'));
-    trigger_count_o     <= (others => (others => '0'));
-    packet_count_o      <= (others => (others => '0'));
-    delayed_sample_o    <= (others => (others => '0'));
-    ready_o             <= (others => '0');
-    dout_o              <= (others => (others => '0'));
-  end generate gen_selftrigger_disabled;
+  afe_subsystem_fabric_inst : entity work.afe_subsystem_fabric
+    generic map (
+      AFE_COUNT_G          => AFE_COUNT_G,
+      CHANNELS_PER_AFE_G   => 8,
+      ENABLE_SELFTRIGGER_G => ENABLE_SELFTRIGGER_G
+    )
+    port map (
+      clock_i             => clock,
+      reset_i             => not frontend_axi_aresetn,
+      reset_st_counters_i => reset_st_counters_i,
+      config_valid_i      => config_valid_i,
+      config_cmd_i        => config_cmd_i,
+      config_status_o     => config_status_o,
+      afe_miso_i          => afe_miso_i,
+      afe_sclk_o          => afe_sclk_o,
+      afe_sen_o           => afe_sen_o,
+      afe_mosi_o          => afe_mosi_o,
+      trim_sclk_o         => trim_sclk_o,
+      trim_mosi_o         => trim_mosi_o,
+      trim_ldac_n_o       => trim_ldac_n_o,
+      trim_sync_n_o       => trim_sync_n_o,
+      offset_sclk_o       => offset_sclk_o,
+      offset_mosi_o       => offset_mosi_o,
+      offset_ldac_n_o     => offset_ldac_n_o,
+      offset_sync_n_o     => offset_sync_n_o,
+      timestamp_i         => timestamp_i,
+      version_i           => version_i,
+      signal_delay_i      => signal_delay_i,
+      descriptor_config_i => descriptor_config_i,
+      force_trigger_i     => force_trigger_i,
+      din_i               => trigger_samples_s,
+      trigger_control_i   => trigger_control_i,
+      trigger_result_o    => trigger_result_o,
+      descriptor_result_o => descriptor_result_o,
+      record_count_o      => record_count_o,
+      full_count_o        => full_count_o,
+      busy_count_o        => busy_count_o,
+      trigger_count_o     => trigger_count_o,
+      packet_count_o      => packet_count_o,
+      delayed_sample_o    => delayed_sample_o,
+      ready_o             => ready_o,
+      rd_en_i             => rd_en_i,
+      dout_o              => dout_o
+    );
 
   -- ENABLE_TIMING_G / ENABLE_HERMES_G / ENABLE_SPYBUFFER_G are carried here so
   -- this top can grow into the full composable shell without changing its public
-  -- generic contract. The first useful cut only composes frontend + selftrigger.
+  -- generic contract. The first useful cut now composes frontend + per-AFE analog
+  -- config + per-AFE selftrigger inside the same subsystem fabric.
 end architecture rtl;

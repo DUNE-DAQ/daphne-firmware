@@ -9,6 +9,9 @@ full composable gateware flow:
 - reusable per-AFE subsystem island
 - flat multi-AFE AFE subsystem fabric
 - per-AFE capture slice
+- per-AFE frontend register slice
+- banked frontend register owner
+- per-AFE capture-to-trigger adapter
 - parameterized frontend capture bank
 - parameterized frontend island
 - per-slice boundary contracts and proofs
@@ -16,7 +19,7 @@ full composable gateware flow:
 - per-AFE trigger bank wrapper
 - per-AFE self-trigger island
 - flat multi-AFE self-trigger fabric
-- frontend-to-selftrigger adapter
+- frontend-to-selftrigger adapter fabric
 - first composable top shell
 - source-only composable K26C platform manifest
 
@@ -35,19 +38,15 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
 
 ## Immediate next steps
 
-1. Introduce a shared frontend-common block.
-   - Extract the remaining global pieces from `front_end.vhd`:
-     `IDELAYCTRL`, AFE forwarded clock, and CDC/pulse resync logic.
-   - Keep `frontend_island.vhd` as the drop-in wrapper so the old ABI remains
-     stable.
+1. Keep the frontend split thin and compatibility-safe.
+   - `frontend_common.vhd` now owns the shared `IDELAYCTRL`, forwarded AFE
+     clock, and CDC/pulse resync logic.
+   - `frontend_register_slice.vhd` and `frontend_register_bank.vhd` now own
+     the per-AFE tap/bitslip state under the existing `fe_axi.vhd` AXI ABI.
+   - Keep `frontend_island.vhd` as the drop-in wrapper so software does not
+     need to change while the internals are decomposed further.
 
-2. Split frontend control per AFE.
-   - Isolate one AFE's tap/bitslip storage and stretched-load pulse from
-     `fe_axi.vhd`.
-   - Retain a thin compatibility AXI wrapper so software does not need to
-     change.
-
-3. Add an AFE config bank wrapper.
+2. Add an AFE config bank wrapper.
    - Done for the direct SPI ownership layer with `afe_config_bank.vhd`.
    - Next refinement is to preserve the existing physical grouping
      (`afe0`, `afe12`, and `afe34`) as a higher-level compatibility shell.
@@ -56,12 +55,16 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      analog configuration and self-trigger composition behind a single reusable
      boundary.
 
+3. Keep pushing the frontend-to-trigger seam down to the AFE boundary.
+   - `afe_capture_to_trigger_bank.vhd` now owns one AFE's sample-lane mapping.
+   - `frontend_to_selftrigger_adapter.vhd` is now only the flat wrapper that
+     stitches those per-AFE adapters into the legacy flattened trigger bank.
+
 4. Grow the first composable top-level shell.
    - The repo now has a source-only `daphne_composable_top` that wires
-     `frontend_island -> frontend_to_selftrigger_adapter -> selftrigger_fabric`.
-   - The repo now also has `afe_subsystem_fabric.vhd` so future tops can move
-     from separate analog/self-trigger composition to one flat multi-AFE
-     subsystem fabric without changing the per-AFE ownership boundary.
+     `frontend_island -> frontend_to_selftrigger_adapter -> afe_subsystem_fabric`.
+   - Self-trigger enable now lives inside the AFE subsystem island/fabric,
+     which keeps analog configuration and trigger ownership aligned per AFE.
    - Next additions should pull timing, spybuffer, and Hermes into that shell
      without changing its public generic contract.
 
@@ -79,8 +82,8 @@ clock domain. The composable path should preserve that locality:
 3. Group eight channels under one AFE trigger bank wrapper.
 4. Build one AFE self-trigger island from the bank plus one record builder per
    channel.
-5. Aggregate AFE islands in a flat self-trigger fabric before any larger
-   project-level shell.
+5. Aggregate AFE islands in a flat self-trigger fabric or AFE subsystem fabric
+   before any larger project-level shell.
 
 This keeps the trigger-to-descriptor path free of extra muxing or CDC and
 matches the current timing-friendly ownership in `stc3`.

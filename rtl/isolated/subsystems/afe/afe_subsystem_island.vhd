@@ -6,7 +6,8 @@ use work.daphne_subsystem_pkg.all;
 entity afe_subsystem_island is
   generic (
     CHANNELS_PER_AFE_G : positive := 8;
-    CHANNEL_ID_BASE_G  : natural  := 0
+    CHANNEL_ID_BASE_G  : natural  := 0;
+    ENABLE_SELFTRIGGER_G : boolean := true
   );
   port (
     clock_i             : in  std_logic;
@@ -71,32 +72,49 @@ begin
       offset_sync_n_o => offset_sync_n_o
     );
 
-  selftrigger_island_inst : entity work.afe_selftrigger_island
-    generic map (
-      CHANNELS_PER_AFE_G => CHANNELS_PER_AFE_G,
-      CHANNEL_ID_BASE_G  => CHANNEL_ID_BASE_G
-    )
-    port map (
-      clock_i             => clock_i,
-      reset_i             => reset_i,
-      reset_st_counters_i => reset_st_counters_i,
-      timestamp_i         => timestamp_i,
-      version_i           => version_i,
-      signal_delay_i      => signal_delay_i,
-      descriptor_config_i => descriptor_config_i,
-      force_trigger_i     => force_trigger_i,
-      din_i               => din_i,
-      trigger_control_i   => trigger_control_i,
-      trigger_result_o    => trigger_result_o,
-      descriptor_result_o => descriptor_result_o,
-      record_count_o      => record_count_o,
-      full_count_o        => full_count_o,
-      busy_count_o        => busy_count_o,
-      trigger_count_o     => trigger_count_o,
-      packet_count_o      => packet_count_o,
-      delayed_sample_o    => delayed_sample_o,
-      ready_o             => ready_o,
-      rd_en_i             => rd_en_i,
-      dout_o              => dout_o
-    );
+  gen_selftrigger_enabled : if ENABLE_SELFTRIGGER_G generate
+  begin
+    selftrigger_island_inst : entity work.afe_selftrigger_island
+      generic map (
+        CHANNELS_PER_AFE_G => CHANNELS_PER_AFE_G,
+        CHANNEL_ID_BASE_G  => CHANNEL_ID_BASE_G
+      )
+      port map (
+        clock_i             => clock_i,
+        reset_i             => reset_i,
+        reset_st_counters_i => reset_st_counters_i,
+        timestamp_i         => timestamp_i,
+        version_i           => version_i,
+        signal_delay_i      => signal_delay_i,
+        descriptor_config_i => descriptor_config_i,
+        force_trigger_i     => force_trigger_i,
+        din_i               => din_i,
+        trigger_control_i   => trigger_control_i,
+        trigger_result_o    => trigger_result_o,
+        descriptor_result_o => descriptor_result_o,
+        record_count_o      => record_count_o,
+        full_count_o        => full_count_o,
+        busy_count_o        => busy_count_o,
+        trigger_count_o     => trigger_count_o,
+        packet_count_o      => packet_count_o,
+        delayed_sample_o    => delayed_sample_o,
+        ready_o             => ready_o,
+        rd_en_i             => rd_en_i,
+        dout_o              => dout_o
+      );
+  end generate gen_selftrigger_enabled;
+
+  gen_selftrigger_disabled : if not ENABLE_SELFTRIGGER_G generate
+  begin
+    trigger_result_o    <= (others => TRIGGER_XCORR_RESULT_NULL);
+    descriptor_result_o <= (others => PEAK_DESCRIPTOR_RESULT_NULL);
+    record_count_o      <= (others => (others => '0'));
+    full_count_o        <= (others => (others => '0'));
+    busy_count_o        <= (others => (others => '0'));
+    trigger_count_o     <= (others => (others => '0'));
+    packet_count_o      <= (others => (others => '0'));
+    delayed_sample_o    <= (others => (others => '0'));
+    ready_o             <= (others => '0');
+    dout_o              <= (others => (others => '0'));
+  end generate gen_selftrigger_disabled;
 end architecture rtl;
