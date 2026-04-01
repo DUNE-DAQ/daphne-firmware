@@ -1,0 +1,21 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-analog-island:0.1.0
+description: Per-AFE analog configuration island built from the isolated config slice and readiness boundary
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:afe-config-slice:0.1.0
+      - dune-daq:daphne:afe-config-slice-boundary:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/analog/afe_analog_island.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

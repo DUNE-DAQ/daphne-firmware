@@ -1,0 +1,29 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-config-slice-boundary:0.1.0
+description: Neutral per-AFE configuration readiness boundary wrapper
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/analog/afe_config_slice_boundary.vhd
+    file_type: vhdlSource
+  formal:
+    files:
+      - ../../formal/sby/afe_config_slice_boundary_contract.sby
+    file_type: user
+
+targets:
+  default:
+    filesets:
+      - rtl
+  formal:
+    filesets:
+      - rtl
+    description: Formal proof of reset-qualified per-AFE configuration readiness
+    filesets_append:
+      - formal

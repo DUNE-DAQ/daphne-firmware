@@ -1,0 +1,15 @@
+[options]
+mode prove
+depth 5
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 configurable_delay_line.vhd configurable_delay_line_formal.vhd -e configurable_delay_line_formal
+prep -top configurable_delay_line_formal
+
+[files]
+../../rtl/isolated/common/primitives/configurable_delay_line.vhd
+../vhdl/configurable_delay_line_formal.vhd

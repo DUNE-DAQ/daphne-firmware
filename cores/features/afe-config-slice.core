@@ -1,0 +1,40 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-config-slice:0.1.0
+description: Per-AFE configuration slice with direct AFE and DAC SPI control
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:afe-spi-primitives:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/analog/afe_config_slice.vhd
+    file_type: vhdlSource
+  tb_smoke:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../tests/logic/afe_config_slice_smoke_tb.vhd
+    file_type: vhdlSource
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl
+  sim:
+    <<: *default_target
+    description: GHDL smoke test for one isolated AFE configuration slice
+    default_tool: ghdl
+    filesets_append:
+      - tb_smoke
+    toplevel: afe_config_slice_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=20us

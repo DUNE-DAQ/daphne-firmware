@@ -1,0 +1,21 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-selftrigger-island:0.1.0
+description: Per-AFE self-trigger composition with channel-local xcorr, descriptors, and record builders
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:afe-trigger-bank:0.1.0
+      - dune-daq:daphne:stc3-record-builder:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/trigger/afe_selftrigger_island.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

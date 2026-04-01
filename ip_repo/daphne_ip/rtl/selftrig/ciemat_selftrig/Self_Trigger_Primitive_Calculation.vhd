@@ -24,9 +24,6 @@ use IEEE.STD_LOGIC_1164.ALL;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -134,7 +131,7 @@ SIGNAL Config_Param_Reg: std_logic_vector (13 downto 0);
 SIGNAL din_aux : std_logic_vector(13 downto 0):= "00000000000000";
 SIGNAL Config_Param_FILTER_aux: std_logic_vector(3 downto 0);
 SIGNAL filtered_dout_aux: std_logic_vector(13 downto 0);
-SIGNAL filtered_dout_aux_delay_32, filtered_dout_aux_delay_64, filtered_dout_aux_delay_96, filtered_dout_aux_delay_128, filtered_dout_aux_delay_160, filtered_dout_aux_delay_Extra : std_logic_vector(13 downto 0);
+SIGNAL filtered_dout_aux_delay_Extra : std_logic_vector(13 downto 0);
 
 -- SELF TRIGGER SIGNALS
 SIGNAL Config_Param_SELF_aux: std_logic_vector(9 downto 0);
@@ -680,67 +677,16 @@ end process Trigger_Propagation;
 Self_trigger_out_aux <= to_stdulogic(Trigger_dly53(53)); 
 
 ----------------------- GENERATE DELAY FOR FILTERED SIGNAL (Takes into account delay of trigger, for primitve calculation)   -----------------------
-gendelay: for i in 13 downto 0 generate
-        srlc32e_0_inst : srlc32e
-        port map(
-            clk => clock_aux,
-            ce => '1',
-            a => "11111",
-            d => din_aux(i), -- real time filtered data
-            q => open, 
-            q31 => filtered_dout_aux_delay_32(i) -- DIN data 32 clocks ago 
-        );
-        
-        srlc32e_1_inst : srlc32e
-        port map(
-            clk => clock_aux,
-            ce => '1',
-            a => "11111",
-            d => filtered_dout_aux_delay_32(i),
-            q => open,
-            q31 => filtered_dout_aux_delay_64(i) -- DIN data 64 clocks ago
-        );
-        
-        srlc32e_2_inst : srlc32e
-        port map(
-            clk => clock_aux,
-            ce => '1',
-            a => "11111",
-            d => filtered_dout_aux_delay_64(i),
-            q => open,
-            q31 => filtered_dout_aux_delay_96(i) -- DIN data 96 clocks ago
-        );
-
-        srlc32e_3_inst : srlc32e
-        port map(
-            clk => clock_aux,
-            ce => '1',
-            a => "11111",
-            d => filtered_dout_aux_delay_96(i),
-            q => open,
-            q31 => filtered_dout_aux_delay_128(i) -- DIN data 128 clocks ago
-        );
-
-        srlc32e_4_inst : srlc32e
-        port map(
-            clk => clock_aux,
-            ce => '1',
-            a => "11111",
-            d => filtered_dout_aux_delay_128(i),
-            q => open,
-            q31 => filtered_dout_aux_delay_160(i) -- DIN data 160 clocks ago
-        );
-
-       srlc32e_5_inst : srlc32e
-        port map(
-            clk => clock_aux,
-            ce => '1',
-            a => "10000",
-            d => filtered_dout_aux_delay_160(i),
-            q => filtered_dout_aux_delay_Extra(i), -- DIN data 192 clocks ago
-            q31 => open 
-        );
-end generate gendelay;
+filtered_signal_delay_inst : entity work.fixed_delay_line
+generic map(
+    WIDTH_G => 14,
+    DELAY_G => 192
+)
+port map(
+    clock_i => clock_aux,
+    din_i   => din_aux,
+    dout_o  => filtered_dout_aux_delay_Extra
+);
 ----------------------- INPUT SIGNALS   -----------------------
 clock_aux           <= clock;
 reset_aux           <= reset;

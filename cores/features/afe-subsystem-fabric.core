@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:afe-subsystem-fabric:0.1.0
+description: Flat multi-AFE composition of reusable per-AFE analog and self-trigger subsystem islands
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:afe-subsystem-island:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/afe/afe_subsystem_fabric.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

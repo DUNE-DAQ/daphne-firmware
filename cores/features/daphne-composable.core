@@ -1,0 +1,51 @@
+CAPI=2:
+
+name: dune-daq:daphne:daphne-composable:0.1.0
+description: Fine-grained reusable DAPHNE subsystem IP blocks for future composable gateware builds
+provider:
+  name: local
+
+filesets:
+  slices:
+    depend:
+      - dune-daq:daphne:afe-spi-primitives:0.1.0
+      - dune-daq:daphne:afe-config-slice:0.1.0
+      - dune-daq:daphne:afe-config-slice-boundary:0.1.0
+      - dune-daq:daphne:afe-analog-island:0.1.0
+      - dune-daq:daphne:afe-config-bank:0.1.0
+      - dune-daq:daphne:afe-subsystem-island:0.1.0
+      - dune-daq:daphne:afe-subsystem-fabric:0.1.0
+      - dune-daq:daphne:frontend-bitlane:0.1.0
+      - dune-daq:daphne:afe-capture-slice:0.1.0
+      - dune-daq:daphne:afe-capture-slice-boundary:0.1.0
+      - dune-daq:daphne:frontend-capture-bank:0.1.0
+      - dune-daq:daphne:frontend-registers:0.1.0
+      - dune-daq:daphne:frontend-island:0.1.0
+      - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
+      - dune-daq:daphne:self-trigger-xcorr-channel:0.1.0
+      - dune-daq:daphne:peak-descriptor-channel:0.1.0
+      - dune-daq:daphne:afe-trigger-bank:0.1.0
+      - dune-daq:daphne:stc3-record-builder:0.1.0
+      - dune-daq:daphne:afe-selftrigger-island:0.1.0
+      - dune-daq:daphne:selftrigger-fabric:0.1.0
+      - dune-daq:daphne:daphne-composable-top:0.1.0
+  subsystems:
+    depend:
+      - dune-daq:daphne:analog-control:0.1.0
+      - dune-daq:daphne:config-control:0.1.0
+      - dune-daq:daphne:control-plane:0.1.0
+      - dune-daq:daphne:dac-interface:0.1.0
+      - dune-daq:daphne:hermes-boundary:0.1.0
+      - dune-daq:daphne:hermes-transport:0.1.0
+      - dune-daq:daphne:selftrigger:0.1.0
+      - dune-daq:daphne:spy-buffer:0.1.0
+      - dune-daq:daphne:spy-buffer-boundary:0.1.0
+      - dune-daq:daphne:timing-endpoint:0.1.0
+      - dune-daq:daphne:timing-subsystem:0.1.0
+      - dune-daq:daphne:trigger-pipeline:0.1.0
+
+targets:
+  default:
+    filesets:
+      - slices
+      - subsystems

@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
+description: Adapter from frontend capture lanes to the flat self-trigger sample bank
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - ../../rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

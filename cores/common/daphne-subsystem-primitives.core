@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:daphne-subsystem-primitives:0.1.0
+description: Vendor-neutral delay-line and FIFO primitives used by the isolated composable subsystem graph
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ../../rtl/isolated/common/primitives/configurable_delay_line.vhd
+      - ../../rtl/isolated/common/primitives/fixed_delay_line.vhd
+      - ../../rtl/isolated/common/primitives/sync_fifo_fwft.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
