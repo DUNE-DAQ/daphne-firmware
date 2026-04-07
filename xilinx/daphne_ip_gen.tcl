@@ -37,15 +37,12 @@ if {[dict exists $daphne_board_profile ip_top_module]} {
     set daphne_ip_top_module_default [dict get $daphne_board_profile ip_top_module]
 }
 set daphne_ip_top_module [daphne_get_env_or_default DAPHNE_IP_TOP_MODULE $daphne_ip_top_module_default]
-set daphne_bd_name [daphne_get_env_or_default DAPHNE_BD_NAME [expr {[dict exists $daphne_board_profile bd_name] ? [dict get $daphne_board_profile bd_name] : "daphne_selftrigger_bd"}]]
-set daphne_ip_component_identifier_default [expr {[dict exists $daphne_board_profile ip_component_identifier] ? [dict get $daphne_board_profile ip_component_identifier] : $daphne_ip_top_module}]
+set daphne_bd_name [daphne_get_env_or_default DAPHNE_BD_NAME [daphne_board_profile_value_with_fallback $daphne_board_profile legacy_bd_name bd_name "daphne_selftrigger_bd"]]
+set daphne_ip_component_identifier_default [daphne_board_profile_value_with_fallback $daphne_board_profile legacy_ip_component_identifier ip_component_identifier $daphne_ip_top_module]
 set daphne_ip_component_identifier [daphne_get_env_or_default DAPHNE_IP_COMPONENT_IDENTIFIER $daphne_ip_component_identifier_default]
-set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME [expr {[dict exists $daphne_board_profile ip_display_name] ? [dict get $daphne_board_profile ip_display_name] : "${daphne_ip_component_identifier}_v1_0"}]]
-set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE [expr {[dict exists $daphne_board_profile ip_xgui_file] ? [dict get $daphne_board_profile ip_xgui_file] : "${daphne_ip_component_identifier}_v1_0.tcl"}]]
-set daphne_ip_cell_bind_root_default "selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst"
-if {[dict exists $daphne_board_profile ip_cell_bind_root]} {
-    set daphne_ip_cell_bind_root_default [dict get $daphne_board_profile ip_cell_bind_root]
-}
+set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME [daphne_board_profile_value_with_fallback $daphne_board_profile legacy_ip_display_name ip_display_name "${daphne_ip_component_identifier}_v1_0"]]
+set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE [daphne_board_profile_value_with_fallback $daphne_board_profile legacy_ip_xgui_file ip_xgui_file "${daphne_ip_component_identifier}_v1_0.tcl"]]
+set daphne_ip_cell_bind_root_default [daphne_board_profile_value_with_fallback $daphne_board_profile legacy_ip_cell_bind_root ip_cell_bind_root "selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst"]
 set daphne_ip_cell_bind_root [daphne_get_env_or_default DAPHNE_IP_CELL_BIND_ROOT $daphne_ip_cell_bind_root_default]
 set daphne_ip_top_basename [file tail $daphne_ip_top_hdl_file]
 set daphne_ip_include_dirs [list [file join $daphne_ip_root "rtl"] [file dirname $daphne_ip_top_hdl_file]]

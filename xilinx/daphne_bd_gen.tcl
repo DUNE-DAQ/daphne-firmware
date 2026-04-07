@@ -13,18 +13,14 @@ set daphne_board_profile [daphne_resolve_board_profile $repo_root]
 set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART [dict get $daphne_board_profile fpga_part]]
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART [dict get $daphne_board_profile board_part]]
 set daphne_pfm_name [daphne_get_env_or_default DAPHNE_PFM_NAME [dict get $daphne_board_profile pfm_name]]
-set daphne_user_ip_vlnv_default "dune.pds:user:daphne_selftrigger_top:1.0"
-if {[dict exists $daphne_board_profile user_ip_vlnv]} {
-    set daphne_user_ip_vlnv_default [dict get $daphne_board_profile user_ip_vlnv]
-}
+set daphne_user_ip_vlnv_default [daphne_board_profile_value_with_fallback $daphne_board_profile legacy_user_ip_vlnv user_ip_vlnv "dune.pds:user:daphne_selftrigger_top:1.0"]
 set daphne_user_ip_vlnv [daphne_get_env_or_default DAPHNE_USER_IP_VLNV $daphne_user_ip_vlnv_default]
 set daphne_user_ip_repo_parent [file normalize [daphne_get_env_or_default DAPHNE_USER_IP_REPO_PARENT [file join $repo_root "ip_repo"]]]
-set daphne_bd_name_default "daphne_selftrigger_bd"
-if {[dict exists $daphne_board_profile bd_name]} {
-    set daphne_bd_name_default [dict get $daphne_board_profile bd_name]
-}
+set daphne_bd_name_default [daphne_board_profile_value_with_fallback $daphne_board_profile legacy_bd_name bd_name "daphne_selftrigger_bd"]
 set daphne_ip_cell_name_default "daphne_selftrigger_top"
-if {[dict exists $daphne_board_profile ip_cell_name]} {
+if {[dict exists $daphne_board_profile legacy_ip_cell_name]} {
+    set daphne_ip_cell_name_default [dict get $daphne_board_profile legacy_ip_cell_name]
+} elseif {[dict exists $daphne_board_profile ip_cell_name]} {
     set daphne_ip_cell_name_default [dict get $daphne_board_profile ip_cell_name]
 } elseif {[dict exists $daphne_board_profile ip_top_module]} {
     set daphne_ip_cell_name_default [dict get $daphne_board_profile ip_top_module]
@@ -35,7 +31,9 @@ set daphne_ip_cell_name [daphne_get_env_or_default DAPHNE_IP_CELL_NAME $daphne_i
 set designName [daphne_get_env_or_default DAPHNE_BD_NAME $daphne_bd_name_default]
 set blockDesignDir [file join $blockDesignRoot $designName]
 set daphne_bd_shell_tcl ""
-if {[dict exists $daphne_board_profile bd_shell_tcl]} {
+if {[dict exists $daphne_board_profile legacy_bd_shell_tcl]} {
+    set daphne_bd_shell_tcl [daphne_resolve_repo_relative_path $repo_root [dict get $daphne_board_profile legacy_bd_shell_tcl]]
+} elseif {[dict exists $daphne_board_profile bd_shell_tcl]} {
     set daphne_bd_shell_tcl [daphne_resolve_repo_relative_path $repo_root [dict get $daphne_board_profile bd_shell_tcl]]
 }
 

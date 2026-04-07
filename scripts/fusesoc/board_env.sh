@@ -62,6 +62,21 @@ daphne_board_manifest_value() {
   fi
 }
 
+daphne_board_manifest_value_with_fallback() {
+  root_dir="$1"
+  board_name="$2"
+  preferred_key="$3"
+  fallback_key="$4"
+
+  preferred_value="$(daphne_board_manifest_value "$root_dir" "$board_name" "$preferred_key")"
+  if [ -n "$preferred_value" ]; then
+    printf '%s' "$preferred_value"
+    return 0
+  fi
+
+  daphne_board_manifest_value "$root_dir" "$board_name" "$fallback_key"
+}
+
 daphne_platform_core_build_slug() {
   platform_core="$1"
   printf '%s' "$platform_core" | tr ':' '_'
@@ -169,18 +184,18 @@ daphne_resolve_board_defaults() {
   constraint_files="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_files)"
   required_constraint_files="$(daphne_board_manifest_value "$root_dir" "$board_name" required_constraint_files)"
   default_platform_target="$(daphne_board_manifest_value "$root_dir" "$board_name" default_platform_target)"
-  user_ip_vlnv="$(daphne_board_manifest_value "$root_dir" "$board_name" user_ip_vlnv)"
-  bd_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_name)"
-  bd_wrapper_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_wrapper_name)"
+  user_ip_vlnv="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_user_ip_vlnv user_ip_vlnv)"
+  bd_name="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_bd_name bd_name)"
+  bd_wrapper_name="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_bd_wrapper_name bd_wrapper_name)"
   build_name_prefix="$(daphne_board_manifest_value "$root_dir" "$board_name" build_name_prefix)"
   overlay_name_prefix="$(daphne_board_manifest_value "$root_dir" "$board_name" overlay_name_prefix)"
   ip_top_hdl_file="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_top_hdl_file)"
   ip_top_module="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_top_module)"
-  ip_cell_name="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_cell_name)"
-  ip_component_identifier="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_component_identifier)"
-  ip_display_name="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_display_name)"
-  ip_xgui_file="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_xgui_file)"
-  ip_cell_bind_root="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_cell_bind_root)"
+  ip_cell_name="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_ip_cell_name ip_cell_name)"
+  ip_component_identifier="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_ip_component_identifier ip_component_identifier)"
+  ip_display_name="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_ip_display_name ip_display_name)"
+  ip_xgui_file="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_ip_xgui_file ip_xgui_file)"
+  ip_cell_bind_root="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_ip_cell_bind_root ip_cell_bind_root)"
   public_top_hdl_file="$(daphne_board_manifest_value "$root_dir" "$board_name" public_top_hdl_file)"
   public_top_module="$(daphne_board_manifest_value "$root_dir" "$board_name" public_top_module)"
   timing_endpoint_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_endpoint_path)"

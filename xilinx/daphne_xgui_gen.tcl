@@ -33,7 +33,7 @@ if {![info exists daphne_ip_root]} {
     set daphne_ip_root [file normalize [daphne_get_env_or_default DAPHNE_IP_REPO_ROOT [file join $repo_root "ip_repo" "daphne_ip"]]]
 }
 if {![info exists daphne_ip_xgui_file]} {
-    set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE [expr {[dict exists $daphne_board_profile ip_xgui_file] ? [dict get $daphne_board_profile ip_xgui_file] : "daphne_selftrigger_top_v1_0.tcl"}]]
+    set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE [daphne_board_profile_value_with_fallback $daphne_board_profile legacy_ip_xgui_file ip_xgui_file "daphne_selftrigger_top_v1_0.tcl"]]
 }
 set xgui_dir [file join $daphne_ip_root "xgui"]
 file mkdir $xgui_dir
