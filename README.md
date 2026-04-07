@@ -402,8 +402,9 @@ recorded in `docs/source-audit.md`.
 This is not yet a complete multi-board deployment repo. The main remaining gaps
 are:
 
-- top-level Vivado consumption of the new modular graph rather than the current
-  generated compatibility manifest;
+- hardware-qualified use of the native `k26c-composable-platform` `impl`
+  target as the routine board build path, together with retirement of the
+  generated compatibility manifest as anything more than a fallback lane;
 - validated carrier support beyond the current K26C baseline;
 - Petalinux recipes, `BOOT.BIN` assembly, and boot-image generation;
 - integrated build/deploy test of the generated firmware together with

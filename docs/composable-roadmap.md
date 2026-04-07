@@ -154,9 +154,10 @@ matches the current timing-friendly ownership in `stc3`.
 
 1. Keep proving boundary contracts with SymbiYosys as slices are added.
 2. Keep small GHDL smoke benches on slice-level control blocks.
-3. Keep the new `k26c-composable-platform` `validate` target passing under
-   GHDL, then move to a real Vivado implementation target once the top-level
-   shell owns pins, clocks, and resets cleanly.
+3. Keep the native `k26c-composable-platform` `impl` target resolving cleanly
+   through the Vivado Flow API, and focus the next validation effort on
+   hardware-qualified implementation/timing closure rather than more legacy
+   entrypoint scaffolding.
 4. Keep the matching `validate_optional_off` target passing so the null/disabled
    boundary contracts stay explicit while the shell grows.
 5. Keep the new `validate_frontend_shell` target passing so the public-shell
@@ -165,3 +166,6 @@ matches the current timing-friendly ownership in `stc3`.
 6. Keep the new `validate_public_top` target passing so the public composable
    top stays locally testable even while the real frontend island remains
    vendor-specific.
+7. Keep `scripts/fusesoc/check_native_impl_graph.sh` passing so the staged
+   native `impl` graph remains free of `legacy-*` core names and keeps the
+   required AFE timing constraints wired in.
