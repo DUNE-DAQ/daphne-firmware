@@ -66,6 +66,7 @@ filesets:
       - rtl/isolated/tops/daphne_composable_core_top.vhd
       - rtl/isolated/tops/daphne_composable_frontend_shell.vhd
       - rtl/isolated/tops/daphne_composable_top.vhd
+      - rtl/isolated/tops/k26c_board_shell.vhd
       - rtl/isolated/tops/legacy_public_top_bridge.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_afe.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
@@ -137,7 +138,7 @@ filesets:
     file_type: verilogSource
   rtl_top:
     files:
-      - rtl/isolated/tops/legacy_public_top_bridge.vhd
+      - rtl/isolated/tops/k26c_board_shell.vhd
     file_type: vhdlSource
   sim_vhdl:
     files:
@@ -277,7 +278,7 @@ filesets:
 
 targets:
   default: &default_target
-    description: Synthesizable legacy_public_top_bridge PL source manifest
+    description: Synthesizable k26c_board_shell PL source manifest
     filesets:
       - rtl_vhdl
       - rtl_verilog

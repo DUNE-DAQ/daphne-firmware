@@ -1,293 +1,305 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+library work;
 use work.daphne_package.all;
 
-entity daphne_selftrigger_top is
-generic(
-    version: std_logic_vector(27 downto 0) := X"1234567" ;
-    link_id: std_logic_vector(5 downto 0) := "000000";
-    slot_id: std_logic_vector(3 downto 0) := X"2";
-    crate_id: std_logic_vector(9 downto 0) := "0000000011";
-    detector_id: std_logic_vector(5 downto 0) := "000010";
-    version_id: std_logic_vector(5 downto 0) := "000001");
-port(
-    sysclk100:   in std_logic;
-    sysclk_p, sysclk_n: in  std_logic;
-    fan_tach: in std_logic_vector(1 downto 0);
-    fan_ctrl: out std_logic;
-    stat_led: out std_logic_vector(5 downto 0);
-    hvbias_en: out std_logic;
-    mux_en: out std_logic_vector(1 downto 0);
-    mux_a: out std_logic_vector(1 downto 0);
-
-    sfp_tmg_los: in std_logic;
-    rx0_tmg_p, rx0_tmg_n: in std_logic;
-    sfp_tmg_tx_dis: out std_logic;
-    tx0_tmg_p, tx0_tmg_n: out std_logic;
-
-    afe0_p, afe0_n: in std_logic_vector(8 downto 0);
-    afe1_p, afe1_n: in std_logic_vector(8 downto 0);
-    afe2_p, afe2_n: in std_logic_vector(8 downto 0);
-    afe3_p, afe3_n: in std_logic_vector(8 downto 0);
-    afe4_p, afe4_n: in std_logic_vector(8 downto 0);
-
-    afe_clk_p, afe_clk_n: out std_logic;
-
-    dac_sclk:   out std_logic;
-    dac_din:    out std_logic;
-    dac_sync_n: out std_logic;
-    dac_ldac_n: out std_logic;
-
-    afe_rst: out std_logic;
-    afe_pdn: out std_logic;
-
-    afe0_miso: in std_logic;
-    afe0_sclk: out std_logic;
-    afe0_mosi: out std_logic;
-
-    afe12_miso: in std_logic;
-    afe12_sclk: out std_logic;
-    afe12_mosi: out std_logic;
-
-    afe34_miso: in std_logic;
-    afe34_sclk: out std_logic;
-    afe34_mosi: out std_logic;
-
-    afe_sen: out std_logic_vector(4 downto 0);
-    trim_sync_n: out std_logic_vector(4 downto 0);
-    trim_ldac_n: out std_logic_vector(4 downto 0);
-    offset_sync_n: out std_logic_vector(4 downto 0);
-    offset_ldac_n: out std_logic_vector(4 downto 0);
-
-    trig_IN: in std_logic;
-    FRONT_END_S_AXI_ACLK: in std_logic;
-    FRONT_END_S_AXI_ARESETN: in std_logic;
-    FRONT_END_S_AXI_AWADDR: in std_logic_vector(31 downto 0);
-    FRONT_END_S_AXI_AWPROT: in std_logic_vector(2 downto 0);
-    FRONT_END_S_AXI_AWVALID: in std_logic;
-    FRONT_END_S_AXI_AWREADY: out std_logic;
-    FRONT_END_S_AXI_WDATA: in std_logic_vector(31 downto 0);
-    FRONT_END_S_AXI_WSTRB: in std_logic_vector(3 downto 0);
-    FRONT_END_S_AXI_WVALID: in std_logic;
-    FRONT_END_S_AXI_WREADY: out std_logic;
-    FRONT_END_S_AXI_BRESP: out std_logic_vector(1 downto 0);
-    FRONT_END_S_AXI_BVALID: out std_logic;
-    FRONT_END_S_AXI_BREADY: in std_logic;
-    FRONT_END_S_AXI_ARADDR: in std_logic_vector(31 downto 0);
-    FRONT_END_S_AXI_ARPROT: in std_logic_vector(2 downto 0);
-    FRONT_END_S_AXI_ARVALID: in std_logic;
-    FRONT_END_S_AXI_ARREADY: out std_logic;
-    FRONT_END_S_AXI_RDATA: out std_logic_vector(31 downto 0);
-    FRONT_END_S_AXI_RRESP: out std_logic_vector(1 downto 0);
-    FRONT_END_S_AXI_RVALID: out std_logic;
-    FRONT_END_S_AXI_RREADY: in std_logic;
-
-    SPY_BUF_S_S_AXI_ACLK: in std_logic;
-    SPY_BUF_S_S_AXI_ARESETN: in std_logic;
-    SPY_BUF_S_S_AXI_AWADDR: in std_logic_vector(31 downto 0);
-    SPY_BUF_S_S_AXI_AWPROT: in std_logic_vector(2 downto 0);
-    SPY_BUF_S_S_AXI_AWVALID: in std_logic;
-    SPY_BUF_S_S_AXI_AWREADY: out std_logic;
-    SPY_BUF_S_S_AXI_WDATA: in std_logic_vector(31 downto 0);
-    SPY_BUF_S_S_AXI_WSTRB: in std_logic_vector(3 downto 0);
-    SPY_BUF_S_S_AXI_WVALID: in std_logic;
-    SPY_BUF_S_S_AXI_WREADY: out std_logic;
-    SPY_BUF_S_S_AXI_BRESP: out std_logic_vector(1 downto 0);
-    SPY_BUF_S_S_AXI_BVALID: out std_logic;
-    SPY_BUF_S_S_AXI_BREADY: in std_logic;
-    SPY_BUF_S_S_AXI_ARADDR: in std_logic_vector(31 downto 0);
-    SPY_BUF_S_S_AXI_ARPROT: in std_logic_vector(2 downto 0);
-    SPY_BUF_S_S_AXI_ARVALID: in std_logic;
-    SPY_BUF_S_S_AXI_ARREADY: out std_logic;
-    SPY_BUF_S_S_AXI_RDATA: out std_logic_vector(31 downto 0);
-    SPY_BUF_S_S_AXI_RRESP: out std_logic_vector(1 downto 0);
-    SPY_BUF_S_S_AXI_RVALID: out std_logic;
-    SPY_BUF_S_S_AXI_RREADY: in std_logic;
-
-    END_P_S_AXI_ACLK: in std_logic;
-    END_P_S_AXI_ARESETN: in std_logic;
-    END_P_S_AXI_AWADDR: in std_logic_vector(31 downto 0);
-    END_P_S_AXI_AWPROT: in std_logic_vector(2 downto 0);
-    END_P_S_AXI_AWVALID: in std_logic;
-    END_P_S_AXI_AWREADY: out std_logic;
-    END_P_S_AXI_WDATA: in std_logic_vector(31 downto 0);
-    END_P_S_AXI_WSTRB: in std_logic_vector(3 downto 0);
-    END_P_S_AXI_WVALID: in std_logic;
-    END_P_S_AXI_WREADY: out std_logic;
-    END_P_S_AXI_BRESP: out std_logic_vector(1 downto 0);
-    END_P_S_AXI_BVALID: out std_logic;
-    END_P_S_AXI_BREADY: in std_logic;
-    END_P_S_AXI_ARADDR: in std_logic_vector(31 downto 0);
-    END_P_S_AXI_ARPROT: in std_logic_vector(2 downto 0);
-    END_P_S_AXI_ARVALID: in std_logic;
-    END_P_S_AXI_ARREADY: out std_logic;
-    END_P_S_AXI_RDATA: out std_logic_vector(31 downto 0);
-    END_P_S_AXI_RRESP: out std_logic_vector(1 downto 0);
-    END_P_S_AXI_RVALID: out std_logic;
-    END_P_S_AXI_RREADY: in std_logic;
-
-    SPI_DAC_S_AXI_ACLK: in std_logic;
-    SPI_DAC_S_AXI_ARESETN: in std_logic;
-    SPI_DAC_S_AXI_AWADDR: in std_logic_vector(31 downto 0);
-    SPI_DAC_S_AXI_AWPROT: in std_logic_vector(2 downto 0);
-    SPI_DAC_S_AXI_AWVALID: in std_logic;
-    SPI_DAC_S_AXI_AWREADY: out std_logic;
-    SPI_DAC_S_AXI_WDATA: in std_logic_vector(31 downto 0);
-    SPI_DAC_S_AXI_WSTRB: in std_logic_vector(3 downto 0);
-    SPI_DAC_S_AXI_WVALID: in std_logic;
-    SPI_DAC_S_AXI_WREADY: out std_logic;
-    SPI_DAC_S_AXI_BRESP: out std_logic_vector(1 downto 0);
-    SPI_DAC_S_AXI_BVALID: out std_logic;
-    SPI_DAC_S_AXI_BREADY: in std_logic;
-    SPI_DAC_S_AXI_ARADDR: in std_logic_vector(31 downto 0);
-    SPI_DAC_S_AXI_ARPROT: in std_logic_vector(2 downto 0);
-    SPI_DAC_S_AXI_ARVALID: in std_logic;
-    SPI_DAC_S_AXI_ARREADY: out std_logic;
-    SPI_DAC_S_AXI_RDATA: out std_logic_vector(31 downto 0);
-    SPI_DAC_S_AXI_RRESP: out std_logic_vector(1 downto 0);
-    SPI_DAC_S_AXI_RVALID: out std_logic;
-    SPI_DAC_S_AXI_RREADY: in std_logic;
-
-    AFE_SPI_S_AXI_ACLK: in std_logic;
-    AFE_SPI_S_AXI_ARESETN: in std_logic;
-    AFE_SPI_S_AXI_AWADDR: in std_logic_vector(31 downto 0);
-    AFE_SPI_S_AXI_AWPROT: in std_logic_vector(2 downto 0);
-    AFE_SPI_S_AXI_AWVALID: in std_logic;
-    AFE_SPI_S_AXI_AWREADY: out std_logic;
-    AFE_SPI_S_AXI_WDATA: in std_logic_vector(31 downto 0);
-    AFE_SPI_S_AXI_WSTRB: in std_logic_vector(3 downto 0);
-    AFE_SPI_S_AXI_WVALID: in std_logic;
-    AFE_SPI_S_AXI_WREADY: out std_logic;
-    AFE_SPI_S_AXI_BRESP: out std_logic_vector(1 downto 0);
-    AFE_SPI_S_AXI_BVALID: out std_logic;
-    AFE_SPI_S_AXI_BREADY: in std_logic;
-    AFE_SPI_S_AXI_ARADDR: in std_logic_vector(31 downto 0);
-    AFE_SPI_S_AXI_ARPROT: in std_logic_vector(2 downto 0);
-    AFE_SPI_S_AXI_ARVALID: in std_logic;
-    AFE_SPI_S_AXI_ARREADY: out std_logic;
-    AFE_SPI_S_AXI_RDATA: out std_logic_vector(31 downto 0);
-    AFE_SPI_S_AXI_RRESP: out std_logic_vector(1 downto 0);
-    AFE_SPI_S_AXI_RVALID: out std_logic;
-    AFE_SPI_S_AXI_RREADY: in std_logic;
-
-    TRIRG_S_AXI_ACLK: in std_logic;
-    TRIRG_S_AXI_ARESETN: in std_logic;
-    TRIRG_S_AXI_AWADDR: in std_logic_vector(31 downto 0);
-    TRIRG_S_AXI_AWPROT: in std_logic_vector(2 downto 0);
-    TRIRG_S_AXI_AWVALID: in std_logic;
-    TRIRG_S_AXI_AWREADY: out std_logic;
-    TRIRG_S_AXI_WDATA: in std_logic_vector(31 downto 0);
-    TRIRG_S_AXI_WSTRB: in std_logic_vector(3 downto 0);
-    TRIRG_S_AXI_WVALID: in std_logic;
-    TRIRG_S_AXI_WREADY: out std_logic;
-    TRIRG_S_AXI_BRESP: out std_logic_vector(1 downto 0);
-    TRIRG_S_AXI_BVALID: out std_logic;
-    TRIRG_S_AXI_BREADY: in std_logic;
-    TRIRG_S_AXI_ARADDR: in std_logic_vector(31 downto 0);
-    TRIRG_S_AXI_ARPROT: in std_logic_vector(2 downto 0);
-    TRIRG_S_AXI_ARVALID: in std_logic;
-    TRIRG_S_AXI_ARREADY: out std_logic;
-    TRIRG_S_AXI_RDATA: out std_logic_vector(31 downto 0);
-    TRIRG_S_AXI_RRESP: out std_logic_vector(1 downto 0);
-    TRIRG_S_AXI_RVALID: out std_logic;
-    TRIRG_S_AXI_RREADY: in std_logic;
-
-    STUFF_S_AXI_ACLK: in std_logic;
-    STUFF_S_AXI_ARESETN: in std_logic;
-    STUFF_S_AXI_AWADDR: in std_logic_vector(31 downto 0);
-    STUFF_S_AXI_AWPROT: in std_logic_vector(2 downto 0);
-    STUFF_S_AXI_AWVALID: in std_logic;
-    STUFF_S_AXI_AWREADY: out std_logic;
-    STUFF_S_AXI_WDATA: in std_logic_vector(31 downto 0);
-    STUFF_S_AXI_WSTRB: in std_logic_vector(3 downto 0);
-    STUFF_S_AXI_WVALID: in std_logic;
-    STUFF_S_AXI_WREADY: out std_logic;
-    STUFF_S_AXI_BRESP: out std_logic_vector(1 downto 0);
-    STUFF_S_AXI_BVALID: out std_logic;
-    STUFF_S_AXI_BREADY: in std_logic;
-    STUFF_S_AXI_ARADDR: in std_logic_vector(31 downto 0);
-    STUFF_S_AXI_ARPROT: in std_logic_vector(2 downto 0);
-    STUFF_S_AXI_ARVALID: in std_logic;
-    STUFF_S_AXI_ARREADY: out std_logic;
-    STUFF_S_AXI_RDATA: out std_logic_vector(31 downto 0);
-    STUFF_S_AXI_RRESP: out std_logic_vector(1 downto 0);
-    STUFF_S_AXI_RVALID: out std_logic;
-    STUFF_S_AXI_RREADY: in std_logic;
-
-    THRESH_S_AXI_ACLK: in std_logic;
-    THRESH_S_AXI_ARESETN: in std_logic;
-    THRESH_S_AXI_AWADDR: in std_logic_vector(31 downto 0);
-    THRESH_S_AXI_AWPROT: in std_logic_vector(2 downto 0);
-    THRESH_S_AXI_AWVALID: in std_logic;
-    THRESH_S_AXI_AWREADY: out std_logic;
-    THRESH_S_AXI_WDATA: in std_logic_vector(31 downto 0);
-    THRESH_S_AXI_WSTRB: in std_logic_vector(3 downto 0);
-    THRESH_S_AXI_WVALID: in std_logic;
-    THRESH_S_AXI_WREADY: out std_logic;
-    THRESH_S_AXI_BRESP: out std_logic_vector(1 downto 0);
-    THRESH_S_AXI_BVALID: out std_logic;
-    THRESH_S_AXI_BREADY: in std_logic;
-    THRESH_S_AXI_ARADDR: in std_logic_vector(31 downto 0);
-    THRESH_S_AXI_ARPROT: in std_logic_vector(2 downto 0);
-    THRESH_S_AXI_ARVALID: in std_logic;
-    THRESH_S_AXI_ARREADY: out std_logic;
-    THRESH_S_AXI_RDATA: out std_logic_vector(31 downto 0);
-    THRESH_S_AXI_RRESP: out std_logic_vector(1 downto 0);
-    THRESH_S_AXI_RVALID: out std_logic;
-    THRESH_S_AXI_RREADY: in std_logic;
-
-    OUTBUFF_S_AXI_ACLK: in std_logic;
-    OUTBUFF_S_AXI_ARESETN: in std_logic;
-    OUTBUFF_S_AXI_AWADDR: in std_logic_vector(31 downto 0);
-    OUTBUFF_S_AXI_AWPROT: in std_logic_vector(2 downto 0);
-    OUTBUFF_S_AXI_AWVALID: in std_logic;
-    OUTBUFF_S_AXI_AWREADY: out std_logic;
-    OUTBUFF_S_AXI_WDATA: in std_logic_vector(31 downto 0);
-    OUTBUFF_S_AXI_WSTRB: in std_logic_vector(3 downto 0);
-    OUTBUFF_S_AXI_WVALID: in std_logic;
-    OUTBUFF_S_AXI_WREADY: out std_logic;
-    OUTBUFF_S_AXI_BRESP: out std_logic_vector(1 downto 0);
-    OUTBUFF_S_AXI_BVALID: out std_logic;
-    OUTBUFF_S_AXI_BREADY: in std_logic;
-    OUTBUFF_S_AXI_ARADDR: in std_logic_vector(31 downto 0);
-    OUTBUFF_S_AXI_ARPROT: in std_logic_vector(2 downto 0);
-    OUTBUFF_S_AXI_ARVALID: in std_logic;
-    OUTBUFF_S_AXI_ARREADY: out std_logic;
-    OUTBUFF_S_AXI_RDATA: out std_logic_vector(31 downto 0);
-    OUTBUFF_S_AXI_RRESP: out std_logic_vector(1 downto 0);
-    OUTBUFF_S_AXI_RVALID: out std_logic;
-    OUTBUFF_S_AXI_RREADY: in std_logic;
-
-    eth_clk_p: in std_logic;
-    eth_clk_n: in std_logic;
-    eth0_rx_p: in std_logic_vector (0 downto 0);
-    eth0_rx_n: in std_logic_vector (0 downto 0);
-    eth0_tx_p: out std_logic_vector (0 downto 0);
-    eth0_tx_n: out std_logic_vector (0 downto 0);
-    eth0_tx_dis: out std_logic_vector (0 downto 0);
-
-    out_buff_trig: out std_logic;
-    out_buff_clk: out std_logic;
-    out_buff_data: out std_logic_vector (63 downto 0);
-
-    FORCE_TRIG: IN std_logic;
-    DIN_DEBUG: out std_logic_vector (13 downto 0);
-    VALID_DEBUG: out std_logic;
-    LAST_DEBUG: out std_logic;
-    clock_gen_debug: out std_logic;
-    mmcm0_100MHZ_CLK_debug: out std_logic;
-    ep_62p5MHZ_CLK_debug: out std_logic;
-    F_OK_DEBUG: out std_logic;
-    SCTR_DEBUG: OUT std_logic_vector (15 downto 0);
-    CCTR_DEBUG: OUT std_logic_vector (15 downto 0);
-    Trigered_debug: out std_logic
+entity k26c_board_shell is
+  generic (
+    version     : std_logic_vector(27 downto 0) := X"1234567";
+    link_id     : std_logic_vector(5 downto 0)  := "000000";
+    slot_id     : std_logic_vector(3 downto 0)  := X"2";
+    crate_id    : std_logic_vector(9 downto 0)  := "0000000011";
+    detector_id : std_logic_vector(5 downto 0)  := "000010";
+    version_id  : std_logic_vector(5 downto 0)  := "000001"
   );
-end daphne_selftrigger_top;
+  port (
+    sysclk100 : in std_logic;
+    sysclk_p  : in std_logic;
+    sysclk_n  : in std_logic;
+    fan_tach  : in std_logic_vector(1 downto 0);
+    fan_ctrl  : out std_logic;
+    stat_led  : out std_logic_vector(5 downto 0);
+    hvbias_en : out std_logic;
+    mux_en    : out std_logic_vector(1 downto 0);
+    mux_a     : out std_logic_vector(1 downto 0);
 
-architecture rtl of daphne_selftrigger_top is
+    sfp_tmg_los    : in std_logic;
+    rx0_tmg_p      : in std_logic;
+    rx0_tmg_n      : in std_logic;
+    sfp_tmg_tx_dis : out std_logic;
+    tx0_tmg_p      : out std_logic;
+    tx0_tmg_n      : out std_logic;
+
+    afe0_p : in std_logic_vector(8 downto 0);
+    afe0_n : in std_logic_vector(8 downto 0);
+    afe1_p : in std_logic_vector(8 downto 0);
+    afe1_n : in std_logic_vector(8 downto 0);
+    afe2_p : in std_logic_vector(8 downto 0);
+    afe2_n : in std_logic_vector(8 downto 0);
+    afe3_p : in std_logic_vector(8 downto 0);
+    afe3_n : in std_logic_vector(8 downto 0);
+    afe4_p : in std_logic_vector(8 downto 0);
+    afe4_n : in std_logic_vector(8 downto 0);
+
+    afe_clk_p : out std_logic;
+    afe_clk_n : out std_logic;
+
+    dac_sclk   : out std_logic;
+    dac_din    : out std_logic;
+    dac_sync_n : out std_logic;
+    dac_ldac_n : out std_logic;
+
+    afe_rst : out std_logic;
+    afe_pdn : out std_logic;
+
+    afe0_miso : in std_logic;
+    afe0_sclk : out std_logic;
+    afe0_mosi : out std_logic;
+
+    afe12_miso : in std_logic;
+    afe12_sclk : out std_logic;
+    afe12_mosi : out std_logic;
+
+    afe34_miso : in std_logic;
+    afe34_sclk : out std_logic;
+    afe34_mosi : out std_logic;
+
+    afe_sen       : out std_logic_vector(4 downto 0);
+    trim_sync_n   : out std_logic_vector(4 downto 0);
+    trim_ldac_n   : out std_logic_vector(4 downto 0);
+    offset_sync_n : out std_logic_vector(4 downto 0);
+    offset_ldac_n : out std_logic_vector(4 downto 0);
+
+    trig_IN                 : in std_logic;
+    FRONT_END_S_AXI_ACLK    : in std_logic;
+    FRONT_END_S_AXI_ARESETN : in std_logic;
+    FRONT_END_S_AXI_AWADDR  : in std_logic_vector(31 downto 0);
+    FRONT_END_S_AXI_AWPROT  : in std_logic_vector(2 downto 0);
+    FRONT_END_S_AXI_AWVALID : in std_logic;
+    FRONT_END_S_AXI_AWREADY : out std_logic;
+    FRONT_END_S_AXI_WDATA   : in std_logic_vector(31 downto 0);
+    FRONT_END_S_AXI_WSTRB   : in std_logic_vector(3 downto 0);
+    FRONT_END_S_AXI_WVALID  : in std_logic;
+    FRONT_END_S_AXI_WREADY  : out std_logic;
+    FRONT_END_S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+    FRONT_END_S_AXI_BVALID  : out std_logic;
+    FRONT_END_S_AXI_BREADY  : in std_logic;
+    FRONT_END_S_AXI_ARADDR  : in std_logic_vector(31 downto 0);
+    FRONT_END_S_AXI_ARPROT  : in std_logic_vector(2 downto 0);
+    FRONT_END_S_AXI_ARVALID : in std_logic;
+    FRONT_END_S_AXI_ARREADY : out std_logic;
+    FRONT_END_S_AXI_RDATA   : out std_logic_vector(31 downto 0);
+    FRONT_END_S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+    FRONT_END_S_AXI_RVALID  : out std_logic;
+    FRONT_END_S_AXI_RREADY  : in std_logic;
+
+    SPY_BUF_S_S_AXI_ACLK    : in std_logic;
+    SPY_BUF_S_S_AXI_ARESETN : in std_logic;
+    SPY_BUF_S_S_AXI_AWADDR  : in std_logic_vector(31 downto 0);
+    SPY_BUF_S_S_AXI_AWPROT  : in std_logic_vector(2 downto 0);
+    SPY_BUF_S_S_AXI_AWVALID : in std_logic;
+    SPY_BUF_S_S_AXI_AWREADY : out std_logic;
+    SPY_BUF_S_S_AXI_WDATA   : in std_logic_vector(31 downto 0);
+    SPY_BUF_S_S_AXI_WSTRB   : in std_logic_vector(3 downto 0);
+    SPY_BUF_S_S_AXI_WVALID  : in std_logic;
+    SPY_BUF_S_S_AXI_WREADY  : out std_logic;
+    SPY_BUF_S_S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+    SPY_BUF_S_S_AXI_BVALID  : out std_logic;
+    SPY_BUF_S_S_AXI_BREADY  : in std_logic;
+    SPY_BUF_S_S_AXI_ARADDR  : in std_logic_vector(31 downto 0);
+    SPY_BUF_S_S_AXI_ARPROT  : in std_logic_vector(2 downto 0);
+    SPY_BUF_S_S_AXI_ARVALID : in std_logic;
+    SPY_BUF_S_S_AXI_ARREADY : out std_logic;
+    SPY_BUF_S_S_AXI_RDATA   : out std_logic_vector(31 downto 0);
+    SPY_BUF_S_S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+    SPY_BUF_S_S_AXI_RVALID  : out std_logic;
+    SPY_BUF_S_S_AXI_RREADY  : in std_logic;
+
+    END_P_S_AXI_ACLK    : in std_logic;
+    END_P_S_AXI_ARESETN : in std_logic;
+    END_P_S_AXI_AWADDR  : in std_logic_vector(31 downto 0);
+    END_P_S_AXI_AWPROT  : in std_logic_vector(2 downto 0);
+    END_P_S_AXI_AWVALID : in std_logic;
+    END_P_S_AXI_AWREADY : out std_logic;
+    END_P_S_AXI_WDATA   : in std_logic_vector(31 downto 0);
+    END_P_S_AXI_WSTRB   : in std_logic_vector(3 downto 0);
+    END_P_S_AXI_WVALID  : in std_logic;
+    END_P_S_AXI_WREADY  : out std_logic;
+    END_P_S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+    END_P_S_AXI_BVALID  : out std_logic;
+    END_P_S_AXI_BREADY  : in std_logic;
+    END_P_S_AXI_ARADDR  : in std_logic_vector(31 downto 0);
+    END_P_S_AXI_ARPROT  : in std_logic_vector(2 downto 0);
+    END_P_S_AXI_ARVALID : in std_logic;
+    END_P_S_AXI_ARREADY : out std_logic;
+    END_P_S_AXI_RDATA   : out std_logic_vector(31 downto 0);
+    END_P_S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+    END_P_S_AXI_RVALID  : out std_logic;
+    END_P_S_AXI_RREADY  : in std_logic;
+
+    SPI_DAC_S_AXI_ACLK    : in std_logic;
+    SPI_DAC_S_AXI_ARESETN : in std_logic;
+    SPI_DAC_S_AXI_AWADDR  : in std_logic_vector(31 downto 0);
+    SPI_DAC_S_AXI_AWPROT  : in std_logic_vector(2 downto 0);
+    SPI_DAC_S_AXI_AWVALID : in std_logic;
+    SPI_DAC_S_AXI_AWREADY : out std_logic;
+    SPI_DAC_S_AXI_WDATA   : in std_logic_vector(31 downto 0);
+    SPI_DAC_S_AXI_WSTRB   : in std_logic_vector(3 downto 0);
+    SPI_DAC_S_AXI_WVALID  : in std_logic;
+    SPI_DAC_S_AXI_WREADY  : out std_logic;
+    SPI_DAC_S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+    SPI_DAC_S_AXI_BVALID  : out std_logic;
+    SPI_DAC_S_AXI_BREADY  : in std_logic;
+    SPI_DAC_S_AXI_ARADDR  : in std_logic_vector(31 downto 0);
+    SPI_DAC_S_AXI_ARPROT  : in std_logic_vector(2 downto 0);
+    SPI_DAC_S_AXI_ARVALID : in std_logic;
+    SPI_DAC_S_AXI_ARREADY : out std_logic;
+    SPI_DAC_S_AXI_RDATA   : out std_logic_vector(31 downto 0);
+    SPI_DAC_S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+    SPI_DAC_S_AXI_RVALID  : out std_logic;
+    SPI_DAC_S_AXI_RREADY  : in std_logic;
+
+    AFE_SPI_S_AXI_ACLK    : in std_logic;
+    AFE_SPI_S_AXI_ARESETN : in std_logic;
+    AFE_SPI_S_AXI_AWADDR  : in std_logic_vector(31 downto 0);
+    AFE_SPI_S_AXI_AWPROT  : in std_logic_vector(2 downto 0);
+    AFE_SPI_S_AXI_AWVALID : in std_logic;
+    AFE_SPI_S_AXI_AWREADY : out std_logic;
+    AFE_SPI_S_AXI_WDATA   : in std_logic_vector(31 downto 0);
+    AFE_SPI_S_AXI_WSTRB   : in std_logic_vector(3 downto 0);
+    AFE_SPI_S_AXI_WVALID  : in std_logic;
+    AFE_SPI_S_AXI_WREADY  : out std_logic;
+    AFE_SPI_S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+    AFE_SPI_S_AXI_BVALID  : out std_logic;
+    AFE_SPI_S_AXI_BREADY  : in std_logic;
+    AFE_SPI_S_AXI_ARADDR  : in std_logic_vector(31 downto 0);
+    AFE_SPI_S_AXI_ARPROT  : in std_logic_vector(2 downto 0);
+    AFE_SPI_S_AXI_ARVALID : in std_logic;
+    AFE_SPI_S_AXI_ARREADY : out std_logic;
+    AFE_SPI_S_AXI_RDATA   : out std_logic_vector(31 downto 0);
+    AFE_SPI_S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+    AFE_SPI_S_AXI_RVALID  : out std_logic;
+    AFE_SPI_S_AXI_RREADY  : in std_logic;
+
+    TRIRG_S_AXI_ACLK    : in std_logic;
+    TRIRG_S_AXI_ARESETN : in std_logic;
+    TRIRG_S_AXI_AWADDR  : in std_logic_vector(31 downto 0);
+    TRIRG_S_AXI_AWPROT  : in std_logic_vector(2 downto 0);
+    TRIRG_S_AXI_AWVALID : in std_logic;
+    TRIRG_S_AXI_AWREADY : out std_logic;
+    TRIRG_S_AXI_WDATA   : in std_logic_vector(31 downto 0);
+    TRIRG_S_AXI_WSTRB   : in std_logic_vector(3 downto 0);
+    TRIRG_S_AXI_WVALID  : in std_logic;
+    TRIRG_S_AXI_WREADY  : out std_logic;
+    TRIRG_S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+    TRIRG_S_AXI_BVALID  : out std_logic;
+    TRIRG_S_AXI_BREADY  : in std_logic;
+    TRIRG_S_AXI_ARADDR  : in std_logic_vector(31 downto 0);
+    TRIRG_S_AXI_ARPROT  : in std_logic_vector(2 downto 0);
+    TRIRG_S_AXI_ARVALID : in std_logic;
+    TRIRG_S_AXI_ARREADY : out std_logic;
+    TRIRG_S_AXI_RDATA   : out std_logic_vector(31 downto 0);
+    TRIRG_S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+    TRIRG_S_AXI_RVALID  : out std_logic;
+    TRIRG_S_AXI_RREADY  : in std_logic;
+
+    STUFF_S_AXI_ACLK    : in std_logic;
+    STUFF_S_AXI_ARESETN : in std_logic;
+    STUFF_S_AXI_AWADDR  : in std_logic_vector(31 downto 0);
+    STUFF_S_AXI_AWPROT  : in std_logic_vector(2 downto 0);
+    STUFF_S_AXI_AWVALID : in std_logic;
+    STUFF_S_AXI_AWREADY : out std_logic;
+    STUFF_S_AXI_WDATA   : in std_logic_vector(31 downto 0);
+    STUFF_S_AXI_WSTRB   : in std_logic_vector(3 downto 0);
+    STUFF_S_AXI_WVALID  : in std_logic;
+    STUFF_S_AXI_WREADY  : out std_logic;
+    STUFF_S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+    STUFF_S_AXI_BVALID  : out std_logic;
+    STUFF_S_AXI_BREADY  : in std_logic;
+    STUFF_S_AXI_ARADDR  : in std_logic_vector(31 downto 0);
+    STUFF_S_AXI_ARPROT  : in std_logic_vector(2 downto 0);
+    STUFF_S_AXI_ARVALID : in std_logic;
+    STUFF_S_AXI_ARREADY : out std_logic;
+    STUFF_S_AXI_RDATA   : out std_logic_vector(31 downto 0);
+    STUFF_S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+    STUFF_S_AXI_RVALID  : out std_logic;
+    STUFF_S_AXI_RREADY  : in std_logic;
+
+    THRESH_S_AXI_ACLK    : in std_logic;
+    THRESH_S_AXI_ARESETN : in std_logic;
+    THRESH_S_AXI_AWADDR  : in std_logic_vector(31 downto 0);
+    THRESH_S_AXI_AWPROT  : in std_logic_vector(2 downto 0);
+    THRESH_S_AXI_AWVALID : in std_logic;
+    THRESH_S_AXI_AWREADY : out std_logic;
+    THRESH_S_AXI_WDATA   : in std_logic_vector(31 downto 0);
+    THRESH_S_AXI_WSTRB   : in std_logic_vector(3 downto 0);
+    THRESH_S_AXI_WVALID  : in std_logic;
+    THRESH_S_AXI_WREADY  : out std_logic;
+    THRESH_S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+    THRESH_S_AXI_BVALID  : out std_logic;
+    THRESH_S_AXI_BREADY  : in std_logic;
+    THRESH_S_AXI_ARADDR  : in std_logic_vector(31 downto 0);
+    THRESH_S_AXI_ARPROT  : in std_logic_vector(2 downto 0);
+    THRESH_S_AXI_ARVALID : in std_logic;
+    THRESH_S_AXI_ARREADY : out std_logic;
+    THRESH_S_AXI_RDATA   : out std_logic_vector(31 downto 0);
+    THRESH_S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+    THRESH_S_AXI_RVALID  : out std_logic;
+    THRESH_S_AXI_RREADY  : in std_logic;
+
+    OUTBUFF_S_AXI_ACLK    : in std_logic;
+    OUTBUFF_S_AXI_ARESETN : in std_logic;
+    OUTBUFF_S_AXI_AWADDR  : in std_logic_vector(31 downto 0);
+    OUTBUFF_S_AXI_AWPROT  : in std_logic_vector(2 downto 0);
+    OUTBUFF_S_AXI_AWVALID : in std_logic;
+    OUTBUFF_S_AXI_AWREADY : out std_logic;
+    OUTBUFF_S_AXI_WDATA   : in std_logic_vector(31 downto 0);
+    OUTBUFF_S_AXI_WSTRB   : in std_logic_vector(3 downto 0);
+    OUTBUFF_S_AXI_WVALID  : in std_logic;
+    OUTBUFF_S_AXI_WREADY  : out std_logic;
+    OUTBUFF_S_AXI_BRESP   : out std_logic_vector(1 downto 0);
+    OUTBUFF_S_AXI_BVALID  : out std_logic;
+    OUTBUFF_S_AXI_BREADY  : in std_logic;
+    OUTBUFF_S_AXI_ARADDR  : in std_logic_vector(31 downto 0);
+    OUTBUFF_S_AXI_ARPROT  : in std_logic_vector(2 downto 0);
+    OUTBUFF_S_AXI_ARVALID : in std_logic;
+    OUTBUFF_S_AXI_ARREADY : out std_logic;
+    OUTBUFF_S_AXI_RDATA   : out std_logic_vector(31 downto 0);
+    OUTBUFF_S_AXI_RRESP   : out std_logic_vector(1 downto 0);
+    OUTBUFF_S_AXI_RVALID  : out std_logic;
+    OUTBUFF_S_AXI_RREADY  : in std_logic;
+
+    eth_clk_p : in std_logic;
+    eth_clk_n : in std_logic;
+
+    eth0_rx_p : in std_logic_vector(0 downto 0);
+    eth0_rx_n : in std_logic_vector(0 downto 0);
+    eth0_tx_p : out std_logic_vector(0 downto 0);
+    eth0_tx_n : out std_logic_vector(0 downto 0);
+    eth0_tx_dis : out std_logic_vector(0 downto 0);
+
+    out_buff_trig : out std_logic;
+    out_buff_clk  : out std_logic;
+    out_buff_data : out std_logic_vector(63 downto 0);
+
+    FORCE_TRIG     : in std_logic;
+    DIN_DEBUG      : out std_logic_vector(13 downto 0);
+    VALID_DEBUG    : out std_logic;
+    LAST_DEBUG     : out std_logic;
+    clock_gen_debug : out std_logic;
+    mmcm0_100MHZ_CLK_debug : out std_logic;
+    ep_62p5MHZ_CLK_debug : out std_logic;
+    F_OK_DEBUG : out std_logic;
+    SCTR_DEBUG : out std_logic_vector(15 downto 0);
+    CCTR_DEBUG : out std_logic_vector(15 downto 0);
+    Trigered_debug : out std_logic
+  );
+end entity k26c_board_shell;
+
+architecture rtl of k26c_board_shell is
 begin
-  k26c_board_shell_inst : entity work.k26c_board_shell
+  legacy_public_top_bridge_inst : entity work.legacy_public_top_bridge
     generic map (
       version     => version,
       link_id     => link_id,

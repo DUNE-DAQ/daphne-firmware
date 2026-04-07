@@ -122,7 +122,7 @@ targets:
   impl_legacy_flow:
     description: Compatibility alias for impl; retained for older automation while the native board-shell Flow API path remains the single composable implementation lane
     flow: vivado
-    toplevel: legacy_public_top_bridge
+    toplevel: k26c_board_shell
     filesets:
       - impl_board_shell_flow_rtl
     hooks:
@@ -135,7 +135,7 @@ targets:
   impl:
     description: Default composable platform implementation target, now backed by the native board-shell Flow API path
     flow: vivado
-    toplevel: legacy_public_top_bridge
+    toplevel: k26c_board_shell
     filesets:
       - impl_board_shell_flow_rtl
     hooks:
@@ -175,7 +175,7 @@ targets:
   synth_board_shell_ooc:
     description: Vivado out-of-context synthesis of the isolated board shell from the explicit K26C board-shell core
     default_tool: vivado
-    toplevel: legacy_public_top_bridge
+    toplevel: k26c_board_shell
     filesets:
       - ooc_board_shell_rtl
     hooks:
@@ -191,7 +191,7 @@ targets:
   synth_board_shell_flow:
     description: First-class Edalize flow-API Vivado synthesis of the isolated board shell from the explicit K26C board-shell core
     flow: vivado
-    toplevel: legacy_public_top_bridge
+    toplevel: k26c_board_shell
     filesets:
       - ooc_board_shell_flow_rtl
     flow_options:

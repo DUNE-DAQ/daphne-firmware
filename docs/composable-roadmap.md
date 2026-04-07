@@ -113,7 +113,7 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      This is still OOC synthesis, but it is the first real flow-owned synth
      target in the migration.
    - The repo now also has the native board-shell `impl` target on
-     `k26c-composable-platform`, which builds `legacy_public_top_bridge`
+     `k26c-composable-platform`, which builds `k26c_board_shell`
      directly through the Vivado Flow API and exports the same
      `daphne_selftrigger_<gitsha>` artifact contract. This is the current
      default composable build entrypoint.
