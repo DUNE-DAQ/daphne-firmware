@@ -39,6 +39,33 @@ resolve_output_dir() {
   esac
 }
 
+resolve_project_xpr() {
+  local system_name="${DAPHNE_SYSTEM_NAME:-}"
+  local project_xpr_value="${DAPHNE_EXPORT_PROJECT_XPR:-}"
+
+  if [[ -z "$system_name" && -n "${DAPHNE_PLATFORM_CORE:-}" ]]; then
+    system_name="$(daphne_platform_core_build_slug "$DAPHNE_PLATFORM_CORE")"
+  fi
+  if [[ -z "$project_xpr_value" && -n "$system_name" ]]; then
+    project_xpr_value="${system_name}.xpr"
+  fi
+
+  if [[ -n "$project_xpr_value" ]]; then
+    case "$project_xpr_value" in
+      /*)
+        printf '%s\n' "$project_xpr_value"
+        return 0
+        ;;
+      *)
+        printf '%s\n' "$BUILD_DIR/$project_xpr_value"
+        return 0
+        ;;
+    esac
+  fi
+
+  find "$BUILD_DIR" -maxdepth 1 -type f -name '*.xpr' | sort | head -n 1
+}
+
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
     echo "ERROR: required command '$1' not found on PATH" >&2
@@ -79,9 +106,13 @@ run_dtbo_packaging() {
   exit 2
 }
 
-project_xpr="$(find "$BUILD_DIR" -maxdepth 1 -type f -name '*.xpr' | sort | head -n 1)"
+project_xpr="$(resolve_project_xpr)"
 if [[ -z "$project_xpr" ]]; then
   echo "ERROR: no Vivado project (*.xpr) found under $BUILD_DIR" >&2
+  exit 2
+fi
+if [[ ! -f "$project_xpr" ]]; then
+  echo "ERROR: expected Vivado project at $project_xpr" >&2
   exit 2
 fi
 
@@ -90,18 +121,20 @@ mkdir -p "$OUTPUT_DIR"
 
 BUILD_NAME_PREFIX="${DAPHNE_BUILD_NAME_PREFIX:-daphne_selftrigger}"
 OVERLAY_NAME_PREFIX="${DAPHNE_OVERLAY_NAME_PREFIX:-${BUILD_NAME_PREFIX}_ol}"
+IMPL_RUN_NAME="${DAPHNE_EXPORT_IMPL_RUN:-impl_1}"
 
 need_cmd vivado
 
 echo "INFO: Flow-owned Vivado export hook"
 echo "INFO: build dir  = $BUILD_DIR"
 echo "INFO: project    = $project_xpr"
+echo "INFO: impl run   = $IMPL_RUN_NAME"
 echo "INFO: output dir = $OUTPUT_DIR"
 echo "INFO: target     = $TARGET_NAME"
 
 vivado -mode batch \
   -source "$ROOT_DIR/xilinx/daphne_export_flow_handoff.tcl" \
-  -tclargs "$project_xpr" "$OUTPUT_DIR"
+  -tclargs "$project_xpr" "$OUTPUT_DIR" "$IMPL_RUN_NAME"
 
 run_dtbo_packaging
 

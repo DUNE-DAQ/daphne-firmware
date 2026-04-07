@@ -119,6 +119,13 @@ export DAPHNE_BOARD="$BOARD"
 export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
 export DAPHNE_PLATFORM_TARGET="$BUILD_TARGET"
 
+SYSTEM_NAME="${DAPHNE_SYSTEM_NAME:-$(daphne_platform_core_build_slug "$PLATFORM_CORE")}"
+export DAPHNE_SYSTEM_NAME="$SYSTEM_NAME"
+: "${DAPHNE_EXPORT_PROJECT_XPR:=${SYSTEM_NAME}.xpr}"
+: "${DAPHNE_EXPORT_IMPL_RUN:=impl_1}"
+export DAPHNE_EXPORT_PROJECT_XPR
+export DAPHNE_EXPORT_IMPL_RUN
+
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "INFO: Dry-run only, stopping before Vivado."
   exit 0
