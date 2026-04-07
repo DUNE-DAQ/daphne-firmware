@@ -58,8 +58,16 @@ before calling `run_remote_vivado_chain.sh`.
 
 In that mode, the wrapper skips the standalone legacy preflight because
 `impl_legacy_flow` performs the legacy BD/IP preflight inside the Flow API
-Vivado project. Artifact discovery also points at the FuseSoC build tree rather
-than the legacy `xilinx/output-*` directory.
+Vivado project. After the build, the repo exports a legacy-style
+`daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
+`xilinx/output-<gitsha>/`, so downstream DTBO packaging can keep using the same
+artifact contract.
+
+If you want the remote wrapper to attempt DTBO packaging too, also set:
+
+```bash
+export DAPHNE_REMOTE_PACKAGE_DTBO=1
+```
 
 ## Important environment knobs
 

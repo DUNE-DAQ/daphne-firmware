@@ -76,10 +76,11 @@ export DAPHNE_PLATFORM_TARGET=impl_legacy_flow
 
 before calling `run_wsl_vivado_chain.sh`.
 
-In that mode, the wrapper skips the standalone legacy preflight and skips the
-legacy DTBO bundle step. The Flow API target performs the BD/IP preflight
-inside the Vivado project, and outputs stay in the FuseSoC build tree rather
-than the legacy `xilinx/output-*` directory.
+In that mode, the wrapper skips only the standalone legacy preflight. The Flow
+API target performs the BD/IP preflight inside the Vivado project, then the
+repo exports a legacy-style `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle
+back into `xilinx/output-<gitsha>/` before running the usual DTBO packaging
+step.
 
 ## Output directory rule
 
