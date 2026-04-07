@@ -117,7 +117,20 @@ and block-design flow now honor `DAPHNE_BD_NAME` / `DAPHNE_BD_WRAPPER_NAME`
  auto-discovers the isolated HDL roots needed by the packaged-IP synth. The BD
  generator also now clears only the active block-design directory instead of
  deleting the entire `bd/` tree. This keeps the migration path open for
- side-by-side legacy and future composable design identities.
+side-by-side legacy and future composable design identities.
+
+There is now also a first board-level Flow API variant of that bridge:
+
+```bash
+./scripts/fusesoc/build_platform.sh --composable --target impl_legacy_flow
+```
+
+That target still generates the qualified legacy K26C block design and wrapper,
+but it does so through a `tclSource` preamble sourced by Edalize's Vivado Flow
+API instead of the older pre-build hook/backend path. This is the first honest
+board-facing Flow API checkpoint in the migration: the public composable top is
+still not the deployed top, but the board implementation now has a flow-owned
+entry point as well.
 
 The IP packaging Tcl also now accepts top-identity overrides
 (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,
@@ -343,12 +356,16 @@ recorded in `docs/source-audit.md`.
   without Vivado. It also now exposes a transitional `impl_legacy_bridge`
   target so the composable platform can serve as a first-class FuseSoC entry
   point while Vivado still builds the qualified legacy/generated K26C design.
-  It also now exposes `synth_public_top_flow`, the first Flow API Vivado synth
-  target for the public composable top.
+  It also now exposes `impl_legacy_flow`, the first board-level Flow API target
+  for that same qualified legacy/generated K26C design, plus
+  `synth_public_top_flow`, the first Flow API Vivado synth target for the
+  public composable top.
 - `scripts/fusesoc/build_platform.sh --composable` now defaults to the safe
   `validate_public_top` target for the composable platform. Use
   `--composable --target impl_legacy_bridge` when you explicitly want the
-  transitional Vivado-backed bridge entry point, or
+  transitional Vivado-backed bridge entry point,
+  `--composable --target impl_legacy_flow` when you want the first board-level
+  Flow-API checkpoint for the qualified legacy/generated K26C design, or
   `--composable --target synth_public_top_flow` when you want the first
   Flow-API Vivado synthesis checkpoint for the public composable top.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache

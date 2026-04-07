@@ -117,6 +117,13 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      through the Edalize Vivado Flow API instead of the deprecated tool API.
      This is still OOC synthesis, but it is the first real flow-owned synth
      target in the migration.
+   - The repo now also has `impl_legacy_flow` on
+     `k26c-composable-platform`, which uses the same Edalize Flow API style at
+     the board level: a `tclSource` preamble generates/packages the qualified
+     legacy K26C block design and wrapper inside the exported build tree, then
+     Vivado flow-owned synth/impl runs on `daphne_selftrigger_bd_wrapper`.
+     This is still hybrid, but it moves the board build off the deprecated
+     pre-build hook path and closer to a full FuseSoC-owned implementation.
 
 ## Trigger and descriptor split
 
