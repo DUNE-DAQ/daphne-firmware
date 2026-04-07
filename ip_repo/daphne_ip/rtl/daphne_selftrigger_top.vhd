@@ -682,8 +682,6 @@ signal st_config: std_logic_vector(13 downto 0);
 signal signal_delay: std_logic_vector(4 downto 0);
 signal reset_st_counters: std_logic;
 
-signal  f_ok,sysclk_ibuf,mmcm0_clkout2,ep_clk62p5: std_logic ;
-signal sctr, cctr: std_logic_vector (15 downto 0);
 signal timing_stat: timing_status_t;
          
 
@@ -778,7 +776,7 @@ port map(
 
 -- Timing Endpoint
 
-timing_bridge_inst: entity work.legacy_timing_subsystem_bridge
+timing_bridge_inst: entity work.legacy_timing_plane_bridge
 port map(
     sysclk_p                 => sysclk_p,
     sysclk_n                 => sysclk_n,
@@ -788,17 +786,15 @@ port map(
     sfp_tmg_tx_dis           => sfp_tmg_tx_dis,
     tx0_tmg_p                => tx0_tmg_p,
     tx0_tmg_n                => tx0_tmg_n,
-    clock_gen_debug_o        => sysclk_ibuf,
-    mmcm0_100mhz_clk_debug_o => mmcm0_clkout2,
-    ep_62p5mhz_clk_debug_o   => ep_clk62p5,
-    f_ok_debug_o             => f_ok,
-    sctr_debug_o             => sctr,
-    cctr_debug_o             => cctr,
-    mclk_o                   => open,
+    clock_gen_debug          => clock_gen_debug,
+    mmcm0_100mhz_clk_debug   => mmcm0_100MHZ_CLK_debug,
+    ep_62p5mhz_clk_debug     => ep_62p5MHZ_CLK_debug,
+    f_ok_debug               => F_OK_DEBUG,
+    sctr_debug               => SCTR_DEBUG,
+    cctr_debug               => cCTR_DEBUG,
     clock_o                  => clock,
     clk500_o                 => clk500,
     clk125_o                 => clk125,
-    sclk200_o                => open,
     timestamp_o              => timestamp,
     sync_o                   => ti_trigger_reg,
     sync_stb_o               => ti_trigger_stbr_reg,
@@ -1052,17 +1048,6 @@ port map(
     DIN_DEBUG  <= din_debug_reg; 
     --Trigered_debug <= trigered_debug_reg;
     out_buff_clk <= clock;
-    
-   -- endpoint debug signals
-   
- F_OK_DEBUG <= f_ok;
- SCTR_DEBUG <= sctr;
- cCTR_DEBUG <= cctr;
-clock_gen_debug  <= sysclk_ibuf;
-mmcm0_100MHZ_CLK_debug   <= mmcm0_clkout2;
-ep_62p5MHZ_CLK_debug   <=   ep_clk62p5 ;
-    
-    
     
 -- TO DO: add Xilinx IP block: ZYNQ_PS
 -- this IP block requires parameters that must be set by the TCL build script
