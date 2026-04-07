@@ -84,6 +84,13 @@ daphne_resolve_board_defaults() {
   public_top_module="$(daphne_board_manifest_value "$root_dir" "$board_name" public_top_module)"
   timing_endpoint_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_endpoint_path)"
 
+  if [ -z "$ip_top_hdl_file" ] && [ -n "$public_top_hdl_file" ]; then
+    ip_top_hdl_file="$public_top_hdl_file"
+  fi
+  if [ -z "$ip_top_module" ] && [ -n "$public_top_module" ]; then
+    ip_top_module="$public_top_module"
+  fi
+
   if [ "$supported" != "true" ]; then
     echo "ERROR: board '$board_name' is scaffolded but not yet supported." >&2
     if [ -n "$inherits" ]; then

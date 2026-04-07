@@ -131,6 +131,8 @@ def main() -> None:
     extra_rtl_vhdl = load_manifest_lines(LEGACY_FLOW_SUPPORT_PATH)
 
     board_top_hdl = load_manifest_scalar(DEFAULT_BOARD_MANIFEST, "ip_top_hdl_file")
+    if not board_top_hdl:
+        board_top_hdl = load_manifest_scalar(DEFAULT_BOARD_MANIFEST, "public_top_hdl_file")
     if board_top_hdl:
         default_top_vhdl = board_top_hdl
         default_top_basename = Path(board_top_hdl).name
@@ -141,6 +143,8 @@ def main() -> None:
         )
         default_top_vhdl = f"ip_repo/daphne_ip/rtl/{default_top_basename}"
     board_top_module = load_manifest_scalar(DEFAULT_BOARD_MANIFEST, "ip_top_module")
+    if not board_top_module:
+        board_top_module = load_manifest_scalar(DEFAULT_BOARD_MANIFEST, "public_top_module")
     default_top_module = (
         board_top_module
         if board_top_module
