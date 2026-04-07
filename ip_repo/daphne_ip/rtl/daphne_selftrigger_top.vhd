@@ -720,70 +720,6 @@ signal EP_AXI_RRESP:   std_logic_vector(1 downto 0);
 signal EP_AXI_RVALID:  std_logic;
 signal EP_AXI_RREADY:  std_logic;
 
-signal AFE_AXI_AWADDR:  std_logic_vector(31 downto 0);
-signal AFE_AXI_AWPROT:  std_logic_vector(2 downto 0);
-signal AFE_AXI_AWVALID: std_logic;
-signal AFE_AXI_AWREADY: std_logic;
-signal AFE_AXI_WDATA:   std_logic_vector(31 downto 0);
-signal AFE_AXI_WSTRB:   std_logic_vector(3 downto 0);
-signal AFE_AXI_WVALID:  std_logic;
-signal AFE_AXI_WREADY:  std_logic;
-signal AFE_AXI_BRESP:   std_logic_vector(1 downto 0);
-signal AFE_AXI_BVALID:  std_logic;
-signal AFE_AXI_BREADY:  std_logic;
-signal AFE_AXI_ARADDR:  std_logic_vector(31 downto 0);
-signal AFE_AXI_ARPROT:  std_logic_vector(2 downto 0);
-signal AFE_AXI_ARVALID: std_logic;
-signal AFE_AXI_ARREADY: std_logic;
-signal AFE_AXI_RDATA:   std_logic_vector(31 downto 0);
-signal AFE_AXI_RRESP:   std_logic_vector(1 downto 0);
-signal AFE_AXI_RVALID:  std_logic;
-signal AFE_AXI_RREADY:  std_logic;
-
-
-
-signal DAC_AXI_AWADDR:  std_logic_vector(31 downto 0);
-signal DAC_AXI_AWPROT:  std_logic_vector(2 downto 0);
-signal DAC_AXI_AWVALID: std_logic;
-signal DAC_AXI_AWREADY: std_logic;
-signal DAC_AXI_WDATA:   std_logic_vector(31 downto 0);
-signal DAC_AXI_WSTRB:   std_logic_vector(3 downto 0);
-signal DAC_AXI_WVALID:  std_logic;
-signal DAC_AXI_WREADY:  std_logic;
-signal DAC_AXI_BRESP:   std_logic_vector(1 downto 0);
-signal DAC_AXI_BVALID:  std_logic;
-signal DAC_AXI_BREADY:  std_logic;
-signal DAC_AXI_ARADDR:  std_logic_vector(31 downto 0);
-signal DAC_AXI_ARPROT:  std_logic_vector(2 downto 0);
-signal DAC_AXI_ARVALID: std_logic;
-signal DAC_AXI_ARREADY: std_logic;
-signal DAC_AXI_RDATA:   std_logic_vector(31 downto 0);
-signal DAC_AXI_RRESP:   std_logic_vector(1 downto 0);
-signal DAC_AXI_RVALID:  std_logic;
-signal DAC_AXI_RREADY:  std_logic;
-
-
-
-signal STUFF_AXI_AWADDR:  std_logic_vector(31 downto 0);
-signal STUFF_AXI_AWPROT:  std_logic_vector(2 downto 0);
-signal STUFF_AXI_AWVALID: std_logic;
-signal STUFF_AXI_AWREADY: std_logic;
-signal STUFF_AXI_WDATA:   std_logic_vector(31 downto 0);
-signal STUFF_AXI_WSTRB:   std_logic_vector(3 downto 0);
-signal STUFF_AXI_WVALID:  std_logic;
-signal STUFF_AXI_WREADY:  std_logic;
-signal STUFF_AXI_BRESP:   std_logic_vector(1 downto 0);
-signal STUFF_AXI_BVALID:  std_logic;
-signal STUFF_AXI_BREADY:  std_logic;
-signal STUFF_AXI_ARADDR:  std_logic_vector(31 downto 0);
-signal STUFF_AXI_ARPROT:  std_logic_vector(2 downto 0);
-signal STUFF_AXI_ARVALID: std_logic;
-signal STUFF_AXI_ARREADY: std_logic;
-signal STUFF_AXI_RDATA:   std_logic_vector(31 downto 0);
-signal STUFF_AXI_RRESP:   std_logic_vector(1 downto 0);
-signal STUFF_AXI_RVALID:  std_logic;
-signal STUFF_AXI_RREADY:  std_logic;
-
 signal eth0_p_buff: std_logic;
 signal eth0_n_buff: std_logic ;
 
@@ -916,85 +852,6 @@ afe_n_array(4)(8 downto 0) <= afe4_n(8 downto 0);
   EP_AXI_RREADY  <=  END_P_S_AXI_RREADY ;
 
 
--- AFE SPI
-
-  AFE_AXI_AWADDR   <= AFE_SPI_S_AXI_AWADDR;
-  AFE_AXI_AWPROT   <= AFE_SPI_S_AXI_AWPROT;
-  AFE_AXI_AWVALID  <=  AFE_SPI_S_AXI_AWVALID;
-  AFE_SPI_S_AXI_AWREADY  <= AFE_AXI_AWREADY ;
-  AFE_AXI_WDATA   <= AFE_SPI_S_AXI_WDATA;
-  AFE_AXI_WSTRB   <= AFE_SPI_S_AXI_WSTRB;
-  AFE_AXI_WVALID   <= AFE_SPI_S_AXI_WVALID;
-  AFE_SPI_S_AXI_WREADY  <= AFE_AXI_WREADY ;
-  AFE_SPI_S_AXI_BRESP  <= AFE_AXI_BRESP ;
-  AFE_SPI_S_AXI_BVALID <=  AFE_AXI_BVALID ;
-  AFE_AXI_BREADY  <=  AFE_SPI_S_AXI_BREADY;
-  AFE_AXI_ARADDR   <= AFE_SPI_S_AXI_ARADDR;
-  AFE_AXI_ARPROT  <=  AFE_SPI_S_AXI_ARPROT;
-  AFE_AXI_ARVALID  <=  AFE_SPI_S_AXI_ARVALID;
-  AFE_SPI_S_AXI_ARREADY  <= AFE_AXI_ARREADY   ;
-  AFE_SPI_S_AXI_RDATA  <= AFE_AXI_RDATA ;
-  AFE_SPI_S_AXI_RRESP  <= AFE_AXI_RRESP ;
-  AFE_SPI_S_AXI_RVALID  <= AFE_AXI_RVALID ;
-  AFE_AXI_RREADY   <= AFE_SPI_S_AXI_RREADY;
-
-
-
-
-
--- DACs
-
- DAC_AXI_AWADDR <= SPI_DAC_S_AXI_AWADDR;
- DAC_AXI_AWPROT <=SPI_DAC_S_AXI_AWPROT;
- DAC_AXI_AWVALID <= SPI_DAC_S_AXI_AWVALID;
- SPI_DAC_S_AXI_AWREADY<= DAC_AXI_AWREADY ;
- DAC_AXI_WDATA <= SPI_DAC_S_AXI_WDATA;
- DAC_AXI_WSTRB <= SPI_DAC_S_AXI_WSTRB;
- DAC_AXI_WVALID <= SPI_DAC_S_AXI_WVALID;
- SPI_DAC_S_AXI_WREADY<= DAC_AXI_WREADY ;
- SPI_DAC_S_AXI_BRESP<= DAC_AXI_BRESP ;
- SPI_DAC_S_AXI_BVALID <= DAC_AXI_BVALID ;
- DAC_AXI_BREADY <= SPI_DAC_S_AXI_BREADY;
- DAC_AXI_ARADDR <= SPI_DAC_S_AXI_ARADDR;
- DAC_AXI_ARPROT <= SPI_DAC_S_AXI_ARPROT;
- DAC_AXI_ARVALID <= SPI_DAC_S_AXI_ARVALID;
- SPI_DAC_S_AXI_ARREADY <= DAC_AXI_ARREADY ;
- SPI_DAC_S_AXI_RDATA <= DAC_AXI_RDATA ;
-SPI_DAC_S_AXI_RRESP  <= DAC_AXI_RRESP ;
- SPI_DAC_S_AXI_RVALID <= DAC_AXI_RVALID ;
- DAC_AXI_RREADY <= SPI_DAC_S_AXI_RREADY;
-
-
-
-
-
-
---STUF 
-
- STUFF_AXI_AWADDR   <= STUFF_S_AXI_AWADDR;
- STUFF_AXI_AWPROT   <= STUFF_S_AXI_AWPROT;
- STUFF_AXI_AWVALID   <= STUFF_S_AXI_AWVALID ;
- STUFF_S_AXI_AWREADY   <= STUFF_AXI_AWREADY ;
- STUFF_AXI_WDATA   <= STUFF_S_AXI_WDATA;
- STUFF_AXI_WSTRB   <= STUFF_S_AXI_WSTRB;
- STUFF_AXI_WVALID   <= STUFF_S_AXI_WVALID ;
- STUFF_S_AXI_WREADY   <= STUFF_AXI_WREADY  ;
- STUFF_S_AXI_BRESP   <= STUFF_AXI_BRESP  ;
- STUFF_S_AXI_BVALID   <= STUFF_AXI_BVALID  ;
- STUFF_AXI_BREADY   <= STUFF_S_AXI_BREADY  ;
- STUFF_AXI_ARADDR   <= STUFF_S_AXI_ARADDR  ;
- STUFF_AXI_ARPROT   <= STUFF_S_AXI_ARPROT;
- STUFF_AXI_ARVALID   <= STUFF_S_AXI_ARVALID ;
- STUFF_S_AXI_ARREADY  <= STUFF_AXI_ARREADY ;
- STUFF_S_AXI_RDATA   <= STUFF_AXI_RDATA;
- STUFF_S_AXI_RRESP   <= STUFF_AXI_RRESP;
- STUFF_S_AXI_RVALID   <= STUFF_AXI_RVALID  ;
- STUFF_AXI_RREADY   <= STUFF_S_AXI_RREADY  ;
-
-	
-
-	
-	
 -- front end deskew and alignment
 
 front_end_inst: front_end 
@@ -1127,126 +984,117 @@ trig_proc: process(clock) -- note external trigger input is inverted on DAPHNE2
         end if;
     end process trig_proc;
 
-spim_afe_inst: spim_afe 
-port map(
-    afe_rst       => afe_rst,
-    afe_pdn       => afe_pdn,
-    afe0_miso     => afe0_miso,
-    afe0_sclk     => afe0_sclk,
-    afe0_mosi     => afe0_mosi,
-    afe12_miso    => afe12_miso,
-    afe12_sclk    => afe12_sclk,
-    afe12_mosi    => afe12_mosi,
-    afe34_miso    => afe34_miso,
-    afe34_sclk    => afe34_sclk,
-    afe34_mosi    => afe34_mosi,
-    afe_sen       => afe_sen,
-    trim_sync_n   => trim_sync_n,
-    trim_ldac_n   => trim_ldac_n,
-    offset_sync_n => offset_sync_n,
-    offset_ldac_n => offset_ldac_n,
-
-    S_AXI_ACLK	     => AFE_SPI_S_AXI_ACLK,
-	S_AXI_ARESETN	 => AFE_SPI_S_AXI_ARESETN,
-	S_AXI_AWADDR	 => AFE_AXI_AWADDR,
-	S_AXI_AWPROT	 => AFE_AXI_AWPROT,
-	S_AXI_AWVALID	 => AFE_AXI_AWVALID,
-	S_AXI_AWREADY	 => AFE_AXI_AWREADY,
-	S_AXI_WDATA	     => AFE_AXI_WDATA,
-	S_AXI_WSTRB	     => AFE_AXI_WSTRB,
-	S_AXI_WVALID	 => AFE_AXI_WVALID,
-	S_AXI_WREADY	 => AFE_AXI_WREADY,
-	S_AXI_BRESP	     => AFE_AXI_BRESP,
-	S_AXI_BVALID     => AFE_AXI_BVALID,
-	S_AXI_BREADY	 => AFE_AXI_BREADY,
-	S_AXI_ARADDR     => AFE_AXI_ARADDR,
-	S_AXI_ARPROT     => AFE_AXI_ARPROT,
-	S_AXI_ARVALID    => AFE_AXI_ARVALID,
-	S_AXI_ARREADY    => AFE_AXI_ARREADY,
-	S_AXI_RDATA      => AFE_AXI_RDATA,
-	S_AXI_RRESP      => AFE_AXI_RRESP,
-	S_AXI_RVALID     => AFE_AXI_RVALID,
-	S_AXI_RREADY     => AFE_AXI_RREADY
-  );
-
 -- I2C master
 
 
 -- SPI master for 3 DACs
-
-spim_dac_inst: spim_dac 
-port map(
-    dac_sclk        => dac_sclk,
-    dac_din         => dac_din,
-    dac_sync_n      => dac_sync_n,
-    dac_ldac_n      => dac_ldac_n, 
-    S_AXI_ACLK	    => SPI_DAC_S_AXI_ACLK,
-	S_AXI_ARESETN	=> SPI_DAC_S_AXI_ARESETN,
-	S_AXI_AWADDR	=> DAC_AXI_AWADDR,
-	S_AXI_AWPROT	=> DAC_AXI_AWPROT,
-	S_AXI_AWVALID	=> DAC_AXI_AWVALID,
-	S_AXI_AWREADY	=> DAC_AXI_AWREADY,
-	S_AXI_WDATA	    => DAC_AXI_WDATA,
-	S_AXI_WSTRB	    => DAC_AXI_WSTRB,
-	S_AXI_WVALID	=> DAC_AXI_WVALID,
-	S_AXI_WREADY	=> DAC_AXI_WREADY,
-	S_AXI_BRESP	    => DAC_AXI_BRESP,
-	S_AXI_BVALID	=> DAC_AXI_BVALID,
-	S_AXI_BREADY	=> DAC_AXI_BREADY,
-	S_AXI_ARADDR	=> DAC_AXI_ARADDR,
-	S_AXI_ARPROT	=> DAC_AXI_ARPROT,
-	S_AXI_ARVALID	=> DAC_AXI_ARVALID,
-	S_AXI_ARREADY	=> DAC_AXI_ARREADY,
-	S_AXI_RDATA	    => DAC_AXI_RDATA,
-	S_AXI_RRESP	    => DAC_AXI_RRESP,
-	S_AXI_RVALID	=> DAC_AXI_RVALID,
-	S_AXI_RREADY	=> DAC_AXI_RREADY
-  );
 
 -- SPI master for current monitor
 
 
 -- Misc. Stuff
  
-stuff_inst: stuff
+analog_control_plane_inst: entity work.legacy_analog_control_plane_bridge
 port map(
-    fan_tach        => fan_tach,
-    fan_ctrl        => fan_ctrl,
-    hvbias_en       => hvbias_en,
-    mux_en          => mux_en,
-    mux_a           => mux_a,
-    stat_led        => stat_led,
-    version         => version,
-    adhoc           => adhoc,
-    core_chan_enable        => core_chan_enable,
-    filter_output_selector  => filter_output_selector,
-    afe_comp_enable         => afe_comp_enable,
-    invert_enable   => invert_enable,
-    st_config       => st_config,
-    signal_delay    => signal_delay,
+    fan_tach => fan_tach,
+    fan_ctrl => fan_ctrl,
+    hvbias_en => hvbias_en,
+    mux_en => mux_en,
+    mux_a => mux_a,
+    stat_led => stat_led,
+    version => version,
+    adhoc => adhoc,
+    core_chan_enable => core_chan_enable,
+    filter_output_selector => filter_output_selector,
+    afe_comp_enable => afe_comp_enable,
+    invert_enable => invert_enable,
+    st_config => st_config,
+    signal_delay => signal_delay,
     reset_st_counters => reset_st_counters,
-    S_AXI_ACLK	    => STUFF_S_AXI_ACLK,
-	S_AXI_ARESETN	=> STUFF_S_AXI_ARESETN,
-	S_AXI_AWADDR	=> STUFF_AXI_AWADDR,
-	S_AXI_AWPROT	=> STUFF_AXI_AWPROT,
-	S_AXI_AWVALID	=> STUFF_AXI_AWVALID,
-	S_AXI_AWREADY	=> STUFF_AXI_AWREADY,
-	S_AXI_WDATA	    => STUFF_AXI_WDATA,
-	S_AXI_WSTRB	    => STUFF_AXI_WSTRB,
-	S_AXI_WVALID	=> STUFF_AXI_WVALID,
-	S_AXI_WREADY	=> STUFF_AXI_WREADY,
-	S_AXI_BRESP	    => STUFF_AXI_BRESP,
-	S_AXI_BVALID	=> STUFF_AXI_BVALID,
-	S_AXI_BREADY	=> STUFF_AXI_BREADY,
-	S_AXI_ARADDR	=> STUFF_AXI_ARADDR,
-	S_AXI_ARPROT	=> STUFF_AXI_ARPROT,
-	S_AXI_ARVALID	=> STUFF_AXI_ARVALID,
-	S_AXI_ARREADY	=> STUFF_AXI_ARREADY,
-	S_AXI_RDATA	    => STUFF_AXI_RDATA,
-	S_AXI_RRESP	    => STUFF_AXI_RRESP,
-	S_AXI_RVALID	=> STUFF_AXI_RVALID,
-	S_AXI_RREADY	=> STUFF_AXI_RREADY
-  );
+    dac_sclk => dac_sclk,
+    dac_din => dac_din,
+    dac_sync_n => dac_sync_n,
+    dac_ldac_n => dac_ldac_n,
+    afe_rst => afe_rst,
+    afe_pdn => afe_pdn,
+    afe0_miso => afe0_miso,
+    afe0_sclk => afe0_sclk,
+    afe0_mosi => afe0_mosi,
+    afe12_miso => afe12_miso,
+    afe12_sclk => afe12_sclk,
+    afe12_mosi => afe12_mosi,
+    afe34_miso => afe34_miso,
+    afe34_sclk => afe34_sclk,
+    afe34_mosi => afe34_mosi,
+    afe_sen => afe_sen,
+    trim_sync_n => trim_sync_n,
+    trim_ldac_n => trim_ldac_n,
+    offset_sync_n => offset_sync_n,
+    offset_ldac_n => offset_ldac_n,
+    afe_spi_s_axi_aclk => AFE_SPI_S_AXI_ACLK,
+    afe_spi_s_axi_aresetn => AFE_SPI_S_AXI_ARESETN,
+    afe_spi_s_axi_awaddr => AFE_SPI_S_AXI_AWADDR,
+    afe_spi_s_axi_awprot => AFE_SPI_S_AXI_AWPROT,
+    afe_spi_s_axi_awvalid => AFE_SPI_S_AXI_AWVALID,
+    afe_spi_s_axi_awready => AFE_SPI_S_AXI_AWREADY,
+    afe_spi_s_axi_wdata => AFE_SPI_S_AXI_WDATA,
+    afe_spi_s_axi_wstrb => AFE_SPI_S_AXI_WSTRB,
+    afe_spi_s_axi_wvalid => AFE_SPI_S_AXI_WVALID,
+    afe_spi_s_axi_wready => AFE_SPI_S_AXI_WREADY,
+    afe_spi_s_axi_bresp => AFE_SPI_S_AXI_BRESP,
+    afe_spi_s_axi_bvalid => AFE_SPI_S_AXI_BVALID,
+    afe_spi_s_axi_bready => AFE_SPI_S_AXI_BREADY,
+    afe_spi_s_axi_araddr => AFE_SPI_S_AXI_ARADDR,
+    afe_spi_s_axi_arprot => AFE_SPI_S_AXI_ARPROT,
+    afe_spi_s_axi_arvalid => AFE_SPI_S_AXI_ARVALID,
+    afe_spi_s_axi_arready => AFE_SPI_S_AXI_ARREADY,
+    afe_spi_s_axi_rdata => AFE_SPI_S_AXI_RDATA,
+    afe_spi_s_axi_rresp => AFE_SPI_S_AXI_RRESP,
+    afe_spi_s_axi_rvalid => AFE_SPI_S_AXI_RVALID,
+    afe_spi_s_axi_rready => AFE_SPI_S_AXI_RREADY,
+    spi_dac_s_axi_aclk => SPI_DAC_S_AXI_ACLK,
+    spi_dac_s_axi_aresetn => SPI_DAC_S_AXI_ARESETN,
+    spi_dac_s_axi_awaddr => SPI_DAC_S_AXI_AWADDR,
+    spi_dac_s_axi_awprot => SPI_DAC_S_AXI_AWPROT,
+    spi_dac_s_axi_awvalid => SPI_DAC_S_AXI_AWVALID,
+    spi_dac_s_axi_awready => SPI_DAC_S_AXI_AWREADY,
+    spi_dac_s_axi_wdata => SPI_DAC_S_AXI_WDATA,
+    spi_dac_s_axi_wstrb => SPI_DAC_S_AXI_WSTRB,
+    spi_dac_s_axi_wvalid => SPI_DAC_S_AXI_WVALID,
+    spi_dac_s_axi_wready => SPI_DAC_S_AXI_WREADY,
+    spi_dac_s_axi_bresp => SPI_DAC_S_AXI_BRESP,
+    spi_dac_s_axi_bvalid => SPI_DAC_S_AXI_BVALID,
+    spi_dac_s_axi_bready => SPI_DAC_S_AXI_BREADY,
+    spi_dac_s_axi_araddr => SPI_DAC_S_AXI_ARADDR,
+    spi_dac_s_axi_arprot => SPI_DAC_S_AXI_ARPROT,
+    spi_dac_s_axi_arvalid => SPI_DAC_S_AXI_ARVALID,
+    spi_dac_s_axi_arready => SPI_DAC_S_AXI_ARREADY,
+    spi_dac_s_axi_rdata => SPI_DAC_S_AXI_RDATA,
+    spi_dac_s_axi_rresp => SPI_DAC_S_AXI_RRESP,
+    spi_dac_s_axi_rvalid => SPI_DAC_S_AXI_RVALID,
+    spi_dac_s_axi_rready => SPI_DAC_S_AXI_RREADY,
+    stuff_s_axi_aclk => STUFF_S_AXI_ACLK,
+    stuff_s_axi_aresetn => STUFF_S_AXI_ARESETN,
+    stuff_s_axi_awaddr => STUFF_S_AXI_AWADDR,
+    stuff_s_axi_awprot => STUFF_S_AXI_AWPROT,
+    stuff_s_axi_awvalid => STUFF_S_AXI_AWVALID,
+    stuff_s_axi_awready => STUFF_S_AXI_AWREADY,
+    stuff_s_axi_wdata => STUFF_S_AXI_WDATA,
+    stuff_s_axi_wstrb => STUFF_S_AXI_WSTRB,
+    stuff_s_axi_wvalid => STUFF_S_AXI_WVALID,
+    stuff_s_axi_wready => STUFF_S_AXI_WREADY,
+    stuff_s_axi_bresp => STUFF_S_AXI_BRESP,
+    stuff_s_axi_bvalid => STUFF_S_AXI_BVALID,
+    stuff_s_axi_bready => STUFF_S_AXI_BREADY,
+    stuff_s_axi_araddr => STUFF_S_AXI_ARADDR,
+    stuff_s_axi_arprot => STUFF_S_AXI_ARPROT,
+    stuff_s_axi_arvalid => STUFF_S_AXI_ARVALID,
+    stuff_s_axi_arready => STUFF_S_AXI_ARREADY,
+    stuff_s_axi_rdata => STUFF_S_AXI_RDATA,
+    stuff_s_axi_rresp => STUFF_S_AXI_RRESP,
+    stuff_s_axi_rvalid => STUFF_S_AXI_RVALID,
+    stuff_s_axi_rready => STUFF_S_AXI_RREADY
+);
 
 -- reduce din_array, since we don't need the full 45 channels * 16 bits for the core
 

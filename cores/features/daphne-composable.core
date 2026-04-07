@@ -41,6 +41,7 @@ filesets:
       - dune-daq:daphne:config-control:0.1.0
       - dune-daq:daphne:control-plane:0.1.0
       - dune-daq:daphne:legacy-acquisition-plane-bridge:0.1.0
+      - dune-daq:daphne:legacy-analog-control-plane-bridge:0.1.0
       - dune-daq:daphne:legacy-core-readout-bridge:0.1.0
       - dune-daq:daphne:legacy-control-plane-bridge:0.1.0
       - dune-daq:daphne:legacy-deimos-readout-bridge:0.1.0

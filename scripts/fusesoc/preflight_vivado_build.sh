@@ -99,6 +99,7 @@ if ! grep -Fq "$bram_binding" "$component_xml"; then
 fi
 
 for support_leaf in \
+  legacy_analog_control_plane_bridge.vhd \
   legacy_selftrigger_register_bank.vhd \
   legacy_stuff_selftrigger_register_bank.vhd \
   legacy_trigger_control_adapter.vhd \
