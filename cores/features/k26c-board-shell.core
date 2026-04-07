@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:k26c-board-shell:0.1.0
-description: K26C board-shell bridge composed from the extracted legacy-facing subsystem seams
+description: K26C board-shell implementation composed from the extracted legacy-facing subsystem seams
 provider:
   name: local
 
@@ -15,7 +15,6 @@ filesets:
       - dune-daq:daphne:legacy-analog-control-plane-bridge:0.1.0
       - dune-daq:daphne:legacy-selftrigger-plane-bridge:0.1.0
     files:
-      - rtl/isolated/tops/legacy_public_top_bridge.vhd
       - rtl/isolated/tops/k26c_board_shell.vhd
     file_type: vhdlSource
 
