@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 
 library work;
 use work.daphne_package.all;
+use work.daphne_subsystem_pkg.all;
 
 entity k26c_board_selftrigger_plane is
 port(
@@ -137,6 +138,33 @@ architecture rtl of k26c_board_selftrigger_plane is
   signal out_buff_data_reg:  array_2x64_type;
   signal valid_debug_reg:    std_logic_vector(1 downto 0);
   signal last_debug_reg:     std_logic_vector(1 downto 0);
+  signal threshold_xc:       slv28_array_t(0 to 39);
+  signal TCount:             slv64_array_t(0 to 39);
+  signal PCount:             slv64_array_t(0 to 39);
+  signal record_count:       slv64_array_t(0 to 39);
+  signal full_count:         slv64_array_t(0 to 39);
+  signal busy_count:         slv64_array_t(0 to 39);
+  signal trigger_samples:    sample14_array_t(0 to 39);
+  signal trigger_control:    trigger_xcorr_control_array_t(0 to 39);
+  signal trigger_result:     trigger_xcorr_result_array_t(0 to 39);
+  signal config_valid:       std_logic_vector(4 downto 0) := (others => '0');
+  signal config_cmd:         afe_config_command_bank_t(0 to 4) := (others => AFE_CONFIG_COMMAND_NULL);
+  signal config_status:      afe_config_status_bank_t(0 to 4);
+  signal afe_miso:           std_logic_vector(4 downto 0) := (others => '0');
+  signal afe_sclk:           std_logic_vector(4 downto 0);
+  signal afe_sen:            std_logic_vector(4 downto 0);
+  signal afe_mosi:           std_logic_vector(4 downto 0);
+  signal trim_sclk:          std_logic_vector(4 downto 0);
+  signal trim_mosi:          std_logic_vector(4 downto 0);
+  signal trim_ldac_n:        std_logic_vector(4 downto 0);
+  signal trim_sync_n:        std_logic_vector(4 downto 0);
+  signal offset_sclk:        std_logic_vector(4 downto 0);
+  signal offset_mosi:        std_logic_vector(4 downto 0);
+  signal offset_ldac_n:      std_logic_vector(4 downto 0);
+  signal offset_sync_n:      std_logic_vector(4 downto 0);
+  signal ready:              std_logic_array_t(0 to 39);
+  signal rd_en:              std_logic_array_t(0 to 39);
+  signal fabric_dout:        slv72_array_t(0 to 39);
 begin
   core_axi_awaddr     <= trirg_s_axi_awaddr;
   core_axi_awprot     <= trirg_s_axi_awprot;
@@ -204,74 +232,180 @@ begin
   outbuff_s_axi_rresp   <= outbuff_axi_out.RRESP;
   outbuff_s_axi_rvalid  <= outbuff_axi_out.RVALID;
 
-  selftrigger_core_inst : entity work.legacy_selftrigger_core_bridge
+  gen_legacy_monitor_outputs : for idx in 0 to 39 generate
+  begin
+    st_trigger_signal(idx) <= trigger_result(idx).trigger_pulse;
+  end generate gen_legacy_monitor_outputs;
+
+  frontend_adapter_inst : entity work.frontend_to_selftrigger_adapter
+    generic map (
+      AFE_COUNT_G => 5
+    )
     port map(
-      version                => version(3 downto 0),
-      filter_output_selector => filter_output_selector,
-      afe_comp_enable        => afe_comp_enable,
-      invert_enable          => invert_enable,
-      st_config              => st_config,
-      signal_delay           => signal_delay,
-      clock                  => clock,
-      reset                  => reset,
-      reset_st_counters      => reset_st_counters,
-      timestamp              => timestamp,
-      enable                 => enable,
-      forcetrig              => forcetrig,
-      st_trigger_signal      => st_trigger_signal,
-      adhoc                  => adhoc,
-      ti_trigger             => ti_trigger,
-      ti_trigger_stbr        => ti_trigger_stbr,
-      din                    => din_core,
-      dout                   => out_buff_data_reg,
-      afe_dat_filtered       => open,
-      AXI_IN                 => threshold_axi_in,
-      AXI_OUT                => threshold_axi_out,
-      valid                  => valid_debug_reg,
-      last                   => last_debug_reg
+      afe_dout_i        => din_core,
+      trigger_samples_o => trigger_samples
     );
 
-  selftrigger_output_inst : entity work.legacy_selftrigger_output_bridge
+  control_adapter_inst : entity work.legacy_trigger_control_adapter
+    generic map (
+      CHANNEL_COUNT_G => 40
+    )
     port map(
-      s_axi_aclk_i    => trirg_s_axi_aclk,
-      s_axi_aresetn_i => trirg_s_axi_aresetn,
-      s_axi_awaddr_i  => core_axi_awaddr,
-      s_axi_awprot_i  => core_axi_awprot,
-      s_axi_awvalid_i => core_axi_awvalid,
-      s_axi_awready_o => core_axi_awready,
-      s_axi_wdata_i   => core_axi_wdata,
-      s_axi_wstrb_i   => core_axi_wstrb,
-      s_axi_wvalid_i  => core_axi_wvalid,
-      s_axi_wready_o  => core_axi_wready,
-      s_axi_bresp_o   => core_axi_bresp,
-      s_axi_bvalid_o  => core_axi_bvalid,
-      s_axi_bready_i  => core_axi_bready,
-      s_axi_araddr_i  => core_axi_araddr,
-      s_axi_arprot_i  => core_axi_arprot,
-      s_axi_arvalid_i => core_axi_arvalid,
-      s_axi_arready_o => core_axi_arready,
-      s_axi_rdata_o   => core_axi_rdata,
-      s_axi_rresp_o   => core_axi_rresp,
-      s_axi_rvalid_o  => core_axi_rvalid,
-      s_axi_rready_i  => core_axi_rready,
-      eth_clk_p_i     => eth_clk_p,
-      eth_clk_n_i     => eth_clk_n,
-      eth0_rx_p_i     => eth0_rx_p,
-      eth0_rx_n_i     => eth0_rx_n,
-      eth0_tx_p_o     => eth0_tx_p,
-      eth0_tx_n_o     => eth0_tx_n,
-      eth0_tx_dis_o   => eth0_tx_dis,
-      clock_i         => clock,
-      reset_i         => reset,
-      data_i          => out_buff_data_reg,
-      valid_i         => valid_debug_reg,
-      last_i          => last_debug_reg,
-      timestamp_i     => timestamp,
-      outbuff_axi_in  => outbuff_axi_in,
-      outbuff_axi_out => outbuff_axi_out,
-      out_buff_data_o => out_buff_data,
-      out_buff_trig_o => out_buff_trig,
-      valid_debug_o   => valid_debug,
-      last_debug_o    => last_debug
+      core_chan_enable_i       => enable,
+      afe_comp_enable_i        => afe_comp_enable,
+      invert_enable_i          => invert_enable,
+      threshold_xc_i           => threshold_xc,
+      adhoc_i                  => adhoc,
+      filter_output_selector_i => filter_output_selector,
+      ti_trigger_i             => ti_trigger,
+      ti_trigger_stbr_i        => ti_trigger_stbr,
+      descriptor_config_i      => st_config,
+      signal_delay_i           => signal_delay,
+      reset_st_counters_i      => reset_st_counters,
+      trigger_control_o        => trigger_control,
+      descriptor_config_o      => open,
+      signal_delay_o           => open,
+      reset_st_counters_o      => open
     );
+
+  daphne_composable_core_top_inst : entity work.daphne_composable_core_top
+    generic map (
+      AFE_COUNT_G          => 5,
+      ENABLE_SELFTRIGGER_G => true,
+      ENABLE_TIMING_G      => false,
+      ENABLE_HERMES_G      => false
+    )
+    port map (
+      clock_i                   => clock,
+      reset_i                   => reset,
+      timing_clk_axi_i          => clock,
+      timing_resetn_axi_i       => not reset,
+      timing_ctrl_i             => TIMING_CONTROL_NULL,
+      timing_stat_o             => open,
+      timing_timestamp_o        => open,
+      timing_sync_o             => open,
+      timing_sync_stb_o         => open,
+      hermes_descriptor_i       => TRIGGER_DESCRIPTOR_NULL,
+      hermes_descriptor_taken_o => open,
+      hermes_stat_o             => open,
+      config_valid_i            => config_valid,
+      config_cmd_i              => config_cmd,
+      config_status_o           => config_status,
+      afe_miso_i                => afe_miso,
+      afe_sclk_o                => afe_sclk,
+      afe_sen_o                 => afe_sen,
+      afe_mosi_o                => afe_mosi,
+      trim_sclk_o               => trim_sclk,
+      trim_mosi_o               => trim_mosi,
+      trim_ldac_n_o             => trim_ldac_n,
+      trim_sync_n_o             => trim_sync_n,
+      offset_sclk_o             => offset_sclk,
+      offset_mosi_o             => offset_mosi,
+      offset_ldac_n_o           => offset_ldac_n,
+      offset_sync_n_o           => offset_sync_n,
+      reset_st_counters_i       => reset_st_counters,
+      force_trigger_i           => forcetrig,
+      timestamp_i               => timestamp,
+      version_i                 => version(3 downto 0),
+      signal_delay_i            => signal_delay,
+      descriptor_config_i       => st_config,
+      din_i                     => trigger_samples,
+      trigger_control_i         => trigger_control,
+      rd_en_i                   => rd_en,
+      trigger_result_o          => trigger_result,
+      descriptor_result_o       => open,
+      record_count_o            => record_count,
+      full_count_o              => full_count,
+      busy_count_o              => busy_count,
+      trigger_count_o           => TCount,
+      packet_count_o            => PCount,
+      delayed_sample_o          => open,
+      ready_o                   => ready,
+      dout_o                    => fabric_dout
+    );
+
+  legacy_two_lane_readout_mux_inst : entity work.legacy_two_lane_readout_mux
+    port map (
+      clock_i => clock,
+      reset_i => reset,
+      ready_i => ready,
+      dout_i  => fabric_dout,
+      rd_en_o => rd_en,
+      dout_o  => out_buff_data_reg,
+      valid_o => valid_debug_reg,
+      last_o  => last_debug_reg
+    );
+
+  legacy_selftrigger_register_bank_inst : entity work.legacy_selftrigger_register_bank
+    port map (
+      AXI_IN         => threshold_axi_in,
+      AXI_OUT        => threshold_axi_out,
+      threshold_xc_o => threshold_xc,
+      record_count_i => record_count,
+      full_count_i   => full_count,
+      busy_count_i   => busy_count,
+      tcount_i       => TCount,
+      pcount_i       => PCount
+    );
+
+  daphne_top_inst : entity work.daphne_top
+    port map(
+      S_AXI_ACLK    => trirg_s_axi_aclk,
+      S_AXI_ARESETN => trirg_s_axi_aresetn,
+      S_AXI_AWADDR  => core_axi_awaddr(15 downto 0),
+      S_AXI_AWPROT  => core_axi_awprot,
+      S_AXI_AWVALID => core_axi_awvalid,
+      S_AXI_AWREADY => core_axi_awready,
+      S_AXI_WDATA   => core_axi_wdata,
+      S_AXI_WSTRB   => core_axi_wstrb,
+      S_AXI_WVALID  => core_axi_wvalid,
+      S_AXI_WREADY  => core_axi_wready,
+      S_AXI_BRESP   => core_axi_bresp,
+      S_AXI_BVALID  => core_axi_bvalid,
+      S_AXI_BREADY  => core_axi_bready,
+      S_AXI_ARADDR  => core_axi_araddr(15 downto 0),
+      S_AXI_ARPROT  => core_axi_arprot,
+      S_AXI_ARVALID => core_axi_arvalid,
+      S_AXI_ARREADY => core_axi_arready,
+      S_AXI_RDATA   => core_axi_rdata,
+      S_AXI_RRESP   => core_axi_rresp,
+      S_AXI_RVALID  => core_axi_rvalid,
+      S_AXI_RREADY  => core_axi_rready,
+      eth_rx_p      => eth0_rx_p,
+      eth_rx_n      => eth0_rx_n,
+      eth_tx_p      => eth0_tx_p,
+      eth_tx_n      => eth0_tx_n,
+      eth_tx_dis    => eth0_tx_dis,
+      eth_clk_p     => eth_clk_p,
+      eth_clk_n     => eth_clk_n,
+      dune_base_clk => clock,
+      dune_base_rst => reset,
+      data_clk      => clock,
+      data_clk_rst  => reset,
+      d0            => out_buff_data_reg(0),
+      d0_valid      => valid_debug_reg(0),
+      d0_last       => last_debug_reg(0),
+      d1            => out_buff_data_reg(1),
+      d1_valid      => valid_debug_reg(1),
+      d1_last       => last_debug_reg(1),
+      ts            => timestamp,
+      ext_mac_addr  => DEFAULT_ext_mac_addr_0,
+      ext_ip_addr   => DEFAULT_ext_ip_addr_0,
+      ext_port_addr => DEFAULT_ext_port_addr_0
+    );
+
+  outbuff_inst : entity work.outspybuff
+    port map(
+      clock   => clock,
+      din     => out_buff_data_reg,
+      valid   => valid_debug_reg,
+      last    => last_debug_reg,
+      AXI_IN  => outbuff_axi_in,
+      AXI_OUT => outbuff_axi_out
+    );
+
+  out_buff_data <= out_buff_data_reg(0);
+  out_buff_trig <= valid_debug_reg(0) or valid_debug_reg(1);
+  valid_debug   <= valid_debug_reg(0);
+  last_debug    <= last_debug_reg(0);
 end architecture rtl;

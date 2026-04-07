@@ -68,25 +68,35 @@ begin
     afe_dat_filtered(idx)  <= trigger_result(idx).monitor_sample;
   end generate gen_legacy_monitor_outputs;
 
-  legacy_selftrigger_inputs_bridge_inst : entity work.legacy_selftrigger_inputs_bridge
+  frontend_adapter_inst : entity work.frontend_to_selftrigger_adapter
+    generic map (
+      AFE_COUNT_G => 5
+    )
     port map (
-      afe_dout_i                => din,
-      core_chan_enable_i        => enable,
-      afe_comp_enable_i         => afe_comp_enable,
-      invert_enable_i           => invert_enable,
-      threshold_xc_i            => threshold_xc,
-      adhoc_i                   => adhoc,
-      filter_output_selector_i  => filter_output_selector,
-      ti_trigger_i              => ti_trigger,
-      ti_trigger_stbr_i         => ti_trigger_stbr,
-      descriptor_config_i       => st_config,
-      signal_delay_i            => signal_delay,
-      reset_st_counters_i       => reset_st_counters,
-      trigger_samples_o         => trigger_samples,
-      trigger_control_o         => trigger_control,
-      descriptor_config_o       => open,
-      signal_delay_o            => open,
-      reset_st_counters_o       => open
+      afe_dout_i        => din,
+      trigger_samples_o => trigger_samples
+    );
+
+  control_adapter_inst : entity work.legacy_trigger_control_adapter
+    generic map (
+      CHANNEL_COUNT_G => 40
+    )
+    port map (
+      core_chan_enable_i       => enable,
+      afe_comp_enable_i        => afe_comp_enable,
+      invert_enable_i          => invert_enable,
+      threshold_xc_i           => threshold_xc,
+      adhoc_i                  => adhoc,
+      filter_output_selector_i => filter_output_selector,
+      ti_trigger_i             => ti_trigger,
+      ti_trigger_stbr_i        => ti_trigger_stbr,
+      descriptor_config_i      => st_config,
+      signal_delay_i           => signal_delay,
+      reset_st_counters_i      => reset_st_counters,
+      trigger_control_o        => trigger_control,
+      descriptor_config_o      => open,
+      signal_delay_o           => open,
+      reset_st_counters_o      => open
     );
 
   daphne_composable_core_top_inst : entity work.daphne_composable_core_top
