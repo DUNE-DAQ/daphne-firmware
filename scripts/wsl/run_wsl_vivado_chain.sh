@@ -1,5 +1,5 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
@@ -64,26 +64,25 @@ echo "INFO: WSL Vivado chain"
 echo "INFO: branch=$branch_name commit=$commit_sha board=$BOARD eth_mode=$ETH_MODE"
 echo "INFO: logs will be written under $RUN_DIR"
 
-(
-  cd "$ROOT_DIR"
-  ./scripts/wsl/check_windows_xilinx.sh
-) 2>&1 | tee "$RUN_DIR/toolcheck.log"
+run_stage() {
+  stage_name="$1"
+  log_path="$2"
+  shift 2
 
-(
-  cd "$ROOT_DIR"
-  ./scripts/fusesoc/preflight_vivado_build.sh
-) 2>&1 | tee "$RUN_DIR/preflight.log"
-
-(
-  cd "$ROOT_DIR"
-  ./scripts/fusesoc/run_vivado_batch.sh
-) 2>&1 | tee "$RUN_DIR/build.log"
-
-if [ "$PACKAGE_DTBO" = "1" ]; then
   (
     cd "$ROOT_DIR"
-    ./scripts/package/complete_dtbo_bundle.sh "$OUTPUT_DIR"
-  ) 2>&1 | tee "$RUN_DIR/package.log"
+    "$@"
+  ) 2>&1 | tee "$log_path"
+}
+
+run_stage toolcheck "$RUN_DIR/toolcheck.log" ./scripts/wsl/check_windows_xilinx.sh
+
+run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
+
+run_stage build "$RUN_DIR/build.log" ./scripts/fusesoc/run_vivado_batch.sh
+
+if [ "$PACKAGE_DTBO" = "1" ]; then
+  run_stage package "$RUN_DIR/package.log" ./scripts/package/complete_dtbo_bundle.sh "$OUTPUT_DIR"
 fi
 
 {

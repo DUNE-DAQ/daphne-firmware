@@ -99,6 +99,11 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      identity without rewriting the script. Source discovery is still centered
      on the imported legacy tree, so this is scaffolding, not the final
      composable implementation path.
+   - The repo now also has `synth_public_top_ooc` on
+     `k26c-composable-platform`, which stages the real `daphne_composable_top`
+     source graph through FuseSoC and runs Vivado out-of-context synthesis.
+     This is the first honest Vivado checkpoint for the public composable top,
+     but it is still not the board-level implementation target.
 
 ## Trigger and descriptor split
 
