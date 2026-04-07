@@ -64,6 +64,8 @@ flowchart TD
   STD --> DP[daphne_composable_core_top]
   HER --> HT[daphne_top / Hermes transport]
   OBT --> SB[outspybuff]
+  SP --> SPT[k26c-board-spy-trigger-plane]
+  SP --> SPB[k26c-board-spy-buffer-plane]
   AN --> CC[config-control]
   CC --> SRB[stuff-selftrigger-register-bank]
 ```
@@ -75,12 +77,15 @@ This is the important current milestone:
   AFE/DAC/control endpoints
 - `k26c_board_shell` instantiates only explicit board-plane entities
 - `k26c_board_frontend_plane` still instantiates only `frontend_island`
-- `k26c_board_spy_capture_plane` still instantiates only `spy_buffer_boundary`
-  plus the live `spybuffers`
 - `k26c_board_selftrigger_plane` now instantiates only explicit datapath and
   transport subplanes
 - `k26c_board_transport_plane` now instantiates only explicit Hermes and
   outbuffer subplanes
+- `k26c_board_spy_trigger_plane` remains self-contained and board-local
+- `k26c_board_spy_buffer_plane` still instantiates only `spy_buffer_boundary`
+  plus the live `spybuffers`
+- `k26c_board_spy_capture_plane` now instantiates only explicit spy-trigger
+  and spy-buffer subplanes
 - `k26c_board_timing_plane` still instantiates only the imported `endpoint`
 - the active `impl` graph stages with zero `legacy-*` core names
 - the board timing-path defaults now cover both the native board-shell
@@ -112,10 +117,6 @@ That script:
   `frontend-island`
 - checks that `k26c_board_frontend_plane.vhd` instantiates only
   `frontend_island`
-- checks that `k26c-board-spy-capture-plane.core` depends only on
-  `spy-buffer-boundary` plus the live `spy-buffer`
-- checks that `k26c_board_spy_capture_plane.vhd` instantiates only
-  `spy_buffer_boundary` and `spybuffers`
 - checks that `k26c-board-selftrigger-plane.core` depends only on the explicit
   datapath and transport subplanes
 - checks that `k26c_board_selftrigger_plane.vhd` instantiates only those
@@ -123,6 +124,17 @@ That script:
 - checks that `k26c-board-transport-plane.core` depends only on the explicit
   Hermes and outbuffer subplanes
 - checks that `k26c_board_transport_plane.vhd` instantiates only those
+  subplanes
+- checks that `k26c-board-spy-trigger-plane.core` remains dependency-free
+- checks that `k26c_board_spy_trigger_plane.vhd` remains self-contained and
+  board-local
+- checks that `k26c-board-spy-buffer-plane.core` depends only on the explicit
+  spy boundary plus the live `spy-buffer`
+- checks that `k26c_board_spy_buffer_plane.vhd` instantiates only
+  `spy_buffer_boundary` and `spybuffers`
+- checks that `k26c-board-spy-capture-plane.core` depends only on the explicit
+  spy-trigger and spy-buffer subplanes
+- checks that `k26c_board_spy_capture_plane.vhd` instantiates only those
   subplanes
 - checks that `k26c-board-timing-plane.core` depends only on the imported
   `timing-endpoint`

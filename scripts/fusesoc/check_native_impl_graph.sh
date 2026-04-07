@@ -39,6 +39,8 @@ sh "$ROOT_DIR/scripts/fusesoc/check_board_timing_path_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_frontend_plane_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_selftrigger_plane_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_transport_plane_contract.sh" >/dev/null
+sh "$ROOT_DIR/scripts/fusesoc/check_spy_trigger_plane_contract.sh" >/dev/null
+sh "$ROOT_DIR/scripts/fusesoc/check_spy_buffer_plane_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_spy_capture_plane_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_timing_plane_contract.sh" >/dev/null
 ./scripts/fusesoc/fusesoc.sh run \
@@ -92,6 +94,8 @@ echo "INFO: Board timing-path defaults still cover both native and packaged-IP h
 echo "INFO: Frontend plane remains limited to a single frontend-island boundary."
 echo "INFO: Self-trigger plane remains limited to explicit datapath and transport subplanes."
 echo "INFO: Transport plane remains limited to explicit Hermes and outbuffer subplanes."
-echo "INFO: Spy-capture plane remains limited to the spy boundary and live spy buffer."
+echo "INFO: Spy-trigger plane remains self-contained and board-local."
+echo "INFO: Spy-buffer plane remains limited to the spy boundary and live spy buffer."
+echo "INFO: Spy-capture plane remains limited to explicit spy-trigger and spy-buffer subplanes."
 echo "INFO: Timing plane remains limited to a single endpoint boundary."
 echo "INFO: EDA description: $EDA_YML"

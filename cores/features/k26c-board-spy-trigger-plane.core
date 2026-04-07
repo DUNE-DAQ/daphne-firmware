@@ -1,0 +1,17 @@
+CAPI=2:
+
+name: dune-daq:daphne:k26c-board-spy-trigger-plane:0.1.0
+description: K26C board-local spy-trigger composition plane
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - rtl/isolated/subsystems/spy/k26c_board_spy_trigger_plane.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

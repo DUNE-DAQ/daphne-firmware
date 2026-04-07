@@ -44,7 +44,9 @@ filesets:
       - dune-daq:daphne:hermes-boundary:0.1.0
       - dune-daq:daphne:hermes-transport:0.1.0
       - dune-daq:daphne:k26c-board-frontend-plane:0.1.0
+      - dune-daq:daphne:k26c-board-spy-buffer-plane:0.1.0
       - dune-daq:daphne:k26c-board-spy-capture-plane:0.1.0
+      - dune-daq:daphne:k26c-board-spy-trigger-plane:0.1.0
       - dune-daq:daphne:k26c-board-timing-plane:0.1.0
       - dune-daq:daphne:k26c-board-analog-control-plane:0.1.0
       - dune-daq:daphne:k26c-board-selftrigger-plane:0.1.0
