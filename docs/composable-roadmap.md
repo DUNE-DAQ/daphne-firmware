@@ -117,9 +117,6 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      directly through the Vivado Flow API and exports the same
      `daphne_selftrigger_<gitsha>` artifact contract. This is the current
      default composable build entrypoint.
-   - The older `impl_legacy_flow` name is now only a compatibility alias for
-     that same native board-shell `impl` target. The composable platform no
-     longer carries a separate BD-wrapper implementation lane.
    - The native board-shell synth/impl path now resolves through an
      explicit `k26c-board-shell` feature core and the extracted bridge graph
      rather than the generated `daphne-ip` source manifest. The generated

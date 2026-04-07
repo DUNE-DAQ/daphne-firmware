@@ -101,6 +101,10 @@ if [ -z "$BUILD_TARGET" ]; then
   esac
 fi
 
+if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && [ "$BUILD_TARGET" = "impl_legacy_flow" ]; then
+  BUILD_TARGET="impl"
+fi
+
 cd "$ROOT_DIR"
 "$ROOT_DIR/scripts/fusesoc/refresh_cores.sh" >/dev/null
 "$ROOT_DIR/scripts/fusesoc/fusesoc.sh" core-info "$PLATFORM_CORE" >/dev/null

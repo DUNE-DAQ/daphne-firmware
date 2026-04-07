@@ -105,15 +105,6 @@ If you want the wrapper to use the composable platform instead, set
 wrapper will then default to `DAPHNE_PLATFORM_TARGET=impl`, which now drives
 the native board-shell Flow API path.
 
-The older target name remains accepted as a compatibility alias:
-
-```bash
-./scripts/fusesoc/build_platform.sh --composable --target impl_legacy_flow
-```
-
-It now resolves to the same native board-shell Flow API implementation as
-`impl`, so the composable platform carries only one board implementation lane.
-
 The composable platform now also exposes `impl` as its default implementation
 target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
 target automatically. Today `impl` is the native board-shell Flow API
@@ -355,8 +346,7 @@ recorded in `docs/source-audit.md`.
   wrapper for the finer-grained subsystem graph. It now exposes a GHDL-backed
   `validate` target so the isolated shell can be compiled and smoke-tested
   without Vivado. It also now exposes `impl`, the native board-shell
-  Flow API implementation target, with `impl_legacy_flow` retained only as a
-  compatibility alias, plus
+  Flow API implementation target, plus
   `synth_public_top_flow`, the first Flow API Vivado synth target for the
   public composable top.
 - `scripts/fusesoc/build_platform.sh --composable` now defaults to `impl` for

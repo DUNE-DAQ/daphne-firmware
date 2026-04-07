@@ -119,19 +119,6 @@ targets:
     description: Platform manifest for the composable K26C subsystem graph and top shells
     filesets:
       - platform
-  impl_legacy_flow:
-    description: Compatibility alias for impl; retained for older automation while the native board-shell Flow API path remains the single composable implementation lane
-    flow: vivado
-    toplevel: k26c_board_shell
-    filesets:
-      - impl_board_shell_flow_rtl
-    hooks:
-      post_build:
-        - export_impl_bundle
-    flow_options:
-      part: xck26-sfvc784-2LV-c
-      board_part: xilinx.com:k26c:part0:1.4
-      source_mgmt_mode: None
   impl:
     description: Default composable platform implementation target, now backed by the native board-shell Flow API path
     flow: vivado

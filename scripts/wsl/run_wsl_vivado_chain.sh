@@ -34,12 +34,15 @@ export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
 if [ -z "$PLATFORM_TARGET" ] && [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ]; then
   PLATFORM_TARGET="impl"
 fi
+if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && [ "$PLATFORM_TARGET" = "impl_legacy_flow" ]; then
+  PLATFORM_TARGET="impl"
+fi
 if [ -n "$PLATFORM_TARGET" ]; then
   export DAPHNE_PLATFORM_TARGET="$PLATFORM_TARGET"
 fi
 
 FLOW_EXPORTED_IMPL=0
-if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && { [ "$PLATFORM_TARGET" = "impl" ] || [ "$PLATFORM_TARGET" = "impl_legacy_flow" ]; }; then
+if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && [ "$PLATFORM_TARGET" = "impl" ]; then
   FLOW_EXPORTED_IMPL=1
 fi
 
