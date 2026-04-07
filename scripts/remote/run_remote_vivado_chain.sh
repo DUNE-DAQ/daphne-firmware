@@ -56,11 +56,6 @@ if [ -n "$PLATFORM_TARGET" ]; then
   export DAPHNE_PLATFORM_TARGET="$PLATFORM_TARGET"
 fi
 
-FLOW_OWNED_LEGACY_IMPL=0
-if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && [ "$PLATFORM_TARGET" = "impl_legacy_flow" ]; then
-  FLOW_OWNED_LEGACY_IMPL=1
-fi
-
 FLOW_EXPORTED_IMPL=0
 if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && { [ "$PLATFORM_TARGET" = "impl" ] || [ "$PLATFORM_TARGET" = "impl_legacy_flow" ]; }; then
   FLOW_EXPORTED_IMPL=1
@@ -102,7 +97,6 @@ FLOW_WORK_DIR="$ROOT_DIR/build/$(daphne_platform_core_build_slug "$PLATFORM_CORE
   echo "eth_mode=$ETH_MODE"
   echo "platform_core=$PLATFORM_CORE"
   echo "platform_target=$PLATFORM_TARGET"
-  echo "flow_owned_legacy_impl=$FLOW_OWNED_LEGACY_IMPL"
   echo "flow_exported_impl=$FLOW_EXPORTED_IMPL"
   echo "root_dir=$ROOT_DIR"
   echo "log_dir=$RUN_DIR"
@@ -129,11 +123,7 @@ run_stage() {
   ) 2>&1 | tee "$log_path"
 }
 
-if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
-  printf '%s\n' "INFO: Skipping standalone preflight; impl_legacy_flow performs legacy BD/IP preflight inside the Flow API project." | tee "$RUN_DIR/preflight.log"
-else
-  run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
-fi
+run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
 
 run_stage build "$RUN_DIR/build.log" ./scripts/fusesoc/run_vivado_batch.sh
 

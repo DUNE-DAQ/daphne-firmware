@@ -36,7 +36,6 @@ filesets:
       - scripts/package/complete_dtbo_bundle.sh
       - scripts/fusesoc/vivado_composable_ooc_hook.sh
       - scripts/fusesoc/export_impl_bundle_hook.sh
-      - scripts/fusesoc/export_impl_legacy_flow_hook.sh
       - scripts/wsl/run_windows_batch_tool.sh
       - scripts/wsl/setup_windows_xilinx.sh
     file_type: user
@@ -76,32 +75,6 @@ filesets:
       - xilinx/daphne_selftrigger_pin_map.xdc
       - xilinx/afe_capture_timing.xdc
     file_type: user
-  legacy_flow_support:
-    depend:
-      - dune-daq:daphne:k26c-board-shell:0.1.0
-    files:
-      - boards/k26c/board.yml
-      - boards/k26c/bd_shell.tcl
-      - Memory_Map.md
-      - petalinux/README.md
-      - petalinux/daphne-server-deps.lock.cmake
-      - petalinux/toolchains/aarch64-petalinux.cmake
-      - xilinx/daphne_board_env.tcl
-      - xilinx/daphne_bd_gen.tcl
-      - xilinx/daphne_export_flow_handoff.tcl
-      - xilinx/daphne_dtbo_gen.tcl
-      - xilinx/daphne_ip_gen.tcl
-      - xilinx/legacy_flow_support_sources.txt
-      - xilinx/daphne_selftrigger_pin_map.xdc
-      - xilinx/afe_capture_timing.xdc
-      - xilinx/daphne_vivado_flow.tcl
-      - xilinx/daphne_xgui_gen.tcl
-      - xilinx/scripts/axi_quad_spi_dtbo_patch.sed
-    file_type: user
-  legacy_flow_entry:
-    files:
-      - xilinx/daphne_legacy_flow_entry.tcl
-    file_type: tclSource
   validate_rtl:
     depend:
       - dune-daq:daphne:daphne-composable-core-top-selftrigger-off:0.1.0
@@ -140,12 +113,6 @@ scripts:
       - src/dune-daq_daphne_k26c-composable-platform_0.1.0/scripts/fusesoc/export_impl_bundle_hook.sh
     filesets:
       - hooks
-  export_impl_legacy_flow:
-    cmd:
-      - sh
-      - src/dune-daq_daphne_k26c-composable-platform_0.1.0/scripts/fusesoc/export_impl_legacy_flow_hook.sh
-    filesets:
-      - hooks
 
 targets:
   default:
@@ -153,12 +120,11 @@ targets:
     filesets:
       - platform
   impl_legacy_flow:
-    description: First board-level Edalize flow-API target for the composable platform, still generating the qualified legacy K26C block design through a sourced Tcl bridge
+    description: Compatibility alias for impl; retained for older automation while the native board-shell Flow API path remains the single composable implementation lane
     flow: vivado
-    toplevel: daphne_selftrigger_bd_wrapper
+    toplevel: legacy_public_top_bridge
     filesets:
-      - legacy_flow_support
-      - legacy_flow_entry
+      - impl_board_shell_flow_rtl
     hooks:
       post_build:
         - export_impl_bundle

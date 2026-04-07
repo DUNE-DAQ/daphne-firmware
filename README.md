@@ -105,27 +105,22 @@ If you want the wrapper to use the composable platform instead, set
 wrapper will then default to `DAPHNE_PLATFORM_TARGET=impl`, which now drives
 the native packaged board-shell Flow API path.
 
-The composable platform still keeps the transitional legacy block-design bridge
-available:
+The older target name remains accepted as a compatibility alias:
 
 ```bash
 ./scripts/fusesoc/build_platform.sh --composable --target impl_legacy_flow
 ```
 
-That target still generates the qualified legacy K26C block design and wrapper
-through a `tclSource` preamble sourced by Edalize's Vivado Flow API. It remains
-the fallback path when the native board-shell implementation needs to be
-compared against the older BD-wrapper flow.
+It now resolves to the same native board-shell Flow API implementation as
+`impl`, so the composable platform carries only one board implementation lane.
 
 The composable platform now also exposes `impl` as its default implementation
 target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
 target automatically. Today `impl` is the native packaged board-shell Flow API
-path (`legacy_public_top_bridge`) while `impl_legacy_flow` remains available as
-the fallback BD-wrapper bridge. The native board-shell path now resolves
+path (`legacy_public_top_bridge`). The native board-shell path now resolves
 through an explicit `k26c-board-shell` feature core instead of the generated
 `daphne-ip` manifest, so the board implementation is materially more
-FuseSoC-owned even though the packaged-IP/export lane still exists for the
-legacy build path. The older `legacy-public-top-bridge` core name remains as a
+FuseSoC-owned. The older `legacy-public-top-bridge` core name remains as a
 compatibility alias while the RTL entity name is still converging.
 
 The IP packaging Tcl also now accepts top-identity overrides
@@ -360,17 +355,17 @@ recorded in `docs/source-audit.md`.
 - `cores/platform/k26c-composable-platform.core` is the composable platform
   wrapper for the finer-grained subsystem graph. It now exposes a GHDL-backed
   `validate` target so the isolated shell can be compiled and smoke-tested
-  without Vivado. It also now exposes `impl_legacy_flow`, the board-level Flow
-  API target for the qualified legacy/generated K26C design, `impl`, the
-  native packaged board-shell Flow API implementation target, plus
+  without Vivado. It also now exposes `impl`, the native packaged board-shell
+  Flow API implementation target, with `impl_legacy_flow` retained only as a
+  compatibility alias, plus
   `synth_public_top_flow`, the first Flow API Vivado synth target for the
   public composable top.
 - `scripts/fusesoc/build_platform.sh --composable` now defaults to `impl` for
-  the composable platform. Use `--composable --target impl_legacy_flow` when
-  you want the fallback BD-wrapper Flow API checkpoint for the qualified
-  legacy/generated K26C design, or `--composable --target synth_public_top_flow`
-  when you want the Flow-API Vivado synthesis checkpoint for the public
-  composable top.
+  the composable platform. The older
+  `--composable --target impl_legacy_flow` spelling now resolves to the same
+  native `impl` path. Use `--composable --target synth_public_top_flow` when
+  you want the Flow-API Vivado synthesis checkpoint for the public composable
+  top.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache
   directories so the workflow does not depend on global user configuration.
 - `scripts/fusesoc/run_logic_test.sh` now exercises the module-level smoke

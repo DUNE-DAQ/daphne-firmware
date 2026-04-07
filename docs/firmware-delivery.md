@@ -43,10 +43,9 @@ directory, use:
 ./scripts/package/export_impl_bundle.sh
 ```
 
-If you intentionally build through `impl_legacy_flow`, the compatibility
-wrapper `./scripts/package/export_impl_legacy_flow_bundle.sh` remains
-available and defaults `DAPHNE_PLATFORM_TARGET=impl_legacy_flow` before
-delegating to the generic helper.
+The compatibility wrapper `./scripts/package/export_impl_legacy_flow_bundle.sh`
+remains available for older automation and now defaults
+`DAPHNE_PLATFORM_TARGET=impl` before delegating to the generic helper.
 
 ## Current repo-local packaging step
 
