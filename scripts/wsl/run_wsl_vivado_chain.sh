@@ -16,9 +16,11 @@ daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 DEFAULT_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" platform_core)"
 DEFAULT_COMPOSABLE_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
 DEFAULT_PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
+DEFAULT_PLATFORM_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$DEFAULT_PLATFORM_CORE")"
 : "${DEFAULT_CORE:=dune-daq:daphne:k26c-platform:0.1.0}"
 : "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
 : "${DEFAULT_PLATFORM_CORE:=$DEFAULT_COMPOSABLE_CORE}"
+: "${DEFAULT_PLATFORM_TARGET:=impl}"
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_PLATFORM_CORE}"
 PREFLIGHT_REQUIRED=1
 
@@ -38,15 +40,15 @@ export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_GIT_SHA="${DAPHNE_GIT_SHA:-$commit_sha}"
 export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
 
-if [ -z "$PLATFORM_TARGET" ] && [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ]; then
-  PLATFORM_TARGET="impl"
+if [ -z "$PLATFORM_TARGET" ]; then
+  PLATFORM_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE")"
 fi
 if [ -n "$PLATFORM_TARGET" ]; then
   export DAPHNE_PLATFORM_TARGET="$PLATFORM_TARGET"
 fi
 
 FLOW_EXPORTED_IMPL=0
-if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && [ "$PLATFORM_TARGET" = "impl" ]; then
+if daphne_platform_exports_flow_bundle "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE" "$PLATFORM_TARGET"; then
   FLOW_EXPORTED_IMPL=1
 fi
 

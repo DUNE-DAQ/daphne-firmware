@@ -26,11 +26,11 @@ fi
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
-TARGET_NAME="${DAPHNE_PLATFORM_TARGET:-impl}"
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
-DEFAULT_FLOW_PLATFORM_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
+DEFAULT_FLOW_PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
 : "${DEFAULT_FLOW_PLATFORM_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
+TARGET_NAME="${DAPHNE_PLATFORM_TARGET:-$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$DEFAULT_FLOW_PLATFORM_CORE")}"
 DEFAULT_FLOW_WORK_DIR="$ROOT_DIR/build/$(daphne_platform_core_build_slug "$DEFAULT_FLOW_PLATFORM_CORE")/$TARGET_NAME"
 FLOW_WORK_DIR_INPUT="${1:-$DEFAULT_FLOW_WORK_DIR}"
 

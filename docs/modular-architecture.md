@@ -81,8 +81,9 @@ legacy generated manifest protects the current K26C delivery path from churn.
   prove cheaply during the migration.
 - `scripts/fusesoc/check_native_impl_graph.sh` stages the active
   `k26c-composable-platform` `impl` graph and fails if `legacy-*` core names
-  reappear or if the required frontend timing constraint set drops out of the
-  native path.
+  reappear, if the required frontend timing constraint set drops out of the
+  native path, or if `k26c_board_shell` stops being a strict board-plane
+  composition layer.
 
 ## What this does not do yet
 
@@ -110,4 +111,5 @@ k26c-composable-platform (impl)
    └─ k26c-board-spy-capture-plane
 ```
 
-That staged graph is now audited to stay free of `legacy-*` core names.
+That staged graph is now audited to stay free of `legacy-*` core names and to
+keep `k26c_board_shell` constrained to explicit board-plane ownership.

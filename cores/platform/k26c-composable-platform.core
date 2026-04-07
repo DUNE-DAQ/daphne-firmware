@@ -183,8 +183,6 @@ targets:
       board_part: xilinx.com:k26c:part0:1.4
       pnr: none
       source_mgmt_mode: None
-      pnr: none
-      source_mgmt_mode: None
   validate:
     description: GHDL validation of the vendor-free composable core shell behind the K26C platform graph
     default_tool: ghdl

@@ -10,6 +10,7 @@ platform_core: dune-daq:daphne:k26c-platform:0.1.0
 modular_platform_core: dune-daq:daphne:k26c-modular-platform:0.1.0
 composable_platform_core: dune-daq:daphne:k26c-composable-platform:0.1.0
 default_platform_core: dune-daq:daphne:k26c-composable-platform:0.1.0
+default_platform_target: impl
 composable_default_target: impl
 user_ip_vlnv: dune.pds:user:daphne_selftrigger_top:1.0
 bd_name: daphne_selftrigger_bd

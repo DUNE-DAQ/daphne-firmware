@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:k26c-board-shell:0.1.0
-description: K26C board-shell implementation composed from the extracted legacy-facing subsystem seams
+description: K26C board-shell implementation composed from explicit board-plane subsystems
 provider:
   name: local
 

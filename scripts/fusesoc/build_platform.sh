@@ -11,13 +11,13 @@ DEFAULT_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" platform_core)"
 DEFAULT_MODULAR_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" modular_platform_core)"
 DEFAULT_COMPOSABLE_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
 DEFAULT_PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
-DEFAULT_COMPOSABLE_TARGET="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_default_target)"
+DEFAULT_PLATFORM_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$DEFAULT_PLATFORM_CORE")"
 
 : "${DEFAULT_CORE:=dune-daq:daphne:k26c-platform:0.1.0}"
 : "${DEFAULT_MODULAR_CORE:=dune-daq:daphne:k26c-modular-platform:0.1.0}"
 : "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
 : "${DEFAULT_PLATFORM_CORE:=$DEFAULT_COMPOSABLE_CORE}"
-: "${DEFAULT_COMPOSABLE_TARGET:=impl}"
+: "${DEFAULT_PLATFORM_TARGET:=impl}"
 
 DRY_RUN=0
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_PLATFORM_CORE}"
@@ -98,18 +98,13 @@ case "$PLATFORM_CORE" in
 esac
 
 if [ -z "$BUILD_TARGET" ]; then
-  case "$PLATFORM_CORE" in
-    "$DEFAULT_COMPOSABLE_CORE")
-      BUILD_TARGET="$DEFAULT_COMPOSABLE_TARGET"
-      ;;
-    *)
-      BUILD_TARGET="impl"
-      ;;
-  esac
+  BUILD_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE")"
 fi
 
-if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && [ "$BUILD_TARGET" = "impl_legacy_flow" ]; then
-  BUILD_TARGET="impl"
+if [ "$PLATFORM_CORE" = "$DEFAULT_PLATFORM_CORE" ] && [ "$BUILD_TARGET" = "impl_legacy_flow" ]; then
+  echo "ERROR: target 'impl_legacy_flow' has been retired." >&2
+  echo "Use '--composable --target impl' for the native board-shell implementation path." >&2
+  exit 2
 fi
 
 cd "$ROOT_DIR"
@@ -137,8 +132,8 @@ if [ "$DRY_RUN" -eq 1 ]; then
   exit 0
 fi
 
-if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && \
-   [ "$BUILD_TARGET" = "impl" ] && \
+if [ "$PLATFORM_CORE" = "$DEFAULT_PLATFORM_CORE" ] && \
+   [ "$BUILD_TARGET" = "$DEFAULT_PLATFORM_TARGET" ] && \
    [ "$AUDIT_NATIVE_IMPL_GRAPH" != "0" ]; then
   echo "INFO: Auditing native impl graph before build."
   "$ROOT_DIR/scripts/fusesoc/check_native_impl_graph.sh"

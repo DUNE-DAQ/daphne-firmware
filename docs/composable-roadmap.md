@@ -46,7 +46,8 @@ The repo has now crossed the main structural integration threshold:
   API
 - the active `impl` graph is board-plane owned
 - `scripts/fusesoc/check_native_impl_graph.sh` now audits that staged graph for
-  `legacy-*` regressions and required frontend timing constraints
+  `legacy-*` regressions, required frontend timing constraints, and board-shell
+  plane ownership regressions
 
 That means the remaining work is no longer “make a real composable impl
 possible”; it is “prove, harden, and simplify the native path until the legacy
@@ -65,6 +66,8 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      board-plane or build-wrapper refactor.
    - Treat reintroduction of `legacy-*` core names into the active
      `k26c-composable-platform:impl` graph as a regression.
+   - Treat direct leaf ownership creeping back into `k26c_board_shell` as a
+     regression; it should stay a board-plane composition shell.
    - Keep the required constraint set present:
      `daphne_selftrigger_pin_map.xdc`, `afe_capture_timing.xdc`,
      `frontend_control_cdc.xdc`.
