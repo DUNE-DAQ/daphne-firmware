@@ -57,6 +57,10 @@ proc daphne_bd_intf_pin {cell_name pin_name} {
 proc daphne_bd_addr_seg {cell_name seg_name} {
     return [get_bd_addr_segs "${cell_name}/${seg_name}"]
 }
+
+proc daphne_bd_addr_seg_label {cell_name index} {
+    return "SEG_${cell_name}_reg0_${index}"
+}
 puts "INFO: Building block design for part <$daphne_fpga_part> board_part <$daphne_board_part> pfm <$daphne_pfm_name>."
 
 # make sure to add the new daphne_selftrigger_top IP before generating the Block Design
@@ -1428,14 +1432,14 @@ connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn1 [get_bd_pins zynq_ultra_ps_e_0/
 
 # create address segments
 assign_bd_address -offset 0x80000000 -range 0x04000000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name AFE_SPI_S_AXI/reg0] -force
-assign_bd_address -offset 0x84000000 -range 0x04000000 -with_name SEG_daphne_selftrigger_top_reg0_1 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name END_P_S_AXI/reg0] -force
-assign_bd_address -offset 0x88000000 -range 0x04000000 -with_name SEG_daphne_selftrigger_top_reg0_2 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name FRONT_END_S_AXI/reg0] -force
-assign_bd_address -offset 0xA0000000 -range 0x00010000 -with_name SEG_daphne_selftrigger_top_reg0_3 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name OUTBUFF_S_AXI/reg0] -force
-assign_bd_address -offset 0x8C000000 -range 0x04000000 -with_name SEG_daphne_selftrigger_top_reg0_4 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name SPI_DAC_S_AXI/reg0] -force
-assign_bd_address -offset 0x90000000 -range 0x04000000 -with_name SEG_daphne_selftrigger_top_reg0_5 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name SPY_BUF_S_S_AXI/reg0] -force
-assign_bd_address -offset 0x94000000 -range 0x04000000 -with_name SEG_daphne_selftrigger_top_reg0_6 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name STUFF_S_AXI/reg0] -force
-assign_bd_address -offset 0xA0010000 -range 0x00010000 -with_name SEG_daphne_selftrigger_top_reg0_7 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name THRESH_S_AXI/reg0] -force
-assign_bd_address -offset 0x98000000 -range 0x04000000 -with_name SEG_daphne_selftrigger_top_reg0_8 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name TRIRG_S_AXI/reg0] -force
+assign_bd_address -offset 0x84000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 1] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name END_P_S_AXI/reg0] -force
+assign_bd_address -offset 0x88000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 2] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name FRONT_END_S_AXI/reg0] -force
+assign_bd_address -offset 0xA0000000 -range 0x00010000 -with_name [daphne_bd_addr_seg_label $block_cell_name 3] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name OUTBUFF_S_AXI/reg0] -force
+assign_bd_address -offset 0x8C000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 4] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name SPI_DAC_S_AXI/reg0] -force
+assign_bd_address -offset 0x90000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 5] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name SPY_BUF_S_S_AXI/reg0] -force
+assign_bd_address -offset 0x94000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 6] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name STUFF_S_AXI/reg0] -force
+assign_bd_address -offset 0xA0010000 -range 0x00010000 -with_name [daphne_bd_addr_seg_label $block_cell_name 7] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name THRESH_S_AXI/reg0] -force
+assign_bd_address -offset 0x98000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 8] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name TRIRG_S_AXI/reg0] -force
 assign_bd_address -offset 0x9C000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_iic_0/S_AXI/Reg] -force
 assign_bd_address -offset 0x9C010000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_intc_0/S_AXI/Reg] -force
 assign_bd_address -offset 0x9C020000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_quad_spi_0/AXI_LITE/Reg] -force
