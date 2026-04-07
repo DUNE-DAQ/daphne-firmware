@@ -83,7 +83,7 @@ vivado -mode batch -source "$shim_tcl"
 ip_repo_root="$(resolve_ip_repo_root)"
 component_xml="$ip_repo_root/component.xml"
 eth_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
-cell_bind_root="${DAPHNE_IP_CELL_BIND_ROOT:-core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst}"
+cell_bind_root="${DAPHNE_IP_CELL_BIND_ROOT:-selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst}"
 eth_binding="CELL_NAME_${cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe"
 bram_binding="CELL_NAME_${cell_bind_root}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl"
 eth_xci_ref='src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci'
