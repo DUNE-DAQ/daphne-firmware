@@ -13,11 +13,16 @@ filesets:
       - rtl/isolated/common/primitives/fixed_delay_line.vhd
       - rtl/isolated/common/primitives/sync_fifo_fwft.vhd
       - rtl/isolated/subsystems/analog/legacy_analog_control_plane_bridge.vhd
+      - rtl/isolated/subsystems/analog/afe_config_slice.vhd
+      - rtl/isolated/subsystems/analog/afe_config_slice_boundary.vhd
+      - rtl/isolated/subsystems/analog/afe_analog_island.vhd
       - rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd
       - rtl/isolated/subsystems/control/legacy_stuff_selftrigger_register_bank.vhd
       - rtl/isolated/subsystems/control/legacy_trigger_control_adapter.vhd
       - rtl/isolated/subsystems/control/legacy_selftrigger_inputs_bridge.vhd
       - rtl/isolated/subsystems/control/legacy_selftrigger_fabric_bridge.vhd
+      - rtl/isolated/subsystems/afe/afe_subsystem_island.vhd
+      - rtl/isolated/subsystems/afe/afe_subsystem_fabric.vhd
       - rtl/isolated/subsystems/frontend/frontend_common.vhd
       - rtl/isolated/subsystems/frontend/afe_capture_slice.vhd
       - rtl/isolated/subsystems/frontend/frontend_capture_bank.vhd
@@ -33,8 +38,10 @@ filesets:
       - rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_two_lane_readout_mux.vhd
       - rtl/isolated/subsystems/spy/legacy_spy_capture_bridge.vhd
+      - rtl/isolated/subsystems/hermes/hermes_boundary.vhd
       - rtl/isolated/subsystems/timing/legacy_timing_plane_bridge.vhd
       - rtl/isolated/subsystems/timing/legacy_timing_subsystem_bridge.vhd
+      - rtl/isolated/subsystems/timing/timing_subsystem_boundary.vhd
       - rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd
       - rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd
       - rtl/isolated/subsystems/trigger/afe_trigger_bank.vhd
@@ -42,6 +49,7 @@ filesets:
       - rtl/isolated/subsystems/trigger/afe_selftrigger_island.vhd
       - rtl/isolated/subsystems/trigger/selftrigger_fabric.vhd
       - rtl/isolated/subsystems/trigger/stc3_record_builder.vhd
+      - rtl/isolated/tops/daphne_composable_core_top.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_afe.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_dac2.vhd
