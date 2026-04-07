@@ -9,8 +9,8 @@ Copy the generated DAPHNE overlay artifacts from xilinx/output into the
 repo-owned meta-daphne layer inside an initialized PetaLinux project.
 
 Expected source artifacts:
-  - daphne_selftrigger_ol_<gitsha>/
-  - daphne_selftrigger_ol_<gitsha>.zip
+  - <overlay-name-prefix>_<gitsha>/
+  - <overlay-name-prefix>_<gitsha>.zip
   - legacy daphne3_st_OL_<gitsha>/ and daphne3_st_OL_<gitsha>.zip are accepted
   - SHA256SUMS
 

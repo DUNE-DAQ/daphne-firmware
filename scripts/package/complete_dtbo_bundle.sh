@@ -8,14 +8,14 @@ Usage: $(basename "$0") [OUTPUT_DIR]
 Complete the DT overlay bundle from an existing Vivado hardware handoff.
 
 Expected inputs in OUTPUT_DIR:
-  - daphne_selftrigger_<gitsha>.xsa
-  - daphne_selftrigger_<gitsha>.bin
+  - <build-name-prefix>_<gitsha>.xsa
+  - <build-name-prefix>_<gitsha>.bin
   - legacy daphne3_st_<gitsha>.xsa / daphne3_st_<gitsha>.bin are accepted
 
 Generated outputs:
-  - daphne_selftrigger_<gitsha>.dtbo
-  - daphne_selftrigger_ol_<gitsha>/
-  - daphne_selftrigger_ol_<gitsha>.zip
+  - <build-name-prefix>_<gitsha>.dtbo
+  - <overlay-name-prefix>_<gitsha>/
+  - <overlay-name-prefix>_<gitsha>.zip
   - SHA256SUMS
 EOF
 }
