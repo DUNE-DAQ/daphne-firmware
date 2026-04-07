@@ -1,0 +1,38 @@
+CAPI=2:
+
+name: dune-daq:daphne:legacy-selftrigger-register-bank:0.1.0
+description: Legacy AXI-Lite threshold and self-trigger counter register plane extracted from selftrig_core
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd
+    file_type: vhdlSource
+  tb_smoke:
+    files:
+      - tests/logic/legacy_selftrigger_register_bank_smoke_tb.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
+  sim:
+    filesets:
+      - rtl
+    default_tool: ghdl
+    filesets_append:
+      - tb_smoke
+    toplevel: legacy_selftrigger_register_bank_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us

@@ -17,6 +17,7 @@ EXTRA_RTL_VHDL = [
     "rtl/isolated/common/primitives/configurable_delay_line.vhd",
     "rtl/isolated/common/primitives/fixed_delay_line.vhd",
     "rtl/isolated/common/primitives/sync_fifo_fwft.vhd",
+    "rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd",
     "rtl/isolated/subsystems/frontend/frontend_common.vhd",
     "rtl/isolated/subsystems/frontend/afe_capture_slice.vhd",
     "rtl/isolated/subsystems/frontend/frontend_capture_bank.vhd",
