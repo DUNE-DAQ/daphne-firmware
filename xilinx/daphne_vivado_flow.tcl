@@ -119,7 +119,8 @@ proc daphne_create_block_design {cfg_name} {
     set_property synth_checkpoint_mode None $bd_file_obj
     generate_target all $bd_file_obj
 
-    set project_ips [get_ips -quiet]
+    # BD-owned child IP must only be generated through the parent BD target.
+    set project_ips [get_ips -quiet -filter "NAME !~ ${cfg(bd_name)}_*"]
     if {[llength $project_ips] > 0} {
         generate_target all $project_ips
         daphne_run_nonfatal "export_ip_user_files" [list export_ip_user_files -of_objects $project_ips -no_script -sync -force -quiet]

@@ -11,6 +11,7 @@ filesets:
       - dune-daq:daphne:daphne-package:0.1.0
       - dune-daq:daphne:daphne-subsystem-primitives:0.1.0
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:legacy-deimos-readout-bridge:0.1.0
       - dune-daq:daphne:legacy-selftrigger-datapath:0.1.0
       - dune-daq:daphne:legacy-selftrigger-register-bank:0.1.0
     files:
