@@ -89,13 +89,40 @@ proc daphne_read_path_manifest {manifest_path} {
     return $entries
 }
 
+proc daphne_collect_matching_files {root pattern} {
+    set results {}
+    if {![file exists $root]} {
+        return $results
+    }
+
+    foreach entry [glob -nocomplain -directory $root *] {
+        if {[file isdirectory $entry]} {
+            if {[file tail $entry] eq "validate"} {
+                continue
+            }
+            set results [concat $results [daphne_collect_matching_files $entry $pattern]]
+        } elseif {[string match $pattern [file tail $entry]] && ![string match "*_validate_stub.vhd" [file tail $entry]]} {
+            lappend results [file normalize $entry]
+        }
+    }
+
+    return $results
+}
+
 proc daphne_resolve_legacy_support_sources {repo_root} {
     set manifest_path [file join $repo_root "xilinx" "legacy_flow_support_sources.txt"]
     set sources {}
     foreach rel_path [daphne_read_path_manifest $manifest_path] {
-        lappend sources [daphne_resolve_repo_relative_path $repo_root $rel_path]
+        set resolved_path [daphne_resolve_repo_relative_path $repo_root $rel_path]
+        if {[file isdirectory $resolved_path]} {
+            set sources [concat $sources [daphne_collect_matching_files $resolved_path "*.vhd"]]
+        } elseif {[file exists $resolved_path]} {
+            lappend sources $resolved_path
+        } else {
+            error "ERROR: missing legacy support entry at $resolved_path"
+        }
     }
-    return $sources
+    return [lsort -unique $sources]
 }
 
 proc daphne_get_board_env_or_default {cfg_name env_name key {default_value ""}} {

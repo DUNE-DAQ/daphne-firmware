@@ -11,6 +11,22 @@ daphne_legacy_support_manifest_path() {
   printf '%s/xilinx/legacy_flow_support_sources.txt' "$root_dir"
 }
 
+daphne_expand_legacy_support_entry() {
+  resolved_path="$1"
+
+  if [ -d "$resolved_path" ]; then
+    find "$resolved_path" -type f -name '*.vhd' \
+      ! -path '*/validate/*' \
+      ! -name '*_validate_stub.vhd' \
+      -print
+  elif [ -f "$resolved_path" ]; then
+    printf '%s\n' "$resolved_path"
+  else
+    echo "ERROR: missing legacy support entry: $resolved_path" >&2
+    return 2
+  fi
+}
+
 daphne_board_manifest_scalar() {
   manifest_path="$1"
   key_name="$2"
@@ -222,5 +238,15 @@ daphne_legacy_support_source_list() {
     exit 2
   fi
 
-  sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$manifest_path"
+  {
+    sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$manifest_path" |
+      while IFS= read -r rel_path; do
+        [ -n "$rel_path" ] || continue
+        case "$rel_path" in
+          /*) resolved_path="$rel_path" ;;
+          *) resolved_path="$root_dir/$rel_path" ;;
+        esac
+        daphne_expand_legacy_support_entry "$resolved_path"
+      done
+  } | sort -u
 }
