@@ -24,3 +24,10 @@ __pycache__/
 fusesoc_libraries/
 .cache/
 .fusesoc/
+
+# Local GHDL and lightweight simulation outputs
+*.o
+e~*.o
+work-obj08.cf
+*_smoke_tb
+*_contract_formal
