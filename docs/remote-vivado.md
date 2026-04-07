@@ -56,6 +56,11 @@ export DAPHNE_PLATFORM_TARGET=impl_legacy_flow
 
 before calling `run_remote_vivado_chain.sh`.
 
+In that mode, the wrapper skips the standalone legacy preflight because
+`impl_legacy_flow` performs the legacy BD/IP preflight inside the Flow API
+Vivado project. Artifact discovery also points at the FuseSoC build tree rather
+than the legacy `xilinx/output-*` directory.
+
 ## Important environment knobs
 
 - `DAPHNE_BOARD=k26c` keeps the currently qualified board path.

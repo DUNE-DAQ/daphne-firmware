@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
 ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
+PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-dune-daq:daphne:k26c-platform:0.1.0}"
+PLATFORM_TARGET="${DAPHNE_PLATFORM_TARGET:-}"
 LOG_DIR="${DAPHNE_WSL_LOG_DIR:-$ROOT_DIR/build/wsl-vivado}"
 RUN_ID="${DAPHNE_WSL_RUN_ID:-$(date +%Y%m%d-%H%M%S)}"
 RUN_DIR="$LOG_DIR/$RUN_ID"
@@ -19,8 +21,26 @@ commit_sha="$(git -C "$ROOT_DIR" rev-parse --short=7 HEAD)"
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_GIT_SHA="${DAPHNE_GIT_SHA:-$commit_sha}"
+export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
+
+if [ -z "$PLATFORM_TARGET" ] && [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ]; then
+  PLATFORM_TARGET="impl_legacy_flow"
+fi
+if [ -n "$PLATFORM_TARGET" ]; then
+  export DAPHNE_PLATFORM_TARGET="$PLATFORM_TARGET"
+fi
+
+FLOW_OWNED_LEGACY_IMPL=0
+if [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ] && [ "$PLATFORM_TARGET" = "impl_legacy_flow" ]; then
+  FLOW_OWNED_LEGACY_IMPL=1
+fi
 
 resolve_output_dir() {
+  if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
+    printf '%s\n' "$ROOT_DIR/build/dune-daq_daphne_k26c-composable-platform_0.1.0/impl_legacy_flow"
+    return 0
+  fi
+
   output_dir_value="${DAPHNE_OUTPUT_DIR-}"
   if [ -z "$output_dir_value" ]; then
     printf '%s\n' "$ROOT_DIR/xilinx/output"
@@ -49,6 +69,9 @@ OUTPUT_DIR="$(resolve_output_dir)"
   printf 'commit=%s\n' "$commit_sha"
   printf 'board=%s\n' "$BOARD"
   printf 'eth_mode=%s\n' "$ETH_MODE"
+  printf 'platform_core=%s\n' "$PLATFORM_CORE"
+  printf 'platform_target=%s\n' "$PLATFORM_TARGET"
+  printf 'flow_owned_legacy_impl=%s\n' "$FLOW_OWNED_LEGACY_IMPL"
   printf 'root_dir=%s\n' "$ROOT_DIR"
   printf 'log_dir=%s\n' "$RUN_DIR"
   printf 'output_dir=%s\n' "$OUTPUT_DIR"
@@ -62,6 +85,7 @@ OUTPUT_DIR="$(resolve_output_dir)"
 
 echo "INFO: WSL Vivado chain"
 echo "INFO: branch=$branch_name commit=$commit_sha board=$BOARD eth_mode=$ETH_MODE"
+echo "INFO: platform_core=$PLATFORM_CORE platform_target=${PLATFORM_TARGET:-<default>}"
 echo "INFO: logs will be written under $RUN_DIR"
 
 run_stage() {
@@ -77,12 +101,20 @@ run_stage() {
 
 run_stage toolcheck "$RUN_DIR/toolcheck.log" ./scripts/wsl/check_windows_xilinx.sh
 
-run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
+if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
+  printf '%s\n' "INFO: Skipping standalone preflight; impl_legacy_flow performs legacy BD/IP preflight inside the Flow API project." | tee "$RUN_DIR/preflight.log"
+else
+  run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
+fi
 
 run_stage build "$RUN_DIR/build.log" ./scripts/fusesoc/run_vivado_batch.sh
 
 if [ "$PACKAGE_DTBO" = "1" ]; then
-  run_stage package "$RUN_DIR/package.log" ./scripts/package/complete_dtbo_bundle.sh "$OUTPUT_DIR"
+  if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
+    printf '%s\n' "INFO: Skipping legacy DTBO packaging; impl_legacy_flow currently stops at the Flow API Vivado build tree." | tee "$RUN_DIR/package.log"
+  else
+    run_stage package "$RUN_DIR/package.log" ./scripts/package/complete_dtbo_bundle.sh "$OUTPUT_DIR"
+  fi
 fi
 
 {
