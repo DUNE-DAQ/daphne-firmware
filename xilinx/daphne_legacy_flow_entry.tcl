@@ -53,14 +53,17 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
             configurable_delay_line.vhd
             fixed_delay_line.vhd
             sync_fifo_fwft.vhd
+            legacy_selftrigger_register_bank.vhd
             frontend_common.vhd
             afe_capture_slice.vhd
             frontend_capture_bank.vhd
             frontend_register_slice.vhd
             frontend_register_bank.vhd
             frontend_island.vhd
+            legacy_deimos_readout_bridge.vhd
             self_trigger_xcorr_channel.vhd
             peak_descriptor_channel.vhd
+            legacy_selftrigger_datapath.vhd
             stc3_record_builder.vhd
         } {
             set found_dir [daphne_find_first_file_dir $src_root $required_leaf]

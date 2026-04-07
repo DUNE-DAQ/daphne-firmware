@@ -69,7 +69,8 @@ vivado -mode batch -source "$shim_tcl"
 
 component_xml="$ROOT_DIR/ip_repo/daphne_ip/component.xml"
 eth_xci="$ROOT_DIR/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
-eth_binding='CELL_NAME_core_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe'
+eth_binding='CELL_NAME_core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe'
+bram_binding='CELL_NAME_core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl'
 eth_xci_ref='src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci'
 
 if [ ! -f "$component_xml" ]; then
@@ -92,5 +93,21 @@ if ! grep -Fq "$eth_binding" "$component_xml"; then
   exit 2
 fi
 
+if ! grep -Fq "$bram_binding" "$component_xml"; then
+  echo "ERROR: component.xml is missing AXI BRAM cell binding: $bram_binding" >&2
+  exit 2
+fi
+
+for support_leaf in \
+  legacy_selftrigger_register_bank.vhd \
+  legacy_selftrigger_datapath.vhd \
+  legacy_deimos_readout_bridge.vhd
+do
+  if ! grep -Fq "$support_leaf" "$component_xml"; then
+    echo "ERROR: component.xml is missing packaged support source: $support_leaf" >&2
+    exit 2
+  fi
+done
+
 echo "INFO: Preflight passed."
-echo "INFO: Ethernet XCI and phy_10gbe binding are present in component.xml."
+echo "INFO: Ethernet XCI, legacy transport/BRAM bindings, and extracted support sources are present in component.xml."
