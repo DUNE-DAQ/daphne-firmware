@@ -9,7 +9,9 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:k26c-board-shell:0.1.0
-    file_type: user
+    files:
+      - rtl/isolated/tops/legacy_public_top_bridge.vhd
+    file_type: vhdlSource
 
 targets:
   default:

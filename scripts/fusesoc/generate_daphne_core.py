@@ -70,7 +70,9 @@ def expand_manifest_vhdl_entries(entries: list[str]) -> list[str]:
             expanded.extend(
                 path
                 for path in sorted_relative_files(resolved, "*.vhd")
-                if "/validate/" not in path and not path.endswith("_validate_stub.vhd")
+                if "/validate/" not in path
+                and not path.endswith("_validate_stub.vhd")
+                and not path.endswith("legacy_public_top_bridge.vhd")
             )
         elif resolved.is_file():
             expanded.append(entry)

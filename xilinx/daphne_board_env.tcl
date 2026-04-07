@@ -129,7 +129,9 @@ proc daphne_collect_matching_files {root pattern} {
                 continue
             }
             set results [concat $results [daphne_collect_matching_files $entry $pattern]]
-        } elseif {[string match $pattern [file tail $entry]] && ![string match "*_validate_stub.vhd" [file tail $entry]]} {
+        } elseif {[string match $pattern [file tail $entry]]
+                  && ![string match "*_validate_stub.vhd" [file tail $entry]]
+                  && ![string match "legacy_public_top_bridge.vhd" [file tail $entry]]} {
             lappend results [file normalize $entry]
         }
     }
