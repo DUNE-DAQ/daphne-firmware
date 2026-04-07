@@ -8,7 +8,7 @@ provider:
 filesets:
   platform:
     depend:
-      - dune-daq:daphne:daphne-ip:0.1.0
+      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
       - dune-daq:daphne:daphne-composable-top:0.1.0
       - dune-daq:daphne:daphne-composable:0.1.0
     files:
@@ -80,7 +80,7 @@ filesets:
     file_type: user
   legacy_flow_support:
     depend:
-      - dune-daq:daphne:daphne-ip-export:0.1.0
+      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
     files:
       - boards/k26c/board.yml
       - boards/k26c/bd_shell.tcl
