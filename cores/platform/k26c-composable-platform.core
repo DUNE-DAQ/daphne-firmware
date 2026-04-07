@@ -47,7 +47,7 @@ filesets:
     file_type: user
   legacy_flow_support:
     depend:
-      - dune-daq:daphne:daphne-ip:0.1.0
+      - dune-daq:daphne:daphne-ip-export:0.1.0
     files:
       - boards/k26c/board.yml
       - Memory_Map.md

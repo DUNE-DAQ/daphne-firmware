@@ -8,6 +8,10 @@ firmware:
 - `daphne-ip.core` is the compatibility manifest generated
   from the existing Vivado Tcl flow. This is the safe path for the currently
   qualified K26C build.
+- `daphne-ip-export.core` is the export-only companion generated from the same
+  Tcl flow. It exists so board-level Flow API targets can stage the legacy HDL,
+  Tcl, and XCI collateral in the exported work tree without treating that
+  collateral as active design source.
 - `cores/features/*.core` plus `cores/features/daphne-modular.core` are the
   FuseSoC-native decomposition used for incremental refactoring, simulation, and
   eventual top-level platform packaging.
