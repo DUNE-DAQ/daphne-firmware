@@ -11,7 +11,8 @@ repo-owned meta-daphne layer inside an initialized PetaLinux project.
 Expected source artifacts:
   - <overlay-name-prefix>_<gitsha>/
   - <overlay-name-prefix>_<gitsha>.zip
-  - legacy daphne3_st_OL_<gitsha>/ and daphne3_st_OL_<gitsha>.zip are accepted
+  - if DAPHNE_ACCEPT_LEGACY_ARTIFACT_ALIASES=1:
+    legacy daphne3_st_OL_<gitsha>/ and daphne3_st_OL_<gitsha>.zip are accepted
   - SHA256SUMS
 
 The staged canonical filenames are:
@@ -37,6 +38,8 @@ PROJECT_DIR="$(CDPATH= cd -- "$1" && pwd)"
 OUTPUT_DIR_INPUT="${2:-${DAPHNE_OUTPUT_DIR:-$ROOT_DIR/xilinx/output}}"
 OUTPUT_DIR="$(CDPATH= cd -- "$OUTPUT_DIR_INPUT" && pwd)"
 OVERLAY_NAME_PREFIX="${DAPHNE_OVERLAY_NAME_PREFIX:-daphne_selftrigger_ol}"
+ACCEPT_LEGACY_ARTIFACT_ALIASES="${DAPHNE_ACCEPT_LEGACY_ARTIFACT_ALIASES:-0}"
+LEGACY_OVERLAY_PREFIX="${DAPHNE_LEGACY_OVERLAY_PREFIX:-daphne3_st_OL}"
 
 META_LAYER_DIR="$PROJECT_DIR/project-spec/meta-daphne"
 STAGED_DIR="$META_LAYER_DIR/recipes-firmware/daphne-overlay/files/staged"
@@ -53,7 +56,7 @@ if [[ ! -d "$META_LAYER_DIR" ]]; then
 fi
 
 overlay_zip=""
-for pattern in "${OVERLAY_NAME_PREFIX}_*.zip" 'daphne3_st_OL_*.zip'; do
+for pattern in "${OVERLAY_NAME_PREFIX}_*.zip"; do
   candidate="$(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "$pattern" | sort | tail -n 1)"
   if [[ -n "$candidate" ]]; then
     overlay_zip="$candidate"
@@ -61,8 +64,21 @@ for pattern in "${OVERLAY_NAME_PREFIX}_*.zip" 'daphne3_st_OL_*.zip'; do
   fi
 done
 
+if [[ -z "$overlay_zip" && "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" ]]; then
+  for pattern in "${LEGACY_OVERLAY_PREFIX}_*.zip"; do
+    candidate="$(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "$pattern" | sort | tail -n 1)"
+    if [[ -n "$candidate" ]]; then
+      overlay_zip="$candidate"
+      break
+    fi
+  done
+fi
+
 if [[ -z "$overlay_zip" ]]; then
-  echo "ERROR: no ${OVERLAY_NAME_PREFIX}_*.zip or daphne3_st_OL_*.zip found in $OUTPUT_DIR" >&2
+  echo "ERROR: no ${OVERLAY_NAME_PREFIX}_*.zip found in $OUTPUT_DIR" >&2
+  if [[ "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" ]]; then
+    echo "ERROR: legacy ${LEGACY_OVERLAY_PREFIX}_*.zip aliases were also checked" >&2
+  fi
   echo "Run scripts/package/complete_dtbo_bundle.sh first." >&2
   exit 2
 fi
@@ -72,12 +88,13 @@ case "$overlay_zip_base" in
   ${OVERLAY_NAME_PREFIX}_*.zip)
     overlay_prefix="${OVERLAY_NAME_PREFIX}"
     ;;
-  daphne3_st_OL_*.zip)
-    overlay_prefix="daphne3_st_OL"
-    ;;
   *)
-    echo "ERROR: unrecognized overlay zip name: $overlay_zip_base" >&2
-    exit 2
+    if [[ "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" && "$overlay_zip_base" == ${LEGACY_OVERLAY_PREFIX}_*.zip ]]; then
+      overlay_prefix="${LEGACY_OVERLAY_PREFIX}"
+    else
+      echo "ERROR: unrecognized overlay zip name: $overlay_zip_base" >&2
+      exit 2
+    fi
     ;;
 esac
 
