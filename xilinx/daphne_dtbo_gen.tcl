@@ -17,20 +17,29 @@ set out_dir  [daphne_normalize_path [lindex $argv 1]]
 
 # receive the git commit number
 set git_sha [lindex $argv 2]
+set artifact_prefix [lindex $argv 3]
+set overlay_prefix [lindex $argv 4]
+
+if {$artifact_prefix eq ""} {
+    set artifact_prefix "daphne_selftrigger"
+}
+if {$overlay_prefix eq ""} {
+    set overlay_prefix "${artifact_prefix}_ol"
+}
  
 # Prefer the explicit HW argument. createdts only treats paths starting with
 # "/" as absolute, so on WSL the converted //wsl.localhost/... form must be
 # preserved for -hw. Fall back to the output-dir-derived XSA only if needed.
 set hw_xsa $hw_arg
 if {$hw_xsa eq ""} {
-    set hw_xsa [file join $out_dir daphne_selftrigger_$git_sha.xsa]
+    set hw_xsa [file join $out_dir ${artifact_prefix}_$git_sha.xsa]
 }
 
 # generate the device tree using the generated XSA
 if {$hw_arg ne "" && $hw_arg ne $hw_xsa} {
     puts "INFO: normalized HW path differs from argv; using canonical XSA path $hw_xsa"
 }
-createdts -hw $hw_xsa -zocl -platform-name daphne_selftrigger_$git_sha -git-branch xlnx_rel_v2022.2 -overlay -out [file join $out_dir daphne_selftrigger_$git_sha]
+createdts -hw $hw_xsa -zocl -platform-name ${artifact_prefix}_$git_sha -git-branch xlnx_rel_v2022.2 -overlay -out [file join $out_dir ${artifact_prefix}_$git_sha]
  
 # exit the process once done
 exit

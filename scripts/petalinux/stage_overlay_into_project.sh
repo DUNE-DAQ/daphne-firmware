@@ -30,9 +30,13 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || $# -lt 1 || $# -gt 2 ]]; then
 fi
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
+BOARD="${DAPHNE_BOARD:-k26c}"
+. "$ROOT_DIR/scripts/fusesoc/board_env.sh"
+daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 PROJECT_DIR="$(CDPATH= cd -- "$1" && pwd)"
 OUTPUT_DIR_INPUT="${2:-${DAPHNE_OUTPUT_DIR:-$ROOT_DIR/xilinx/output}}"
 OUTPUT_DIR="$(CDPATH= cd -- "$OUTPUT_DIR_INPUT" && pwd)"
+OVERLAY_NAME_PREFIX="${DAPHNE_OVERLAY_NAME_PREFIX:-daphne_selftrigger_ol}"
 
 META_LAYER_DIR="$PROJECT_DIR/project-spec/meta-daphne"
 STAGED_DIR="$META_LAYER_DIR/recipes-firmware/daphne-overlay/files/staged"
@@ -49,7 +53,7 @@ if [[ ! -d "$META_LAYER_DIR" ]]; then
 fi
 
 overlay_zip=""
-for pattern in 'daphne_selftrigger_ol_*.zip' 'daphne3_st_OL_*.zip'; do
+for pattern in "${OVERLAY_NAME_PREFIX}_*.zip" 'daphne3_st_OL_*.zip'; do
   candidate="$(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "$pattern" | sort | tail -n 1)"
   if [[ -n "$candidate" ]]; then
     overlay_zip="$candidate"
@@ -58,18 +62,18 @@ for pattern in 'daphne_selftrigger_ol_*.zip' 'daphne3_st_OL_*.zip'; do
 done
 
 if [[ -z "$overlay_zip" ]]; then
-  echo "ERROR: no daphne_selftrigger_ol_*.zip or daphne3_st_OL_*.zip found in $OUTPUT_DIR" >&2
+  echo "ERROR: no ${OVERLAY_NAME_PREFIX}_*.zip or daphne3_st_OL_*.zip found in $OUTPUT_DIR" >&2
   echo "Run scripts/package/complete_dtbo_bundle.sh first." >&2
   exit 2
 fi
 
 overlay_zip_base="$(basename "$overlay_zip")"
 case "$overlay_zip_base" in
-  daphne_selftrigger_ol_*.zip)
-    overlay_prefix="daphne_selftrigger_ol_"
+  ${OVERLAY_NAME_PREFIX}_*.zip)
+    overlay_prefix="${OVERLAY_NAME_PREFIX}"
     ;;
   daphne3_st_OL_*.zip)
-    overlay_prefix="daphne3_st_OL_"
+    overlay_prefix="daphne3_st_OL"
     ;;
   *)
     echo "ERROR: unrecognized overlay zip name: $overlay_zip_base" >&2
@@ -77,9 +81,9 @@ case "$overlay_zip_base" in
     ;;
 esac
 
-git_sha="${overlay_zip_base#${overlay_prefix}}"
+git_sha="${overlay_zip_base#${overlay_prefix}_}"
 git_sha="${git_sha%.zip}"
-overlay_dir="$OUTPUT_DIR/${overlay_prefix}${git_sha}"
+overlay_dir="$OUTPUT_DIR/${overlay_prefix}_${git_sha}"
 sha_file="$OUTPUT_DIR/SHA256SUMS"
 
 if [[ ! -d "$overlay_dir" ]]; then
@@ -87,8 +91,8 @@ if [[ ! -d "$overlay_dir" ]]; then
   exit 2
 fi
 
-dtbo_src="$overlay_dir/${overlay_prefix}${git_sha}.dtbo"
-bin_src="$overlay_dir/${overlay_prefix}${git_sha}.bin"
+dtbo_src="$overlay_dir/${overlay_prefix}_${git_sha}.dtbo"
+bin_src="$overlay_dir/${overlay_prefix}_${git_sha}.bin"
 json_src="$overlay_dir/shell.json"
 
 for f in "$dtbo_src" "$bin_src" "$json_src"; do
