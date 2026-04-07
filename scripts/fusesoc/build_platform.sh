@@ -10,10 +10,12 @@ daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 DEFAULT_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" platform_core)"
 DEFAULT_MODULAR_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" modular_platform_core)"
 DEFAULT_COMPOSABLE_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
+DEFAULT_COMPOSABLE_TARGET="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_default_target)"
 
 : "${DEFAULT_CORE:=dune-daq:daphne:k26c-platform:0.1.0}"
 : "${DEFAULT_MODULAR_CORE:=dune-daq:daphne:k26c-modular-platform:0.1.0}"
 : "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
+: "${DEFAULT_COMPOSABLE_TARGET:=impl}"
 
 DRY_RUN=0
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_CORE}"
@@ -91,7 +93,7 @@ esac
 if [ -z "$BUILD_TARGET" ]; then
   case "$PLATFORM_CORE" in
     "$DEFAULT_COMPOSABLE_CORE")
-      BUILD_TARGET="impl"
+      BUILD_TARGET="$DEFAULT_COMPOSABLE_TARGET"
       ;;
     *)
       BUILD_TARGET="impl"
