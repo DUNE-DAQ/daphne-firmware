@@ -20,6 +20,11 @@ DEFAULT_PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
 : "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
 : "${DEFAULT_PLATFORM_CORE:=$DEFAULT_COMPOSABLE_CORE}"
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_PLATFORM_CORE}"
+PREFLIGHT_REQUIRED=1
+
+if ! daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE"; then
+  PREFLIGHT_REQUIRED=0
+fi
 
 mkdir -p "$RUN_DIR"
 
@@ -103,6 +108,7 @@ FLOW_WORK_DIR="$ROOT_DIR/build/$(daphne_platform_core_build_slug "$PLATFORM_CORE
   echo "platform_core=$PLATFORM_CORE"
   echo "platform_target=$PLATFORM_TARGET"
   echo "flow_exported_impl=$FLOW_EXPORTED_IMPL"
+  echo "preflight_required=$PREFLIGHT_REQUIRED"
   echo "root_dir=$ROOT_DIR"
   echo "log_dir=$RUN_DIR"
   echo "output_dir=$OUTPUT_DIR"
@@ -128,7 +134,11 @@ run_stage() {
   ) 2>&1 | tee "$log_path"
 }
 
-run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
+if [ "$PREFLIGHT_REQUIRED" = "1" ]; then
+  run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
+else
+  printf 'INFO: Skipping packaged-IP preflight for platform_core=%s.\n' "$PLATFORM_CORE" | tee "$RUN_DIR/preflight.log"
+fi
 
 run_stage build "$RUN_DIR/build.log" ./scripts/fusesoc/run_vivado_batch.sh
 

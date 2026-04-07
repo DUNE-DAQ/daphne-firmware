@@ -20,6 +20,11 @@ DEFAULT_PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
 : "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
 : "${DEFAULT_PLATFORM_CORE:=$DEFAULT_COMPOSABLE_CORE}"
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_PLATFORM_CORE}"
+PREFLIGHT_REQUIRED=1
+
+if ! daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE"; then
+  PREFLIGHT_REQUIRED=0
+fi
 
 . "$ROOT_DIR/scripts/wsl/setup_windows_xilinx.sh"
 
@@ -85,6 +90,7 @@ FLOW_WORK_DIR="$ROOT_DIR/build/$(daphne_platform_core_build_slug "$PLATFORM_CORE
   printf 'platform_core=%s\n' "$PLATFORM_CORE"
   printf 'platform_target=%s\n' "$PLATFORM_TARGET"
   printf 'flow_exported_impl=%s\n' "$FLOW_EXPORTED_IMPL"
+  printf 'preflight_required=%s\n' "$PREFLIGHT_REQUIRED"
   printf 'root_dir=%s\n' "$ROOT_DIR"
   printf 'log_dir=%s\n' "$RUN_DIR"
   printf 'output_dir=%s\n' "$OUTPUT_DIR"
@@ -115,7 +121,11 @@ run_stage() {
 
 run_stage toolcheck "$RUN_DIR/toolcheck.log" ./scripts/wsl/check_windows_xilinx.sh
 
-run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
+if [ "$PREFLIGHT_REQUIRED" = "1" ]; then
+  run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
+else
+  printf 'INFO: Skipping packaged-IP preflight for platform_core=%s.\n' "$PLATFORM_CORE" | tee "$RUN_DIR/preflight.log"
+fi
 
 run_stage build "$RUN_DIR/build.log" ./scripts/fusesoc/run_vivado_batch.sh
 

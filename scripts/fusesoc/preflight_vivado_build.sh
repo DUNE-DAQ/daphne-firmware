@@ -4,9 +4,19 @@ set -eu
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
 ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
+PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-}"
 
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
+
+if [ -z "$PLATFORM_CORE" ]; then
+  PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
+fi
+
+if ! daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE"; then
+  echo "INFO: Skipping packaged-IP preflight for platform_core=$PLATFORM_CORE."
+  exit 0
+fi
 
 resolve_ip_repo_root() {
   if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -d "${DAPHNE_IP_REPO_ROOT}" ]; then
@@ -46,6 +56,7 @@ export DAPHNE_CONSTRAINT_FILE
 export DAPHNE_CONSTRAINT_FILES
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_ETH_MODE="$ETH_MODE"
+export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
 
 cd "$ROOT_DIR/xilinx"
 
