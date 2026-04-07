@@ -11,6 +11,7 @@ composable_platform_core: dune-daq:daphne:k26c-composable-platform:0.1.0
 user_ip_vlnv: dune.pds:user:daphne_selftrigger_top:1.0
 bd_name: daphne_selftrigger_bd
 bd_wrapper_name: daphne_selftrigger_bd_wrapper
+bd_shell_tcl: boards/k26c/bd_shell.tcl
 build_name_prefix: daphne_selftrigger
 overlay_name_prefix: daphne_selftrigger_ol
 ip_top_hdl_file: rtl/isolated/tops/legacy_public_top_bridge.vhd
