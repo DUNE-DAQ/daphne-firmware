@@ -110,6 +110,7 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
       configurable_delay_line.vhd \
       fixed_delay_line.vhd \
       sync_fifo_fwft.vhd \
+      legacy_analog_control_plane_bridge.vhd \
       legacy_selftrigger_register_bank.vhd \
       legacy_stuff_selftrigger_register_bank.vhd \
       legacy_trigger_control_adapter.vhd \
