@@ -8,7 +8,7 @@ provider:
 filesets:
   platform:
     depend:
-      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
+      - dune-daq:daphne:k26c-board-shell:0.1.0
       - dune-daq:daphne:daphne-composable-top:0.1.0
       - dune-daq:daphne:daphne-composable:0.1.0
     files:
@@ -56,7 +56,7 @@ filesets:
     file_type: user
   ooc_packaged_top_rtl:
     depend:
-      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
+      - dune-daq:daphne:k26c-board-shell:0.1.0
     files:
       - boards/k26c/board.yml
       - xilinx/daphne_board_env.tcl
@@ -64,13 +64,13 @@ filesets:
     file_type: user
   ooc_packaged_top_flow_rtl:
     depend:
-      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
+      - dune-daq:daphne:k26c-board-shell:0.1.0
     files:
       - boards/k26c/board.yml
     file_type: user
   impl_packaged_top_flow_rtl:
     depend:
-      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
+      - dune-daq:daphne:k26c-board-shell:0.1.0
     files:
       - boards/k26c/board.yml
       - xilinx/daphne_selftrigger_pin_map.xdc
@@ -78,7 +78,7 @@ filesets:
     file_type: user
   legacy_flow_support:
     depend:
-      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
+      - dune-daq:daphne:k26c-board-shell:0.1.0
     files:
       - boards/k26c/board.yml
       - boards/k26c/bd_shell.tcl

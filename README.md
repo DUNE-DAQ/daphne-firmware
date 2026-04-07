@@ -122,10 +122,11 @@ target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
 target automatically. Today `impl` is the native packaged board-shell Flow API
 path (`legacy_public_top_bridge`) while `impl_legacy_flow` remains available as
 the fallback BD-wrapper bridge. The native packaged-shell path now resolves
-through an explicit `legacy-public-top-bridge` feature core instead of the
-generated `daphne-ip` manifest, so the board implementation is materially more
+through an explicit `k26c-board-shell` feature core instead of the generated
+`daphne-ip` manifest, so the board implementation is materially more
 FuseSoC-owned even though the packaged-IP/export lane still exists for the
-legacy build path.
+legacy build path. The older `legacy-public-top-bridge` core name remains as a
+compatibility alias while the RTL entity name is still converging.
 
 The IP packaging Tcl also now accepts top-identity overrides
 (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,

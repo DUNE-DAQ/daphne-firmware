@@ -125,11 +125,13 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      `daphne_selftrigger_<gitsha>` artifact contract. This is the current
      default composable build entrypoint.
    - The native packaged-shell synth/impl path now resolves through an
-     explicit `legacy-public-top-bridge` feature core and the extracted bridge
-     graph rather than the generated `daphne-ip` source manifest. The
-     generated packaged-IP manifest still exists for the legacy export/build
-     lane, but the default native `impl` target is now meaningfully closer to
-     a full FuseSoC-owned source graph.
+     explicit `k26c-board-shell` feature core and the extracted bridge graph
+     rather than the generated `daphne-ip` source manifest. The generated
+     packaged-IP manifest still exists for the legacy export/build lane, but
+     the default native `impl` target is now meaningfully closer to a full
+     FuseSoC-owned source graph. The old `legacy-public-top-bridge` core name
+     remains as a compatibility alias until the underlying RTL entity is
+     renamed.
 
 ## Trigger and descriptor split
 
