@@ -117,7 +117,7 @@ It now resolves to the same native board-shell Flow API implementation as
 The composable platform now also exposes `impl` as its default implementation
 target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
 target automatically. Today `impl` is the native board-shell Flow API
-path (`legacy_public_top_bridge`). The native board-shell path now resolves
+path (`k26c_board_shell`). The native board-shell path now resolves
 through an explicit `k26c-board-shell` feature core instead of the generated
 `daphne-ip` manifest, so the board implementation is materially more
 FuseSoC-owned while the underlying RTL entity name is still converging.

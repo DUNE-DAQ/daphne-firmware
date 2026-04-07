@@ -16,6 +16,7 @@ filesets:
       - dune-daq:daphne:legacy-selftrigger-plane-bridge:0.1.0
     files:
       - rtl/isolated/tops/legacy_public_top_bridge.vhd
+      - rtl/isolated/tops/k26c_board_shell.vhd
     file_type: vhdlSource
 
 targets:

@@ -15,8 +15,8 @@ bd_wrapper_name: daphne_selftrigger_bd_wrapper
 bd_shell_tcl: boards/k26c/bd_shell.tcl
 build_name_prefix: daphne_selftrigger
 overlay_name_prefix: daphne_selftrigger_ol
-ip_top_hdl_file: rtl/isolated/tops/legacy_public_top_bridge.vhd
-ip_top_module: legacy_public_top_bridge
+ip_top_hdl_file: rtl/isolated/tops/k26c_board_shell.vhd
+ip_top_module: k26c_board_shell
 ip_cell_name: daphne_selftrigger_top
 ip_component_identifier: daphne_selftrigger_top
 ip_display_name: daphne_selftrigger_top_v1_0
