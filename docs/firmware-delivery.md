@@ -30,13 +30,16 @@ For the Flow API implementation paths on
 handoff step before DTBO packaging:
 
 ```bash
-./scripts/package/export_impl_legacy_flow_bundle.sh
 ./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
-The exporter opens the Flow API Vivado project, reuses the completed `impl_1`
-run, and emits the same legacy-style `daphne_selftrigger_<gitsha>.bit/.bin/.xsa`
-contract expected by the DTBO bundler.
+For the native packaged-shell `impl` path, the post-build export hook already
+emits the legacy-style `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` contract
+into `xilinx/output-$DAPHNE_GIT_SHA/`, so only the DTBO bundler is required.
+If you intentionally build through `impl_legacy_flow`, the optional helper
+`./scripts/package/export_impl_legacy_flow_bundle.sh` remains available to
+re-export the handoff bundle from the Flow API work directory before DTBO
+packaging.
 
 ## Current repo-local packaging step
 
