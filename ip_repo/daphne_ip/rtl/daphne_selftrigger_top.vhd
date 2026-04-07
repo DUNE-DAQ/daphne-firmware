@@ -784,32 +784,6 @@ signal STUFF_AXI_RRESP:   std_logic_vector(1 downto 0);
 signal STUFF_AXI_RVALID:  std_logic;
 signal STUFF_AXI_RREADY:  std_logic;
 
-signal CORE_AXI_AWADDR:  std_logic_vector(31 downto 0);
-signal CORE_AXI_AWPROT:  std_logic_vector(2 downto 0);
-signal CORE_AXI_AWVALID: std_logic;
-signal CORE_AXI_AWREADY: std_logic;
-signal CORE_AXI_WDATA:   std_logic_vector(31 downto 0);
-signal CORE_AXI_WSTRB:   std_logic_vector(3 downto 0);
-signal CORE_AXI_WVALID:  std_logic;
-signal CORE_AXI_WREADY:  std_logic;
-signal CORE_AXI_BRESP:   std_logic_vector(1 downto 0);
-signal CORE_AXI_BVALID:  std_logic;
-signal CORE_AXI_BREADY:  std_logic;
-signal CORE_AXI_ARADDR:  std_logic_vector(31 downto 0);
-signal CORE_AXI_ARPROT:  std_logic_vector(2 downto 0);
-signal CORE_AXI_ARVALID: std_logic;
-signal CORE_AXI_ARREADY: std_logic;
-signal CORE_AXI_RDATA:   std_logic_vector(31 downto 0);
-signal CORE_AXI_RRESP:   std_logic_vector(1 downto 0);
-signal CORE_AXI_RVALID:  std_logic;
-signal CORE_AXI_RREADY:  std_logic;
-
-
-signal    AXI_IN:  AXILITE_INREC;
-signal    AXI_OUT:  AXILITE_OUTREC;
-signal    OUTBUFF_AXI_IN:  AXILITE_INREC;
-signal    OUTBUFF_AXI_OUT:  AXILITE_OUTREC;
-
 signal eth0_p_buff: std_logic;
 signal eth0_n_buff: std_logic ;
 
@@ -823,11 +797,6 @@ signal mmcm1_reset_debug: std_logic ;
 signal ep_reset_debug: std_logic ;
 signal eth0_tx_dis_debug: std_logic ;
 --signal eth0_10g_debug:std_logic  ;
-    --output_spybuff-----
-signal out_buff_data_reg:  array_2x64_type; 
-signal out_buff_trig_reg:  std_logic ;
-signal valid_debug_reg: std_logic_vector (1 downto 0) ;
-signal  last_debug_reg :  std_logic_vector (1 downto 0) ; 
 signal din_debug_reg: std_logic_vector (13 downto 0);
 signal trigered_debug_reg: std_logic;
 
@@ -1026,85 +995,6 @@ SPI_DAC_S_AXI_RRESP  <= DAC_AXI_RRESP ;
 
 	
 	
---CORE
-
-
- CORE_AXI_AWADDR  <= TRIRG_S_AXI_AWADDR;
- CORE_AXI_AWPROT   <= TRIRG_S_AXI_AWPROT;
- CORE_AXI_AWVALID <=  TRIRG_S_AXI_AWVALID;
-  TRIRG_S_AXI_AWREADY <= CORE_AXI_AWREADY ;
- CORE_AXI_WDATA   <= TRIRG_S_AXI_WDATA;
- CORE_AXI_WSTRB  <=   TRIRG_S_AXI_WSTRB;
- CORE_AXI_WVALID  <= TRIRG_S_AXI_WVALID;
-  TRIRG_S_AXI_WREADY<= CORE_AXI_WREADY  ;
-  TRIRG_S_AXI_BRESP<= CORE_AXI_BRESP ;
-  TRIRG_S_AXI_BVALID<= CORE_AXI_BVALID  ;
- CORE_AXI_BREADY   <= TRIRG_S_AXI_BREADY;
- CORE_AXI_ARADDR   <=TRIRG_S_AXI_ARADDR ;
- CORE_AXI_ARPROT  <=  TRIRG_S_AXI_ARPROT;
- CORE_AXI_ARVALID <=  TRIRG_S_AXI_ARVALID;
- TRIRG_S_AXI_ARREADY <= CORE_AXI_ARREADY ;
-  TRIRG_S_AXI_RDATA<= CORE_AXI_RDATA;
- TRIRG_S_AXI_RRESP <= CORE_AXI_RRESP;
-  TRIRG_S_AXI_RVALID<= CORE_AXI_RVALID  ;
- CORE_AXI_RREADY <=  TRIRG_S_AXI_RREADY;
-
-
--- threshold
-
-     -- threshould axi Input mappings
-    AXI_IN.ACLK     <= THRESH_S_AXI_ACLK;
-    AXI_IN.ARESETN  <= THRESH_S_AXI_ARESETN;
-    AXI_IN.AWADDR   <= THRESH_S_AXI_AWADDR;
-    AXI_IN.AWPROT   <= THRESH_S_AXI_AWPROT;
-    AXI_IN.AWVALID  <= THRESH_S_AXI_AWVALID;
-    AXI_IN.WDATA    <= THRESH_S_AXI_WDATA;
-    AXI_IN.WSTRB    <= THRESH_S_AXI_WSTRB;
-    AXI_IN.WVALID   <= THRESH_S_AXI_WVALID;
-    AXI_IN.BREADY   <= THRESH_S_AXI_BREADY;
-    AXI_IN.ARADDR   <= THRESH_S_AXI_ARADDR;
-    AXI_IN.ARPROT   <= THRESH_S_AXI_ARPROT;
-    AXI_IN.ARVALID  <= THRESH_S_AXI_ARVALID;
-    AXI_IN.RREADY   <= THRESH_S_AXI_RREADY;
-
-    --  threshould axi Output mappings
-    THRESH_S_AXI_AWREADY <= AXI_OUT.AWREADY;
-    THRESH_S_AXI_WREADY  <= AXI_OUT.WREADY;
-    THRESH_S_AXI_BRESP   <= AXI_OUT.BRESP;
-    THRESH_S_AXI_BVALID  <= AXI_OUT.BVALID;
-    THRESH_S_AXI_ARREADY <= AXI_OUT.ARREADY;
-    THRESH_S_AXI_RDATA   <= AXI_OUT.RDATA;
-    THRESH_S_AXI_RRESP   <= AXI_OUT.RRESP;
-    THRESH_S_AXI_RVALID  <= AXI_OUT.RVALID;
-
-  
-
--- OUTBUFF
-
-     -- threshould axi Input mappings
-    OUTBUFF_AXI_IN.ACLK     <= OUTBUFF_S_AXI_ACLK;
-    OUTBUFF_AXI_IN.ARESETN  <= OUTBUFF_S_AXI_ARESETN;
-    OUTBUFF_AXI_IN.AWADDR   <= OUTBUFF_S_AXI_AWADDR;
-    OUTBUFF_AXI_IN.AWPROT   <= OUTBUFF_S_AXI_AWPROT;
-    OUTBUFF_AXI_IN.AWVALID  <= OUTBUFF_S_AXI_AWVALID;
-    OUTBUFF_AXI_IN.WDATA    <= OUTBUFF_S_AXI_WDATA;
-    OUTBUFF_AXI_IN.WSTRB    <= OUTBUFF_S_AXI_WSTRB;
-    OUTBUFF_AXI_IN.WVALID   <= OUTBUFF_S_AXI_WVALID;
-    OUTBUFF_AXI_IN.BREADY   <= OUTBUFF_S_AXI_BREADY;
-    OUTBUFF_AXI_IN.ARADDR   <= OUTBUFF_S_AXI_ARADDR;
-    OUTBUFF_AXI_IN.ARPROT   <= OUTBUFF_S_AXI_ARPROT;
-    OUTBUFF_AXI_IN.ARVALID  <= OUTBUFF_S_AXI_ARVALID;
-    OUTBUFF_AXI_IN.RREADY   <= OUTBUFF_S_AXI_RREADY;
-
-    --  threshould axi Output mappings
-    OUTBUFF_S_AXI_AWREADY <= OUTBUFF_AXI_OUT.AWREADY;
-    OUTBUFF_S_AXI_WREADY  <= OUTBUFF_AXI_OUT.WREADY;
-    OUTBUFF_S_AXI_BRESP   <= OUTBUFF_AXI_OUT.BRESP;
-    OUTBUFF_S_AXI_BVALID  <= OUTBUFF_AXI_OUT.BVALID;
-    OUTBUFF_S_AXI_ARREADY <= OUTBUFF_AXI_OUT.ARREADY;
-    OUTBUFF_S_AXI_RDATA   <= OUTBUFF_AXI_OUT.RDATA;
-    OUTBUFF_S_AXI_RRESP   <= OUTBUFF_AXI_OUT.RRESP;
-    OUTBUFF_S_AXI_RVALID  <= OUTBUFF_AXI_OUT.RVALID;
 -- front end deskew and alignment
 
 front_end_inst: front_end 
@@ -1370,7 +1260,7 @@ end generate gena_din;
 
 -- core logic is 40 self-trig senders + 10G Ethernet sender
 
-core_inst: entity work.core
+selftrigger_plane_inst: entity work.legacy_selftrigger_plane_bridge
 port map(
     link_id => link_id,
     slot_id => slot_id,
@@ -1388,71 +1278,87 @@ port map(
     reset_st_counters => reset_st_counters,
     timestamp => timestamp,
     din_core => din_full_array,
-    afe_dat_filtered => open,
     enable => core_chan_enable, 
     forcetrig =>  FORCE_TRIG,
     st_trigger_signal => st_trigger_signal,
     adhoc => adhoc,
     ti_trigger => ti_trigger_reg,
     ti_trigger_stbr => ti_trigger_stbr_reg,
-    S_AXI_ACLK	    => TRIRG_S_AXI_ACLK,
-	S_AXI_ARESETN	=> TRIRG_S_AXI_ARESETN,
-	S_AXI_AWADDR	=> CORE_AXI_AWADDR,
-	S_AXI_AWPROT	=> CORE_AXI_AWPROT,
-	S_AXI_AWVALID	=> CORE_AXI_AWVALID,
-	S_AXI_AWREADY	=> CORE_AXI_AWREADY,
-	S_AXI_WDATA	    => CORE_AXI_WDATA,
-	S_AXI_WSTRB	    => CORE_AXI_WSTRB,
-	S_AXI_WVALID	=> CORE_AXI_WVALID,
-	S_AXI_WREADY	=> CORE_AXI_WREADY,
-	S_AXI_BRESP	    => CORE_AXI_BRESP,
-	S_AXI_BVALID	=> CORE_AXI_BVALID,
-	S_AXI_BREADY	=> CORE_AXI_BREADY,
-	S_AXI_ARADDR	=> CORE_AXI_ARADDR,
-	S_AXI_ARPROT	=> CORE_AXI_ARPROT,
-	S_AXI_ARVALID	=> CORE_AXI_ARVALID,
-	S_AXI_ARREADY	=> CORE_AXI_ARREADY,
-	S_AXI_RDATA	    => CORE_AXI_RDATA,
-	S_AXI_RRESP	    => CORE_AXI_RRESP,
-	S_AXI_RVALID	=> CORE_AXI_RVALID,
-	S_AXI_RREADY	=> CORE_AXI_RREADY,
-	AXI_IN 	=> AXI_IN,
-    AXI_OUT	=> AXI_OUT,
-    
-    --eth_clk => eth_clk,
-    eth_clk_p => eth_clk_p, 
+    trirg_s_axi_aclk   => TRIRG_S_AXI_ACLK,
+    trirg_s_axi_aresetn => TRIRG_S_AXI_ARESETN,
+    trirg_s_axi_awaddr => TRIRG_S_AXI_AWADDR,
+    trirg_s_axi_awprot => TRIRG_S_AXI_AWPROT,
+    trirg_s_axi_awvalid => TRIRG_S_AXI_AWVALID,
+    trirg_s_axi_awready => TRIRG_S_AXI_AWREADY,
+    trirg_s_axi_wdata => TRIRG_S_AXI_WDATA,
+    trirg_s_axi_wstrb => TRIRG_S_AXI_WSTRB,
+    trirg_s_axi_wvalid => TRIRG_S_AXI_WVALID,
+    trirg_s_axi_wready => TRIRG_S_AXI_WREADY,
+    trirg_s_axi_bresp => TRIRG_S_AXI_BRESP,
+    trirg_s_axi_bvalid => TRIRG_S_AXI_BVALID,
+    trirg_s_axi_bready => TRIRG_S_AXI_BREADY,
+    trirg_s_axi_araddr => TRIRG_S_AXI_ARADDR,
+    trirg_s_axi_arprot => TRIRG_S_AXI_ARPROT,
+    trirg_s_axi_arvalid => TRIRG_S_AXI_ARVALID,
+    trirg_s_axi_arready => TRIRG_S_AXI_ARREADY,
+    trirg_s_axi_rdata => TRIRG_S_AXI_RDATA,
+    trirg_s_axi_rresp => TRIRG_S_AXI_RRESP,
+    trirg_s_axi_rvalid => TRIRG_S_AXI_RVALID,
+    trirg_s_axi_rready => TRIRG_S_AXI_RREADY,
+    thresh_s_axi_aclk => THRESH_S_AXI_ACLK,
+    thresh_s_axi_aresetn => THRESH_S_AXI_ARESETN,
+    thresh_s_axi_awaddr => THRESH_S_AXI_AWADDR,
+    thresh_s_axi_awprot => THRESH_S_AXI_AWPROT,
+    thresh_s_axi_awvalid => THRESH_S_AXI_AWVALID,
+    thresh_s_axi_awready => THRESH_S_AXI_AWREADY,
+    thresh_s_axi_wdata => THRESH_S_AXI_WDATA,
+    thresh_s_axi_wstrb => THRESH_S_AXI_WSTRB,
+    thresh_s_axi_wvalid => THRESH_S_AXI_WVALID,
+    thresh_s_axi_wready => THRESH_S_AXI_WREADY,
+    thresh_s_axi_bresp => THRESH_S_AXI_BRESP,
+    thresh_s_axi_bvalid => THRESH_S_AXI_BVALID,
+    thresh_s_axi_bready => THRESH_S_AXI_BREADY,
+    thresh_s_axi_araddr => THRESH_S_AXI_ARADDR,
+    thresh_s_axi_arprot => THRESH_S_AXI_ARPROT,
+    thresh_s_axi_arvalid => THRESH_S_AXI_ARVALID,
+    thresh_s_axi_arready => THRESH_S_AXI_ARREADY,
+    thresh_s_axi_rdata => THRESH_S_AXI_RDATA,
+    thresh_s_axi_rresp => THRESH_S_AXI_RRESP,
+    thresh_s_axi_rvalid => THRESH_S_AXI_RVALID,
+    thresh_s_axi_rready => THRESH_S_AXI_RREADY,
+    outbuff_s_axi_aclk => OUTBUFF_S_AXI_ACLK,
+    outbuff_s_axi_aresetn => OUTBUFF_S_AXI_ARESETN,
+    outbuff_s_axi_awaddr => OUTBUFF_S_AXI_AWADDR,
+    outbuff_s_axi_awprot => OUTBUFF_S_AXI_AWPROT,
+    outbuff_s_axi_awvalid => OUTBUFF_S_AXI_AWVALID,
+    outbuff_s_axi_awready => OUTBUFF_S_AXI_AWREADY,
+    outbuff_s_axi_wdata => OUTBUFF_S_AXI_WDATA,
+    outbuff_s_axi_wstrb => OUTBUFF_S_AXI_WSTRB,
+    outbuff_s_axi_wvalid => OUTBUFF_S_AXI_WVALID,
+    outbuff_s_axi_wready => OUTBUFF_S_AXI_WREADY,
+    outbuff_s_axi_bresp => OUTBUFF_S_AXI_BRESP,
+    outbuff_s_axi_bvalid => OUTBUFF_S_AXI_BVALID,
+    outbuff_s_axi_bready => OUTBUFF_S_AXI_BREADY,
+    outbuff_s_axi_araddr => OUTBUFF_S_AXI_ARADDR,
+    outbuff_s_axi_arprot => OUTBUFF_S_AXI_ARPROT,
+    outbuff_s_axi_arvalid => OUTBUFF_S_AXI_ARVALID,
+    outbuff_s_axi_arready => OUTBUFF_S_AXI_ARREADY,
+    outbuff_s_axi_rdata => OUTBUFF_S_AXI_RDATA,
+    outbuff_s_axi_rresp => OUTBUFF_S_AXI_RRESP,
+    outbuff_s_axi_rvalid => OUTBUFF_S_AXI_RVALID,
+    outbuff_s_axi_rready => OUTBUFF_S_AXI_RREADY,
+    eth_clk_p => eth_clk_p,
     eth_clk_n => eth_clk_n,
     eth0_rx_p => eth0_rx_p,
     eth0_rx_n => eth0_rx_n,
-    eth0_tx_p => eth0_tx_p, 
+    eth0_tx_p => eth0_tx_p,
     eth0_tx_n => eth0_tx_n,
     eth0_tx_dis => eth0_tx_dis,
-    
-    
-
-        --output_spybuff-----
-    out_buff_data =>  out_buff_data_reg,
-    out_buff_trig =>   out_buff_trig_reg,
-    VALID_DEBUG  => valid_debug_reg,
-    LAST_DEBUG =>  last_debug_reg
-    -- Trigered_debug => trigered_debug_reg
+    out_buff_data => out_buff_data,
+    out_buff_trig => out_buff_trig,
+    valid_debug => VALID_DEBUG,
+    last_debug => LAST_DEBUG
 );
-
-
-outbuff_isnt: entity work.outspybuff
- port map(
- 
- 	    clock =>   clock, 
-	    din => out_buff_data_reg,
-	    valid => valid_debug_reg,
-	    last => last_debug_reg,
-
-        AXI_IN => OUTBUFF_AXI_IN,
-        AXI_OUT =>OUTBUFF_AXI_OUT
- 
- 
- 
- );
 
     --time_stamp_debug <= timestamp;
     --syclk_62p5 <= clk_62p5_debug;
@@ -1462,12 +1368,8 @@ outbuff_isnt: entity work.outspybuff
    -- ep_status <= ep_stat_debug;
    -- ep_resets <= ep_reset_debug;
     DIN_DEBUG  <= din_debug_reg; 
-     VALID_DEBUG   <= valid_debug_reg(0);
-     LAST_DEBUG    <=   last_debug_reg(0); 
     --Trigered_debug <= trigered_debug_reg;
-    out_buff_trig <= out_buff_trig_reg;
     out_buff_clk <= clock;
-    out_buff_data <= out_buff_data_reg(0);
     
    -- endpoint debug signals
    

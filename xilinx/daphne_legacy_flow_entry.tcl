@@ -68,6 +68,7 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
             frontend_to_selftrigger_adapter.vhd
             legacy_core_readout_bridge.vhd
             legacy_deimos_readout_bridge.vhd
+            legacy_selftrigger_plane_bridge.vhd
             legacy_two_lane_readout_mux.vhd
             legacy_timing_subsystem_bridge.vhd
             self_trigger_xcorr_channel.vhd

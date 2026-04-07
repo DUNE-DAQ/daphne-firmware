@@ -32,6 +32,7 @@ EXTRA_RTL_VHDL = [
     "rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd",
     "rtl/isolated/subsystems/readout/legacy_core_readout_bridge.vhd",
     "rtl/isolated/subsystems/readout/legacy_deimos_readout_bridge.vhd",
+    "rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd",
     "rtl/isolated/subsystems/readout/legacy_two_lane_readout_mux.vhd",
     "rtl/isolated/subsystems/timing/legacy_timing_subsystem_bridge.vhd",
     "rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd",
