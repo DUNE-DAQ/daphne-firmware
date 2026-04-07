@@ -33,7 +33,7 @@ handoff step before DTBO packaging:
 ./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
-For the native packaged-shell `impl` path, the post-build export hook already
+For the native board-shell `impl` path, the post-build export hook already
 emits the legacy-style `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` contract
 into `xilinx/output-$DAPHNE_GIT_SHA/`, so only the DTBO bundler is required.
 If you need to re-export a Flow API implementation handoff from the work

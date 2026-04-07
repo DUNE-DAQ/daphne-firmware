@@ -114,14 +114,14 @@ available:
 
 That target still generates the qualified legacy K26C block design and wrapper
 through a `tclSource` preamble sourced by Edalize's Vivado Flow API. It remains
-the fallback path when the native packaged-shell implementation needs to be
+the fallback path when the native board-shell implementation needs to be
 compared against the older BD-wrapper flow.
 
 The composable platform now also exposes `impl` as its default implementation
 target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
 target automatically. Today `impl` is the native packaged board-shell Flow API
 path (`legacy_public_top_bridge`) while `impl_legacy_flow` remains available as
-the fallback BD-wrapper bridge. The native packaged-shell path now resolves
+the fallback BD-wrapper bridge. The native board-shell path now resolves
 through an explicit `k26c-board-shell` feature core instead of the generated
 `daphne-ip` manifest, so the board implementation is materially more
 FuseSoC-owned even though the packaged-IP/export lane still exists for the
@@ -160,12 +160,12 @@ Vivado flow API instead of the deprecated tool-backend entry. It is still OOC
 Vivado synthesis rather than a board implementation target, but it is the
 first real FuseSoC/flow-owned synth path in the repo.
 
-There is also a packaged public-shell synthesis checkpoint that exercises the
+There is also a board-shell synthesis checkpoint that exercises the
 board-facing shell through the explicit bridge graph without the generated
 `daphne-ip` core:
 
 ```bash
-./scripts/fusesoc/build_platform.sh --composable --target synth_packaged_top_flow
+./scripts/fusesoc/build_platform.sh --composable --target synth_board_shell_flow
 ```
 
 If Vivado runs on a remote server instead of the local workstation, use the

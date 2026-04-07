@@ -119,12 +119,12 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      Vivado flow-owned synth/impl runs on `daphne_selftrigger_bd_wrapper`.
      This is still hybrid, but it moves the board build off the deprecated
      pre-build hook path and closer to a full FuseSoC-owned implementation.
-   - The repo now also has the native packaged-shell `impl` target on
+   - The repo now also has the native board-shell `impl` target on
      `k26c-composable-platform`, which builds `legacy_public_top_bridge`
      directly through the Vivado Flow API and exports the same
      `daphne_selftrigger_<gitsha>` artifact contract. This is the current
      default composable build entrypoint.
-   - The native packaged-shell synth/impl path now resolves through an
+   - The native board-shell synth/impl path now resolves through an
      explicit `k26c-board-shell` feature core and the extracted bridge graph
      rather than the generated `daphne-ip` source manifest. The generated
      packaged-IP manifest still exists for the legacy export/build lane, but

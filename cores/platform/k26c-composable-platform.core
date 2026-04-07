@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:k26c-composable-platform:0.1.0
-description: K26C platform wrapper for the fine-grained composable DAPHNE subsystem graph and native packaged-shell impl path
+description: K26C platform wrapper for the fine-grained composable DAPHNE subsystem graph and native board-shell impl path
 provider:
   name: local
 
@@ -54,7 +54,7 @@ filesets:
     files:
       - boards/k26c/board.yml
     file_type: user
-  ooc_packaged_top_rtl:
+  ooc_board_shell_rtl:
     depend:
       - dune-daq:daphne:k26c-board-shell:0.1.0
     files:
@@ -62,13 +62,13 @@ filesets:
       - xilinx/daphne_board_env.tcl
       - xilinx/daphne_composable_ooc_entry.tcl
     file_type: user
-  ooc_packaged_top_flow_rtl:
+  ooc_board_shell_flow_rtl:
     depend:
       - dune-daq:daphne:k26c-board-shell:0.1.0
     files:
       - boards/k26c/board.yml
     file_type: user
-  impl_packaged_top_flow_rtl:
+  impl_board_shell_flow_rtl:
     depend:
       - dune-daq:daphne:k26c-board-shell:0.1.0
     files:
@@ -167,11 +167,11 @@ targets:
       board_part: xilinx.com:k26c:part0:1.4
       source_mgmt_mode: None
   impl:
-    description: Default composable platform implementation target, now backed by the native packaged board-shell Flow API path
+    description: Default composable platform implementation target, now backed by the native board-shell Flow API path
     flow: vivado
     toplevel: legacy_public_top_bridge
     filesets:
-      - impl_packaged_top_flow_rtl
+      - impl_board_shell_flow_rtl
     hooks:
       post_build:
         - export_impl_bundle
@@ -206,12 +206,12 @@ targets:
       board_part: xilinx.com:k26c:part0:1.4
       pnr: none
       source_mgmt_mode: None
-  synth_packaged_top_ooc:
-    description: Vivado out-of-context synthesis of the isolated packaged board shell from the explicit legacy-public-top bridge graph
+  synth_board_shell_ooc:
+    description: Vivado out-of-context synthesis of the isolated board shell from the explicit K26C board-shell core
     default_tool: vivado
     toplevel: legacy_public_top_bridge
     filesets:
-      - ooc_packaged_top_rtl
+      - ooc_board_shell_rtl
     hooks:
       pre_build:
         - vivado_composable_ooc
@@ -222,12 +222,39 @@ targets:
         synth: none
         pnr: none
         source_mgmt_mode: None
-  synth_packaged_top_flow:
-    description: First-class Edalize flow-API Vivado synthesis of the isolated packaged board shell from the explicit legacy-public-top bridge graph
+  synth_packaged_top_ooc:
+    description: Compatibility alias for synth_board_shell_ooc
+    default_tool: vivado
+    toplevel: legacy_public_top_bridge
+    filesets:
+      - ooc_board_shell_rtl
+    hooks:
+      pre_build:
+        - vivado_composable_ooc
+    tools:
+      vivado:
+        part: xck26-sfvc784-2LV-c
+        board_part: xilinx.com:k26c:part0:1.4
+        synth: none
+        pnr: none
+        source_mgmt_mode: None
+  synth_board_shell_flow:
+    description: First-class Edalize flow-API Vivado synthesis of the isolated board shell from the explicit K26C board-shell core
     flow: vivado
     toplevel: legacy_public_top_bridge
     filesets:
-      - ooc_packaged_top_flow_rtl
+      - ooc_board_shell_flow_rtl
+    flow_options:
+      part: xck26-sfvc784-2LV-c
+      board_part: xilinx.com:k26c:part0:1.4
+      pnr: none
+      source_mgmt_mode: None
+  synth_packaged_top_flow:
+    description: Compatibility alias for synth_board_shell_flow
+    flow: vivado
+    toplevel: legacy_public_top_bridge
+    filesets:
+      - ooc_board_shell_flow_rtl
     flow_options:
       part: xck26-sfvc784-2LV-c
       board_part: xilinx.com:k26c:part0:1.4
