@@ -42,6 +42,7 @@ export DAPHNE_BOARD=k26c
 This runs:
 
 1. `./scripts/fusesoc/preflight_vivado_build.sh`
+   - automatically skipped for the native composable `impl` target
 2. `./scripts/fusesoc/run_vivado_batch.sh`
 
 and stores logs under `build/remote-vivado/<timestamp>/`.
@@ -58,6 +59,13 @@ before calling `run_remote_vivado_chain.sh`. That drives the native board-shell
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/`, so downstream DTBO packaging can keep using the same
 artifact contract.
+
+If you want to audit the staged native Flow-API graph before invoking Vivado,
+run:
+
+```bash
+./scripts/fusesoc/check_native_impl_graph.sh
+```
 
 If you want the remote wrapper to attempt DTBO packaging too, also set:
 
@@ -102,7 +110,7 @@ The wrapper script also records:
 The next agent or operator should return:
 
 - the exact branch and commit built;
-- whether preflight passed;
+- whether preflight ran or was skipped;
 - whether implementation completed;
 - the contents of `artifacts.txt`;
 - any Vivado timing/DRC failures that block deployability.

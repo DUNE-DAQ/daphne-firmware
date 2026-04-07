@@ -86,7 +86,7 @@ Current board-supported path:
 ```bash
 export DAPHNE_BOARD=k26c
 export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
-./scripts/fusesoc/fusesoc.sh run --target=impl dune-daq:daphne:k26c-platform:0.1.0
+./scripts/fusesoc/fusesoc.sh run --target=impl dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
 The convenience wrapper now dispatches through the same FuseSoC target:

@@ -59,6 +59,7 @@ This performs:
 
 1. WSL tool check
 2. `./scripts/fusesoc/preflight_vivado_build.sh`
+   - automatically skipped for the native composable `impl` target
 3. `./scripts/fusesoc/run_vivado_batch.sh`
 4. `./scripts/package/complete_dtbo_bundle.sh`
 
@@ -74,10 +75,17 @@ If you need to force it explicitly, set:
 export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
-before calling `run_wsl_vivado_chain.sh`. That drives the native packaged
-board-shell `impl` target. The repo still exports a legacy-style
+before calling `run_wsl_vivado_chain.sh`. That drives the native board-shell
+`impl` target. The repo still exports a legacy-style
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/` before running the usual DTBO packaging step.
+
+If you want to audit the staged native Flow-API graph before invoking Vivado,
+run:
+
+```bash
+./scripts/fusesoc/check_native_impl_graph.sh
+```
 
 ## Output directory rule
 
