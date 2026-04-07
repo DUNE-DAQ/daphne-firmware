@@ -24,14 +24,14 @@ export DAPHNE_GIT_SHA="${DAPHNE_GIT_SHA:-$commit_sha}"
 export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
 
 if [ -z "$PLATFORM_TARGET" ] && [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ]; then
-  PLATFORM_TARGET="impl_legacy_flow"
+  PLATFORM_TARGET="impl"
 fi
 if [ -n "$PLATFORM_TARGET" ]; then
   export DAPHNE_PLATFORM_TARGET="$PLATFORM_TARGET"
 fi
 
 FLOW_OWNED_LEGACY_IMPL=0
-if [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ] && [ "$PLATFORM_TARGET" = "impl_legacy_flow" ]; then
+if [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ] && { [ "$PLATFORM_TARGET" = "impl_legacy_flow" ] || [ "$PLATFORM_TARGET" = "impl" ]; }; then
   FLOW_OWNED_LEGACY_IMPL=1
 fi
 
@@ -60,7 +60,7 @@ resolve_output_dir() {
 }
 
 OUTPUT_DIR="$(resolve_output_dir)"
-FLOW_WORK_DIR="$ROOT_DIR/build/dune-daq_daphne_k26c-composable-platform_0.1.0/impl_legacy_flow"
+FLOW_WORK_DIR="$ROOT_DIR/build/dune-daq_daphne_k26c-composable-platform_0.1.0/${PLATFORM_TARGET:-impl}"
 
 {
   printf 'run_id=%s\n' "$RUN_ID"
