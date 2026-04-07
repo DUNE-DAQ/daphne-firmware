@@ -74,6 +74,7 @@ daphne_resolve_board_defaults() {
   overlay_name_prefix="$(daphne_board_manifest_value "$root_dir" "$board_name" overlay_name_prefix)"
   ip_top_hdl_file="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_top_hdl_file)"
   ip_top_module="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_top_module)"
+  ip_cell_name="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_cell_name)"
   ip_component_identifier="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_component_identifier)"
   ip_display_name="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_display_name)"
   ip_xgui_file="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_xgui_file)"
@@ -118,6 +119,9 @@ daphne_resolve_board_defaults() {
   if [ -n "$ip_top_module" ]; then
     : "${DAPHNE_IP_TOP_MODULE:=$ip_top_module}"
   fi
+  if [ -n "$ip_cell_name" ]; then
+    : "${DAPHNE_IP_CELL_NAME:=$ip_cell_name}"
+  fi
   if [ -n "$ip_component_identifier" ]; then
     : "${DAPHNE_IP_COMPONENT_IDENTIFIER:=$ip_component_identifier}"
   fi
@@ -160,6 +164,9 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "${DAPHNE_IP_TOP_MODULE-}" ]; then
     export DAPHNE_IP_TOP_MODULE
+  fi
+  if [ -n "${DAPHNE_IP_CELL_NAME-}" ]; then
+    export DAPHNE_IP_CELL_NAME
   fi
   if [ -n "${DAPHNE_IP_COMPONENT_IDENTIFIER-}" ]; then
     export DAPHNE_IP_COMPONENT_IDENTIFIER
