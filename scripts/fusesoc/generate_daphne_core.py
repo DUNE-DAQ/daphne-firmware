@@ -55,6 +55,13 @@ def extract_quoted_list_any(text: str, patterns: list[str]) -> list[str]:
     raise RuntimeError(f"Could not find any expected pattern: {joined}")
 
 
+def extract_default_string(text: str, pattern: str) -> str:
+    match = re.search(pattern, text, flags=re.S)
+    if not match:
+        raise RuntimeError(f"Could not find pattern: {pattern}")
+    return match.group(1)
+
+
 def emit_fileset(
     lines: list[str],
     name: str,
@@ -79,12 +86,20 @@ def emit_fileset(
 def main() -> None:
     tcl_text = TCL_PATH.read_text()
 
+    default_top_vhdl = extract_default_string(
+        tcl_text,
+        r'set daphne_ip_top_hdl_file \[file normalize \[daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE \[file join \$daphne_ip_root "rtl" "([^"]+)"\]\]\]',
+    )
     rtl_ignored = set(
-        extract_quoted_list(
+        extract_quoted_list_any(
             tcl_text,
-            r"set vhdlFiles \[ignore_files \$vhdlFiles_aux \{(.*?)\}\]",
+            [
+                r"set vhdlFiles \[ignore_files \$vhdlFiles_aux \{(.*?)\}\]",
+                r"set vhdlFiles \[ignore_files \$vhdlFiles_aux \[list (.*?)\]\]",
+            ],
         )
     )
+    rtl_ignored.add(default_top_vhdl)
     wib_type_exceptions = set(
         extract_quoted_list(tcl_text, r"set wibTypeExceptionList \{(.*?)\}")
     )

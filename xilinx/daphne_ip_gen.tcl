@@ -1,4 +1,4 @@
-# elaborated TCL script file to package daphne_selftrigger_top sources into a Local reusable User IP
+# elaborated TCL script file to package DAPHNE PL sources into a Local reusable User IP
 # the script generates the .xml file needed to import DAPHNE to a Block Design, within the In-Memory Project
 # <daniel.avila@eia.edu.co - daniel.avila.gomez@cern.ch>
 
@@ -10,11 +10,18 @@ source -notrace [file join $script_dir "daphne_board_env.tcl"]
 set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
 set daphne_eth_mode [daphne_get_env_or_default DAPHNE_ETH_MODE "vendored_hdl"]
+set daphne_ip_top_hdl_file [file normalize [daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"]]]
+set daphne_ip_top_module [daphne_get_env_or_default DAPHNE_IP_TOP_MODULE "daphne_selftrigger_top"]
+set daphne_ip_component_identifier [daphne_get_env_or_default DAPHNE_IP_COMPONENT_IDENTIFIER $daphne_ip_top_module]
+set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME "${daphne_ip_component_identifier}_v1_0"]
+set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE "${daphne_ip_component_identifier}_v1_0.tcl"]
+set daphne_ip_top_basename [file tail $daphne_ip_top_hdl_file]
+set daphne_ip_include_dirs [list [file join $daphne_ip_root "rtl"] [file dirname $daphne_ip_top_hdl_file]]
 set_part $daphne_fpga_part
 set_property BOARD_PART $daphne_board_part [current_project]
 set_property TARGET_LANGUAGE VHDL [current_project]
 set_property DEFAULT_LIB work [current_project]
-puts "INFO: Packaging daphne_selftrigger_top IP for part <$daphne_fpga_part> board_part <$daphne_board_part> eth_mode <$daphne_eth_mode>."
+puts "INFO: Packaging <$daphne_ip_component_identifier> from <$daphne_ip_top_hdl_file> for part <$daphne_fpga_part> board_part <$daphne_board_part> eth_mode <$daphne_eth_mode>."
 
 # list the directories that must be deleted at the start of the process when generating a new iteration of the IP
 # this is purposely done so that older versions of IPs or files are updated to avoid later conflict or invalid configurations
@@ -149,7 +156,7 @@ proc get_latest_ip_vlnv {ipSel} {
 # set DAPHNE IP parameters
 set componentVendor dune.pds
 set componentLibrary user
-set componentIdentifier daphne_selftrigger_top
+set componentIdentifier $daphne_ip_component_identifier
 set componentVersion 1.0
 set daphneDescription {IP Version of DAPHNEv3 PL Firmware for the PDS in the DUNE Project}
 
@@ -231,7 +238,7 @@ set_property CORE_REVISION 1 $daphne
 set_property DEFINITION_SOURCE package_project $daphne 
 set_property DESCRIPTION $daphneDescription $daphne
 # set_property DESIGN_TOOL_CONTEXTS IPI $daphne 
-set_property DISPLAY_NAME daphne_selftrigger_top_v1_0 $daphne
+set_property DISPLAY_NAME $daphne_ip_display_name $daphne
 set_property ROOT_DIRECTORY $ipRepoDir $daphne
 set_property SUPPORTED_FAMILIES {zynquplus Production} $daphne 
 # set_property SUPPORTS_AUTO_XDC dynamic_params $daphne 
@@ -311,7 +318,7 @@ set xciDAQFiles_aux [get_files_recursive $rtlDAQDir "*.xci"]
 set xciDAQFiles [ignore_files $xciDAQFiles_aux {"xxv_ethernet_0.xci" "xxv_ethernet_0_gt.xci"}]
 
 set vhdlFiles_aux [get_files_recursive $rtlDir "*.vhd"]
-set vhdlFiles [ignore_files $vhdlFiles_aux {"daphne_selftrigger_top.vhd" "auto_afe.vhd" "auto_fsm.vhd" "i2cm.vhd" "spim_cm.vhd" "DAQ_CLOCKS.vhd" "AXI_RAM.vhd" "dual_st20_top.vhd" "thresholds.vhd" "st40_top.vhd" "baseline.vhd" "trig.vhd"}]
+set vhdlFiles [ignore_files $vhdlFiles_aux [list $daphne_ip_top_basename "auto_afe.vhd" "auto_fsm.vhd" "i2cm.vhd" "spim_cm.vhd" "DAQ_CLOCKS.vhd" "AXI_RAM.vhd" "dual_st20_top.vhd" "thresholds.vhd" "st40_top.vhd" "baseline.vhd" "trig.vhd"]]
 set verilogFiles [get_files_recursive $rtlDir "*.v"]
 
 set tbFilesVhdl [get_files_recursive $tbDir "*.vhd"]
@@ -465,19 +472,19 @@ foreach daqVerilogType $verilogDAQFiles {
 
 # remember DAPHNE's top file is VHDL!
 # must be added last in order to let Vivado packager know it is top
-ipx::add_file -name [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"] -file_group $lang_synth
-ipx::add_file -name [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"] -file_group $lang_sim
+ipx::add_file -name $daphne_ip_top_hdl_file -file_group $lang_synth
+ipx::add_file -name $daphne_ip_top_hdl_file -file_group $lang_sim
 # make it top in hierarchy, just in case
-set_property TOP daphne_selftrigger_top [current_fileset]
+set_property TOP $daphne_ip_top_module [current_fileset]
 
 # update ip checksums 
 ipx::update_checksums $daphne
 
 # create the ports based on the TOP level design and the subcores
-set daphne_ports [ipx::add_ports_from_hdl -top_level_hdl_file [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"] -top_module_name daphne_selftrigger_top -include_dirs [file join $daphne_ip_root "rtl"] $daphne]
+set daphne_ports [ipx::add_ports_from_hdl -top_level_hdl_file $daphne_ip_top_hdl_file -top_module_name $daphne_ip_top_module -include_dirs $daphne_ip_include_dirs $daphne]
 
 # create the generic parameters of the design based on the TOP level generic
-set daphne_generics [ipx::add_model_parameters_from_hdl -top_level_hdl_file [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"] -top_module_name daphne_selftrigger_top -include_dirs [file join $daphne_ip_root "rtl"] $daphne]
+set daphne_generics [ipx::add_model_parameters_from_hdl -top_level_hdl_file $daphne_ip_top_hdl_file -top_module_name $daphne_ip_top_module -include_dirs $daphne_ip_include_dirs $daphne]
 set_property DISPLAY_NAME Version [ipx::get_hdl_parameters -of_objects $daphne version]
 set_property VALUE_RESOLVE_TYPE user [ipx::get_hdl_parameters -of_objects $daphne version]
 set_property DISPLAY_NAME {Link ID} [ipx::get_hdl_parameters -of_objects $daphne link_id]
@@ -931,7 +938,7 @@ foreach memoryMapBus $daphne_bus_interfaces {
 # upgrade IP elements to avoid locked IPs or wrong config
 ipx::upgrade_core $daphne
 
-set XGUILoc [file join $daphne_ip_root "xgui" "daphne_selftrigger_top_v1_0.tcl"]
+set XGUILoc [file join $daphne_ip_root "xgui" $daphne_ip_xgui_file]
 # create XGUI file
 source -notrace [file join $script_dir "daphne_xgui_gen.tcl"]
 
@@ -946,7 +953,7 @@ ipx::update_checksums $daphne
 if {[ipx::check_integrity $daphne]} {
     # save and package IP since it is properly finished
     ipx::save_core
-    puts "INFO: Successfully packaged daphne_selftrigger_top IP."
+    puts "INFO: Successfully packaged $daphne_ip_component_identifier IP."
 } else {
     # there was an error!
     puts "ERROR: Error detected while packaging IP."

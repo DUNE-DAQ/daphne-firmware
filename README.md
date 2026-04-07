@@ -116,6 +116,13 @@ and block-design flow now honor `DAPHNE_BD_NAME` / `DAPHNE_BD_WRAPPER_NAME`
  the migration path open for side-by-side legacy and future composable design
  identities.
 
+The IP packaging Tcl also now accepts top-identity overrides
+(`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,
+`DAPHNE_IP_COMPONENT_IDENTIFIER`, `DAPHNE_IP_DISPLAY_NAME`,
+`DAPHNE_IP_XGUI_FILE`), still defaulting to the legacy packaged top. That is a
+scaffolding step only: source discovery is still centered on the imported
+legacy tree until the composable implementation becomes the real build owner.
+
 If Vivado runs on a remote server instead of the local workstation, use the
 repo-local runbook and wrapper:
 
