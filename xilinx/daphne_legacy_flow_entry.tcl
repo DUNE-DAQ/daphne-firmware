@@ -54,6 +54,7 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
             fixed_delay_line.vhd
             sync_fifo_fwft.vhd
             legacy_selftrigger_register_bank.vhd
+            legacy_stuff_selftrigger_register_bank.vhd
             frontend_common.vhd
             afe_capture_slice.vhd
             frontend_capture_bank.vhd

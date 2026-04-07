@@ -100,6 +100,7 @@ fi
 
 for support_leaf in \
   legacy_selftrigger_register_bank.vhd \
+  legacy_stuff_selftrigger_register_bank.vhd \
   legacy_selftrigger_datapath.vhd \
   legacy_deimos_readout_bridge.vhd \
   legacy_timing_subsystem_bridge.vhd
