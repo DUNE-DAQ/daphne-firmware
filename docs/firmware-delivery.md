@@ -36,10 +36,17 @@ handoff step before DTBO packaging:
 For the native packaged-shell `impl` path, the post-build export hook already
 emits the legacy-style `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` contract
 into `xilinx/output-$DAPHNE_GIT_SHA/`, so only the DTBO bundler is required.
-If you intentionally build through `impl_legacy_flow`, the optional helper
-`./scripts/package/export_impl_legacy_flow_bundle.sh` remains available to
-re-export the handoff bundle from the Flow API work directory before DTBO
-packaging.
+If you need to re-export a Flow API implementation handoff from the work
+directory, use:
+
+```bash
+./scripts/package/export_impl_bundle.sh
+```
+
+If you intentionally build through `impl_legacy_flow`, the compatibility
+wrapper `./scripts/package/export_impl_legacy_flow_bundle.sh` remains
+available and defaults `DAPHNE_PLATFORM_TARGET=impl_legacy_flow` before
+delegating to the generic helper.
 
 ## Current repo-local packaging step
 
