@@ -141,6 +141,9 @@ The active board implementation path is native, but the repo still carries
 legacy collateral for compatibility:
 
 - packaged-IP generation and export flows
+- explicit `legacy_*` board-manifest identity keys for the packaged-IP/BD lane,
+  so the native board-shell defaults no longer have to masquerade as
+  `daphne_selftrigger_*` names
 - Tcl/BD-based legacy platform path
 - legacy compatibility cores kept for older manifests, simulation, or staged
   migration support

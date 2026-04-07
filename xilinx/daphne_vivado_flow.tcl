@@ -26,8 +26,8 @@ proc daphne_resolve_config {script_dir} {
     set cfg(repo_root) [file normalize [file join $script_dir ".."]]
     set board_profile [daphne_resolve_board_profile $cfg(repo_root)]
     set artifact_profile [daphne_resolve_artifact_profile $cfg(repo_root) $board_profile]
-    set board_bd_name [daphne_board_profile_value $board_profile bd_name "daphne_selftrigger_bd"]
-    set board_bd_wrapper_name [daphne_board_profile_value $board_profile bd_wrapper_name "${board_bd_name}_wrapper"]
+    set board_bd_name [daphne_board_profile_value_with_fallback $board_profile legacy_bd_name bd_name "daphne_selftrigger_bd"]
+    set board_bd_wrapper_name [daphne_board_profile_value_with_fallback $board_profile legacy_bd_wrapper_name bd_wrapper_name "${board_bd_name}_wrapper"]
     set cfg(vivado_version) 2024.1
     set cfg(fpga_part) [daphne_get_env_or_default DAPHNE_FPGA_PART [dict get $board_profile fpga_part]]
     set cfg(board_part) [daphne_get_env_or_default DAPHNE_BOARD_PART [dict get $board_profile board_part]]
