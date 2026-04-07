@@ -231,61 +231,47 @@ begin
       last                   => last_debug_reg
     );
 
-  legacy_deimos_readout_bridge_inst : entity work.legacy_deimos_readout_bridge
+  legacy_selftrigger_output_bridge_inst : entity work.legacy_selftrigger_output_bridge
     port map(
-      s_axi_aclk_i           => trirg_s_axi_aclk,
-      s_axi_aresetn_i        => trirg_s_axi_aresetn,
-      s_axi_awaddr_i         => core_axi_awaddr,
-      s_axi_awprot_i         => core_axi_awprot,
-      s_axi_awvalid_i        => core_axi_awvalid,
-      s_axi_awready_o        => core_axi_awready,
-      s_axi_wdata_i          => core_axi_wdata,
-      s_axi_wstrb_i          => core_axi_wstrb,
-      s_axi_wvalid_i         => core_axi_wvalid,
-      s_axi_wready_o         => core_axi_wready,
-      s_axi_bresp_o          => core_axi_bresp,
-      s_axi_bvalid_o         => core_axi_bvalid,
-      s_axi_bready_i         => core_axi_bready,
-      s_axi_araddr_i         => core_axi_araddr,
-      s_axi_arprot_i         => core_axi_arprot,
-      s_axi_arvalid_i        => core_axi_arvalid,
-      s_axi_arready_o        => core_axi_arready,
-      s_axi_rdata_o          => core_axi_rdata,
-      s_axi_rresp_o          => core_axi_rresp,
-      s_axi_rvalid_o         => core_axi_rvalid,
-      s_axi_rready_i         => core_axi_rready,
-      eth_clk_p              => eth_clk_p,
-      eth_clk_n              => eth_clk_n,
-      eth0_rx_p              => eth0_rx_p,
-      eth0_rx_n              => eth0_rx_n,
-      eth0_tx_p              => eth0_tx_p,
-      eth0_tx_n              => eth0_tx_n,
-      eth0_tx_dis            => eth0_tx_dis,
-      dune_base_clk_i        => clock,
-      dune_base_rst_i        => reset,
-      data_clk_i             => clock,
-      data_clk_rst_i         => reset,
-      d_i                    => out_buff_data_reg,
-      valid_i                => valid_debug_reg,
-      last_i                 => last_debug_reg,
-      timestamp_i            => timestamp,
-      ext_mac_addr_i         => DEFAULT_ext_mac_addr_0,
-      ext_ip_addr_i          => DEFAULT_ext_ip_addr_0,
-      ext_port_addr_i        => DEFAULT_ext_port_addr_0
+      s_axi_aclk_i    => trirg_s_axi_aclk,
+      s_axi_aresetn_i => trirg_s_axi_aresetn,
+      s_axi_awaddr_i  => core_axi_awaddr,
+      s_axi_awprot_i  => core_axi_awprot,
+      s_axi_awvalid_i => core_axi_awvalid,
+      s_axi_awready_o => core_axi_awready,
+      s_axi_wdata_i   => core_axi_wdata,
+      s_axi_wstrb_i   => core_axi_wstrb,
+      s_axi_wvalid_i  => core_axi_wvalid,
+      s_axi_wready_o  => core_axi_wready,
+      s_axi_bresp_o   => core_axi_bresp,
+      s_axi_bvalid_o  => core_axi_bvalid,
+      s_axi_bready_i  => core_axi_bready,
+      s_axi_araddr_i  => core_axi_araddr,
+      s_axi_arprot_i  => core_axi_arprot,
+      s_axi_arvalid_i => core_axi_arvalid,
+      s_axi_arready_o => core_axi_arready,
+      s_axi_rdata_o   => core_axi_rdata,
+      s_axi_rresp_o   => core_axi_rresp,
+      s_axi_rvalid_o  => core_axi_rvalid,
+      s_axi_rready_i  => core_axi_rready,
+      eth_clk_p_i     => eth_clk_p,
+      eth_clk_n_i     => eth_clk_n,
+      eth0_rx_p_i     => eth0_rx_p,
+      eth0_rx_n_i     => eth0_rx_n,
+      eth0_tx_p_o     => eth0_tx_p,
+      eth0_tx_n_o     => eth0_tx_n,
+      eth0_tx_dis_o   => eth0_tx_dis,
+      clock_i         => clock,
+      reset_i         => reset,
+      data_i          => out_buff_data_reg,
+      valid_i         => valid_debug_reg,
+      last_i          => last_debug_reg,
+      timestamp_i     => timestamp,
+      outbuff_axi_in  => outbuff_axi_in,
+      outbuff_axi_out => outbuff_axi_out,
+      out_buff_data_o => out_buff_data,
+      out_buff_trig_o => out_buff_trig,
+      valid_debug_o   => valid_debug,
+      last_debug_o    => last_debug
     );
-
-  outbuff_inst: entity work.outspybuff
-    port map(
-      clock   => clock,
-      din     => out_buff_data_reg,
-      valid   => valid_debug_reg,
-      last    => last_debug_reg,
-      AXI_IN  => outbuff_axi_in,
-      AXI_OUT => outbuff_axi_out
-    );
-
-  out_buff_data <= out_buff_data_reg(0);
-  out_buff_trig <= valid_debug_reg(0) or valid_debug_reg(1);
-  valid_debug   <= valid_debug_reg(0);
-  last_debug    <= last_debug_reg(0);
 end architecture rtl;

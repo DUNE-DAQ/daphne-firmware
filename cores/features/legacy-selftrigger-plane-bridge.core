@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:legacy-selftrigger-plane-bridge:0.1.0
-description: Legacy self-trigger plane compatibility bridge wrapping the live core and output spy buffer seams
+description: Legacy self-trigger plane compatibility bridge composing the live core seam and output readout seam
 provider:
   name: local
 
@@ -9,8 +9,8 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:legacy-core-readout-bridge:0.1.0
-      - dune-daq:daphne:spy-buffer:0.1.0
+      - dune-daq:daphne:legacy-selftrigger-core-bridge:0.1.0
+      - dune-daq:daphne:legacy-selftrigger-output-bridge:0.1.0
     files:
       - rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd
     file_type: vhdlSource
