@@ -72,6 +72,9 @@ The timing side is still weaker than it should be:
 
 - `xilinx/daphne_selftrigger_pin_map.xdc` still carries stale generated-clock
   and clock-group baggage from older hierarchy names and experiments.
+- The legacy async clock-group section now uses guarded `get_clocks -quiet`
+  lookups so stale names stop producing avoidable warnings, but that is only a
+  containment step, not the final receive-path timing model.
 - The static constraints for the AFE capture path are not yet isolated into a
   dedicated, reviewable timing block.
 - Some frontend ownership is split between the legacy `front_end` and the newer

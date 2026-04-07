@@ -97,30 +97,45 @@ set_clock_groups -physically_exclusive \
 
 set_property CLOCK_DEDICATED_ROUTE BACKBONE [get_nets daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk]
 
+proc daphne_set_async_clock_groups_if_present {group_a group_b} {
+    set clocks_a {}
+    set clocks_b {}
+
+    foreach clock_name $group_a {
+        foreach resolved_clock [get_clocks -quiet $clock_name] {
+            lappend clocks_a $resolved_clock
+        }
+    }
+    foreach clock_name $group_b {
+        foreach resolved_clock [get_clocks -quiet $clock_name] {
+            lappend clocks_b $resolved_clock
+        }
+    }
+
+    if {[llength $clocks_a] > 0 && [llength $clocks_b] > 0} {
+        set_clock_groups -asynchronous -group $clocks_a -group $clocks_b
+    }
+}
+
 #set_clock_groups -**async_default**  [get_clocks {mmcm1_clkout0_1}] to [get_clocks {mmcm1_clkout0}]
-set_clock_groups -asynchronous -group [get_clocks clk_pl_0] -group [get_clocks mmcm1_clkout0]
-set_clock_groups -asynchronous -group [get_clocks clk_pl_0] -group [get_clocks mmcm1_clkout1]
-set_clock_groups -asynchronous -group [get_clocks mmcm1_clkout1] -group [get_clocks mmcm1_clkout0]
+daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm1_clkout0}
+daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm1_clkout1}
+daphne_set_async_clock_groups_if_present {mmcm1_clkout1} {mmcm1_clkout0}
 #set_clock_groups -asynchronous -group [get_clocks DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku] -group [get_clocks DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1]
 #set_clock_groups -asynchronous -group [get_clocks {mmcm1_clkout0_1}] -group [get_clocks {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1}]
-set_clock_groups -asynchronous -group [get_clocks clk_pl_0] -group [get_clocks mmcm0_clkout0]
+daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm0_clkout0}
 #set_clock_groups -asynchronous -group [get_clocks {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout0}] -group [get_clocks {mmcm1_clkout1_1}]
-set_clock_groups -asynchronous -group [get_clocks clk_pl_0] -group [get_clocks mmcm0_clkout2]
-set_clock_groups -asynchronous -group [get_clocks clk_pl_0] -group [get_clocks mmcm0_clkout1]
-set_clock_groups -asynchronous -group [get_clocks clk_pl_0] -group [get_clocks clk125]
+daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm0_clkout2}
+daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm0_clkout1}
+daphne_set_async_clock_groups_if_present {clk_pl_0} {clk125}
 
-set_clock_groups -asynchronous -group [get_clocks clk_pl_2] -group [get_clocks mmcm1_clkout0]
-set_clock_groups -asynchronous -group [get_clocks clk_pl_2] -group [get_clocks mmcm1_clkout1]
-set_clock_groups -asynchronous -group [get_clocks mmcm1_clkout0] -group [get_clocks clk_pl_2]
-set_clock_groups -asynchronous -group [get_clocks mmcm1_clkout1] -group [get_clocks clk_pl_2]
+daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm1_clkout0}
+daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm1_clkout1}
 
-set_clock_groups -asynchronous -group [get_clocks clk_pl_2] -group [get_clocks mmcm0_clkout2]
-set_clock_groups -asynchronous -group [get_clocks clk_pl_2] -group [get_clocks mmcm0_clkout1]
-set_clock_groups -asynchronous -group [get_clocks mmcm0_clkout2] -group [get_clocks clk_pl_2]
-set_clock_groups -asynchronous -group [get_clocks mmcm0_clkout1] -group [get_clocks clk_pl_2]
+daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm0_clkout2}
+daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm0_clkout1}
 
-set_clock_groups -asynchronous -group [get_clocks clk_pl_2] -group [get_clocks sysclk]
-set_clock_groups -asynchronous -group [get_clocks sysclk] -group [get_clocks clk_pl_2]
+daphne_set_async_clock_groups_if_present {clk_pl_2} {sysclk}
 
 
 #set_clock_groups -asynchronous -group [get_clocks {clku}] -group [get_clocks {clk100}]
