@@ -387,6 +387,10 @@ recorded in `docs/source-audit.md`.
 - `daphne-composable-top` now also exposes a GHDL smoke target behind a
   validate-only `frontend_island` stub, and `k26c-composable-platform`
   mirrors it as `validate_public_top`.
+- `scripts/fusesoc/check_native_impl_graph.sh` stages the native
+  `k26c-composable-platform` `impl` graph and fails if any `legacy-*` core
+  names or required AFE timing constraints disappear from the staged EDA
+  description.
 - The new trigger/descriptor wrappers are source-only preparation work around
   the imported `trig_xc` and legacy peak-descriptor calculator; they are not yet
   integrated as the top-level frame source.
