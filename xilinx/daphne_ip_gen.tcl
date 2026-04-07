@@ -23,6 +23,7 @@ set daphne_packaged_support_vhdl_src [list \
     [file join $repo_root "rtl" "isolated" "common" "primitives" "fixed_delay_line.vhd"] \
     [file join $repo_root "rtl" "isolated" "common" "primitives" "sync_fifo_fwft.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_selftrigger_register_bank.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_stuff_selftrigger_register_bank.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_common.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "afe_capture_slice.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_capture_bank.vhd"] \

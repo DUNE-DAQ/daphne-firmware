@@ -93,6 +93,7 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
   for candidate_dir in \
     "$WORK_ROOT/rtl/isolated/common" \
     "$WORK_ROOT/rtl/isolated/common/primitives" \
+    "$WORK_ROOT/rtl/isolated/subsystems/control" \
     "$WORK_ROOT/rtl/isolated/subsystems/frontend" \
     "$WORK_ROOT/rtl/isolated/subsystems/timing" \
     "$WORK_ROOT/rtl/isolated/subsystems/trigger"
@@ -109,6 +110,7 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
       fixed_delay_line.vhd \
       sync_fifo_fwft.vhd \
       legacy_selftrigger_register_bank.vhd \
+      legacy_stuff_selftrigger_register_bank.vhd \
       frontend_register_slice.vhd \
       frontend_register_bank.vhd \
       legacy_deimos_readout_bridge.vhd \

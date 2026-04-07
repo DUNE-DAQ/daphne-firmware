@@ -232,6 +232,80 @@ begin
         assert core_chan_enable(39 downto 32) = x"5A"
             report "High channel-enable mask write did not update"
             severity failure;
+        axi_read(x"00000020", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"A5A55AA5"
+            report "Low channel-enable mask readback mismatch"
+            severity failure;
+        axi_read(x"00000024", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"0000005A"
+            report "High channel-enable mask readback mismatch"
+            severity failure;
+
+        axi_write(x"0000002C", x"00001234", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000030", x"00000012", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000034", x"00000002", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000038", x"00000001", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        assert st_config = std_logic_vector(to_unsigned(16#1234#, st_config'length))
+            report "Self-trigger config write did not update the exported signal"
+            severity failure;
+        assert signal_delay = "10010"
+            report "Signal-delay write did not update the exported signal"
+            severity failure;
+        assert filter_output_selector = "10"
+            report "Filter output selector write did not update the exported signal"
+            severity failure;
+        assert reset_st_counters = '1'
+            report "Reset counters write did not update the exported signal"
+            severity failure;
+        axi_read(x"0000002C", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00001234"
+            report "Self-trigger config readback mismatch"
+            severity failure;
+        axi_read(x"00000030", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00000012"
+            report "Signal-delay readback mismatch"
+            severity failure;
+        axi_read(x"00000034", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00000002"
+            report "Filter output selector readback mismatch"
+            severity failure;
+        axi_read(x"00000038", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00000001"
+            report "Reset counters readback mismatch"
+            severity failure;
+
+        axi_write(x"0000003C", x"89ABCDEF", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000040", x"00000012", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000044", x"76543210", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000048", x"000000AB", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        assert afe_comp_enable(31 downto 0) = x"89ABCDEF"
+            report "AFE compensation low mask write did not update"
+            severity failure;
+        assert afe_comp_enable(39 downto 32) = x"12"
+            report "AFE compensation high mask write did not update"
+            severity failure;
+        assert invert_enable(31 downto 0) = x"76543210"
+            report "Invert low mask write did not update"
+            severity failure;
+        assert invert_enable(39 downto 32) = x"AB"
+            report "Invert high mask write did not update"
+            severity failure;
+        axi_read(x"0000003C", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"89ABCDEF"
+            report "AFE compensation low mask readback mismatch"
+            severity failure;
+        axi_read(x"00000040", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00000012"
+            report "AFE compensation high mask readback mismatch"
+            severity failure;
+        axi_read(x"00000044", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"76543210"
+            report "Invert low mask readback mismatch"
+            severity failure;
+        axi_read(x"00000048", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"000000AB"
+            report "Invert high mask readback mismatch"
+            severity failure;
 
         axi_write(x"00000018", x"0000003F", "0011", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
         axi_read(x"00000018", araddr, arvalid, rdata, rvalid, clk, readback);

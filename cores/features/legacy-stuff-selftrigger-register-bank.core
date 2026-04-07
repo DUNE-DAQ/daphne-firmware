@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:legacy-stuff-selftrigger-register-bank:0.1.0
+description: Extracted self-trigger register ownership from the legacy stuff AXI-Lite block
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+    files:
+      - rtl/isolated/subsystems/control/legacy_stuff_selftrigger_register_bank.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
