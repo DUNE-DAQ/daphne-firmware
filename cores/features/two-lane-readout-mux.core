@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:two-lane-readout-mux:0.1.0
+description: Two-lane round-robin readout mux for composable per-channel self-trigger records
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

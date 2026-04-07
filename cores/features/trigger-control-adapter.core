@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:trigger-control-adapter:0.1.0
+description: Adapter from flat self-trigger control words to the per-channel trigger-control bank
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - rtl/isolated/subsystems/control/trigger_control_adapter.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
