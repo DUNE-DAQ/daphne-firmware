@@ -112,6 +112,11 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      source graph through FuseSoC and runs Vivado out-of-context synthesis.
      This is the first honest Vivado checkpoint for the public composable top,
      but it is still not the board-level implementation target.
+   - The repo now also has `synth_public_top_flow` on
+     `k26c-composable-platform`, which resolves the same public composable top
+     through the Edalize Vivado Flow API instead of the deprecated tool API.
+     This is still OOC synthesis, but it is the first real flow-owned synth
+     target in the migration.
 
 ## Trigger and descriptor split
 
