@@ -1,0 +1,446 @@
+#-----------------------------------------------------------
+# Vivado v2024.1 (64-bit)
+# SW Build 5076996 on Wed May 22 18:37:14 MDT 2024
+# IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+# SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+# Start of session at: Tue Apr  7 10:52:15 2026
+# Process ID: 28204
+# Current directory: Z:/home/neutrino/work/daphne-firmware-build/xilinx
+# Command line: vivado.exe -mode batch -source .manual-build.tcl
+# Log file: Z:/home/neutrino/work/daphne-firmware-build/xilinx/vivado.log
+# Journal file: Z:/home/neutrino/work/daphne-firmware-build/xilinx\vivado.jou
+# Running On        :WL-123935
+# Platform          :Windows Server 2016 or Windows 10
+# Operating System  :22631
+# Processor Detail  :13th Gen Intel(R) Core(TM) i9-13950HX
+# CPU Frequency     :2419 MHz
+# CPU Physical cores:24
+# CPU Logical cores :32
+# Host memory       :33995 MB
+# Swap memory       :5100 MB
+# Total Virtual     :39095 MB
+# Available Virtual :19848 MB
+#-----------------------------------------------------------
+source .manual-build.tcl
+# set script_dir "\\\\wsl.localhost\\Debian\\home\\neutrino\\work\\daphne-firmware-build\\xilinx"
+# set ::env(DAPHNE_FPGA_PART) "xck26-sfvc784-2LV-c"
+# set ::env(DAPHNE_BOARD_PART) "xilinx.com:k26c:part0:1.4"
+# set ::env(DAPHNE_PFM_NAME) "xilinx:k26c:name:0.0"
+# set ::env(DAPHNE_BOARD) "k26c"
+# set ::env(DAPHNE_ETH_MODE) "create_ip"
+# set ::env(DAPHNE_GIT_SHA) "1f10fc0"
+# set ::env(DAPHNE_OUTPUT_DIR) "./output-1f10fc0"
+# set ::env(DAPHNE_MAX_THREADS) "12"
+# set ::env(DAPHNE_SKIP_POST_SYNTH_REPORTS) "1"
+# set ::env(DAPHNE_SKIP_POST_SYNTH_CHECKPOINT) "1"
+# set ::env(XILINX_VITIS) "C:\\Xilinx\\Vitis\\2024.1"
+# source -notrace [file join $script_dir "vivado_batch.tcl"]
+INFO: Using git SHA override from DAPHNE_GIT_SHA=1f10fc0
+INFO: [Coretcl 2-1500] The part has been set to 'xck26-sfvc784-2LV-c' for the current project only. Run set_part -help for more details. To evaluate different speed grades in the current design, use the set_speed_grade command, or use the open_checkpoint -part command to change the part used by an existing checkpoint design.
+set_part: Time (s): cpu = 00:00:13 ; elapsed = 00:00:28 . Memory (MB): peak = 565.008 ; gain = 205.863
+INFO: Running Vivado batch for part <xck26-sfvc784-2LV-c> board_part <xilinx.com:k26c:part0:1.4> pfm <xilinx:k26c:name:0.0>.
+INFO: Threads=12 synth=PerformanceOptimized opt=Explore place=WLDrivenBlockPlacement route=AlternateCLBRouting.
+INFO: Post-synth reports skipped=1 checkpoint skipped=1.
+INFO: passing git commit number 28'h1f10fc0 to top level generic
+INFO: [Coretcl 2-1500] The part has been set to 'xck26-sfvc784-2LV-c' for the current project only. Run set_part -help for more details. To evaluate different speed grades in the current design, use the set_speed_grade command, or use the open_checkpoint -part command to change the part used by an existing checkpoint design.
+INFO: Building block design for part <xck26-sfvc784-2LV-c> board_part <xilinx.com:k26c:part0:1.4> pfm <xilinx:k26c:name:0.0>.
+INFO: [Coretcl 2-1500] The part has been set to 'xck26-sfvc784-2LV-c' for the current project only. Run set_part -help for more details. To evaluate different speed grades in the current design, use the set_speed_grade command, or use the open_checkpoint -part command to change the part used by an existing checkpoint design.
+INFO: Packaging daphne_selftrigger_top IP for part <xck26-sfvc784-2LV-c> board_part <xilinx.com:k26c:part0:1.4> eth_mode <create_ip>.
+INFO: IP 'AXI BRAM Control' already exists at //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0.
+INFO: Deleting older version of IP AXI BRAM Control...
+INFO: Reusing existing IP 'XXV Ethernet' from //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci.
+INFO: XGUI File already exists at //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/ip_repo/daphne_ip/xgui.
+INFO: Deleting older version of XGUI file...
+INFO: XML File already exists at //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/ip_repo/daphne_ip/component.xml.
+INFO: Deleting older version of XML file...
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'C:/Xilinx/Vivado/2024.1/data/ip'.
+get_ipdefs: Time (s): cpu = 00:00:03 ; elapsed = 00:00:06 . Memory (MB): peak = 579.949 ; gain = 14.941
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-2] axi4_lite_bram_ctrl_0: In IP Integrator, please note that memory depth value gets calculated based on the Data Width of the IP and Address range selected in the Address Editor.Incase a validation error occured on the range of this parameter, please check if the selected Data width and the Address Range are valid. For valid Data width and memory depth values, please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-1] axi4_lite_bram_ctrl_0: In IP Integrator, The Maximum address range supported is 2G. Selecting the address range more than 2G in the address editor may resets the value of Memory depth to default value (1024). please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-2] axi4_lite_bram_ctrl_0: In IP Integrator, please note that memory depth value gets calculated based on the Data Width of the IP and Address range selected in the Address Editor.Incase a validation error occured on the range of this parameter, please check if the selected Data width and the Address Range are valid. For valid Data width and memory depth values, please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-1] axi4_lite_bram_ctrl_0: In IP Integrator, The Maximum address range supported is 2G. Selecting the address range more than 2G in the address editor may resets the value of Memory depth to default value (1024). please refer to the AXI BRAM Controller Product Guide.
+INFO: [Device 21-403] Loading part xck26-sfvc784-2LV-c
+create_ip: Time (s): cpu = 00:00:15 ; elapsed = 00:00:40 . Memory (MB): peak = 1644.602 ; gain = 1031.328
+xit::create_sub_core: Time (s): cpu = 00:00:02 ; elapsed = 00:00:06 . Memory (MB): peak = 1644.602 ; gain = 0.000
+ipx::update_checksums: Time (s): cpu = 00:00:00 ; elapsed = 00:00:05 . Memory (MB): peak = 1644.602 ; gain = 0.000
+INFO: [IP_Flow 19-795] Syncing license key meta-data
+ipx::update_checksums: Time (s): cpu = 00:00:00 ; elapsed = 00:00:06 . Memory (MB): peak = 1644.602 ; gain = 0.000
+INFO: [IP_Flow 19-7067] Note that bus interface 'AFE_SPI_S_AXI_ACLK' has a fixed FREQ_HZ of '99999001'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'END_P_S_AXI_ACLK' has a fixed FREQ_HZ of '99999001'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'FRONT_END_S_AXI_ACLK' has a fixed FREQ_HZ of '99999001'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'OUTBUFF_S_AXI_ACLK' has a fixed FREQ_HZ of '99999001'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'SPI_DAC_S_AXI_ACLK' has a fixed FREQ_HZ of '99999001'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'SPY_BUF_S_S_AXI_ACLK' has a fixed FREQ_HZ of '99999001'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'STUFF_S_AXI_ACLK' has a fixed FREQ_HZ of '99999001'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'THRESH_S_AXI_ACLK' has a fixed FREQ_HZ of '99999001'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'TRIRG_S_AXI_ACLK' has a fixed FREQ_HZ of '99999001'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'afe_clk_n' has a fixed FREQ_HZ of '100000000'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'afe_clk_p' has a fixed FREQ_HZ of '100000000'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'clock_gen_debug' has a fixed FREQ_HZ of '100000000'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-7067] Note that bus interface 'eth_clk_n' has a fixed FREQ_HZ of '100000000'. This value will be respected whenever this IP is instantiated in IP Integrator.
+WARNING: [IP_Flow 19-5661] Bus Interface 'eth_clk_n' does not have any bus interfaces associated with it.
+INFO: [IP_Flow 19-7067] Note that bus interface 'eth_clk_p' has a fixed FREQ_HZ of '100000000'. This value will be respected whenever this IP is instantiated in IP Integrator.
+WARNING: [IP_Flow 19-5661] Bus Interface 'eth_clk_p' does not have any bus interfaces associated with it.
+INFO: [IP_Flow 19-7067] Note that bus interface 'out_buff_clk' has a fixed FREQ_HZ of '100000000'. This value will be respected whenever this IP is instantiated in IP Integrator.
+INFO: [IP_Flow 19-2181] Payment is not required for this core.
+WARNING: [IP_Flow 19-2187] The Product Guide file is missing.
+INFO: [Ipptcl 7-1486] check_integrity: Integrity check passed.
+INFO: Successfully packaged daphne_selftrigger_top IP.
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository '//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/ip_repo'.
+INFO: Currently there is no design <daphne_selftrigger_bd> in project, so creating one...
+Wrote  : <\\wsl.localhost\Debian\home\neutrino\work\daphne-firmware-build\bd\daphne_selftrigger_bd\daphne_selftrigger_bd.bd> 
+INFO: Making design <daphne_selftrigger_bd> as current_bd_design.
+INFO: Currently the variable <designName> is equal to "daphne_selftrigger_bd".
+INFO: Checking if the following IPs exist in the project's IP catalog:  xilinx.com:ip:zynq_ultra_ps_e:3.5 xilinx.com:ip:smartconnect:1.0 xilinx.com:ip:proc_sys_reset:5.0 xilinx.com:ip:axi_iic:2.1 xilinx.com:ip:axi_quad_spi:3.2 xilinx.com:ip:axi_intc:4.1 xilinx.com:ip:xlconcat:2.1 dune.pds:user:daphne_selftrigger_top:1.0  .
+create_bd_cell: Time (s): cpu = 00:00:05 ; elapsed = 00:00:11 . Memory (MB): peak = 1806.004 ; gain = 161.402
+INFO: [PSU-0] Address Range of DDR (0x7ff00000 to 0x7fffffff) is reserved by PMU for internal purpose.
+INFO: [PSU-1]  DP_AUDIO clock source: RPLL is also being used by other peripheral clocks. Their outputs may get impacted if any driver changes DP_AUDIO PLL source to support runtime audio change 
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+WARNING: [BD 41-721] Attempt to set value '0' on disabled parameter 'C_S_AXI4_ID_WIDTH' of cell '/axi_quad_spi_0' is ignored
+WARNING: [BD 41-1306] The connection to interface pin </axi_quad_spi_0/ss_o> is being overridden by the user with net <daphne_selftrigger_top_cm_csn>. This pin will not be connected as a part of interface connection <SPI_0>.
+WARNING: [BD 41-1306] The connection to interface pin </axi_quad_spi_0/io0_o> is being overridden by the user with net <daphne_selftrigger_top_cm_din>. This pin will not be connected as a part of interface connection <SPI_0>.
+WARNING: [BD 41-1306] The connection to interface pin </axi_quad_spi_0/sck_o> is being overridden by the user with net <daphne_selftrigger_top_cm_sclk>. This pin will not be connected as a part of interface connection <SPI_0>.
+WARNING: [BD 41-1306] The connection to interface pin </axi_quad_spi_0/io1_i> is being overridden by the user with net <cm_dout_0_1>. This pin will not be connected as a part of interface connection <SPI_0>.
+Slave segment '/daphne_selftrigger_top/AFE_SPI_S_AXI/reg0' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x8000_0000 [ 64M ]>.
+Slave segment '/daphne_selftrigger_top/END_P_S_AXI/reg0' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x8400_0000 [ 64M ]>.
+Slave segment '/daphne_selftrigger_top/FRONT_END_S_AXI/reg0' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x8800_0000 [ 64M ]>.
+Slave segment '/daphne_selftrigger_top/OUTBUFF_S_AXI/reg0' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0xA000_0000 [ 64K ]>.
+Slave segment '/daphne_selftrigger_top/SPI_DAC_S_AXI/reg0' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x8C00_0000 [ 64M ]>.
+Slave segment '/daphne_selftrigger_top/SPY_BUF_S_S_AXI/reg0' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x9000_0000 [ 64M ]>.
+Slave segment '/daphne_selftrigger_top/STUFF_S_AXI/reg0' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x9400_0000 [ 64M ]>.
+Slave segment '/daphne_selftrigger_top/THRESH_S_AXI/reg0' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0xA001_0000 [ 64K ]>.
+Slave segment '/daphne_selftrigger_top/TRIRG_S_AXI/reg0' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x9800_0000 [ 64M ]>.
+Slave segment '/axi_iic_0/S_AXI/Reg' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x9C00_0000 [ 64K ]>.
+Slave segment '/axi_intc_0/S_AXI/Reg' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x9C01_0000 [ 64K ]>.
+Slave segment '/axi_quad_spi_0/AXI_LITE/Reg' is being assigned into address space '/zynq_ultra_ps_e_0/Data' at <0x9C02_0000 [ 64K ]>.
+INFO: [PSU-1]  DP_AUDIO clock source: RPLL is also being used by other peripheral clocks. Their outputs may get impacted if any driver changes DP_AUDIO PLL source to support runtime audio change 
+INFO: [BD 5-943] Reserving offset range <0x8000_0000 [ 64M ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M00_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x9C00_0000 [ 64K ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M01_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x8400_0000 [ 64M ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M02_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x8800_0000 [ 64M ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M03_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x9C02_0000 [ 64K ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M04_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x8C00_0000 [ 64M ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M05_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x9000_0000 [ 64M ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M06_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x9400_0000 [ 64M ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M07_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x9800_0000 [ 64M ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M08_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0x9C01_0000 [ 64K ]> from slave interface '/smartconnect_0/S00_AXI' to master interface '/smartconnect_0/M09_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0xA000_0000 [ 64K ]> from slave interface '/smartconnect_0/S01_AXI' to master interface '/smartconnect_0/M10_AXI'. This will be used by smartconnect on path for routing.
+INFO: [BD 5-943] Reserving offset range <0xA001_0000 [ 64K ]> from slave interface '/smartconnect_0/S01_AXI' to master interface '/smartconnect_0/M11_AXI'. This will be used by smartconnect on path for routing.
+INFO: [xilinx.com:ip:smartconnect:1.0-1] daphne_selftrigger_bd_smartconnect_0_0: SmartConnect daphne_selftrigger_bd_smartconnect_0_0 is in Low-Area Mode.
+WARNING: [xilinx.com:ip:smartconnect:1.0-1] daphne_selftrigger_bd_smartconnect_0_0: IP daphne_selftrigger_bd_smartconnect_0_0 is configured in Low-area mode as all propagated traffic is low-bandwidth (AXI4LITE). SI S00_AXI has property HAS_BURST == 1. WRAP bursts are not supported in Low-area mode and will result in DECERR if received.
+WARNING: [xilinx.com:ip:smartconnect:1.0-1] daphne_selftrigger_bd_smartconnect_0_0: IP daphne_selftrigger_bd_smartconnect_0_0 is configured in Low-area mode as all propagated traffic is low-bandwidth (AXI4LITE). SI S01_AXI has property HAS_BURST == 1. WRAP bursts are not supported in Low-area mode and will result in DECERR if received.
+WARNING: [xilinx.com:ip:smartconnect:1.0-1] daphne_selftrigger_bd_smartconnect_0_0: If WRAP transactions are required then turn off Low-area mode using ADVANCED_PROPERTIES. Execute following: set_property CONFIG.ADVANCED_PROPERTIES {__experimental_features__ {disable_low_area_mode 1}} [get_bd_cells /daphne_selftrigger_bd_smartconnect_0_0]
+INFO: [Ipptcl 7-1463] No Compatible Board Interface found. Board Tab not created in customize GUI
+xit::source_ipfile: Time (s): cpu = 00:00:07 ; elapsed = 00:00:40 . Memory (MB): peak = 1931.512 ; gain = 113.258
+xit::source_ipfile: Time (s): cpu = 00:00:16 ; elapsed = 00:00:26 . Memory (MB): peak = 1956.395 ; gain = 24.883
+INFO: [xilinx.com:ip:axi_quad_spi:3.2-1] /axi_quad_spi_0 
+                  ##############################################################################
+                  INFO: AXI Quad SPI core's AXI Lite Clock and EXT SPI CLK are are asynchronous.
+                  ##############################################################################
+validate_bd_design: Time (s): cpu = 00:00:29 ; elapsed = 00:01:13 . Memory (MB): peak = 1966.371 ; gain = 152.102
+WARNING: [BD 41-2671] The dangling interface net <m00_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m01_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m02_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m03_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m04_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m05_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m06_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m07_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m08_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m09_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m10_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+WARNING: [BD 41-2671] The dangling interface net <m11_aw_node_M_AXIS_ARB> will not be written out to the BD file.
+Wrote  : <\\wsl.localhost\Debian\home\neutrino\work\daphne-firmware-build\bd\daphne_selftrigger_bd\daphne_selftrigger_bd.bd> 
+save_bd_design: Time (s): cpu = 00:00:01 ; elapsed = 00:00:17 . Memory (MB): peak = 1966.688 ; gain = 0.316
+INFO: [BD 5-945] read_bd has been aliased to the add_files Tcl command to ensure all associated files with the BD are included with the design.  All messages will reference the add_files Tcl command
+CRITICAL WARNING: [Vivado 12-1462] The source file is already part of the fileset 'sources_1'. Requested source '//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/daphne_selftrigger_bd.bd' will not be added.
+INFO: [BD 41-1662] The design 'daphne_selftrigger_bd.bd' is already validated. Therefore parameter propagation will not be re-run.
+VHDL Output written to : //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/synth/daphne_selftrigger_bd.vhd
+VHDL Output written to : //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/sim/daphne_selftrigger_bd.vhd
+VHDL Output written to : //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/hdl/daphne_selftrigger_bd_wrapper.vhd
+INFO: [BD 41-1662] The design 'daphne_selftrigger_bd.bd' is already validated. Therefore parameter propagation will not be re-run.
+VHDL Output written to : //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/synth/daphne_selftrigger_bd.vhd
+VHDL Output written to : //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/sim/daphne_selftrigger_bd.vhd
+VHDL Output written to : //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/hdl/daphne_selftrigger_bd_wrapper.vhd
+INFO: [xilinx.com:ip:zynq_ultra_ps_e:3.5-0] daphne_selftrigger_bd_zynq_ultra_ps_e_0_0: 
+Changes in your design (including the PCW configuration settings) are not automatically exported from Vivado to Amd's SDK, Petalinux or Yocto.
+This is by design to avoid disrupting existing embedded development efforts. To have any changes of your design taking effect in the embedded software flow please export your
+design by going through Vivado's main menu, click on File, then Export finally select Export Hardware, please ensure you click on the Include BitStream option.
+The auto-generated HDF file is all you need to import in Amd's SDK, Petalinux or Yocto for your changes to be reflected in the Embedded Software Flow.
+For more information, please consult PG201, section: Exporting PCW Settings to Embedded Software Flows
+INFO: [PSU-0] Address Range of DDR (0x7ff00000 to 0x7fffffff) is reserved by PMU for internal purpose.
+INFO: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'M_AXI_HPM0_FPD'. A default connection has been created.
+INFO: [IP_Flow 19-5611] Unable to find an associated reset port for the interface 'M_AXI_HPM0_LPD'. A default connection has been created.
+INFO: [BD 41-1029] Generation completed for the IP Integrator block zynq_ultra_ps_e_0 .
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-2] axi4_lite_bram_ctrl_0: In IP Integrator, please note that memory depth value gets calculated based on the Data Width of the IP and Address range selected in the Address Editor.Incase a validation error occured on the range of this parameter, please check if the selected Data width and the Address Range are valid. For valid Data width and memory depth values, please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-1] axi4_lite_bram_ctrl_0: In IP Integrator, The Maximum address range supported is 2G. Selecting the address range more than 2G in the address editor may resets the value of Memory depth to default value (1024). please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-2] axi4_lite_bram_ctrl_0: In IP Integrator, please note that memory depth value gets calculated based on the Data Width of the IP and Address range selected in the Address Editor.Incase a validation error occured on the range of this parameter, please check if the selected Data width and the Address Range are valid. For valid Data width and memory depth values, please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-1] axi4_lite_bram_ctrl_0: In IP Integrator, The Maximum address range supported is 2G. Selecting the address range more than 2G in the address editor may resets the value of Memory depth to default value (1024). please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-2] axi4_lite_bram_ctrl_0: In IP Integrator, please note that memory depth value gets calculated based on the Data Width of the IP and Address range selected in the Address Editor.Incase a validation error occured on the range of this parameter, please check if the selected Data width and the Address Range are valid. For valid Data width and memory depth values, please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-1] axi4_lite_bram_ctrl_0: In IP Integrator, The Maximum address range supported is 2G. Selecting the address range more than 2G in the address editor may resets the value of Memory depth to default value (1024). please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-2] axi4_lite_bram_ctrl_0: In IP Integrator, please note that memory depth value gets calculated based on the Data Width of the IP and Address range selected in the Address Editor.Incase a validation error occured on the range of this parameter, please check if the selected Data width and the Address Range are valid. For valid Data width and memory depth values, please refer to the AXI BRAM Controller Product Guide.
+INFO: [xilinx.com:ip:axi_bram_ctrl:4.1-1] axi4_lite_bram_ctrl_0: In IP Integrator, The Maximum address range supported is 2G. Selecting the address range more than 2G in the address editor may resets the value of Memory depth to default value (1024). please refer to the AXI BRAM Controller Product Guide.
+WARNING: [IP_Flow 19-650] IP license key 'x_eth_mac@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'x_eth_mac@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'x_eth_mac@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'x_eth_mac@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'x_eth_mac@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'x_eth_mac@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2022.04' is enabled with a Design_Linking license.
+INFO: [Common 17-14] Message 'IP_Flow 19-650' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [BD 41-1029] Generation completed for the IP Integrator block daphne_selftrigger_top .
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_ar_node/s_sc_payld'(180) to pin: '/s00_nodes/S_SC_AR_payld'(176) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_aw_node/s_sc_payld'(180) to pin: '/s00_nodes/S_SC_AW_payld'(176) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s01_nodes/s01_ar_node/s_sc_payld'(180) to pin: '/s01_nodes/S_SC_AR_payld'(176) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s01_nodes/s01_aw_node/s_sc_payld'(180) to pin: '/s01_nodes/S_SC_AW_payld'(176) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_r_node/s_sc_payld'(57) to pin: '/m00_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_b_node/s_sc_payld'(11) to pin: '/m00_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_r_node/s_sc_payld'(57) to pin: '/m01_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_b_node/s_sc_payld'(11) to pin: '/m01_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_r_node/s_sc_payld'(57) to pin: '/m02_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_b_node/s_sc_payld'(11) to pin: '/m02_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_nodes/m03_r_node/s_sc_payld'(57) to pin: '/m03_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_nodes/m03_b_node/s_sc_payld'(11) to pin: '/m03_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m04_nodes/m04_r_node/s_sc_payld'(57) to pin: '/m04_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m04_nodes/m04_b_node/s_sc_payld'(11) to pin: '/m04_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m05_nodes/m05_r_node/s_sc_payld'(57) to pin: '/m05_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m05_nodes/m05_b_node/s_sc_payld'(11) to pin: '/m05_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m06_nodes/m06_r_node/s_sc_payld'(57) to pin: '/m06_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m06_nodes/m06_b_node/s_sc_payld'(11) to pin: '/m06_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m07_nodes/m07_r_node/s_sc_payld'(57) to pin: '/m07_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m07_nodes/m07_b_node/s_sc_payld'(11) to pin: '/m07_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m08_nodes/m08_r_node/s_sc_payld'(57) to pin: '/m08_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m08_nodes/m08_b_node/s_sc_payld'(11) to pin: '/m08_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m09_nodes/m09_r_node/s_sc_payld'(57) to pin: '/m09_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m09_nodes/m09_b_node/s_sc_payld'(11) to pin: '/m09_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m10_nodes/m10_r_node/s_sc_payld'(57) to pin: '/m10_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m10_nodes/m10_b_node/s_sc_payld'(11) to pin: '/m10_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m11_nodes/m11_r_node/s_sc_payld'(57) to pin: '/m11_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m11_nodes/m11_b_node/s_sc_payld'(11) to pin: '/m11_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_r_payld'(55) to pin: '/s00_nodes/M_SC_R_payld'(57) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_b_payld'(9) to pin: '/s00_nodes/M_SC_B_payld'(11) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s01_axi2sc/s_sc_r_payld'(55) to pin: '/s01_nodes/M_SC_R_payld'(57) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s01_axi2sc/s_sc_b_payld'(9) to pin: '/s01_nodes/M_SC_B_payld'(11) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_ar_payld'(176) to pin: '/m00_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_aw_payld'(176) to pin: '/m00_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_ar_payld'(176) to pin: '/m01_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_aw_payld'(176) to pin: '/m01_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_ar_payld'(176) to pin: '/m02_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_aw_payld'(176) to pin: '/m02_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_sc2axi/s_sc_ar_payld'(176) to pin: '/m03_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_sc2axi/s_sc_aw_payld'(176) to pin: '/m03_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m04_sc2axi/s_sc_ar_payld'(176) to pin: '/m04_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m04_sc2axi/s_sc_aw_payld'(176) to pin: '/m04_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m05_sc2axi/s_sc_ar_payld'(176) to pin: '/m05_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m05_sc2axi/s_sc_aw_payld'(176) to pin: '/m05_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m06_sc2axi/s_sc_ar_payld'(176) to pin: '/m06_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m06_sc2axi/s_sc_aw_payld'(176) to pin: '/m06_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m07_sc2axi/s_sc_ar_payld'(176) to pin: '/m07_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m07_sc2axi/s_sc_aw_payld'(176) to pin: '/m07_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m08_sc2axi/s_sc_ar_payld'(176) to pin: '/m08_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m08_sc2axi/s_sc_aw_payld'(176) to pin: '/m08_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m09_sc2axi/s_sc_ar_payld'(176) to pin: '/m09_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m09_sc2axi/s_sc_aw_payld'(176) to pin: '/m09_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m10_sc2axi/s_sc_ar_payld'(176) to pin: '/m10_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m10_sc2axi/s_sc_aw_payld'(176) to pin: '/m10_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m11_sc2axi/s_sc_ar_payld'(176) to pin: '/m11_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m11_sc2axi/s_sc_aw_payld'(176) to pin: '/m11_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_ar_node/s_sc_payld'(180) to pin: '/s00_nodes/S_SC_AR_payld'(176) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_nodes/s00_aw_node/s_sc_payld'(180) to pin: '/s00_nodes/S_SC_AW_payld'(176) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s01_nodes/s01_ar_node/s_sc_payld'(180) to pin: '/s01_nodes/S_SC_AR_payld'(176) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s01_nodes/s01_aw_node/s_sc_payld'(180) to pin: '/s01_nodes/S_SC_AW_payld'(176) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_r_node/s_sc_payld'(57) to pin: '/m00_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_nodes/m00_b_node/s_sc_payld'(11) to pin: '/m00_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_r_node/s_sc_payld'(57) to pin: '/m01_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_nodes/m01_b_node/s_sc_payld'(11) to pin: '/m01_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_r_node/s_sc_payld'(57) to pin: '/m02_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_nodes/m02_b_node/s_sc_payld'(11) to pin: '/m02_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_nodes/m03_r_node/s_sc_payld'(57) to pin: '/m03_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_nodes/m03_b_node/s_sc_payld'(11) to pin: '/m03_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m04_nodes/m04_r_node/s_sc_payld'(57) to pin: '/m04_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m04_nodes/m04_b_node/s_sc_payld'(11) to pin: '/m04_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m05_nodes/m05_r_node/s_sc_payld'(57) to pin: '/m05_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m05_nodes/m05_b_node/s_sc_payld'(11) to pin: '/m05_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m06_nodes/m06_r_node/s_sc_payld'(57) to pin: '/m06_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m06_nodes/m06_b_node/s_sc_payld'(11) to pin: '/m06_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m07_nodes/m07_r_node/s_sc_payld'(57) to pin: '/m07_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m07_nodes/m07_b_node/s_sc_payld'(11) to pin: '/m07_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m08_nodes/m08_r_node/s_sc_payld'(57) to pin: '/m08_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m08_nodes/m08_b_node/s_sc_payld'(11) to pin: '/m08_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m09_nodes/m09_r_node/s_sc_payld'(57) to pin: '/m09_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m09_nodes/m09_b_node/s_sc_payld'(11) to pin: '/m09_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m10_nodes/m10_r_node/s_sc_payld'(57) to pin: '/m10_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m10_nodes/m10_b_node/s_sc_payld'(11) to pin: '/m10_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m11_nodes/m11_r_node/s_sc_payld'(57) to pin: '/m11_nodes/S_SC_R_payld'(55) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m11_nodes/m11_b_node/s_sc_payld'(11) to pin: '/m11_nodes/S_SC_B_payld'(9) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_r_payld'(55) to pin: '/s00_nodes/M_SC_R_payld'(57) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s00_axi2sc/s_sc_b_payld'(9) to pin: '/s00_nodes/M_SC_B_payld'(11) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s01_axi2sc/s_sc_r_payld'(55) to pin: '/s01_nodes/M_SC_R_payld'(57) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/s01_axi2sc/s_sc_b_payld'(9) to pin: '/s01_nodes/M_SC_B_payld'(11) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_ar_payld'(176) to pin: '/m00_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m00_sc2axi/s_sc_aw_payld'(176) to pin: '/m00_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_ar_payld'(176) to pin: '/m01_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m01_sc2axi/s_sc_aw_payld'(176) to pin: '/m01_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_ar_payld'(176) to pin: '/m02_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m02_sc2axi/s_sc_aw_payld'(176) to pin: '/m02_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_sc2axi/s_sc_ar_payld'(176) to pin: '/m03_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m03_sc2axi/s_sc_aw_payld'(176) to pin: '/m03_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m04_sc2axi/s_sc_ar_payld'(176) to pin: '/m04_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m04_sc2axi/s_sc_aw_payld'(176) to pin: '/m04_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m05_sc2axi/s_sc_ar_payld'(176) to pin: '/m05_nodes/M_SC_AR_payld'(180) - Only lower order bits will be connected.
+WARNING: [BD 41-2384] Width mismatch when connecting pin: '/m05_sc2axi/s_sc_aw_payld'(176) to pin: '/m05_nodes/M_SC_AW_payld'(180) - Only lower order bits will be connected.
+INFO: [Common 17-14] Message 'BD 41-2384' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+Exporting to file //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_smartconnect_0_0/bd_0/hw_handoff/daphne_selftrigger_bd_smartconnect_0_0.hwh
+Generated Hardware Definition File //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_smartconnect_0_0/bd_0/synth/daphne_selftrigger_bd_smartconnect_0_0.hwdef
+INFO: [BD 41-1029] Generation completed for the IP Integrator block smartconnect_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block SYSTEM_RESET .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block IIC_RESET .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block axi_iic_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block axi_quad_spi_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block axi_intc_0 .
+INFO: [BD 41-1029] Generation completed for the IP Integrator block xlconcat_0 .
+Exporting to file //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/hw_handoff/daphne_selftrigger_bd.hwh
+Generated Hardware Definition File //wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/synth/daphne_selftrigger_bd.hwdef
+generate_target: Time (s): cpu = 00:03:28 ; elapsed = 00:07:26 . Memory (MB): peak = 2083.160 ; gain = 85.781
+Command: synth_design -top daphne_selftrigger_bd_wrapper -directive PerformanceOptimized
+Starting synth_design
+Using part: xck26-sfvc784-2LV-c
+WARNING: [Vivado_Tcl 4-391] The following IPs are missing output products for Synthesis target. These output products could be required for synthesis, please generate the output products using the generate_target or synth_ip command before running synth_design.
+//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci
+//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0_1/xxv_ethernet_0.xci
+
+WARNING: [Vivado_Tcl 4-391] The following IPs are missing output products for Implementation target. These output products could be required for synthesis, please generate the output products using the generate_target or synth_ip command before running synth_design.
+//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0_1/xxv_ethernet_0.xci
+
+Attempting to get a license for feature 'Synthesis' and/or device 'xck26'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xck26'
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 4 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 32320
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:27 ; elapsed = 00:01:23 . Memory (MB): peak = 2410.805 ; gain = 327.645
+---------------------------------------------------------------------------------
+INFO: [Synth 8-11241] undeclared symbol 'dp_audi_ref_clk', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_zynq_ultra_ps_e_0_0/hdl/zynq_ultra_ps_e_v3_5_3.v:2498]
+INFO: [Synth 8-11241] undeclared symbol 'qpll0clk_in_0', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v4_1_10/xxv_ethernet_0_wrapper.v:226]
+INFO: [Synth 8-11241] undeclared symbol 'qpll0refclk_in_0', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v4_1_10/xxv_ethernet_0_wrapper.v:227]
+INFO: [Synth 8-11241] undeclared symbol 'qpll1clk_in_0', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v4_1_10/xxv_ethernet_0_wrapper.v:228]
+INFO: [Synth 8-11241] undeclared symbol 'qpll1refclk_in_0', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v4_1_10/xxv_ethernet_0_wrapper.v:229]
+INFO: [Synth 8-11241] undeclared symbol 'gtwiz_reset_qpll0lock_in_0', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v4_1_10/xxv_ethernet_0_wrapper.v:230]
+INFO: [Synth 8-11241] undeclared symbol 'gtwiz_reset_qpll1lock_in_0', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v4_1_10/xxv_ethernet_0_wrapper.v:231]
+INFO: [Synth 8-11241] undeclared symbol 'rx_reset_done_async_0', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v4_1_10/xxv_ethernet_0_wrapper.v:505]
+INFO: [Synth 8-11241] undeclared symbol 'gt_txusrclk2_0', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v4_1_10/xxv_ethernet_0_wrapper.v:541]
+INFO: [Synth 8-11241] undeclared symbol 'gt_rxusrclk2_0', assumed default net type 'wire' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v4_1_10/xxv_ethernet_0_wrapper.v:542]
+ERROR: [Synth 8-4169] error in use clause: package 'daphne_subsystem_pkg' not found in library 'work' [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ipshared/f857/rtl/selftrig/stc3.vhd:33]
+INFO: [Synth 8-11252] unit 'stc3' is ignored due to previous errors [//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ipshared/f857/rtl/selftrig/stc3.vhd:73]
+INFO: [Synth 8-10443] VHDL file '//wsl.localhost/Debian/home/neutrino/work/daphne-firmware-build/bd/daphne_selftrigger_bd/ipshared/f857/rtl/selftrig/stc3.vhd' is ignored due to errors
+ERROR: [Synth 8-439] module 'daphne_selftrigger_bd_wrapper' not found
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:39 ; elapsed = 00:02:14 . Memory (MB): peak = 2871.758 ; gain = 788.598
+---------------------------------------------------------------------------------
+RTL Elaboration failed
+INFO: [Common 17-83] Releasing license: Synthesis
+111 Infos, 228 Warnings, 1 Critical Warnings and 3 Errors encountered.
+synth_design failed
+ERROR: [Common 17-69] Command failed: Synthesis failed - please see the console or run log file for details
+
+    while executing
+"source -notrace [file join $script_dir "vivado_batch.tcl"]"
+    (file ".manual-build.tcl" line 13)
+INFO: [Common 17-206] Exiting Vivado at Tue Apr  7 11:06:22 2026...
