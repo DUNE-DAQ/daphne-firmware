@@ -69,8 +69,12 @@ flowchart TD
 This is the important current milestone:
 
 - the active `impl` graph is board-plane owned
+- `k26c_board_analog_control_plane` still instantiates only the imported
+  AFE/DAC/control endpoints
 - `k26c_board_shell` instantiates only explicit board-plane entities
 - `k26c_board_frontend_plane` still instantiates only `frontend_island`
+- `k26c_board_spy_capture_plane` still instantiates only `spy_buffer_boundary`
+  plus the live `spybuffers`
 - `k26c_board_selftrigger_plane` now instantiates only explicit datapath and
   transport subplanes
 - `k26c_board_timing_plane` still instantiates only the imported `endpoint`
@@ -96,10 +100,18 @@ That script:
   feature cores
 - checks that `k26c_board_shell.vhd` instantiates only the board-plane
   entities
+- checks that `k26c-board-analog-control-plane.core` depends only on the
+  imported AFE/DAC/control endpoints
+- checks that `k26c_board_analog_control_plane.vhd` instantiates only
+  `spim_afe`, `spim_dac`, and `stuff`
 - checks that `k26c-board-frontend-plane.core` depends only on
   `frontend-island`
 - checks that `k26c_board_frontend_plane.vhd` instantiates only
   `frontend_island`
+- checks that `k26c-board-spy-capture-plane.core` depends only on
+  `spy-buffer-boundary` plus the live `spy-buffer`
+- checks that `k26c_board_spy_capture_plane.vhd` instantiates only
+  `spy_buffer_boundary` and `spybuffers`
 - checks that `k26c-board-selftrigger-plane.core` depends only on the explicit
   datapath and transport subplanes
 - checks that `k26c_board_selftrigger_plane.vhd` instantiates only those

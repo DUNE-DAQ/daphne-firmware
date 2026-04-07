@@ -50,11 +50,20 @@ The repo has now crossed the main structural integration threshold:
   plane ownership regressions
 - the board self-trigger plane is now internally split into explicit datapath
   and transport subplanes
+- the analog-control and spy-capture board planes now have explicit contract
+  audits too, so they stay thin wrappers around the imported control and
+  spy-buffer endpoints
 - the frontend and timing board planes now have explicit contract audits too,
   so they stay thin wrappers around `frontend_island` and `endpoint`
 - the board timing-path defaults now explicitly cover both native board-shell
   and packaged-IP/BD hierarchy roots, so the active AFE timing XDC no longer
   depends on one stale hierarchy assumption
+- the board manifest now owns the optional AFE input-delay model, so the
+  active AFE timing XDC can stay generic while measured board-family bounds
+  remain data rather than Tcl/script constants
+- the aggregate `daphne-composable` feature set no longer pulls the old
+  `legacy-selftrigger-datapath` core directly; the board/selftrigger aggregate
+  now goes through the explicit board-plane split instead
 
 That means the remaining work is no longer “make a real composable impl
 possible”; it is “prove, harden, and simplify the native path until the legacy
