@@ -1,7 +1,8 @@
 #!/bin/sh
 set -eu
 
-WORK_ROOT="${PWD}"
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+PLATFORM_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 BOARD="${DAPHNE_BOARD:-k26c}"
 
 case "$BOARD" in
@@ -20,7 +21,7 @@ if ! command -v vivado >/dev/null 2>&1; then
   exit 2
 fi
 
-cd "$WORK_ROOT"
+cd "$PLATFORM_ROOT"
 
 shim_tcl=".daphne-composable-ooc-shim.$$.tcl"
 trap 'rm -f "$shim_tcl"' EXIT INT TERM HUP

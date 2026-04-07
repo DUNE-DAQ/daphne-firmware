@@ -112,17 +112,21 @@ That bridge still builds the qualified legacy K26C design, but the Vivado hook
 and block-design flow now honor `DAPHNE_BD_NAME` / `DAPHNE_BD_WRAPPER_NAME`
  overrides, plus `DAPHNE_BUILD_NAME_PREFIX` /
  `DAPHNE_OVERLAY_NAME_PREFIX` for artifact naming, and `DAPHNE_USER_IP_VLNV`
- for the packaged user-IP identity. The BD generator also now clears only the
- active block-design directory instead of deleting the entire `bd/` tree. This
- keeps the migration path open for side-by-side legacy and future composable
- design identities.
+ for the packaged user-IP identity. The bridge now also stages the generated
+ `daphne-ip` legacy source manifest as an explicit FuseSoC dependency and
+ auto-discovers the isolated HDL roots needed by the packaged-IP synth. The BD
+ generator also now clears only the active block-design directory instead of
+ deleting the entire `bd/` tree. This keeps the migration path open for
+ side-by-side legacy and future composable design identities.
 
 The IP packaging Tcl also now accepts top-identity overrides
 (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,
 `DAPHNE_IP_COMPONENT_IDENTIFIER`, `DAPHNE_IP_DISPLAY_NAME`,
-`DAPHNE_IP_XGUI_FILE`), still defaulting to the legacy packaged top. That is a
-scaffolding step only: source discovery is still centered on the imported
-legacy tree until the composable implementation becomes the real build owner.
+`DAPHNE_IP_XGUI_FILE`), plus semicolon-separated
+`DAPHNE_IP_EXTRA_SOURCE_ROOTS` for additional HDL trees outside
+`ip_repo/daphne_ip/rtl`. It still defaults to the legacy packaged top, but the
+packager no longer assumes every auxiliary source must live under the imported
+legacy tree.
 
 There is now also a FuseSoC-owned composable synth checkpoint that does not go
 through the legacy block design:
