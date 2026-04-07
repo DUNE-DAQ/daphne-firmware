@@ -135,7 +135,6 @@ architecture rtl of legacy_selftrigger_plane_bridge is
   signal outbuff_axi_in:     AXILITE_INREC;
   signal outbuff_axi_out:    AXILITE_OUTREC;
   signal out_buff_data_reg:  array_2x64_type;
-  signal out_buff_trig_reg:  std_logic;
   signal valid_debug_reg:    std_logic_vector(1 downto 0);
   signal last_debug_reg:     std_logic_vector(1 downto 0);
 begin
@@ -205,13 +204,9 @@ begin
   outbuff_s_axi_rresp   <= outbuff_axi_out.RRESP;
   outbuff_s_axi_rvalid  <= outbuff_axi_out.RVALID;
 
-  legacy_core_readout_bridge_inst : entity work.legacy_core_readout_bridge
+  legacy_selftrigger_core_bridge_inst : entity work.legacy_selftrigger_core_bridge
     port map(
-      link_id                => link_id,
-      slot_id                => slot_id,
-      crate_id               => crate_id,
-      detector_id            => detector_id,
-      version                => version,
+      version                => version(3 downto 0),
       filter_output_selector => filter_output_selector,
       afe_comp_enable        => afe_comp_enable,
       invert_enable          => invert_enable,
@@ -227,31 +222,38 @@ begin
       adhoc                  => adhoc,
       ti_trigger             => ti_trigger,
       ti_trigger_stbr        => ti_trigger_stbr,
-      din_core               => din_core,
+      din                    => din_core,
+      dout                   => out_buff_data_reg,
       afe_dat_filtered       => open,
-      S_AXI_ACLK             => trirg_s_axi_aclk,
-      S_AXI_ARESETN          => trirg_s_axi_aresetn,
-      S_AXI_AWADDR           => core_axi_awaddr,
-      S_AXI_AWPROT           => core_axi_awprot,
-      S_AXI_AWVALID          => core_axi_awvalid,
-      S_AXI_AWREADY          => core_axi_awready,
-      S_AXI_WDATA            => core_axi_wdata,
-      S_AXI_WSTRB            => core_axi_wstrb,
-      S_AXI_WVALID           => core_axi_wvalid,
-      S_AXI_WREADY           => core_axi_wready,
-      S_AXI_BRESP            => core_axi_bresp,
-      S_AXI_BVALID           => core_axi_bvalid,
-      S_AXI_BREADY           => core_axi_bready,
-      S_AXI_ARADDR           => core_axi_araddr,
-      S_AXI_ARPROT           => core_axi_arprot,
-      S_AXI_ARVALID          => core_axi_arvalid,
-      S_AXI_ARREADY          => core_axi_arready,
-      S_AXI_RDATA            => core_axi_rdata,
-      S_AXI_RRESP            => core_axi_rresp,
-      S_AXI_RVALID           => core_axi_rvalid,
-      S_AXI_RREADY           => core_axi_rready,
       AXI_IN                 => threshold_axi_in,
       AXI_OUT                => threshold_axi_out,
+      valid                  => valid_debug_reg,
+      last                   => last_debug_reg
+    );
+
+  legacy_deimos_readout_bridge_inst : entity work.legacy_deimos_readout_bridge
+    port map(
+      s_axi_aclk_i           => trirg_s_axi_aclk,
+      s_axi_aresetn_i        => trirg_s_axi_aresetn,
+      s_axi_awaddr_i         => core_axi_awaddr,
+      s_axi_awprot_i         => core_axi_awprot,
+      s_axi_awvalid_i        => core_axi_awvalid,
+      s_axi_awready_o        => core_axi_awready,
+      s_axi_wdata_i          => core_axi_wdata,
+      s_axi_wstrb_i          => core_axi_wstrb,
+      s_axi_wvalid_i         => core_axi_wvalid,
+      s_axi_wready_o         => core_axi_wready,
+      s_axi_bresp_o          => core_axi_bresp,
+      s_axi_bvalid_o         => core_axi_bvalid,
+      s_axi_bready_i         => core_axi_bready,
+      s_axi_araddr_i         => core_axi_araddr,
+      s_axi_arprot_i         => core_axi_arprot,
+      s_axi_arvalid_i        => core_axi_arvalid,
+      s_axi_arready_o        => core_axi_arready,
+      s_axi_rdata_o          => core_axi_rdata,
+      s_axi_rresp_o          => core_axi_rresp,
+      s_axi_rvalid_o         => core_axi_rvalid,
+      s_axi_rready_i         => core_axi_rready,
       eth_clk_p              => eth_clk_p,
       eth_clk_n              => eth_clk_n,
       eth0_rx_p              => eth0_rx_p,
@@ -259,10 +261,17 @@ begin
       eth0_tx_p              => eth0_tx_p,
       eth0_tx_n              => eth0_tx_n,
       eth0_tx_dis            => eth0_tx_dis,
-      out_buff_data          => out_buff_data_reg,
-      out_buff_trig          => out_buff_trig_reg,
-      VALID_DEBUG            => valid_debug_reg,
-      LAST_DEBUG             => last_debug_reg
+      dune_base_clk_i        => clock,
+      dune_base_rst_i        => reset,
+      data_clk_i             => clock,
+      data_clk_rst_i         => reset,
+      d_i                    => out_buff_data_reg,
+      valid_i                => valid_debug_reg,
+      last_i                 => last_debug_reg,
+      timestamp_i            => timestamp,
+      ext_mac_addr_i         => DEFAULT_ext_mac_addr_0,
+      ext_ip_addr_i          => DEFAULT_ext_ip_addr_0,
+      ext_port_addr_i        => DEFAULT_ext_port_addr_0
     );
 
   outbuff_inst: entity work.outspybuff
@@ -276,7 +285,7 @@ begin
     );
 
   out_buff_data <= out_buff_data_reg(0);
-  out_buff_trig <= out_buff_trig_reg;
+  out_buff_trig <= valid_debug_reg(0) or valid_debug_reg(1);
   valid_debug   <= valid_debug_reg(0);
   last_debug    <= last_debug_reg(0);
 end architecture rtl;
