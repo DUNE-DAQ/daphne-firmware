@@ -108,12 +108,22 @@ proc daphne_create_block_design {cfg_name} {
 
     set v_git_sha $cfg(v_git_sha)
     source -notrace [file join $cfg(script_dir) "daphne_bd_gen.tcl"]
-    read_bd $cfg(bd_file)
-    make_wrapper -top -files [get_files $cfg(bd_file)]
+    set bd_file_obj [get_files -quiet $cfg(bd_file)]
+    if {[llength $bd_file_obj] == 0} {
+        read_bd $cfg(bd_file)
+        set bd_file_obj [get_files -quiet $cfg(bd_file)]
+    }
+    make_wrapper -top -files $bd_file_obj
     read_vhdl $cfg(bd_wrapper_vhd)
     read_xdc -verbose $cfg(pinmap_xdc)
-    set_property synth_checkpoint_mode None [get_files $cfg(bd_file)]
-    generate_target all [get_files $cfg(bd_file)]
+    set_property synth_checkpoint_mode None $bd_file_obj
+    generate_target all $bd_file_obj
+
+    set project_ips [get_ips -quiet]
+    if {[llength $project_ips] > 0} {
+        generate_target all $project_ips
+        daphne_run_nonfatal "export_ip_user_files" [list export_ip_user_files -of_objects $project_ips -no_script -sync -force -quiet]
+    }
 }
 
 proc daphne_run_synth {cfg_name} {
