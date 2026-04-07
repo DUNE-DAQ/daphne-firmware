@@ -25,6 +25,29 @@ proc daphne_read_board_manifest_value {manifest_path key {default_value ""}} {
     return $default_value
 }
 
+proc daphne_board_profile_value {board_profile key default_value} {
+    if {[dict exists $board_profile $key]} {
+        set value [string trim [dict get $board_profile $key]]
+        if {$value ne ""} {
+            return $value
+        }
+    }
+    return $default_value
+}
+
+proc daphne_resolve_git_sha {} {
+    set git_sha_override [daphne_get_env_or_default DAPHNE_GIT_SHA ""]
+    if {$git_sha_override ne ""} {
+        puts "INFO: Using git SHA override from DAPHNE_GIT_SHA=$git_sha_override"
+        return $git_sha_override
+    }
+    if {[catch {exec git rev-parse --short=7 HEAD} git_sha]} {
+        puts "WARNING: Could not resolve git HEAD. Falling back to git SHA 0000000."
+        return "0000000"
+    }
+    return $git_sha
+}
+
 proc daphne_split_semicolon_list {raw_value} {
     set values {}
     foreach value [split $raw_value ";"] {
@@ -92,6 +115,24 @@ proc daphne_resolve_board_profile {repo_root {board_name ""}} {
     }
 
     return $profile
+}
+
+proc daphne_resolve_artifact_profile {repo_root {board_profile ""}} {
+    if {$board_profile eq ""} {
+        set board_profile [daphne_resolve_board_profile $repo_root]
+    }
+
+    set build_name_prefix [daphne_get_env_or_default DAPHNE_BUILD_NAME_PREFIX [daphne_board_profile_value $board_profile build_name_prefix "daphne_selftrigger"]]
+    set overlay_name_prefix [daphne_get_env_or_default DAPHNE_OVERLAY_NAME_PREFIX [daphne_board_profile_value $board_profile overlay_name_prefix "${build_name_prefix}_ol"]]
+    set git_sha [daphne_resolve_git_sha]
+
+    return [dict create \
+        board_profile $board_profile \
+        git_sha $git_sha \
+        build_name_prefix $build_name_prefix \
+        overlay_name_prefix $overlay_name_prefix \
+        build_name "${build_name_prefix}_$git_sha" \
+        overlay_name "${overlay_name_prefix}_$git_sha"]
 }
 
 proc daphne_resolve_board_config {script_dir} {
