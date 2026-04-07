@@ -107,10 +107,13 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
       configurable_delay_line.vhd \
       fixed_delay_line.vhd \
       sync_fifo_fwft.vhd \
+      legacy_selftrigger_register_bank.vhd \
       frontend_register_slice.vhd \
       frontend_register_bank.vhd \
+      legacy_deimos_readout_bridge.vhd \
       self_trigger_xcorr_channel.vhd \
       peak_descriptor_channel.vhd \
+      legacy_selftrigger_datapath.vhd \
       stc3_record_builder.vhd
     do
       found_dir="$(find_first_file_dir "$WORK_ROOT/src" "$required_leaf")"

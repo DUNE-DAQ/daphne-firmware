@@ -22,14 +22,17 @@ set daphne_packaged_support_vhdl [list \
     [file join $repo_root "rtl" "isolated" "common" "primitives" "configurable_delay_line.vhd"] \
     [file join $repo_root "rtl" "isolated" "common" "primitives" "fixed_delay_line.vhd"] \
     [file join $repo_root "rtl" "isolated" "common" "primitives" "sync_fifo_fwft.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_selftrigger_register_bank.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_common.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "afe_capture_slice.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_capture_bank.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_register_slice.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_register_bank.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_island.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "readout" "legacy_deimos_readout_bridge.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "self_trigger_xcorr_channel.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "peak_descriptor_channel.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "legacy_selftrigger_datapath.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "stc3_record_builder.vhd"] \
 ]
 set daphne_packaged_support_names {}
@@ -436,6 +439,7 @@ foreach daqIPType $xciDAQFiles {
 set anylanguageSynthFg [ipx::get_file_groups xilinx_anylanguagesynthesis -of_objects $daphne]
 set anybehavioralSynthFg [ipx::get_file_groups xilinx_anylanguagebehavioralsimulation -of_objects $daphne]
 set implFg [ipx::get_file_groups xilinx_implementation -of_objects $daphne]
+set daphne_top_cell "core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst"
 if {$daphne_eth_mode eq "create_ip" || $daphne_eth_mode eq "seeded_xci"} {
     if {![file exists $ethXCIDir]} {
         error "ERROR: DAPHNE_ETH_MODE=$daphne_eth_mode but XXV Ethernet XCI is missing at $ethXCIDir"
@@ -448,16 +452,16 @@ if {$daphne_eth_mode eq "create_ip" || $daphne_eth_mode eq "seeded_xci"} {
     set ethFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anylanguageSynthFg]
     set ethFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anybehavioralSynthFg]
     set implFileObj [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $implFg]
-    set_property CELL_NAME core_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjLan
-    set_property CELL_NAME core_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjSim
-    set_property CELL_NAME core_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe $implFileObj
+    set_property CELL_NAME ${daphne_top_cell}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjLan
+    set_property CELL_NAME ${daphne_top_cell}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjSim
+    set_property CELL_NAME ${daphne_top_cell}/mux/pcs_pma/phy_gen[0].phy_10gbe $implFileObj
 }
 set bramFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anylanguageSynthFg]
 set bramFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anybehavioralSynthFg]
 
 # set property for cell name
-set_property CELL_NAME core_inst/daphne_top_inst/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjLan
-set_property CELL_NAME core_inst/daphne_top_inst/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjSim
+set_property CELL_NAME ${daphne_top_cell}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjLan
+set_property CELL_NAME ${daphne_top_cell}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjSim
 
 # Add the isolated support sources explicitly and ahead of the recursive source
 # globs so the packaged IP sees the same dependency closure as daphne-ip.core.
