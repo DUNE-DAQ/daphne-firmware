@@ -6,6 +6,11 @@ daphne_board_manifest_path() {
   printf '%s/boards/%s/board.yml' "$root_dir" "$board_name"
 }
 
+daphne_legacy_support_manifest_path() {
+  root_dir="$1"
+  printf '%s/xilinx/legacy_flow_support_sources.txt' "$root_dir"
+}
+
 daphne_board_manifest_scalar() {
   manifest_path="$1"
   key_name="$2"
@@ -82,4 +87,16 @@ daphne_resolve_board_defaults() {
   export DAPHNE_BOARD_PART
   export DAPHNE_PFM_NAME
   export DAPHNE_CONSTRAINT_FILE
+}
+
+daphne_legacy_support_source_list() {
+  root_dir="$1"
+  manifest_path="$(daphne_legacy_support_manifest_path "$root_dir")"
+
+  if [ ! -f "$manifest_path" ]; then
+    echo "ERROR: expected legacy support manifest at $manifest_path." >&2
+    exit 2
+  fi
+
+  sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$manifest_path"
 }

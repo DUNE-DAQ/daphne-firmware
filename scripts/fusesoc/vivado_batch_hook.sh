@@ -91,35 +91,8 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
   done
 
   if [ -d "$WORK_ROOT/src" ]; then
-    for required_leaf in \
-      daphne_subsystem_pkg.vhd \
-      configurable_delay_line.vhd \
-      fixed_delay_line.vhd \
-      sync_fifo_fwft.vhd \
-      legacy_analog_control_plane_bridge.vhd \
-      legacy_selftrigger_register_bank.vhd \
-      legacy_stuff_selftrigger_register_bank.vhd \
-      legacy_trigger_control_adapter.vhd \
-      legacy_selftrigger_inputs_bridge.vhd \
-      legacy_selftrigger_fabric_bridge.vhd \
-      frontend_register_slice.vhd \
-      frontend_register_bank.vhd \
-      afe_capture_to_trigger_bank.vhd \
-      frontend_to_selftrigger_adapter.vhd \
-      legacy_core_readout_bridge.vhd \
-      legacy_deimos_readout_bridge.vhd \
-      legacy_selftrigger_plane_bridge.vhd \
-      legacy_two_lane_readout_mux.vhd \
-      legacy_spy_capture_bridge.vhd \
-      legacy_timing_subsystem_bridge.vhd \
-      self_trigger_xcorr_channel.vhd \
-      peak_descriptor_channel.vhd \
-      afe_trigger_bank.vhd \
-      legacy_selftrigger_datapath.vhd \
-      afe_selftrigger_island.vhd \
-      selftrigger_fabric.vhd \
-      stc3_record_builder.vhd
-    do
+    for support_path in $(daphne_legacy_support_source_list "$PLATFORM_ROOT"); do
+      required_leaf="$(basename "$support_path")"
       found_dir="$(find_first_file_dir "$WORK_ROOT/src" "$required_leaf")"
       auto_extra_roots="$(append_unique_path "$auto_extra_roots" "$found_dir")"
     done
