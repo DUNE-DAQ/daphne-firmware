@@ -39,14 +39,19 @@ if [ -n "$PLATFORM_TARGET" ]; then
 fi
 
 FLOW_OWNED_LEGACY_IMPL=0
-if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && { [ "$PLATFORM_TARGET" = "impl_legacy_flow" ] || [ "$PLATFORM_TARGET" = "impl" ]; }; then
+if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && [ "$PLATFORM_TARGET" = "impl_legacy_flow" ]; then
   FLOW_OWNED_LEGACY_IMPL=1
+fi
+
+FLOW_EXPORTED_IMPL=0
+if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && { [ "$PLATFORM_TARGET" = "impl" ] || [ "$PLATFORM_TARGET" = "impl_legacy_flow" ] || [ "$PLATFORM_TARGET" = "impl_packaged_top_flow" ]; }; then
+  FLOW_EXPORTED_IMPL=1
 fi
 
 resolve_output_dir() {
   output_dir_value="${DAPHNE_OUTPUT_DIR-}"
   if [ -z "$output_dir_value" ]; then
-    if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
+    if [ "$FLOW_EXPORTED_IMPL" = "1" ]; then
       printf '%s\n' "$ROOT_DIR/xilinx/output-$DAPHNE_GIT_SHA"
     else
       printf '%s\n' "$ROOT_DIR/xilinx/output"
@@ -80,6 +85,7 @@ FLOW_WORK_DIR="$ROOT_DIR/build/$(daphne_platform_core_build_slug "$PLATFORM_CORE
   printf 'platform_core=%s\n' "$PLATFORM_CORE"
   printf 'platform_target=%s\n' "$PLATFORM_TARGET"
   printf 'flow_owned_legacy_impl=%s\n' "$FLOW_OWNED_LEGACY_IMPL"
+  printf 'flow_exported_impl=%s\n' "$FLOW_EXPORTED_IMPL"
   printf 'root_dir=%s\n' "$ROOT_DIR"
   printf 'log_dir=%s\n' "$RUN_DIR"
   printf 'output_dir=%s\n' "$OUTPUT_DIR"
