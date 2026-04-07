@@ -49,7 +49,6 @@ filesets:
       - dune-daq:daphne:k26c-board-analog-control-plane:0.1.0
       - dune-daq:daphne:k26c-board-selftrigger-plane:0.1.0
       - dune-daq:daphne:k26c-board-shell:0.1.0
-      - dune-daq:daphne:legacy-selftrigger-datapath:0.1.0
       - dune-daq:daphne:selftrigger-register-bank:0.1.0
       - dune-daq:daphne:stuff-selftrigger-register-bank:0.1.0
       - dune-daq:daphne:two-lane-readout-mux:0.1.0
