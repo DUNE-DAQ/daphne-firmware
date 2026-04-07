@@ -111,7 +111,9 @@ target automatically. Today `impl` is the native board-shell Flow API
 path (`k26c_board_shell`). The native board-shell path now resolves
 through an explicit `k26c-board-shell` feature core instead of the generated
 `daphne-ip` manifest, so the board implementation is materially more
-FuseSoC-owned while the underlying RTL entity name is still converging.
+FuseSoC-owned. `k26c_board_shell` now owns the live board implementation
+directly, while `legacy_public_top_bridge` has been reduced to a compatibility
+alias for older source-manifest consumers.
 The K26C board manifest also requires `xilinx/afe_capture_timing.xdc`, so the
 split AFE receive-clock timing model cannot silently drop out of the build.
 
