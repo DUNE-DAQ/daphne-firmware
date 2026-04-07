@@ -17,6 +17,32 @@ set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME "${
 set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE "${daphne_ip_component_identifier}_v1_0.tcl"]
 set daphne_ip_top_basename [file tail $daphne_ip_top_hdl_file]
 set daphne_ip_include_dirs [list [file join $daphne_ip_root "rtl"] [file dirname $daphne_ip_top_hdl_file]]
+set daphne_packaged_support_vhdl [list \
+    [file join $repo_root "rtl" "isolated" "common" "daphne_subsystem_pkg.vhd"] \
+    [file join $repo_root "rtl" "isolated" "common" "primitives" "configurable_delay_line.vhd"] \
+    [file join $repo_root "rtl" "isolated" "common" "primitives" "fixed_delay_line.vhd"] \
+    [file join $repo_root "rtl" "isolated" "common" "primitives" "sync_fifo_fwft.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_common.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "afe_capture_slice.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_capture_bank.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_register_slice.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_register_bank.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_island.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "self_trigger_xcorr_channel.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "peak_descriptor_channel.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "stc3_record_builder.vhd"] \
+]
+set daphne_packaged_support_names {}
+foreach packaged_support_vhdl $daphne_packaged_support_vhdl {
+    if {![file exists $packaged_support_vhdl]} {
+        error "ERROR: Missing isolated packaged-IP support source at $packaged_support_vhdl"
+    }
+    lappend daphne_packaged_support_names [file tail $packaged_support_vhdl]
+    set packaged_support_dir [file dirname $packaged_support_vhdl]
+    if {[lsearch -exact $daphne_ip_include_dirs $packaged_support_dir] == -1} {
+        lappend daphne_ip_include_dirs $packaged_support_dir
+    }
+}
 set daphne_ip_extra_source_roots [parse_extra_roots [daphne_get_env_or_default DAPHNE_IP_EXTRA_SOURCE_ROOTS ""]]
 foreach extraRoot $daphne_ip_extra_source_roots {
     if {[lsearch -exact $daphne_ip_include_dirs $extraRoot] == -1} {
@@ -345,7 +371,7 @@ foreach extraRoot $daphne_ip_extra_source_roots {
     set extraVhdlFiles [get_files_recursive $extraRoot "*.vhd"]
     set extraVerilogFiles [get_files_recursive $extraRoot "*.v"]
     set extraSystemVerilogFiles [get_files_recursive $extraRoot "*.sv"]
-    set vhdlFiles [concat $vhdlFiles [ignore_files $extraVhdlFiles [list $daphne_ip_top_basename]]]
+    set vhdlFiles [concat $vhdlFiles [ignore_files $extraVhdlFiles [concat [list $daphne_ip_top_basename] $daphne_packaged_support_names]]]
     set verilogFiles [concat $verilogFiles $extraVerilogFiles $extraSystemVerilogFiles]
 }
 set vhdlFiles [lsort -unique $vhdlFiles]
@@ -432,6 +458,15 @@ set bramFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4
 # set property for cell name
 set_property CELL_NAME core_inst/daphne_top_inst/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjLan
 set_property CELL_NAME core_inst/daphne_top_inst/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjSim
+
+# Add the isolated support sources explicitly and ahead of the recursive source
+# globs so the packaged IP sees the same dependency closure as daphne-ip.core.
+foreach packagedSupportVhdl $daphne_packaged_support_vhdl {
+    set packagedSupportSynth [ipx::add_file -name $packagedSupportVhdl -file_group $lang_synth]
+    set packagedSupportSim [ipx::add_file -name $packagedSupportVhdl -file_group $lang_sim]
+    set_property TYPE {vhdlSource-2008} $packagedSupportSynth
+    set_property TYPE {vhdlSource-2008} $packagedSupportSim
+}
 
 # VHDL files
 foreach vhdlType $vhdlFiles {
