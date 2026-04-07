@@ -124,3 +124,23 @@ proc daphne_resolve_repo_relative_path {repo_root path_value} {
     }
     return [file normalize [file join $repo_root $path_value]]
 }
+
+proc daphne_find_staged_repo_relative_path {search_root rel_path} {
+    if {![file isdirectory $search_root]} {
+        return ""
+    }
+
+    set trimmed_rel_path [string trim $rel_path "/"]
+    if {$trimmed_rel_path eq ""} {
+        return ""
+    }
+
+    foreach match_type {f d} {
+        set matches [glob -nocomplain -directory $search_root -types $match_type -path */$trimmed_rel_path]
+        if {[llength $matches] > 0} {
+            return [file normalize [lindex $matches 0]]
+        }
+    }
+
+    return ""
+}

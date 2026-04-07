@@ -35,10 +35,18 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
         set ::env(DAPHNE_ETH_MODE) "create_ip"
     }
 
-    if {(![info exists ::env(DAPHNE_IP_REPO_ROOT)] || $::env(DAPHNE_IP_REPO_ROOT) eq "") && [file isdirectory $src_root]} {
-        set matches [glob -nocomplain -directory $src_root -types d */ip_repo/daphne_ip]
-        if {[llength $matches] > 0} {
-            set ::env(DAPHNE_IP_REPO_ROOT) [file normalize [lindex $matches 0]]
+    if {[file isdirectory $src_root]} {
+        set staged_ip_repo_root [daphne_find_staged_repo_relative_path $src_root "ip_repo/daphne_ip"]
+        if {$staged_ip_repo_root ne "" && (![info exists ::env(DAPHNE_IP_REPO_ROOT)] || $::env(DAPHNE_IP_REPO_ROOT) eq "")} {
+            set ::env(DAPHNE_IP_REPO_ROOT) $staged_ip_repo_root
+        }
+
+        set staged_board_profile [daphne_resolve_board_profile $work_root]
+        if {dict exists $staged_board_profile ip_top_hdl_file} {
+            set staged_top_path [daphne_find_staged_repo_relative_path $src_root [dict get $staged_board_profile ip_top_hdl_file]]
+            if {$staged_top_path ne "" && (![info exists ::env(DAPHNE_IP_TOP_HDL_FILE)] || $::env(DAPHNE_IP_TOP_HDL_FILE) eq "")} {
+                set ::env(DAPHNE_IP_TOP_HDL_FILE) $staged_top_path
+            }
         }
     }
 
@@ -48,9 +56,14 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
 
     if {![info exists ::env(DAPHNE_IP_EXTRA_SOURCE_ROOTS)] || $::env(DAPHNE_IP_EXTRA_SOURCE_ROOTS) eq ""} {
         set extra_roots ""
-        foreach support_source [daphne_resolve_legacy_support_sources $work_root] {
-            set found_dir [daphne_find_first_file_dir $src_root [file tail $support_source]]
-            set extra_roots [daphne_append_unique_path $extra_roots $found_dir]
+        set support_manifest [file join $work_root "xilinx" "legacy_flow_support_sources.txt"]
+        if {[file exists $support_manifest] && [file isdirectory $src_root]} {
+            foreach support_rel [daphne_read_path_manifest $support_manifest] {
+                set staged_support_path [daphne_find_staged_repo_relative_path $src_root $support_rel]
+                if {$staged_support_path ne ""} {
+                    set extra_roots [daphne_append_unique_path $extra_roots [file dirname $staged_support_path]]
+                }
+            }
         }
         if {$extra_roots ne ""} {
             set ::env(DAPHNE_IP_EXTRA_SOURCE_ROOTS) $extra_roots
