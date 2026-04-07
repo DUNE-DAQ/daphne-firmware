@@ -13,7 +13,7 @@ filesets:
       - dune-daq:daphne:legacy-spy-capture-bridge:0.1.0
       - dune-daq:daphne:legacy-timing-plane-bridge:0.1.0
       - dune-daq:daphne:legacy-analog-control-plane-bridge:0.1.0
-      - dune-daq:daphne:legacy-selftrigger-plane-bridge:0.1.0
+      - dune-daq:daphne:k26c-board-selftrigger-plane:0.1.0
     files:
       - rtl/isolated/tops/k26c_board_shell.vhd
     file_type: vhdlSource
