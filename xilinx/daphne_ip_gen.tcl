@@ -30,6 +30,7 @@ set daphne_packaged_support_vhdl_src [list \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_register_bank.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_island.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "readout" "legacy_deimos_readout_bridge.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "timing" "legacy_timing_subsystem_bridge.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "self_trigger_xcorr_channel.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "peak_descriptor_channel.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "legacy_selftrigger_datapath.vhd"] \

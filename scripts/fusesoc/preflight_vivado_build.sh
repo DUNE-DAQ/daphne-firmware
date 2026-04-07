@@ -101,7 +101,8 @@ fi
 for support_leaf in \
   legacy_selftrigger_register_bank.vhd \
   legacy_selftrigger_datapath.vhd \
-  legacy_deimos_readout_bridge.vhd
+  legacy_deimos_readout_bridge.vhd \
+  legacy_timing_subsystem_bridge.vhd
 do
   if ! grep -Fq "$support_leaf" "$component_xml"; then
     echo "ERROR: component.xml is missing packaged support source: $support_leaf" >&2
