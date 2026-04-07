@@ -49,7 +49,7 @@ remains available for older automation and now defaults
 
 ## Current repo-local packaging step
 
-After a successful Vivado run, once `xilinx/output/` contains:
+After a successful Vivado run, once `xilinx/output-$DAPHNE_GIT_SHA/` contains:
 
 - `daphne_selftrigger_<gitsha>.xsa`
 - `daphne_selftrigger_<gitsha>.bin`
@@ -60,10 +60,14 @@ run:
 ./scripts/package/complete_dtbo_bundle.sh
 ```
 
+If `DAPHNE_GIT_SHA` is set, that now defaults to
+`./xilinx/output-$DAPHNE_GIT_SHA/` so the native Flow-API export path can be
+packaged without an extra argument.
+
 or explicitly:
 
 ```bash
-./scripts/package/complete_dtbo_bundle.sh ./xilinx/output
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
 Expected tools on `PATH`:
@@ -75,10 +79,10 @@ Expected tools on `PATH`:
 
 Expected outputs:
 
-- `xilinx/output/daphne_selftrigger_<gitsha>.dtbo`
-- `xilinx/output/daphne_selftrigger_ol_<gitsha>/`
-- `xilinx/output/daphne_selftrigger_ol_<gitsha>.zip`
-- `xilinx/output/SHA256SUMS`
+- `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_<gitsha>.dtbo`
+- `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_ol_<gitsha>/`
+- `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_ol_<gitsha>.zip`
+- `xilinx/output-$DAPHNE_GIT_SHA/SHA256SUMS`
 
 ## Current highest-priority blocker
 

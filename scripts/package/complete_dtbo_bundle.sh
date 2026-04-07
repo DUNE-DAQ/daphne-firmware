@@ -110,7 +110,15 @@ ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && 
 BOARD="${DAPHNE_BOARD:-k26c}"
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
-OUTPUT_DIR_INPUT="${1:-${DAPHNE_OUTPUT_DIR:-$ROOT_DIR/xilinx/output}}"
+if [[ -n "${1:-}" ]]; then
+  OUTPUT_DIR_INPUT="$1"
+elif [[ -n "${DAPHNE_OUTPUT_DIR:-}" ]]; then
+  OUTPUT_DIR_INPUT="${DAPHNE_OUTPUT_DIR}"
+elif [[ -n "${DAPHNE_GIT_SHA:-}" ]]; then
+  OUTPUT_DIR_INPUT="$ROOT_DIR/xilinx/output-$DAPHNE_GIT_SHA"
+else
+  OUTPUT_DIR_INPUT="$ROOT_DIR/xilinx/output"
+fi
 OUTPUT_DIR="$(CDPATH= cd -- "$OUTPUT_DIR_INPUT" && pwd)"
 XSCT_OUTPUT_DIR="$(select_xsct_output_dir "$OUTPUT_DIR")"
 DTBO_GEN_TCL="$ROOT_DIR/xilinx/daphne_dtbo_gen.tcl"
