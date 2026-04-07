@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:k26c-board-frontend-plane:0.1.0
+description: K26C board-owned frontend capture and alignment plane wrapping the live frontend island behind the board shell contract
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:frontend-island:0.1.0
+    files:
+      - rtl/isolated/subsystems/frontend/k26c_board_frontend_plane.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

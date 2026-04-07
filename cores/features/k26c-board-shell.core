@@ -9,7 +9,7 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:frontend-island:0.1.0
+      - dune-daq:daphne:k26c-board-frontend-plane:0.1.0
       - dune-daq:daphne:k26c-board-spy-capture-plane:0.1.0
       - dune-daq:daphne:k26c-board-timing-plane:0.1.0
       - dune-daq:daphne:k26c-board-analog-control-plane:0.1.0
