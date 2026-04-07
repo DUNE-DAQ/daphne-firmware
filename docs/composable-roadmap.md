@@ -125,9 +125,8 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      rather than the generated `daphne-ip` source manifest. The generated
      packaged-IP manifest still exists for the legacy export/build lane, but
      the default native `impl` target is now meaningfully closer to a full
-     FuseSoC-owned source graph. The old `legacy-public-top-bridge` core name
-     remains as a compatibility alias until the underlying RTL entity is
-     renamed.
+     FuseSoC-owned source graph while the underlying RTL entity name is still
+     converging.
 
 ## Trigger and descriptor split
 

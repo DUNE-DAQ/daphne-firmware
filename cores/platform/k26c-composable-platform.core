@@ -188,22 +188,6 @@ targets:
         synth: none
         pnr: none
         source_mgmt_mode: None
-  synth_packaged_top_ooc:
-    description: Compatibility alias for synth_board_shell_ooc
-    default_tool: vivado
-    toplevel: legacy_public_top_bridge
-    filesets:
-      - ooc_board_shell_rtl
-    hooks:
-      pre_build:
-        - vivado_composable_ooc
-    tools:
-      vivado:
-        part: xck26-sfvc784-2LV-c
-        board_part: xilinx.com:k26c:part0:1.4
-        synth: none
-        pnr: none
-        source_mgmt_mode: None
   synth_board_shell_flow:
     description: First-class Edalize flow-API Vivado synthesis of the isolated board shell from the explicit K26C board-shell core
     flow: vivado
@@ -215,15 +199,6 @@ targets:
       board_part: xilinx.com:k26c:part0:1.4
       pnr: none
       source_mgmt_mode: None
-  synth_packaged_top_flow:
-    description: Compatibility alias for synth_board_shell_flow
-    flow: vivado
-    toplevel: legacy_public_top_bridge
-    filesets:
-      - ooc_board_shell_flow_rtl
-    flow_options:
-      part: xck26-sfvc784-2LV-c
-      board_part: xilinx.com:k26c:part0:1.4
       pnr: none
       source_mgmt_mode: None
   validate:

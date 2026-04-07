@@ -54,7 +54,7 @@ export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
 before calling `run_remote_vivado_chain.sh`. That now defaults to the native
-packaged board-shell `impl` target. If older automation still exports:
+board-shell `impl` target. If older automation still exports:
 
 ```bash
 export DAPHNE_PLATFORM_TARGET=impl_legacy_flow
