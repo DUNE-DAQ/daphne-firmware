@@ -5,6 +5,17 @@ proc daphne_export_require_arg {index label} {
     return [file normalize [lindex $::argv $index]]
 }
 
+proc daphne_export_optional_arg {index default_value} {
+    if {[llength $::argv] <= $index} {
+        return $default_value
+    }
+    set value [string trim [lindex $::argv $index]]
+    if {$value eq ""} {
+        return $default_value
+    }
+    return $value
+}
+
 proc daphne_export_first_existing {candidates} {
     foreach candidate $candidates {
         if {$candidate ne "" && [file exists $candidate]} {
@@ -18,6 +29,7 @@ set script_dir [file dirname [file normalize [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
 set project_path [daphne_export_require_arg 0 "project path"]
 set output_dir [daphne_export_require_arg 1 "output directory"]
+set impl_run_name [daphne_export_optional_arg 2 "impl_1"]
 
 source [file join $script_dir "daphne_board_env.tcl"]
 
@@ -29,13 +41,17 @@ file mkdir $output_dir
 puts "INFO: Opening Flow API Vivado project $project_path"
 open_project $project_path
 
-if {[get_property PROGRESS [get_runs impl_1]] != "100%"} {
-    error "ERROR: impl_1 is not complete; build the Flow API project before exporting handoff artifacts."
+set impl_run [get_runs -quiet $impl_run_name]
+if {[llength $impl_run] != 1} {
+    error "ERROR: implementation run '$impl_run_name' was not found in $project_path"
 }
 
-open_run impl_1
+if {[get_property PROGRESS $impl_run] != "100%"} {
+    error "ERROR: implementation run '$impl_run_name' is not complete; build the Flow API project before exporting handoff artifacts."
+}
 
-set impl_run [get_runs impl_1]
+open_run $impl_run_name
+
 set run_dir [file normalize [get_property DIRECTORY $impl_run]]
 set project_root [file dirname $project_path]
 set project_name [current_project]
@@ -50,6 +66,7 @@ set existing_bin [daphne_export_first_existing [concat \
 
 puts "INFO: Exporting Flow API handoff artifacts into $output_dir"
 puts "INFO: build_name=$build_name"
+puts "INFO: impl_run=$impl_run_name"
 
 if {$existing_bit ne "" && $existing_bin ne ""} {
     puts "INFO: Reusing flow-generated bit/bin artifacts from the native impl run."
