@@ -17,6 +17,7 @@ set daphne_ip_top_module [daphne_get_env_or_default DAPHNE_IP_TOP_MODULE "daphne
 set daphne_ip_component_identifier [daphne_get_env_or_default DAPHNE_IP_COMPONENT_IDENTIFIER $daphne_ip_top_module]
 set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME "${daphne_ip_component_identifier}_v1_0"]
 set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE "${daphne_ip_component_identifier}_v1_0.tcl"]
+set daphne_ip_cell_bind_root [daphne_get_env_or_default DAPHNE_IP_CELL_BIND_ROOT "core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst"]
 set daphne_ip_top_basename [file tail $daphne_ip_top_hdl_file]
 set daphne_ip_include_dirs [list [file join $daphne_ip_root "rtl"] [file dirname $daphne_ip_top_hdl_file]]
 
@@ -436,7 +437,6 @@ foreach daqIPType $xciDAQFiles {
 set anylanguageSynthFg [ipx::get_file_groups xilinx_anylanguagesynthesis -of_objects $daphne]
 set anybehavioralSynthFg [ipx::get_file_groups xilinx_anylanguagebehavioralsimulation -of_objects $daphne]
 set implFg [ipx::get_file_groups xilinx_implementation -of_objects $daphne]
-set daphne_top_cell "core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst"
 if {$daphne_eth_mode eq "create_ip" || $daphne_eth_mode eq "seeded_xci"} {
     if {![file exists $ethXCIDir]} {
         error "ERROR: DAPHNE_ETH_MODE=$daphne_eth_mode but XXV Ethernet XCI is missing at $ethXCIDir"
@@ -449,16 +449,16 @@ if {$daphne_eth_mode eq "create_ip" || $daphne_eth_mode eq "seeded_xci"} {
     set ethFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anylanguageSynthFg]
     set ethFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anybehavioralSynthFg]
     set implFileObj [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $implFg]
-    set_property CELL_NAME ${daphne_top_cell}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjLan
-    set_property CELL_NAME ${daphne_top_cell}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjSim
-    set_property CELL_NAME ${daphne_top_cell}/mux/pcs_pma/phy_gen[0].phy_10gbe $implFileObj
+    set_property CELL_NAME ${daphne_ip_cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjLan
+    set_property CELL_NAME ${daphne_ip_cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjSim
+    set_property CELL_NAME ${daphne_ip_cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe $implFileObj
 }
 set bramFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anylanguageSynthFg]
 set bramFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anybehavioralSynthFg]
 
 # set property for cell name
-set_property CELL_NAME ${daphne_top_cell}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjLan
-set_property CELL_NAME ${daphne_top_cell}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjSim
+set_property CELL_NAME ${daphne_ip_cell_bind_root}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjLan
+set_property CELL_NAME ${daphne_ip_cell_bind_root}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl $bramFileObjSim
 
 # Add the isolated support sources explicitly and ahead of the recursive source
 # globs so the packaged IP sees the same dependency closure as daphne-ip.core.

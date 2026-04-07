@@ -49,6 +49,7 @@ append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_ETH_MODE
 append_env_tcl DAPHNE_GIT_SHA
 append_env_tcl DAPHNE_OUTPUT_DIR
+append_env_tcl DAPHNE_IP_CELL_BIND_ROOT
 printf 'set script_dir [file dirname [file normalize [info script]]]\n' >>"$shim_tcl"
 printf 'source -notrace [file join $script_dir "daphne_ip_gen.tcl"]\n' >>"$shim_tcl"
 printf 'exit\n' >>"$shim_tcl"
@@ -58,8 +59,9 @@ vivado -mode batch -source "$shim_tcl"
 
 component_xml="$ROOT_DIR/ip_repo/daphne_ip/component.xml"
 eth_xci="$ROOT_DIR/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
-eth_binding='CELL_NAME_core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe'
-bram_binding='CELL_NAME_core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl'
+cell_bind_root="${DAPHNE_IP_CELL_BIND_ROOT:-core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst}"
+eth_binding="CELL_NAME_${cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe"
+bram_binding="CELL_NAME_${cell_bind_root}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl"
 eth_xci_ref='src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci'
 
 if [ ! -f "$component_xml" ]; then

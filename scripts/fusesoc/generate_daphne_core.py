@@ -117,6 +117,10 @@ def main() -> None:
         tcl_text,
         r'set daphne_ip_top_hdl_file \[file normalize \[daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE \[file join \$daphne_ip_root "rtl" "([^"]+)"\]\]\]',
     )
+    default_top_module = extract_default_string(
+        tcl_text,
+        r'set daphne_ip_top_module \[daphne_get_env_or_default DAPHNE_IP_TOP_MODULE "([^"]+)"\]',
+    )
     rtl_ignored = set(
         extract_quoted_list_any(
             tcl_text,
@@ -157,7 +161,7 @@ def main() -> None:
         + basename_filtered(sorted_relative_files(rtl_root, "*.vhd"), rtl_ignored)
     )
     rtl_verilog = core_relative(sorted_relative_files(rtl_root, "*.v"))
-    rtl_top = [f"{CORE_PREFIX}ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd"]
+    rtl_top = [f"{CORE_PREFIX}ip_repo/daphne_ip/rtl/{default_top_vhdl}"]
 
     sim_vhdl = core_relative(sorted_relative_files(sim_root, "*.vhd"))
     sim_verilog = core_relative(sorted_relative_files(sim_root, "*.v"))
@@ -196,7 +200,7 @@ def main() -> None:
         ],
         [
             "  default: &default_target",
-            "    description: Synthesizable daphne_selftrigger_top PL source manifest",
+            f"    description: Synthesizable {default_top_module} PL source manifest",
             "    filesets:",
             "      - rtl_vhdl",
             "      - rtl_verilog",
