@@ -22,6 +22,7 @@ DEFAULT_COMPOSABLE_TARGET="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" co
 DRY_RUN=0
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_PLATFORM_CORE}"
 BUILD_TARGET="${DAPHNE_PLATFORM_TARGET:-}"
+AUDIT_NATIVE_IMPL_GRAPH="${DAPHNE_AUDIT_NATIVE_IMPL_GRAPH:-1}"
 
 usage() {
   cat <<EOF
@@ -34,6 +35,7 @@ Options:
   --modular               Use $DEFAULT_MODULAR_CORE
   --composable            Use $DEFAULT_COMPOSABLE_CORE
   --target <name>         Use an explicit FuseSoC target for the selected platform core
+  --skip-native-audit     Skip the native composable impl graph audit before build
   --dry-run               Resolve the platform core and print what would run
   -h, --help              Show this help text
 EOF
@@ -65,6 +67,9 @@ while [ "$#" -gt 0 ]; do
       ;;
     --dry-run)
       DRY_RUN=1
+      ;;
+    --skip-native-audit)
+      AUDIT_NATIVE_IMPL_GRAPH=0
       ;;
     -h|--help)
       usage
@@ -118,6 +123,7 @@ echo "INFO: Selected FuseSoC target: $BUILD_TARGET"
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
 export DAPHNE_PLATFORM_TARGET="$BUILD_TARGET"
+export DAPHNE_AUDIT_NATIVE_IMPL_GRAPH="$AUDIT_NATIVE_IMPL_GRAPH"
 
 SYSTEM_NAME="${DAPHNE_SYSTEM_NAME:-$(daphne_platform_core_build_slug "$PLATFORM_CORE")}"
 export DAPHNE_SYSTEM_NAME="$SYSTEM_NAME"
@@ -129,6 +135,13 @@ export DAPHNE_EXPORT_IMPL_RUN
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "INFO: Dry-run only, stopping before Vivado."
   exit 0
+fi
+
+if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && \
+   [ "$BUILD_TARGET" = "impl" ] && \
+   [ "$AUDIT_NATIVE_IMPL_GRAPH" != "0" ]; then
+  echo "INFO: Auditing native impl graph before build."
+  "$ROOT_DIR/scripts/fusesoc/check_native_impl_graph.sh"
 fi
 
 exec "$ROOT_DIR/scripts/fusesoc/fusesoc.sh" run \
