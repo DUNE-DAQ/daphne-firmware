@@ -46,6 +46,16 @@ This runs:
 
 and stores logs under `build/remote-vivado/<timestamp>/`.
 
+To route the same wrapper through the composable platform instead of the legacy
+platform core, set:
+
+```bash
+export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
+export DAPHNE_PLATFORM_TARGET=impl_legacy_flow
+```
+
+before calling `run_remote_vivado_chain.sh`.
+
 ## Important environment knobs
 
 - `DAPHNE_BOARD=k26c` keeps the currently qualified board path.

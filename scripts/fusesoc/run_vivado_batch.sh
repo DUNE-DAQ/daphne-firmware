@@ -3,6 +3,8 @@ set -eu
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
+PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-dune-daq:daphne:k26c-platform:0.1.0}"
+PLATFORM_TARGET="${DAPHNE_PLATFORM_TARGET:-}"
 
 case "$BOARD" in
   k26c)
@@ -26,6 +28,7 @@ export DAPHNE_BOARD="$BOARD"
 export DAPHNE_FPGA_PART
 export DAPHNE_BOARD_PART
 export DAPHNE_PFM_NAME
+export DAPHNE_PLATFORM_CORE
 
 if [ -z "${DAPHNE_GIT_SHA-}" ] && command -v git >/dev/null 2>&1; then
   if resolved_git_sha=$(git -C "$ROOT_DIR" rev-parse --short=7 HEAD 2>/dev/null); then
@@ -33,4 +36,13 @@ if [ -z "${DAPHNE_GIT_SHA-}" ] && command -v git >/dev/null 2>&1; then
   fi
 fi
 
-exec "$ROOT_DIR/scripts/fusesoc/build_platform.sh" --platform-core dune-daq:daphne:k26c-platform:0.1.0
+if [ -z "$PLATFORM_TARGET" ] && [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ]; then
+  PLATFORM_TARGET="impl_legacy_flow"
+fi
+
+if [ -n "$PLATFORM_TARGET" ]; then
+  export DAPHNE_PLATFORM_TARGET="$PLATFORM_TARGET"
+  exec "$ROOT_DIR/scripts/fusesoc/build_platform.sh" --platform-core "$PLATFORM_CORE" --target "$PLATFORM_TARGET"
+fi
+
+exec "$ROOT_DIR/scripts/fusesoc/build_platform.sh" --platform-core "$PLATFORM_CORE"

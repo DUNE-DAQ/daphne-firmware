@@ -67,6 +67,15 @@ and stores logs under `build/wsl-vivado/<timestamp>/`.
 This is the intended repo-default single-command path for WSL-driven Windows
 builds.
 
+To exercise the composable platform through the same wrapper, set:
+
+```bash
+export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
+export DAPHNE_PLATFORM_TARGET=impl_legacy_flow
+```
+
+before calling `run_wsl_vivado_chain.sh`.
+
 ## Output directory rule
 
 When Windows Vivado is launched from WSL, keep `DAPHNE_OUTPUT_DIR` unset or set
