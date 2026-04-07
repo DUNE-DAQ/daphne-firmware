@@ -105,42 +105,27 @@ If you want the wrapper to use the composable platform instead, set
 wrapper will then default to `DAPHNE_PLATFORM_TARGET=impl`, which now drives
 the native packaged board-shell Flow API path.
 
-For the composable platform, the checked-in implementation hook is still the
-transitional bridge target:
-
-```bash
-./scripts/fusesoc/build_platform.sh --composable --target impl_legacy_bridge
-```
-
-That bridge still builds the qualified legacy K26C design, but the Vivado hook
-and block-design flow now honor `DAPHNE_BD_NAME` / `DAPHNE_BD_WRAPPER_NAME`
- overrides, plus `DAPHNE_BUILD_NAME_PREFIX` /
- `DAPHNE_OVERLAY_NAME_PREFIX` for artifact naming, and `DAPHNE_USER_IP_VLNV`
- for the packaged user-IP identity. The bridge now also stages the generated
- `daphne-ip` legacy source manifest as an explicit FuseSoC dependency and
- auto-discovers the isolated HDL roots needed by the packaged-IP synth. The BD
- generator also now clears only the active block-design directory instead of
- deleting the entire `bd/` tree. This keeps the migration path open for
-side-by-side legacy and future composable design identities.
-
-There is now also a first board-level Flow API variant of that bridge:
+The composable platform still keeps the transitional legacy block-design bridge
+available:
 
 ```bash
 ./scripts/fusesoc/build_platform.sh --composable --target impl_legacy_flow
 ```
 
-That target still generates the qualified legacy K26C block design and wrapper,
-but it does so through a `tclSource` preamble sourced by Edalize's Vivado Flow
-API instead of the older pre-build hook/backend path. This is the first honest
-board-facing Flow API checkpoint in the migration: the public composable top is
-still not the deployed top, but the board implementation now has a flow-owned
-entry point as well.
+That target still generates the qualified legacy K26C block design and wrapper
+through a `tclSource` preamble sourced by Edalize's Vivado Flow API. It remains
+the fallback path when the native packaged-shell implementation needs to be
+compared against the older BD-wrapper flow.
 
 The composable platform now also exposes `impl` as its default implementation
 target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
 target automatically. Today `impl` is the native packaged board-shell Flow API
 path (`legacy_public_top_bridge`) while `impl_legacy_flow` remains available as
-the fallback BD-wrapper bridge.
+the fallback BD-wrapper bridge. The native packaged-shell path now resolves
+through an explicit `legacy-public-top-bridge` feature core instead of the
+generated `daphne-ip` manifest, so the board implementation is materially more
+FuseSoC-owned even though the packaged-IP/export lane still exists for the
+legacy build path.
 
 The IP packaging Tcl also now accepts top-identity overrides
 (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,
@@ -173,6 +158,14 @@ That target resolves the same `daphne_composable_top` graph but uses Edalize's
 Vivado flow API instead of the deprecated tool-backend entry. It is still OOC
 Vivado synthesis rather than a board implementation target, but it is the
 first real FuseSoC/flow-owned synth path in the repo.
+
+There is also a packaged public-shell synthesis checkpoint that exercises the
+board-facing shell through the explicit bridge graph without the generated
+`daphne-ip` core:
+
+```bash
+./scripts/fusesoc/build_platform.sh --composable --target synth_packaged_top_flow
+```
 
 If Vivado runs on a remote server instead of the local workstation, use the
 repo-local runbook and wrapper:

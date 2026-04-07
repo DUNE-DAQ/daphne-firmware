@@ -9,6 +9,7 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:hermes-transport:0.1.0
     files:
       - rtl/isolated/subsystems/readout/legacy_deimos_readout_bridge.vhd
     file_type: vhdlSource

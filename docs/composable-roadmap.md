@@ -129,6 +129,12 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      directly through the Vivado Flow API and exports the same
      `daphne_selftrigger_<gitsha>` artifact contract. This is the current
      default composable build entrypoint.
+   - The native packaged-shell synth/impl path now resolves through an
+     explicit `legacy-public-top-bridge` feature core and the extracted bridge
+     graph rather than the generated `daphne-ip` source manifest. The
+     generated packaged-IP manifest still exists for the legacy export/build
+     lane, but the default native `impl` target is now meaningfully closer to
+     a full FuseSoC-owned source graph.
 
 ## Trigger and descriptor split
 

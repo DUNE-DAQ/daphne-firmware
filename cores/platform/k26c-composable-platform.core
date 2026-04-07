@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:k26c-composable-platform:0.1.0
-description: Source-only K26C platform wrapper for the fine-grained composable DAPHNE subsystem graph
+description: K26C platform wrapper for the fine-grained composable DAPHNE subsystem graph and native packaged-shell impl path
 provider:
   name: local
 
@@ -57,7 +57,7 @@ filesets:
     file_type: user
   ooc_packaged_top_rtl:
     depend:
-      - dune-daq:daphne:daphne-ip:0.1.0
+      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
     files:
       - boards/k26c/board.yml
       - xilinx/daphne_board_env.tcl
@@ -65,13 +65,13 @@ filesets:
     file_type: user
   ooc_packaged_top_flow_rtl:
     depend:
-      - dune-daq:daphne:daphne-ip:0.1.0
+      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
     files:
       - boards/k26c/board.yml
     file_type: user
   impl_packaged_top_flow_rtl:
     depend:
-      - dune-daq:daphne:daphne-ip:0.1.0
+      - dune-daq:daphne:legacy-public-top-bridge:0.1.0
     files:
       - boards/k26c/board.yml
       - xilinx/daphne_selftrigger_pin_map.xdc
@@ -150,7 +150,7 @@ scripts:
 
 targets:
   default:
-    description: Source-only platform manifest for the composable K26C subsystem graph and top shell
+    description: Platform manifest for the composable K26C subsystem graph and top shells
     filesets:
       - platform
   impl_legacy_bridge:
@@ -224,7 +224,7 @@ targets:
       pnr: none
       source_mgmt_mode: None
   synth_packaged_top_ooc:
-    description: Vivado out-of-context synthesis of the isolated packaged board shell from the generated daphne-ip source graph
+    description: Vivado out-of-context synthesis of the isolated packaged board shell from the explicit legacy-public-top bridge graph
     default_tool: vivado
     toplevel: legacy_public_top_bridge
     filesets:
@@ -240,7 +240,7 @@ targets:
         pnr: none
         source_mgmt_mode: None
   synth_packaged_top_flow:
-    description: First-class Edalize flow-API Vivado synthesis of the isolated packaged board shell from the generated daphne-ip source graph
+    description: First-class Edalize flow-API Vivado synthesis of the isolated packaged board shell from the explicit legacy-public-top bridge graph
     flow: vivado
     toplevel: legacy_public_top_bridge
     filesets:
