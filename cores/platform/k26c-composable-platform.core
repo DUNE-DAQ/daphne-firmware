@@ -233,19 +233,6 @@ targets:
       board_part: xilinx.com:k26c:part0:1.4
       pnr: none
       source_mgmt_mode: None
-  impl_packaged_top_flow:
-    description: Alias for the native packaged board-shell implementation path
-    flow: vivado
-    toplevel: legacy_public_top_bridge
-    filesets:
-      - impl_packaged_top_flow_rtl
-    hooks:
-      post_build:
-        - export_impl_bundle
-    flow_options:
-      part: xck26-sfvc784-2LV-c
-      board_part: xilinx.com:k26c:part0:1.4
-      source_mgmt_mode: None
   validate:
     description: GHDL validation of the vendor-free composable core shell behind the K26C platform graph
     default_tool: ghdl
