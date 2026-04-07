@@ -8,10 +8,8 @@ provider:
 filesets:
   rtl:
     depend:
-      - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:afe-interface:0.1.0
-      - dune-daq:daphne:dac-interface:0.1.0
-      - dune-daq:daphne:config-control:0.1.0
+      - dune-daq:daphne:legacy-afe-dac-io-bridge:0.1.0
+      - dune-daq:daphne:legacy-board-control-bridge:0.1.0
     files:
       - rtl/isolated/subsystems/analog/legacy_analog_control_plane_bridge.vhd
     file_type: vhdlSource

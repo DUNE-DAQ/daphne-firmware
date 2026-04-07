@@ -2,10 +2,12 @@ rtl/isolated/common/daphne_subsystem_pkg.vhd
 rtl/isolated/common/primitives/configurable_delay_line.vhd
 rtl/isolated/common/primitives/fixed_delay_line.vhd
 rtl/isolated/common/primitives/sync_fifo_fwft.vhd
+rtl/isolated/subsystems/analog/legacy_afe_dac_io_bridge.vhd
 rtl/isolated/subsystems/analog/legacy_analog_control_plane_bridge.vhd
 rtl/isolated/subsystems/analog/afe_config_slice.vhd
 rtl/isolated/subsystems/analog/afe_config_slice_boundary.vhd
 rtl/isolated/subsystems/analog/afe_analog_island.vhd
+rtl/isolated/subsystems/control/legacy_board_control_bridge.vhd
 rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd
 rtl/isolated/subsystems/control/legacy_stuff_selftrigger_register_bank.vhd
 rtl/isolated/subsystems/control/legacy_trigger_control_adapter.vhd
