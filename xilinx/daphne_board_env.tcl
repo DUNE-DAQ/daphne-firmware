@@ -25,6 +25,26 @@ proc daphne_read_board_manifest_value {manifest_path key {default_value ""}} {
     return $default_value
 }
 
+proc daphne_split_semicolon_list {raw_value} {
+    set values {}
+    foreach value [split $raw_value ";"] {
+        set trimmed_value [string trim $value]
+        if {$trimmed_value ne ""} {
+            lappend values $trimmed_value
+        }
+    }
+    return $values
+}
+
+proc daphne_require_resolved_paths {label repo_root required_raw_paths resolved_paths} {
+    foreach required_entry [daphne_split_semicolon_list $required_raw_paths] {
+        set required_path [daphne_resolve_repo_relative_path $repo_root $required_entry]
+        if {[lsearch -exact $resolved_paths $required_path] < 0} {
+            error "ERROR: $label requires path '$required_entry' to be present in the resolved path list."
+        }
+    }
+}
+
 proc daphne_resolve_board_profile {repo_root {board_name ""}} {
     if {$board_name eq ""} {
         set board_name [daphne_get_env_or_default DAPHNE_BOARD "k26c"]
@@ -50,10 +70,18 @@ proc daphne_resolve_board_profile {repo_root {board_name ""}} {
         dict set profile inherits $parent_board
     }
 
-    foreach field {fpga_part board_part pfm_name constraint_file constraint_files platform_core modular_platform_core composable_platform_core user_ip_vlnv bd_name bd_wrapper_name bd_shell_tcl build_name_prefix overlay_name_prefix ip_top_hdl_file ip_top_module ip_cell_name ip_component_identifier ip_display_name ip_xgui_file ip_cell_bind_root public_top_hdl_file public_top_module timing_endpoint_path} {
+    foreach field {fpga_part board_part pfm_name constraint_file constraint_files required_constraint_files platform_core modular_platform_core composable_platform_core default_platform_core user_ip_vlnv bd_name bd_wrapper_name bd_shell_tcl build_name_prefix overlay_name_prefix ip_top_hdl_file ip_top_module ip_cell_name ip_component_identifier ip_display_name ip_xgui_file ip_cell_bind_root public_top_hdl_file public_top_module timing_endpoint_path} {
         set value [daphne_read_board_manifest_value $manifest_path $field ""]
         if {$value ne ""} {
             dict set profile $field $value
+        }
+    }
+
+    if {![dict exists $profile default_platform_core] || [string trim [dict get $profile default_platform_core]] eq ""} {
+        if {[dict exists $profile composable_platform_core] && [string trim [dict get $profile composable_platform_core]] ne ""} {
+            dict set profile default_platform_core [dict get $profile composable_platform_core]
+        } elseif {[dict exists $profile platform_core] && [string trim [dict get $profile platform_core]] ne ""} {
+            dict set profile default_platform_core [dict get $profile platform_core]
         }
     }
 

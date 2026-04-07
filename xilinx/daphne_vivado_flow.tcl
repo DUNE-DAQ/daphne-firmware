@@ -68,10 +68,12 @@ proc daphne_resolve_config {script_dir} {
     set cfg(bd_file) [file join $cfg(repo_root) "bd" $cfg(bd_name) "${cfg(bd_name)}.bd"]
     set cfg(bd_wrapper_vhd) [file join $cfg(repo_root) "bd" $cfg(bd_name) "hdl" "${cfg(bd_wrapper_name)}.vhd"]
     set board_constraint_files_raw [expr {[dict exists $board_profile constraint_files] ? [dict get $board_profile constraint_files] : [dict get $board_profile constraint_file]}]
+    set board_required_constraint_files_raw [expr {[dict exists $board_profile required_constraint_files] ? [dict get $board_profile required_constraint_files] : ""}]
     set cfg(constraint_files) [daphne_resolve_repo_relative_paths $cfg(repo_root) [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILES $board_constraint_files_raw]]
     if {[llength $cfg(constraint_files)] == 0} {
         error "ERROR: board profile did not resolve any XDC files."
     }
+    daphne_require_resolved_paths "Board constraint files" $cfg(repo_root) $board_required_constraint_files_raw $cfg(constraint_files)
     set cfg(pinmap_xdc) [lindex $cfg(constraint_files) 0]
     set cfg(dtbo_gen_tcl) [file join $script_dir "daphne_dtbo_gen.tcl"]
     set cfg(axi_quad_spi_patch) [file join $script_dir "scripts" "axi_quad_spi_dtbo_patch.sed"]

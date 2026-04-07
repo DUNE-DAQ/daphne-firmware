@@ -66,6 +66,28 @@ daphne_platform_core_build_slug() {
   printf '%s' "$platform_core" | tr ':' '_'
 }
 
+daphne_default_platform_core() {
+  root_dir="$1"
+  board_name="$2"
+
+  default_core="$(daphne_board_manifest_value "$root_dir" "$board_name" default_platform_core)"
+  if [ -n "$default_core" ]; then
+    printf '%s' "$default_core"
+    return 0
+  fi
+
+  composable_core="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_platform_core)"
+  if [ -n "$composable_core" ]; then
+    printf '%s' "$composable_core"
+    return 0
+  fi
+
+  legacy_core="$(daphne_board_manifest_value "$root_dir" "$board_name" platform_core)"
+  if [ -n "$legacy_core" ]; then
+    printf '%s' "$legacy_core"
+  fi
+}
+
 daphne_resolve_board_defaults() {
   root_dir="$1"
   board_name="${2:-${DAPHNE_BOARD:-k26c}}"
@@ -84,6 +106,7 @@ daphne_resolve_board_defaults() {
   pfm_name="$(daphne_board_manifest_value "$root_dir" "$board_name" pfm_name)"
   constraint_file="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_file)"
   constraint_files="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_files)"
+  required_constraint_files="$(daphne_board_manifest_value "$root_dir" "$board_name" required_constraint_files)"
   user_ip_vlnv="$(daphne_board_manifest_value "$root_dir" "$board_name" user_ip_vlnv)"
   bd_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_name)"
   bd_wrapper_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_wrapper_name)"
@@ -124,11 +147,37 @@ daphne_resolve_board_defaults() {
     constraint_files="$constraint_file"
   fi
 
+  effective_constraint_files="${DAPHNE_CONSTRAINT_FILES:-$constraint_files}"
+  if [ -z "$effective_constraint_files" ]; then
+    effective_constraint_files="$constraint_file"
+  fi
+
+  if [ -n "$required_constraint_files" ]; then
+    old_ifs="$IFS"
+    IFS=';'
+    set -- $required_constraint_files
+    IFS="$old_ifs"
+    for required_constraint_file in "$@"; do
+      required_constraint_file="$(printf '%s' "$required_constraint_file" | tr -d '[:space:]')"
+      [ -n "$required_constraint_file" ] || continue
+      case ";$effective_constraint_files;" in
+        *";$required_constraint_file;"*) ;;
+        *)
+          echo "ERROR: board manifest '$manifest_path' requires constraint file '$required_constraint_file' to be present in the effective constraint_files list." >&2
+          exit 2
+          ;;
+      esac
+    done
+  fi
+
   : "${DAPHNE_FPGA_PART:=$fpga_part}"
   : "${DAPHNE_BOARD_PART:=$board_part}"
   : "${DAPHNE_PFM_NAME:=$pfm_name}"
   : "${DAPHNE_CONSTRAINT_FILE:=$constraint_file}"
-  : "${DAPHNE_CONSTRAINT_FILES:=$constraint_files}"
+  : "${DAPHNE_CONSTRAINT_FILES:=$effective_constraint_files}"
+  if [ -n "$required_constraint_files" ]; then
+    : "${DAPHNE_REQUIRED_CONSTRAINT_FILES:=$required_constraint_files}"
+  fi
   if [ -n "$user_ip_vlnv" ]; then
     : "${DAPHNE_USER_IP_VLNV:=$user_ip_vlnv}"
   fi
@@ -182,6 +231,9 @@ daphne_resolve_board_defaults() {
   export DAPHNE_PFM_NAME
   export DAPHNE_CONSTRAINT_FILE
   export DAPHNE_CONSTRAINT_FILES
+  if [ -n "${DAPHNE_REQUIRED_CONSTRAINT_FILES-}" ]; then
+    export DAPHNE_REQUIRED_CONSTRAINT_FILES
+  fi
   if [ -n "${DAPHNE_USER_IP_VLNV-}" ]; then
     export DAPHNE_USER_IP_VLNV
   fi

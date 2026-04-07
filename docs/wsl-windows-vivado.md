@@ -67,14 +67,15 @@ and stores logs under `build/wsl-vivado/<timestamp>/`.
 This is the intended repo-default single-command path for WSL-driven Windows
 builds.
 
-To exercise the composable platform through the same wrapper, set:
+The board manifest now defaults the wrapper to the composable platform core.
+If you need to force it explicitly, set:
 
 ```bash
 export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
-before calling `run_wsl_vivado_chain.sh`. That now drives the native packaged
-board-shell `impl` target by default. The repo still exports a legacy-style
+before calling `run_wsl_vivado_chain.sh`. That drives the native packaged
+board-shell `impl` target. The repo still exports a legacy-style
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/` before running the usual DTBO packaging step.
 
