@@ -103,7 +103,7 @@ artifact naming keeps the real commit instead of falling back to `0000000`.
 If you want the wrapper to use the composable platform instead, set
 `DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0`; the
 wrapper will then default to `DAPHNE_PLATFORM_TARGET=impl`, which now drives
-the native packaged board-shell Flow API path.
+the native board-shell Flow API path.
 
 The older target name remains accepted as a compatibility alias:
 
@@ -116,12 +116,11 @@ It now resolves to the same native board-shell Flow API implementation as
 
 The composable platform now also exposes `impl` as its default implementation
 target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
-target automatically. Today `impl` is the native packaged board-shell Flow API
+target automatically. Today `impl` is the native board-shell Flow API
 path (`legacy_public_top_bridge`). The native board-shell path now resolves
 through an explicit `k26c-board-shell` feature core instead of the generated
 `daphne-ip` manifest, so the board implementation is materially more
-FuseSoC-owned. The older `legacy-public-top-bridge` core name remains as a
-compatibility alias while the RTL entity name is still converging.
+FuseSoC-owned while the underlying RTL entity name is still converging.
 
 The IP packaging Tcl also now accepts top-identity overrides
 (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,
@@ -355,7 +354,7 @@ recorded in `docs/source-audit.md`.
 - `cores/platform/k26c-composable-platform.core` is the composable platform
   wrapper for the finer-grained subsystem graph. It now exposes a GHDL-backed
   `validate` target so the isolated shell can be compiled and smoke-tested
-  without Vivado. It also now exposes `impl`, the native packaged board-shell
+  without Vivado. It also now exposes `impl`, the native board-shell
   Flow API implementation target, with `impl_legacy_flow` retained only as a
   compatibility alias, plus
   `synth_public_top_flow`, the first Flow API Vivado synth target for the
