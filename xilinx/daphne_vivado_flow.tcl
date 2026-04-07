@@ -69,6 +69,17 @@ proc daphne_resolve_config {script_dir} {
     set cfg(build_name) [dict get $artifact_profile build_name]
     set cfg(overlay_name) [dict get $artifact_profile overlay_name]
 
+    foreach {env_name key} {
+        DAPHNE_TIMING_ENDPOINT_PATH timing_endpoint_path
+        DAPHNE_TIMING_PLANE_PATH timing_plane_path
+        DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE afe_capture_input_delay_enable
+        DAPHNE_AFE_CAPTURE_VIRTUAL_LAUNCH_PERIOD_NS afe_capture_virtual_launch_period_ns
+        DAPHNE_AFE_CAPTURE_INPUT_DELAY_MIN_NS afe_capture_input_delay_min_ns
+        DAPHNE_AFE_CAPTURE_INPUT_DELAY_MAX_NS afe_capture_input_delay_max_ns
+    } {
+        daphne_seed_env_from_board_profile $board_profile $env_name $key
+    }
+
     return [array get cfg]
 }
 

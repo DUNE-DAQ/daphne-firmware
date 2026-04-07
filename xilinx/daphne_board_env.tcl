@@ -93,7 +93,7 @@ proc daphne_resolve_board_profile {repo_root {board_name ""}} {
         dict set profile inherits $parent_board
     }
 
-    foreach field {fpga_part board_part pfm_name constraint_file constraint_files required_constraint_files platform_core modular_platform_core composable_platform_core default_platform_core default_platform_target user_ip_vlnv bd_name bd_wrapper_name bd_shell_tcl build_name_prefix overlay_name_prefix ip_top_hdl_file ip_top_module ip_cell_name ip_component_identifier ip_display_name ip_xgui_file ip_cell_bind_root public_top_hdl_file public_top_module timing_endpoint_path timing_plane_path} {
+    foreach field {fpga_part board_part pfm_name constraint_file constraint_files required_constraint_files platform_core modular_platform_core composable_platform_core default_platform_core default_platform_target user_ip_vlnv bd_name bd_wrapper_name bd_shell_tcl build_name_prefix overlay_name_prefix ip_top_hdl_file ip_top_module ip_cell_name ip_component_identifier ip_display_name ip_xgui_file ip_cell_bind_root public_top_hdl_file public_top_module timing_endpoint_path timing_plane_path afe_capture_input_delay_enable afe_capture_virtual_launch_period_ns afe_capture_input_delay_min_ns afe_capture_input_delay_max_ns} {
         set value [daphne_read_board_manifest_value $manifest_path $field ""]
         if {$value ne ""} {
             dict set profile $field $value
@@ -249,4 +249,17 @@ proc daphne_find_staged_repo_relative_path {search_root rel_path} {
     }
 
     return ""
+}
+
+proc daphne_seed_env_from_board_profile {board_profile env_name key} {
+    if {[info exists ::env($env_name)] && [string trim $::env($env_name)] ne ""} {
+        return
+    }
+    if {![dict exists $board_profile $key]} {
+        return
+    }
+    set value [string trim [dict get $board_profile $key]]
+    if {$value ne ""} {
+        set ::env($env_name) $value
+    }
 }

@@ -52,6 +52,26 @@ proc daphne_set_async_clock_groups_if_present {group_a group_b} {
     }
 }
 
+proc daphne_get_trimmed_env {name} {
+    if {[info exists ::env($name)]} {
+        return [string trim $::env($name)]
+    }
+    return ""
+}
+
+proc daphne_env_true {name} {
+    set raw_value [string tolower [daphne_get_trimmed_env $name]]
+    expr {$raw_value in {"1" "true" "yes" "on"}}
+}
+
+proc daphne_require_env_value {name purpose} {
+    set value [daphne_get_trimmed_env $name]
+    if {$value eq ""} {
+        error "ERROR: $name must be set for $purpose"
+    }
+    return $value
+}
+
 set frontend_word_clk_ep_net [daphne_require_single_net ${endpoint_path}/ep_clk62p5 "frontend endpoint word-clock source"]
 set frontend_word_clk_local_net [daphne_require_single_net ${endpoint_path}/local_clk62p5 "frontend local word-clock source"]
 set frontend_bit_clk_pin [daphne_require_single_pin ${timing_plane_path}/clk500_o "frontend bit-clock board seam"]
@@ -82,3 +102,33 @@ set frontend_clock_family {
 
 daphne_set_async_clock_groups_if_present {clk_pl_0} $frontend_clock_family
 daphne_set_async_clock_groups_if_present {clk_pl_2} $frontend_clock_family
+
+if {[daphne_env_true DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE]} {
+    set afe_launch_clk_period [daphne_require_env_value DAPHNE_AFE_CAPTURE_VIRTUAL_LAUNCH_PERIOD_NS "AFE virtual launch clock period"]
+    set afe_input_delay_min [daphne_require_env_value DAPHNE_AFE_CAPTURE_INPUT_DELAY_MIN_NS "AFE input-delay min bound"]
+    set afe_input_delay_max [daphne_require_env_value DAPHNE_AFE_CAPTURE_INPUT_DELAY_MAX_NS "AFE input-delay max bound"]
+
+    create_clock -name afe_launch_clk_virtual -period $afe_launch_clk_period
+
+    set afe_data_ports {}
+    foreach afe_port_pattern {
+        {afe0_p[*]}
+        {afe1_p[*]}
+        {afe2_p[*]}
+        {afe3_p[*]}
+        {afe4_p[*]}
+    } {
+        foreach afe_port [get_ports -quiet $afe_port_pattern] {
+            lappend afe_data_ports $afe_port
+        }
+    }
+
+    if {[llength $afe_data_ports] == 0} {
+        error "ERROR: DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE requested, but no AFE positive-lane ports were resolved"
+    }
+
+    set_input_delay -clock afe_launch_clk_virtual -max $afe_input_delay_max $afe_data_ports
+    set_input_delay -clock afe_launch_clk_virtual -min $afe_input_delay_min $afe_data_ports
+    set_input_delay -clock afe_launch_clk_virtual -clock_fall -add_delay -max $afe_input_delay_max $afe_data_ports
+    set_input_delay -clock afe_launch_clk_virtual -clock_fall -add_delay -min $afe_input_delay_min $afe_data_ports
+}
