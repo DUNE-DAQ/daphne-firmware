@@ -63,6 +63,7 @@ flowchart TD
 This is the important current milestone:
 
 - the active `impl` graph is board-plane owned
+- `k26c_board_shell` instantiates only explicit board-plane entities
 - the active `impl` graph stages with zero `legacy-*` core names
 - the required frontend timing constraints remain present:
   - `xilinx/daphne_selftrigger_pin_map.xdc`
@@ -79,6 +80,10 @@ Use this before or after refactors that touch the active board-shell path:
 
 That script:
 
+- checks that `k26c-board-shell.core` depends only on the explicit board-plane
+  feature cores
+- checks that `k26c_board_shell.vhd` instantiates only the board-plane
+  entities
 - stages `k26c-composable-platform:impl`
 - locates the generated `*.eda.yml`
 - fails if any `legacy-*` core names re-enter the active graph

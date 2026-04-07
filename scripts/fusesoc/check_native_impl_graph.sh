@@ -3,7 +3,6 @@ set -eu
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
-TARGET="${DAPHNE_PLATFORM_TARGET:-impl}"
 WORK_ROOT="${DAPHNE_IMPL_AUDIT_ROOT:-}"
 CREATED_WORK_ROOT=0
 
@@ -11,9 +10,11 @@ CREATED_WORK_ROOT=0
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")}"
+TARGET="${DAPHNE_PLATFORM_TARGET:-$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE")}"
+DEFAULT_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE")"
 
-if [ "$TARGET" != "impl" ]; then
-  echo "ERROR: check_native_impl_graph.sh only supports DAPHNE_PLATFORM_TARGET=impl." >&2
+if [ "$TARGET" != "$DEFAULT_TARGET" ]; then
+  echo "ERROR: check_native_impl_graph.sh only supports the default native target ($DEFAULT_TARGET)." >&2
   exit 2
 fi
 
@@ -32,6 +33,7 @@ trap cleanup EXIT INT TERM HUP
 echo "INFO: Auditing native impl graph for $PLATFORM_CORE target=$TARGET board=$BOARD"
 
 cd "$ROOT_DIR"
+sh "$ROOT_DIR/scripts/fusesoc/check_board_shell_planes.sh" >/dev/null
 ./scripts/fusesoc/fusesoc.sh run \
   --setup \
   --clean \
@@ -53,11 +55,18 @@ if [ -n "$legacy_hits" ]; then
   exit 1
 fi
 
-for required_path in \
-  "xilinx/daphne_selftrigger_pin_map.xdc" \
-  "xilinx/afe_capture_timing.xdc" \
-  "xilinx/frontend_control_cdc.xdc"
-do
+required_paths="$DAPHNE_CONSTRAINT_FILE"
+if [ -n "${DAPHNE_REQUIRED_CONSTRAINT_FILES-}" ]; then
+  required_paths="$required_paths;$DAPHNE_REQUIRED_CONSTRAINT_FILES"
+fi
+
+old_ifs="$IFS"
+IFS=';'
+set -- $required_paths
+IFS="$old_ifs"
+for required_path in "$@"; do
+  required_path="$(printf '%s' "$required_path" | tr -d '[:space:]')"
+  [ -n "$required_path" ] || continue
   if ! rg -Fq "$required_path" "$EDA_YML"; then
     echo "ERROR: native impl graph is missing required constraint $required_path" >&2
     exit 1
@@ -65,4 +74,5 @@ do
 done
 
 echo "INFO: Native impl graph is legacy-free and carries the required AFE timing constraints."
+echo "INFO: Board shell remains limited to explicit board-plane dependencies."
 echo "INFO: EDA description: $EDA_YML"

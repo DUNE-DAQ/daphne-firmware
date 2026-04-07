@@ -89,6 +89,47 @@ daphne_default_platform_core() {
   fi
 }
 
+daphne_default_platform_target() {
+  root_dir="$1"
+  board_name="$2"
+  platform_core="${3:-$(daphne_default_platform_core "$root_dir" "$board_name")}"
+
+  default_core="$(daphne_default_platform_core "$root_dir" "$board_name")"
+  if [ -n "$default_core" ] && [ "$platform_core" = "$default_core" ]; then
+    default_target="$(daphne_board_manifest_value "$root_dir" "$board_name" default_platform_target)"
+    if [ -z "$default_target" ]; then
+      default_target="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_default_target)"
+    fi
+    : "${default_target:=impl}"
+    printf '%s' "$default_target"
+    return 0
+  fi
+
+  composable_core="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_platform_core)"
+  if [ -n "$composable_core" ] && [ "$platform_core" = "$composable_core" ]; then
+    composable_target="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_default_target)"
+    : "${composable_target:=impl}"
+    printf '%s' "$composable_target"
+    return 0
+  fi
+
+  printf '%s' "impl"
+}
+
+daphne_platform_exports_flow_bundle() {
+  root_dir="$1"
+  board_name="$2"
+  platform_core="${3:-$(daphne_default_platform_core "$root_dir" "$board_name")}"
+  platform_target="${4:-$(daphne_default_platform_target "$root_dir" "$board_name" "$platform_core")}"
+
+  default_core="$(daphne_default_platform_core "$root_dir" "$board_name")"
+  default_target="$(daphne_default_platform_target "$root_dir" "$board_name" "$default_core")"
+
+  [ -n "$default_core" ] || return 1
+  [ "$platform_core" = "$default_core" ] || return 1
+  [ "$platform_target" = "$default_target" ]
+}
+
 daphne_platform_requires_packaged_ip_preflight() {
   root_dir="$1"
   board_name="$2"
@@ -123,6 +164,7 @@ daphne_resolve_board_defaults() {
   constraint_file="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_file)"
   constraint_files="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_files)"
   required_constraint_files="$(daphne_board_manifest_value "$root_dir" "$board_name" required_constraint_files)"
+  default_platform_target="$(daphne_board_manifest_value "$root_dir" "$board_name" default_platform_target)"
   user_ip_vlnv="$(daphne_board_manifest_value "$root_dir" "$board_name" user_ip_vlnv)"
   bd_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_name)"
   bd_wrapper_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_wrapper_name)"
@@ -145,6 +187,9 @@ daphne_resolve_board_defaults() {
   fi
   if [ -z "$ip_top_module" ] && [ -n "$public_top_module" ]; then
     ip_top_module="$public_top_module"
+  fi
+  if [ -z "$default_platform_target" ]; then
+    default_platform_target="$(daphne_default_platform_target "$root_dir" "$board_name")"
   fi
 
   if [ "$supported" != "true" ]; then
@@ -210,6 +255,9 @@ daphne_resolve_board_defaults() {
   if [ -n "$overlay_name_prefix" ]; then
     : "${DAPHNE_OVERLAY_NAME_PREFIX:=$overlay_name_prefix}"
   fi
+  if [ -n "$default_platform_target" ]; then
+    : "${DAPHNE_DEFAULT_PLATFORM_TARGET:=$default_platform_target}"
+  fi
   if [ -n "$ip_top_hdl_file" ]; then
     : "${DAPHNE_IP_TOP_HDL_FILE:=$ip_top_hdl_file}"
   fi
@@ -256,6 +304,9 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "${DAPHNE_USER_IP_VLNV-}" ]; then
     export DAPHNE_USER_IP_VLNV
+  fi
+  if [ -n "${DAPHNE_DEFAULT_PLATFORM_TARGET-}" ]; then
+    export DAPHNE_DEFAULT_PLATFORM_TARGET
   fi
   if [ -n "${DAPHNE_BD_NAME-}" ]; then
     export DAPHNE_BD_NAME
