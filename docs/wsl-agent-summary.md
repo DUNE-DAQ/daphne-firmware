@@ -12,7 +12,7 @@ This summary is for the next agent running inside WSL2 on the host where:
 ## What is already verified
 
 - Local FuseSoC/GHDL smoke tests pass on branch
-  `codex/fusesoc-modular-migration`.
+  `marroyav/fusesoc-backports`.
 - Windows tools are reachable from WSL with direct commands:
 
 ```bash
@@ -78,7 +78,7 @@ set ::env(DAPHNE_BOARD_PART) "xilinx.com:k26c:part0:1.4"
 set ::env(DAPHNE_PFM_NAME) "xilinx:k26c:name:0.0"
 set ::env(DAPHNE_BOARD) "k26c"
 set ::env(DAPHNE_ETH_MODE) "create_ip"
-set ::env(DAPHNE_GIT_SHA) "2942d3d"
+set ::env(DAPHNE_GIT_SHA) "<current_git_sha>"
 source -notrace [file join $script_dir "daphne_ip_gen.tcl"]
 exit
 ```
@@ -107,8 +107,8 @@ set ::env(DAPHNE_BOARD_PART) "xilinx.com:k26c:part0:1.4"
 set ::env(DAPHNE_PFM_NAME) "xilinx:k26c:name:0.0"
 set ::env(DAPHNE_BOARD) "k26c"
 set ::env(DAPHNE_ETH_MODE) "create_ip"
-set ::env(DAPHNE_GIT_SHA) "2942d3d"
-set ::env(DAPHNE_OUTPUT_DIR) "./output-2942d3d"
+set ::env(DAPHNE_GIT_SHA) "<current_git_sha>"
+set ::env(DAPHNE_OUTPUT_DIR) "./output-<current_git_sha>"
 set ::env(DAPHNE_MAX_THREADS) "12"
 set ::env(DAPHNE_SKIP_POST_SYNTH_REPORTS) "1"
 set ::env(DAPHNE_SKIP_POST_SYNTH_CHECKPOINT) "1"
@@ -125,15 +125,15 @@ cmd.exe /c "pushd \\wsl.localhost\Debian\home\neutrino\work\daphne-firmware-buil
 After the build:
 
 ```bash
-ls -l output-2942d3d
-sed -n '1,120p' output-2942d3d/post_route_timing_summary.rpt
+ls -l output-$DAPHNE_GIT_SHA
+sed -n '1,120p' output-$DAPHNE_GIT_SHA/post_route_timing_summary.rpt
 ```
 
 If the `.dtbo` is missing, finish packaging separately:
 
 ```bash
 cd ~/work/daphne-firmware-build
-./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-2942d3d
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
 ### Agent/automation notes
@@ -168,6 +168,6 @@ value.
 2. Confirm `ip_repo/daphne_ip/component.xml` and
    `ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci`.
 3. Re-run manual build with `pushd`.
-4. Capture resulting artifacts under `xilinx/output-2942d3d/`.
+4. Capture resulting artifacts under `xilinx/output-$DAPHNE_GIT_SHA/`.
 5. If the `.dtbo` is absent, finish packaging with
-   `./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-2942d3d`.
+   `./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA`.

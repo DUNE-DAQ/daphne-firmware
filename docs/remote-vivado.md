@@ -10,15 +10,15 @@ Clone or update the repo on the remote host and switch to the migration branch:
 ```bash
 cd ~/repo/daphne-firmware
 git fetch
-git checkout codex/fusesoc-modular-migration
+git checkout marroyav/fusesoc-backports
 git pull --ff-only
 ```
 
 If the branch does not exist locally yet:
 
 ```bash
-git fetch origin codex/fusesoc-modular-migration
-git checkout -b codex/fusesoc-modular-migration origin/codex/fusesoc-modular-migration
+git fetch origin marroyav/fusesoc-backports
+git checkout -b marroyav/fusesoc-backports origin/marroyav/fusesoc-backports
 ```
 
 ## Run the K26C chain
@@ -42,20 +42,21 @@ export DAPHNE_BOARD=k26c
 This runs:
 
 1. `./scripts/fusesoc/preflight_vivado_build.sh`
-   - automatically skipped for the native composable `impl` target
+   - automatically skipped for the default native `impl` path and the native
+     Flow-API synth targets
 2. `./scripts/fusesoc/run_vivado_batch.sh`
 
 and stores logs under `build/remote-vivado/<timestamp>/`.
 
-The board manifest now defaults the wrapper to the composable platform core.
-If you need to force it explicitly, set:
+The board manifest now defaults the wrapper to the native board-owned platform
+core and its default target. If you need to force it explicitly, set:
 
 ```bash
 export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
 before calling `run_remote_vivado_chain.sh`. That drives the native board-shell
-`impl` target. After the build, the repo exports a legacy-style
+default target. After the build, the repo exports a compatibility
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/`, so downstream DTBO packaging can keep using the same
 artifact contract.
@@ -66,6 +67,10 @@ run:
 ```bash
 ./scripts/fusesoc/check_native_impl_graph.sh
 ```
+
+That audit also confirms that the staged `impl` target still resolves
+`k26c_board_shell` and that the board shell remains constrained to the
+explicit board-plane contract.
 
 If you want the remote wrapper to attempt DTBO packaging too, also set:
 
@@ -83,7 +88,8 @@ export DAPHNE_REMOTE_PACKAGE_DTBO=1
 
 ## Expected outputs
 
-The Vivado flow should populate `xilinx/output/` with artifacts such as:
+The native board-shell path should populate `xilinx/output-<gitsha>/` with
+artifacts such as:
 
 - `.bit`
 - `.bin`
@@ -95,7 +101,7 @@ If the Vivado run stops after `.xsa` / `.bin`, complete the overlay packaging
 step with:
 
 ```bash
-./scripts/package/complete_dtbo_bundle.sh ./xilinx/output
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
 The wrapper script also records:

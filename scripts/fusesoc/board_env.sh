@@ -134,13 +134,17 @@ daphne_platform_requires_packaged_ip_preflight() {
   root_dir="$1"
   board_name="$2"
   platform_core="${3:-$(daphne_default_platform_core "$root_dir" "$board_name")}"
-  composable_core="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_platform_core)"
+  platform_target="${4:-$(daphne_default_platform_target "$root_dir" "$board_name" "$platform_core")}"
 
-  : "${composable_core:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
-
-  if [ "$platform_core" = "$composable_core" ]; then
+  if daphne_platform_exports_flow_bundle "$root_dir" "$board_name" "$platform_core" "$platform_target"; then
     return 1
   fi
+
+  case "$platform_target" in
+    synth_public_top_ooc|synth_public_top_flow|synth_board_shell_ooc|synth_board_shell_flow|validate|validate_optional_off|validate_frontend_shell|validate_public_top)
+      return 1
+      ;;
+  esac
 
   return 0
 }

@@ -5,8 +5,8 @@ K26C board.
 
 ## Build Entry Point
 
-The board manifest now defaults `build_platform.sh` to the composable platform
-core and its native `impl` target:
+The board manifest now defaults `build_platform.sh` to the board-owned default
+platform core and its default native target:
 
 ```text
 ./scripts/fusesoc/build_platform.sh
@@ -19,7 +19,9 @@ For the native composable `impl` target:
 
 - `build_platform.sh` resolves to `k26c-composable-platform:impl`
 - `run_vivado_batch.sh` dispatches through the same target
-- remote/WSL wrapper chains can skip packaged-IP preflight
+- remote/WSL wrapper chains now decide packaged-IP preflight from the resolved
+  platform core and target, so the default native `impl` path and the native
+  Flow-API synth targets skip it automatically
 - artifact export still lands in the legacy-style
   `daphne_selftrigger_<gitsha>.*` bundle for deployment compatibility
 

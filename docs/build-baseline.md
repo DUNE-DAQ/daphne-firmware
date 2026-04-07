@@ -4,9 +4,10 @@ This branch starts from a known-good K26C hardware build baseline.
 
 ## Qualified baseline
 
-- Branch before isolation work: `codex/fusesoc-modular-migration`
-- Baseline commit for the successful WSL/Windows Vivado flow:
-  `16dfe53`
+- Build-recovery branch for the successful WSL/Windows Vivado flow:
+  `marroyav/build`
+- Recovery commit used to regain end-to-end build control:
+  `88cd864`
 - Vivado/Vitis environment used for qualification:
   - Vivado 2024.1 on Windows
   - Vitis 2024.1 on Windows
@@ -26,7 +27,8 @@ workspace.
 
 ## Isolation-phase rule
 
-The work on `codex/rtl-isolation-formal-prep` is additive and preparatory:
+The work on `marroyav/fusesoc-backports` stays additive relative to that
+recovery lane:
 
 - do not break the existing K26C Vivado build path;
 - do not rewrite Hermes transport behavior;

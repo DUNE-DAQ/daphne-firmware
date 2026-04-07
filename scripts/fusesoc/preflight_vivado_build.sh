@@ -5,6 +5,7 @@ ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && 
 BOARD="${DAPHNE_BOARD:-k26c}"
 ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-}"
+PLATFORM_TARGET="${DAPHNE_PLATFORM_TARGET:-}"
 
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
@@ -13,8 +14,12 @@ if [ -z "$PLATFORM_CORE" ]; then
   PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
 fi
 
-if ! daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE"; then
-  echo "INFO: Skipping packaged-IP preflight for platform_core=$PLATFORM_CORE."
+if [ -z "$PLATFORM_TARGET" ]; then
+  PLATFORM_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE")"
+fi
+
+if ! daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE" "$PLATFORM_TARGET"; then
+  echo "INFO: Skipping packaged-IP preflight for platform_core=$PLATFORM_CORE platform_target=$PLATFORM_TARGET."
   exit 0
 fi
 
@@ -57,6 +62,7 @@ export DAPHNE_CONSTRAINT_FILES
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
+export DAPHNE_PLATFORM_TARGET="$PLATFORM_TARGET"
 
 cd "$ROOT_DIR/xilinx"
 

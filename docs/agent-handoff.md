@@ -2,8 +2,8 @@
 
 ## Current branch
 
-- Branch: `codex/fusesoc-modular-migration`
-- Baseline migration commit: `d1b1ce3`
+- Branch: `marroyav/fusesoc-backports`
+- Native impl checkpoint: see `docs/native-impl-architecture.md`
 - Latest WSL handoff should also consult `docs/wsl-agent-summary.md`
 
 ## What is already done
@@ -81,11 +81,9 @@ For the WSL2 host that launches Windows-installed Vivado/Vitis:
 
 ## Known repo-level caveats
 
-- FuseSoC warns that several `.core` files are not colocated with the source
-  directories they describe. This is not blocking today, but it should be
-  normalized later.
-- The modular graph exists, but the qualified implementation path still uses
-  the generated compatibility manifest.
+- The repo still carries compatibility/export helpers for legacy automation and
+  deployment naming, even though the default board `impl` path is now the
+  native `k26c-composable-platform` Flow-API target.
 - MAC/IP defaults are still anchored in imported PL-era defaults and are not
   yet migrated to a board/software-owned device-tree layer.
 
