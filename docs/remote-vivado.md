@@ -54,16 +54,14 @@ export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
 before calling `run_remote_vivado_chain.sh`. That now defaults to the native
-packaged board-shell `impl` target. If you explicitly need the older
-BD-wrapper path, also set:
+packaged board-shell `impl` target. If older automation still exports:
 
 ```bash
 export DAPHNE_PLATFORM_TARGET=impl_legacy_flow
 ```
 
-In legacy-flow mode, the wrapper skips the standalone legacy preflight because
-`impl_legacy_flow` performs the legacy BD/IP preflight inside the Flow API
-Vivado project. After the build, the repo exports a legacy-style
+that now aliases the same native `impl` path. After the build, the repo exports
+a legacy-style
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/`, so downstream DTBO packaging can keep using the same
 artifact contract.
