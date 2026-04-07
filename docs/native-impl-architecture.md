@@ -75,6 +75,8 @@ This is the important current milestone:
   transport subplanes
 - `k26c_board_timing_plane` still instantiates only the imported `endpoint`
 - the active `impl` graph stages with zero `legacy-*` core names
+- the board timing-path defaults now cover both the native board-shell
+  hierarchy and the packaged-IP/BD hierarchy
 - the required frontend timing constraints remain present:
   - `xilinx/daphne_selftrigger_pin_map.xdc`
   - `xilinx/afe_capture_timing.xdc`
@@ -105,6 +107,9 @@ That script:
 - checks that `k26c-board-timing-plane.core` depends only on the imported
   `timing-endpoint`
 - checks that `k26c_board_timing_plane.vhd` instantiates only `endpoint`
+- checks that the board timing-path defaults still name both the native
+  board-shell hierarchy roots and the packaged-IP/BD hierarchy roots consumed
+  by `xilinx/afe_capture_timing.xdc`
 - stages `k26c-composable-platform:impl`
 - locates the generated `*.eda.yml`
 - fails if any `legacy-*` core names re-enter the active graph

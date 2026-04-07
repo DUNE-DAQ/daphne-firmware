@@ -101,9 +101,13 @@ The timing side is still weaker than it should be:
      required control-CDC companion file for AXI-originated frontend control
      strobes/state (`idelayctrl_reset`, `idelay_load`, `idelay_tap`,
      `idelay_en_vtc`, `iserdes_reset`, `iserdes_bitslip`, `trig_axi`)
-   - active hierarchy roots such as the timing endpoint path should come from
-     the board manifest/build defaults instead of being hardcoded inside the
-     XDC
+- active hierarchy roots such as the timing endpoint path should come from
+  the board manifest/build defaults instead of being hardcoded inside the
+  XDC
+  - the active board profile now carries semicolon-separated candidate roots
+    for both the native board-shell path and the packaged-IP/BD path, and
+    `xilinx/afe_capture_timing.xdc` resolves exactly one matching net/pin from
+    those candidates
    - board manifests should own the optional AFE input-delay model too
      (`afe_capture_input_delay_enable`, launch-clock period, min/max bounds),
      so the live XDC can remain generic and board-family-specific values stay
