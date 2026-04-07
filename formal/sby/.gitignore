@@ -1,9 +1,2 @@
-analog_control_boundary_contract/
-control_plane_boundary_contract/
-fe_axi_axi_lite/
-frontend_boundary_gate/
-hermes_boundary_contract/
-timing_subsystem_boundary_contract/
-thresholds_axi_lite/
-trigger_pipeline_boundary_gate/
-spy_buffer_boundary_gate/
+# Ignore generated SymbiYosys run directories; keep root .sby files tracked.
+/*/
