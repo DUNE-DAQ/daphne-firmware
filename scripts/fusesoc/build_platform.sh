@@ -2,9 +2,18 @@
 set -eu
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
-DEFAULT_CORE="dune-daq:daphne:k26c-platform:0.1.0"
-DEFAULT_MODULAR_CORE="dune-daq:daphne:k26c-modular-platform:0.1.0"
-DEFAULT_COMPOSABLE_CORE="dune-daq:daphne:k26c-composable-platform:0.1.0"
+BOARD="${DAPHNE_BOARD:-k26c}"
+
+. "$ROOT_DIR/scripts/fusesoc/board_env.sh"
+daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
+
+DEFAULT_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" platform_core)"
+DEFAULT_MODULAR_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" modular_platform_core)"
+DEFAULT_COMPOSABLE_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
+
+: "${DEFAULT_CORE:=dune-daq:daphne:k26c-platform:0.1.0}"
+: "${DEFAULT_MODULAR_CORE:=dune-daq:daphne:k26c-modular-platform:0.1.0}"
+: "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
 
 DRY_RUN=0
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_CORE}"
@@ -67,8 +76,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$PLATFORM_CORE" in
-  dune-daq:daphne:k26c-platform:0.1.0|dune-daq:daphne:k26c-modular-platform:0.1.0|dune-daq:daphne:k26c-composable-platform:0.1.0)
-    BOARD="k26c"
+  "$DEFAULT_CORE"|"$DEFAULT_MODULAR_CORE"|"$DEFAULT_COMPOSABLE_CORE")
     ;;
   *)
     echo "ERROR: unsupported platform core '$PLATFORM_CORE'." >&2

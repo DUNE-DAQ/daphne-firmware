@@ -4,12 +4,20 @@ set -eu
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
 ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
-PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-dune-daq:daphne:k26c-platform:0.1.0}"
 PLATFORM_TARGET="${DAPHNE_PLATFORM_TARGET:-}"
 LOG_DIR="${DAPHNE_REMOTE_LOG_DIR:-$ROOT_DIR/build/remote-vivado}"
 RUN_ID="${DAPHNE_REMOTE_RUN_ID:-$(date +%Y%m%d-%H%M%S)}"
 RUN_DIR="$LOG_DIR/$RUN_ID"
 PACKAGE_DTBO="${DAPHNE_REMOTE_PACKAGE_DTBO:-0}"
+
+. "$ROOT_DIR/scripts/fusesoc/board_env.sh"
+daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
+
+DEFAULT_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" platform_core)"
+DEFAULT_COMPOSABLE_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
+: "${DEFAULT_CORE:=dune-daq:daphne:k26c-platform:0.1.0}"
+: "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
+PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_CORE}"
 
 mkdir -p "$RUN_DIR"
 
@@ -41,7 +49,7 @@ export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_GIT_SHA="${DAPHNE_GIT_SHA:-$commit_sha}"
 export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
 
-if [ -z "$PLATFORM_TARGET" ] && [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ]; then
+if [ -z "$PLATFORM_TARGET" ] && [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ]; then
   PLATFORM_TARGET="impl"
 fi
 if [ -n "$PLATFORM_TARGET" ]; then
@@ -49,7 +57,7 @@ if [ -n "$PLATFORM_TARGET" ]; then
 fi
 
 FLOW_OWNED_LEGACY_IMPL=0
-if [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ] && { [ "$PLATFORM_TARGET" = "impl_legacy_flow" ] || [ "$PLATFORM_TARGET" = "impl" ]; }; then
+if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && { [ "$PLATFORM_TARGET" = "impl_legacy_flow" ] || [ "$PLATFORM_TARGET" = "impl" ]; }; then
   FLOW_OWNED_LEGACY_IMPL=1
 fi
 
@@ -78,7 +86,7 @@ resolve_output_dir() {
 }
 
 OUTPUT_DIR="$(resolve_output_dir)"
-FLOW_WORK_DIR="$ROOT_DIR/build/dune-daq_daphne_k26c-composable-platform_0.1.0/${PLATFORM_TARGET:-impl}"
+FLOW_WORK_DIR="$ROOT_DIR/build/$(daphne_platform_core_build_slug "$PLATFORM_CORE")/${PLATFORM_TARGET:-impl}"
 
 {
   echo "run_id=$RUN_ID"
