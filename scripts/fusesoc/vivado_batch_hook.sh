@@ -151,6 +151,7 @@ append_env_tcl DAPHNE_OVERLAY_NAME_PREFIX
 append_env_tcl DAPHNE_USER_IP_VLNV
 append_env_tcl DAPHNE_IP_TOP_HDL_FILE
 append_env_tcl DAPHNE_IP_TOP_MODULE
+append_env_tcl DAPHNE_IP_CELL_NAME
 append_env_tcl DAPHNE_IP_COMPONENT_IDENTIFIER
 append_env_tcl DAPHNE_IP_DISPLAY_NAME
 append_env_tcl DAPHNE_IP_XGUI_FILE

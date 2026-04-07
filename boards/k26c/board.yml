@@ -14,6 +14,7 @@ build_name_prefix: daphne_selftrigger
 overlay_name_prefix: daphne_selftrigger_ol
 ip_top_hdl_file: ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd
 ip_top_module: daphne_selftrigger_top
+ip_cell_name: daphne_selftrigger_top
 ip_component_identifier: daphne_selftrigger_top
 ip_display_name: daphne_selftrigger_top_v1_0
 ip_xgui_file: daphne_selftrigger_top_v1_0.tcl
