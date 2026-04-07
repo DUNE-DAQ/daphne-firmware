@@ -651,7 +651,6 @@ signal afe_p_array, afe_n_array: array_5x9_type;
 signal din_full_array: array_5x9x16_type;
 signal din_array: array_5x8x14_type;
 signal trig: std_logic;
-signal spybuffer_trig: std_logic;
 signal timestamp: std_logic_vector(63 downto 0);
 signal clock, clk125, clk500: std_logic;
 signal core_chan_enable: std_logic_vector(39 downto 0);
@@ -679,26 +678,6 @@ signal FE_AXI_RDATA:   std_logic_vector(31 downto 0);
 signal FE_AXI_RRESP:   std_logic_vector(1 downto 0);
 signal FE_AXI_RVALID:  std_logic;
 signal FE_AXI_RREADY:  std_logic;
-
-signal SB_AXI_AWADDR:  std_logic_vector(31 downto 0);
-signal SB_AXI_AWPROT:  std_logic_vector(2 downto 0);
-signal SB_AXI_AWVALID: std_logic;
-signal SB_AXI_AWREADY: std_logic;
-signal SB_AXI_WDATA:   std_logic_vector(31 downto 0);
-signal SB_AXI_WSTRB:   std_logic_vector(3 downto 0);
-signal SB_AXI_WVALID:  std_logic;
-signal SB_AXI_WREADY:  std_logic;
-signal SB_AXI_BRESP:   std_logic_vector(1 downto 0);
-signal SB_AXI_BVALID:  std_logic;
-signal SB_AXI_BREADY:  std_logic;
-signal SB_AXI_ARADDR:  std_logic_vector(31 downto 0);
-signal SB_AXI_ARPROT:  std_logic_vector(2 downto 0);
-signal SB_AXI_ARVALID: std_logic;
-signal SB_AXI_ARREADY: std_logic;
-signal SB_AXI_RDATA:   std_logic_vector(31 downto 0);
-signal SB_AXI_RRESP:   std_logic_vector(1 downto 0);
-signal SB_AXI_RVALID:  std_logic;
-signal SB_AXI_RREADY:  std_logic;
 
 signal EP_AXI_AWADDR:  std_logic_vector(31 downto 0);
 signal EP_AXI_AWPROT:  std_logic_vector(2 downto 0);
@@ -739,8 +718,6 @@ signal trigered_debug_reg: std_logic;
 --timing interface trigger signals
 signal ti_trigger_reg: std_logic_vector(7 downto 0); ------------------
 signal ti_trigger_stbr_reg: std_logic;  ---------------------------
-signal ti_trigger_en: std_logic;
-signal ti_trigger_en0, ti_trigger_en1, ti_trigger_en2, trig_en_total: std_logic;
 signal adhoc: std_logic_vector(7 downto 0);
 
 -- self trigger core operation and configuration signals
@@ -807,28 +784,6 @@ afe_n_array(4)(8 downto 0) <= afe4_n(8 downto 0);
  FE_AXI_RREADY <= FRONT_END_S_AXI_RREADY ;
 
 
--- SPY BUFF
-
- SB_AXI_AWADDR <= SPY_BUF_S_S_AXI_AWADDR;
- SB_AXI_AWPROT <= SPY_BUF_S_S_AXI_AWPROT;
- SB_AXI_AWVALID <= SPY_BUF_S_S_AXI_AWVALID;
-  SPY_BUF_S_S_AXI_AWREADY<= SB_AXI_AWREADY;
- SB_AXI_WDATA <= SPY_BUF_S_S_AXI_WDATA;
- SB_AXI_WSTRB <= SPY_BUF_S_S_AXI_WSTRB;
- SB_AXI_WVALID <= SPY_BUF_S_S_AXI_WVALID;
-  SPY_BUF_S_S_AXI_WREADY<= SB_AXI_WREADY;
-  SPY_BUF_S_S_AXI_BRESP <= SB_AXI_BRESP;
-  SPY_BUF_S_S_AXI_BVALID<= SB_AXI_BVALID;
- SB_AXI_BREADY <= SPY_BUF_S_S_AXI_BREADY;
- SB_AXI_ARADDR <= SPY_BUF_S_S_AXI_ARADDR;
- SB_AXI_ARPROT <= SPY_BUF_S_S_AXI_ARPROT;
- SB_AXI_ARVALID <= SPY_BUF_S_S_AXI_ARVALID;
-  SPY_BUF_S_S_AXI_ARREADY<= SB_AXI_ARREADY;
-  SPY_BUF_S_S_AXI_RDATA<= SB_AXI_RDATA;
-  SPY_BUF_S_S_AXI_RRESP<= SB_AXI_RRESP;
- SPY_BUF_S_S_AXI_RVALID <= SB_AXI_RVALID;
- SB_AXI_RREADY <= SPY_BUF_S_S_AXI_RREADY;
-
 -- END POINT 
 
   EP_AXI_AWADDR <= END_P_S_AXI_AWADDR; 
@@ -890,35 +845,39 @@ port map(
 	S_AXI_RREADY	=> FE_AXI_RREADY
   );
 
--- Input spy buffers
+-- Input spy capture
 
-spybuffers_inst: spybuffers
+spy_capture_bridge_inst: entity work.legacy_spy_capture_bridge
 port map(
-    clock           => clock,
-    trig            => spybuffer_trig,
-    din             => din_full_array,
-    timestamp       => timestamp,
-	S_AXI_ACLK	    => SPY_BUF_S_S_AXI_ACLK,
-	S_AXI_ARESETN	=> SPY_BUF_S_S_AXI_ARESETN,
-	S_AXI_AWADDR	=> SB_AXI_AWADDR,
-	S_AXI_AWPROT	=> SB_AXI_AWPROT,
-	S_AXI_AWVALID	=> SB_AXI_AWVALID,
-	S_AXI_AWREADY	=> SB_AXI_AWREADY,
-	S_AXI_WDATA	    => SB_AXI_WDATA,
-	S_AXI_WSTRB	    => SB_AXI_WSTRB,
-	S_AXI_WVALID	=> SB_AXI_WVALID,
-	S_AXI_WREADY	=> SB_AXI_WREADY,
-	S_AXI_BRESP	    => SB_AXI_BRESP,
-	S_AXI_BVALID	=> SB_AXI_BVALID,
-	S_AXI_BREADY	=> SB_AXI_BREADY,
-	S_AXI_ARADDR	=> SB_AXI_ARADDR,
-	S_AXI_ARPROT	=> SB_AXI_ARPROT,
-	S_AXI_ARVALID	=> SB_AXI_ARVALID,
-	S_AXI_ARREADY	=> SB_AXI_ARREADY,
-	S_AXI_RDATA	    => SB_AXI_RDATA,
-	S_AXI_RRESP	    => SB_AXI_RRESP,
-	S_AXI_RVALID	=> SB_AXI_RVALID,
-	S_AXI_RREADY	=> SB_AXI_RREADY
+    clock_i            => clock,
+    reset_i            => '0',
+    frontend_trigger_i => trig,
+    afe_dout_i         => din_full_array,
+    timestamp_i        => timestamp,
+    adhoc_i            => adhoc,
+    ti_trigger_i       => ti_trigger_reg,
+    ti_trigger_stbr_i  => ti_trigger_stbr_reg,
+    s_axi_aclk         => SPY_BUF_S_S_AXI_ACLK,
+    s_axi_aresetn      => SPY_BUF_S_S_AXI_ARESETN,
+    s_axi_awaddr       => SPY_BUF_S_S_AXI_AWADDR,
+    s_axi_awprot       => SPY_BUF_S_S_AXI_AWPROT,
+    s_axi_awvalid      => SPY_BUF_S_S_AXI_AWVALID,
+    s_axi_awready      => SPY_BUF_S_S_AXI_AWREADY,
+    s_axi_wdata        => SPY_BUF_S_S_AXI_WDATA,
+    s_axi_wstrb        => SPY_BUF_S_S_AXI_WSTRB,
+    s_axi_wvalid       => SPY_BUF_S_S_AXI_WVALID,
+    s_axi_wready       => SPY_BUF_S_S_AXI_WREADY,
+    s_axi_bresp        => SPY_BUF_S_S_AXI_BRESP,
+    s_axi_bvalid       => SPY_BUF_S_S_AXI_BVALID,
+    s_axi_bready       => SPY_BUF_S_S_AXI_BREADY,
+    s_axi_araddr       => SPY_BUF_S_S_AXI_ARADDR,
+    s_axi_arprot       => SPY_BUF_S_S_AXI_ARPROT,
+    s_axi_arvalid      => SPY_BUF_S_S_AXI_ARVALID,
+    s_axi_arready      => SPY_BUF_S_S_AXI_ARREADY,
+    s_axi_rdata        => SPY_BUF_S_S_AXI_RDATA,
+    s_axi_rresp        => SPY_BUF_S_S_AXI_RRESP,
+    s_axi_rvalid       => SPY_BUF_S_S_AXI_RVALID,
+    s_axi_rready       => SPY_BUF_S_S_AXI_RREADY
   );
 
 -- Timing Endpoint
@@ -971,18 +930,7 @@ port map(
     s_axi_rready             => EP_AXI_RREADY
 );
 
-ti_trigger_en <= '1' when ( ti_trigger_reg=adhoc and ti_trigger_stbr_reg='1' ) else '0';
-spybuffer_trig <= trig or trig_en_total;
 -- SPI master for AFEs and associated DACs
-trig_proc: process(clock) -- note external trigger input is inverted on DAPHNE2
-    begin
-        if rising_edge(clock) then
-            ti_trigger_en0 <= ti_trigger_en;
-            ti_trigger_en1 <= ti_trigger_en0;
-            ti_trigger_en2 <= ti_trigger_en1;
-            trig_en_total <= ti_trigger_en0 or ti_trigger_en1 or ti_trigger_en2;
-        end if;
-    end process trig_proc;
 
 -- I2C master
 

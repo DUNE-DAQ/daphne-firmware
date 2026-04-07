@@ -96,6 +96,7 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
     "$WORK_ROOT/rtl/isolated/subsystems/control" \
     "$WORK_ROOT/rtl/isolated/subsystems/frontend" \
     "$WORK_ROOT/rtl/isolated/subsystems/readout" \
+    "$WORK_ROOT/rtl/isolated/subsystems/spy" \
     "$WORK_ROOT/rtl/isolated/subsystems/timing" \
     "$WORK_ROOT/rtl/isolated/subsystems/trigger"
   do
@@ -124,6 +125,7 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
       legacy_deimos_readout_bridge.vhd \
       legacy_selftrigger_plane_bridge.vhd \
       legacy_two_lane_readout_mux.vhd \
+      legacy_spy_capture_bridge.vhd \
       legacy_timing_subsystem_bridge.vhd \
       self_trigger_xcorr_channel.vhd \
       peak_descriptor_channel.vhd \
