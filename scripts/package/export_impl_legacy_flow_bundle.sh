@@ -8,13 +8,13 @@ Usage: $(basename "$0") [FLOW_WORK_DIR] [OUTPUT_DIR]
 Export legacy-style handoff artifacts from an impl_legacy_flow Vivado project.
 
 Arguments:
-  FLOW_WORK_DIR  Default: build/dune-daq_daphne_k26c-composable-platform_0.1.0/impl_legacy_flow
+  FLOW_WORK_DIR  Default: build/<composable-platform-core-slug>/impl_legacy_flow
   OUTPUT_DIR     Default: xilinx/output-<gitsha> (or DAPHNE_OUTPUT_DIR if set)
 
 Generated outputs:
-  - daphne_selftrigger_<gitsha>.bit
-  - daphne_selftrigger_<gitsha>.bin
-  - daphne_selftrigger_<gitsha>.xsa
+  - <build-name-prefix>_<gitsha>.bit
+  - <build-name-prefix>_<gitsha>.bin
+  - <build-name-prefix>_<gitsha>.xsa
 EOF
 }
 
