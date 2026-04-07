@@ -6,7 +6,14 @@ pfm_name: xilinx:k26c:name:0.0
 constraint_file: xilinx/daphne_selftrigger_pin_map.xdc
 user_ip_vlnv: dune.pds:user:daphne_selftrigger_top:1.0
 bd_name: daphne_selftrigger_bd
+bd_wrapper_name: daphne_selftrigger_bd_wrapper
 build_name_prefix: daphne_selftrigger
+overlay_name_prefix: daphne_selftrigger_ol
+ip_top_hdl_file: ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd
+ip_top_module: daphne_selftrigger_top
+ip_component_identifier: daphne_selftrigger_top
+ip_display_name: daphne_selftrigger_top_v1_0
+ip_xgui_file: daphne_selftrigger_top_v1_0.tcl
 ip_cell_bind_root: core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst
 timing_endpoint_path: daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst
 notes:

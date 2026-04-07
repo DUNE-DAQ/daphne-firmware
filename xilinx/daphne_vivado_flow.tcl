@@ -28,7 +28,9 @@ proc daphne_resolve_config {script_dir} {
     set cfg(repo_root) [file normalize [file join $script_dir ".."]]
     set board_profile [daphne_resolve_board_profile $cfg(repo_root)]
     set board_bd_name [expr {[dict exists $board_profile bd_name] ? [dict get $board_profile bd_name] : "daphne_selftrigger_bd"}]
+    set board_bd_wrapper_name [expr {[dict exists $board_profile bd_wrapper_name] ? [dict get $board_profile bd_wrapper_name] : "${board_bd_name}_wrapper"}]
     set board_build_name_prefix [expr {[dict exists $board_profile build_name_prefix] ? [dict get $board_profile build_name_prefix] : "daphne_selftrigger"}]
+    set board_overlay_name_prefix [expr {[dict exists $board_profile overlay_name_prefix] ? [dict get $board_profile overlay_name_prefix] : "${board_build_name_prefix}_ol"}]
     set cfg(vivado_version) 2024.1
     set cfg(fpga_part) [daphne_get_env_or_default DAPHNE_FPGA_PART [dict get $board_profile fpga_part]]
     set cfg(board_part) [daphne_get_env_or_default DAPHNE_BOARD_PART [dict get $board_profile board_part]]
@@ -49,9 +51,9 @@ proc daphne_resolve_config {script_dir} {
     }
 
     set cfg(bd_name) [daphne_get_env_or_default DAPHNE_BD_NAME $board_bd_name]
-    set cfg(bd_wrapper_name) [daphne_get_env_or_default DAPHNE_BD_WRAPPER_NAME "${cfg(bd_name)}_wrapper"]
+    set cfg(bd_wrapper_name) [daphne_get_env_or_default DAPHNE_BD_WRAPPER_NAME $board_bd_wrapper_name]
     set cfg(build_name_prefix) [daphne_get_env_or_default DAPHNE_BUILD_NAME_PREFIX $board_build_name_prefix]
-    set cfg(overlay_name_prefix) [daphne_get_env_or_default DAPHNE_OVERLAY_NAME_PREFIX "${cfg(build_name_prefix)}_ol"]
+    set cfg(overlay_name_prefix) [daphne_get_env_or_default DAPHNE_OVERLAY_NAME_PREFIX $board_overlay_name_prefix]
     set cfg(bd_file) [file join $cfg(repo_root) "bd" $cfg(bd_name) "${cfg(bd_name)}.bd"]
     set cfg(bd_wrapper_vhd) [file join $cfg(repo_root) "bd" $cfg(bd_name) "hdl" "${cfg(bd_wrapper_name)}.vhd"]
     set cfg(pinmap_xdc) [daphne_resolve_repo_relative_path $cfg(repo_root) [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILE [dict get $board_profile constraint_file]]]
