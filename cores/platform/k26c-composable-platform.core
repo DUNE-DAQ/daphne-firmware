@@ -39,6 +39,8 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-composable-top:0.1.0
     files:
+      - boards/k26c/board.yml
+      - xilinx/daphne_board_env.tcl
       - xilinx/daphne_composable_ooc_entry.tcl
     file_type: user
   ooc_public_top_flow_rtl:

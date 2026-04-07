@@ -6,7 +6,7 @@ daphne_board_manifest_path() {
   printf '%s/boards/%s/board.yml' "$root_dir" "$board_name"
 }
 
-daphne_board_manifest_value() {
+daphne_board_manifest_scalar() {
   manifest_path="$1"
   key_name="$2"
   awk -F': *' -v key="$key_name" '
@@ -20,6 +20,26 @@ daphne_board_manifest_value() {
   ' "$manifest_path"
 }
 
+daphne_board_manifest_value() {
+  root_dir="$1"
+  board_name="$2"
+  key_name="$3"
+  manifest_path="$(daphne_board_manifest_path "$root_dir" "$board_name")"
+
+  [ -f "$manifest_path" ] || return 1
+
+  value="$(daphne_board_manifest_scalar "$manifest_path" "$key_name")"
+  if [ -n "$value" ]; then
+    printf '%s' "$value"
+    return 0
+  fi
+
+  parent_board="$(daphne_board_manifest_scalar "$manifest_path" inherits)"
+  if [ -n "$parent_board" ]; then
+    daphne_board_manifest_value "$root_dir" "$parent_board" "$key_name"
+  fi
+}
+
 daphne_resolve_board_defaults() {
   root_dir="$1"
   board_name="${2:-${DAPHNE_BOARD:-k26c}}"
@@ -31,12 +51,12 @@ daphne_resolve_board_defaults() {
     exit 2
   fi
 
-  supported="$(daphne_board_manifest_value "$manifest_path" supported)"
-  inherits="$(daphne_board_manifest_value "$manifest_path" inherits)"
-  fpga_part="$(daphne_board_manifest_value "$manifest_path" fpga_part)"
-  board_part="$(daphne_board_manifest_value "$manifest_path" board_part)"
-  pfm_name="$(daphne_board_manifest_value "$manifest_path" pfm_name)"
-  constraint_file="$(daphne_board_manifest_value "$manifest_path" constraint_file)"
+  supported="$(daphne_board_manifest_value "$root_dir" "$board_name" supported)"
+  inherits="$(daphne_board_manifest_scalar "$manifest_path" inherits)"
+  fpga_part="$(daphne_board_manifest_value "$root_dir" "$board_name" fpga_part)"
+  board_part="$(daphne_board_manifest_value "$root_dir" "$board_name" board_part)"
+  pfm_name="$(daphne_board_manifest_value "$root_dir" "$board_name" pfm_name)"
+  constraint_file="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_file)"
 
   if [ "$supported" != "true" ]; then
     echo "ERROR: board '$board_name' is scaffolded but not yet supported." >&2

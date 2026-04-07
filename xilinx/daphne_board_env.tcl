@@ -25,27 +25,42 @@ proc daphne_read_board_manifest_value {manifest_path key {default_value ""}} {
     return $default_value
 }
 
-proc daphne_resolve_board_profile {repo_root} {
-    set board [daphne_get_env_or_default DAPHNE_BOARD "k26c"]
-    set manifest_path [file join $repo_root "boards" $board "board.yml"]
+proc daphne_resolve_board_profile {repo_root {board_name ""}} {
+    if {$board_name eq ""} {
+        set board_name [daphne_get_env_or_default DAPHNE_BOARD "k26c"]
+    }
+    set manifest_path [file join $repo_root "boards" $board_name "board.yml"]
 
     if {![file exists $manifest_path]} {
-        error "ERROR: unknown board '$board'. Expected board manifest at $manifest_path."
+        error "ERROR: unknown board '$board_name'. Expected board manifest at $manifest_path."
     }
 
     set supported [daphne_read_board_manifest_value $manifest_path "supported" ""]
-    if {$supported ne "true"} {
-        error "ERROR: board '$board' is scaffolded but not yet supported. Missing items are tracked in $manifest_path."
+    if {$supported ne "" && $supported ne "true"} {
+        error "ERROR: board '$board_name' is scaffolded but not yet supported. Missing items are tracked in $manifest_path."
     }
 
-    set profile [dict create board $board manifest_path $manifest_path]
+    set profile [dict create board $board_name manifest_path $manifest_path]
+
+    set parent_board [daphne_read_board_manifest_value $manifest_path "inherits" ""]
+    if {$parent_board ne ""} {
+        set profile [daphne_resolve_board_profile $repo_root $parent_board]
+        dict set profile board $board_name
+        dict set profile manifest_path $manifest_path
+        dict set profile inherits $parent_board
+    }
 
     foreach field {fpga_part board_part pfm_name constraint_file} {
         set value [daphne_read_board_manifest_value $manifest_path $field ""]
-        if {$value eq ""} {
-            error "ERROR: board '$board' is missing '$field' in $manifest_path."
+        if {$value ne ""} {
+            dict set profile $field $value
         }
-        dict set profile $field $value
+    }
+
+    foreach field {fpga_part board_part pfm_name constraint_file} {
+        if {![dict exists $profile $field] || [string trim [dict get $profile $field]] eq ""} {
+            error "ERROR: board '$board_name' is missing '$field' in $manifest_path."
+        }
     }
 
     return $profile
