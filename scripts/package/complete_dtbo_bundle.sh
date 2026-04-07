@@ -10,7 +10,8 @@ Complete the DT overlay bundle from an existing Vivado hardware handoff.
 Expected inputs in OUTPUT_DIR:
   - <build-name-prefix>_<gitsha>.xsa
   - <build-name-prefix>_<gitsha>.bin
-  - legacy daphne3_st_<gitsha>.xsa / daphne3_st_<gitsha>.bin are accepted
+  - if DAPHNE_ACCEPT_LEGACY_ARTIFACT_ALIASES=1:
+    legacy daphne3_st_<gitsha>.xsa / daphne3_st_<gitsha>.bin are accepted
 
 Generated outputs:
   - <build-name-prefix>_<gitsha>.dtbo
@@ -28,13 +29,23 @@ find_latest_xsa() {
   local search_dir="$1"
   local candidate
 
-  for pattern in "${BUILD_NAME_PREFIX}_*.xsa" 'daphne3_st_*.xsa'; do
+  for pattern in "${BUILD_NAME_PREFIX}_*.xsa"; do
     candidate="$(find "$search_dir" -maxdepth 1 -type f -name "$pattern" | sort | tail -n 1)"
     if [[ -n "$candidate" ]]; then
       printf '%s\n' "$candidate"
       return 0
     fi
   done
+
+  if [[ "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" ]]; then
+    for pattern in "${LEGACY_ARTIFACT_PREFIX}_*.xsa"; do
+      candidate="$(find "$search_dir" -maxdepth 1 -type f -name "$pattern" | sort | tail -n 1)"
+      if [[ -n "$candidate" ]]; then
+        printf '%s\n' "$candidate"
+        return 0
+      fi
+    done
+  fi
 
   return 0
 }
@@ -106,6 +117,9 @@ DTBO_GEN_TCL="$ROOT_DIR/xilinx/daphne_dtbo_gen.tcl"
 AXI_SPI_PATCH="$ROOT_DIR/xilinx/scripts/axi_quad_spi_dtbo_patch.sed"
 BUILD_NAME_PREFIX="${DAPHNE_BUILD_NAME_PREFIX:-daphne_selftrigger}"
 OVERLAY_NAME_PREFIX="${DAPHNE_OVERLAY_NAME_PREFIX:-${BUILD_NAME_PREFIX}_ol}"
+ACCEPT_LEGACY_ARTIFACT_ALIASES="${DAPHNE_ACCEPT_LEGACY_ARTIFACT_ALIASES:-0}"
+LEGACY_ARTIFACT_PREFIX="${DAPHNE_LEGACY_ARTIFACT_PREFIX:-daphne3_st}"
+LEGACY_OVERLAY_PREFIX="${DAPHNE_LEGACY_OVERLAY_PREFIX:-daphne3_st_OL}"
 if command -v sha256sum >/dev/null 2>&1; then
   SHA256_CMD=(sha256sum)
 elif command -v shasum >/dev/null 2>&1; then
@@ -142,6 +156,9 @@ fi
 
 if [[ -z "$latest_xsa" ]]; then
   echo "ERROR: no ${BUILD_NAME_PREFIX}_*.xsa found in $OUTPUT_DIR or $XSCT_OUTPUT_DIR" >&2
+  if [[ "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" ]]; then
+    echo "ERROR: legacy ${LEGACY_ARTIFACT_PREFIX}_*.xsa aliases were also checked" >&2
+  fi
   exit 2
 fi
 
@@ -153,15 +170,16 @@ case "$xsa_basename" in
     git_sha="${xsa_basename#${BUILD_NAME_PREFIX}_}"
     git_sha="${git_sha%.xsa}"
     ;;
-  daphne3_st_*.xsa)
-    artifact_prefix="daphne3_st"
-    overlay_prefix="daphne3_st_OL"
-    git_sha="${xsa_basename#daphne3_st_}"
-    git_sha="${git_sha%.xsa}"
-    ;;
   *)
-    echo "ERROR: unrecognized XSA name: $xsa_basename" >&2
-    exit 2
+    if [[ "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" && "$xsa_basename" == ${LEGACY_ARTIFACT_PREFIX}_*.xsa ]]; then
+      artifact_prefix="${LEGACY_ARTIFACT_PREFIX}"
+      overlay_prefix="${LEGACY_OVERLAY_PREFIX}"
+      git_sha="${xsa_basename#${LEGACY_ARTIFACT_PREFIX}_}"
+      git_sha="${git_sha%.xsa}"
+    else
+      echo "ERROR: unrecognized XSA name: $xsa_basename" >&2
+      exit 2
+    fi
     ;;
 esac
 
