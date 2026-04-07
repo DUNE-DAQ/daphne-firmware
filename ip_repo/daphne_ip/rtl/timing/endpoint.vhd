@@ -50,6 +50,11 @@ port(
     F_OK_DEBUG: out std_logic ;
 	SCTR_DEBUG: OUT std_logic_vector (15 downto 0);
 	CCTR_DEBUG: OUT std_logic_vector (15 downto 0);
+    mmcm0_locked_o: out std_logic;
+    mmcm1_locked_o: out std_logic;
+    endpoint_ready_o: out std_logic;
+    endpoint_state_o: out std_logic_vector(3 downto 0);
+    timestamp_valid_o: out std_logic;
     -- AXI-Lite interface for the control/status registers
 
 	S_AXI_ACLK: in std_logic;
@@ -433,6 +438,11 @@ port map(
     use_ep => use_ep
 );
 F_OK_DEBUG <= f_ok;
+mmcm0_locked_o <= mmcm0_locked;
+mmcm1_locked_o <= mmcm1_locked;
+endpoint_ready_o <= ep_ts_rdy;
+endpoint_state_o <= ep_stat;
+timestamp_valid_o <= f_ok;
 clock_gen_debug  <= sysclk_ibuf;
 mmcm0_100MHZ_CLK_debug   <= mmcm0_clkout2;
 ep_62p5MHZ_CLK_debug   <=   ep_clk62p5 ;

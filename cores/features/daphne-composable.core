@@ -43,6 +43,7 @@ filesets:
       - dune-daq:daphne:legacy-trigger-control-adapter:0.1.0
       - dune-daq:daphne:legacy-selftrigger-inputs-bridge:0.1.0
       - dune-daq:daphne:legacy-selftrigger-fabric-bridge:0.1.0
+      - dune-daq:daphne:legacy-timing-subsystem-bridge:0.1.0
       - dune-daq:daphne:dac-interface:0.1.0
       - dune-daq:daphne:hermes-boundary:0.1.0
       - dune-daq:daphne:hermes-transport:0.1.0

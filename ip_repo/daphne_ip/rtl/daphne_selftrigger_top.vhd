@@ -482,6 +482,11 @@ port(
     F_OK_DEBUG: out std_logic ;    
     SCTR_DEBUG: OUT std_logic_vector (15 downto 0);
     CCTR_DEBUG: OUT std_logic_vector (15 downto 0);
+    mmcm0_locked_o: out std_logic;
+    mmcm1_locked_o: out std_logic;
+    endpoint_ready_o: out std_logic;
+    endpoint_state_o: out std_logic_vector(3 downto 0);
+    timestamp_valid_o: out std_logic;
     --mmc0_locked_debug: out std_logic ;
     --mmc1_locked_debug: out std_logic;
     --ep_stat_debug: out std_logic_vector (3 downto 0);
@@ -1194,6 +1199,11 @@ port map(
  F_OK_DEBUG       =>f_ok,
  SCTR_DEBUG=> sctr,
  CCTR_DEBUG => cctr,
+ mmcm0_locked_o => open,
+ mmcm1_locked_o => open,
+ endpoint_ready_o => open,
+ endpoint_state_o => open,
+ timestamp_valid_o => open,
 clock_gen_debug       =>sysclk_ibuf,
 mmcm0_100MHZ_CLK_debug       =>mmcm0_clkout2,
 ep_62p5MHZ_CLK_debug       =>ep_clk62p5,   
