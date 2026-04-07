@@ -110,10 +110,6 @@ fi
 
 run_stage build "$RUN_DIR/build.log" ./scripts/fusesoc/run_vivado_batch.sh
 
-if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
-  run_stage export "$RUN_DIR/export.log" ./scripts/package/export_impl_legacy_flow_bundle.sh "$FLOW_WORK_DIR" "$OUTPUT_DIR"
-fi
-
 if [ "$PACKAGE_DTBO" = "1" ]; then
   run_stage package "$RUN_DIR/package.log" ./scripts/package/complete_dtbo_bundle.sh "$OUTPUT_DIR"
 fi
@@ -129,9 +125,6 @@ echo "INFO: WSL Vivado chain completed."
 echo "INFO: Tool check log: $RUN_DIR/toolcheck.log"
 echo "INFO: Preflight log: $RUN_DIR/preflight.log"
 echo "INFO: Build log: $RUN_DIR/build.log"
-if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
-  echo "INFO: Export log: $RUN_DIR/export.log"
-fi
 if [ "$PACKAGE_DTBO" = "1" ]; then
   echo "INFO: Packaging log: $RUN_DIR/package.log"
 fi
