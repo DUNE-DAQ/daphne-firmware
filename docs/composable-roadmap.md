@@ -48,6 +48,8 @@ The repo has now crossed the main structural integration threshold:
 - `scripts/fusesoc/check_native_impl_graph.sh` now audits that staged graph for
   `legacy-*` regressions, required frontend timing constraints, and board-shell
   plane ownership regressions
+- the board self-trigger plane is now internally split into explicit datapath
+  and transport subplanes
 
 That means the remaining work is no longer “make a real composable impl
 possible”; it is “prove, harden, and simplify the native path until the legacy

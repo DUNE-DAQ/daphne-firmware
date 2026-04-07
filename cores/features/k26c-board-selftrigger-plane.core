@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:k26c-board-selftrigger-plane:0.1.0
-description: K26C board-owned self-trigger/readout plane composed directly from the composable core shell, adapters, mux, register bank, transport, and spy sinks
+description: K26C board-owned self-trigger/readout plane composed from explicit datapath and transport subplanes
 provider:
   name: local
 
@@ -9,14 +9,8 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:daphne-subsystem-types:0.1.0
-      - dune-daq:daphne:daphne-composable-core-top:0.1.0
-      - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
-      - dune-daq:daphne:hermes-transport:0.1.0
-      - dune-daq:daphne:trigger-control-adapter:0.1.0
-      - dune-daq:daphne:selftrigger-register-bank:0.1.0
-      - dune-daq:daphne:two-lane-readout-mux:0.1.0
-      - dune-daq:daphne:spy-buffer:0.1.0
+      - dune-daq:daphne:k26c-selftrigger-datapath-plane:0.1.0
+      - dune-daq:daphne:k26c-board-transport-plane:0.1.0
     files:
       - rtl/isolated/subsystems/readout/k26c_board_selftrigger_plane.vhd
     file_type: vhdlSource

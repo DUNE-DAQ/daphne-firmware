@@ -108,6 +108,8 @@ k26c-composable-platform (impl)
    ├─ k26c-board-timing-plane
    ├─ k26c-board-analog-control-plane
    ├─ k26c-board-selftrigger-plane
+   │  ├─ k26c-selftrigger-datapath-plane
+   │  └─ k26c-board-transport-plane
    └─ k26c-board-spy-capture-plane
 ```
 
