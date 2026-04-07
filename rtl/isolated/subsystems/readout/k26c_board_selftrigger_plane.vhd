@@ -246,7 +246,7 @@ begin
       trigger_samples_o => trigger_samples
     );
 
-  control_adapter_inst : entity work.legacy_trigger_control_adapter
+  control_adapter_inst : entity work.trigger_control_adapter
     generic map (
       CHANNEL_COUNT_G => 40
     )
@@ -324,7 +324,7 @@ begin
       dout_o                    => fabric_dout
     );
 
-  legacy_two_lane_readout_mux_inst : entity work.legacy_two_lane_readout_mux
+  two_lane_readout_mux_inst : entity work.two_lane_readout_mux
     port map (
       clock_i => clock,
       reset_i => reset,
@@ -336,7 +336,7 @@ begin
       last_o  => last_debug_reg
     );
 
-  legacy_selftrigger_register_bank_inst : entity work.legacy_selftrigger_register_bank
+  selftrigger_register_bank_inst : entity work.selftrigger_register_bank
     port map (
       AXI_IN         => threshold_axi_in,
       AXI_OUT        => threshold_axi_out,

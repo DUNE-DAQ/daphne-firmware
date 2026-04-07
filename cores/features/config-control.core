@@ -9,7 +9,7 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:legacy-stuff-selftrigger-register-bank:0.1.0
+      - dune-daq:daphne:stuff-selftrigger-register-bank:0.1.0
     files:
       - ip_repo/daphne_ip/rtl/config/fanmon.vhd
       - ip_repo/daphne_ip/rtl/config/stuff.vhd

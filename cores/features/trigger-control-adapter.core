@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:trigger-control-adapter:0.1.0
-description: Adapter from flat self-trigger control words to the per-channel trigger-control bank
+description: Adapter from flat self-trigger control words to the composable per-channel trigger-control bank
 provider:
   name: local
 
