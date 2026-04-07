@@ -37,6 +37,7 @@ filesets:
       - scripts/package/complete_dtbo_bundle.sh
       - scripts/fusesoc/vivado_batch_hook.sh
       - scripts/fusesoc/vivado_composable_ooc_hook.sh
+      - scripts/fusesoc/export_impl_bundle_hook.sh
       - scripts/fusesoc/export_impl_legacy_flow_hook.sh
       - scripts/wsl/run_windows_batch_tool.sh
       - scripts/wsl/setup_windows_xilinx.sh
@@ -141,6 +142,12 @@ scripts:
       - src/dune-daq_daphne_k26c-composable-platform_0.1.0/scripts/fusesoc/vivado_composable_ooc_hook.sh
     filesets:
       - hooks
+  export_impl_bundle:
+    cmd:
+      - sh
+      - src/dune-daq_daphne_k26c-composable-platform_0.1.0/scripts/fusesoc/export_impl_bundle_hook.sh
+    filesets:
+      - hooks
   export_impl_legacy_flow:
     cmd:
       - sh
@@ -178,7 +185,7 @@ targets:
       - legacy_flow_entry
     hooks:
       post_build:
-        - export_impl_legacy_flow
+        - export_impl_bundle
     flow_options:
       part: xck26-sfvc784-2LV-c
       board_part: xilinx.com:k26c:part0:1.4
@@ -191,7 +198,7 @@ targets:
       - impl_packaged_top_flow_rtl
     hooks:
       post_build:
-        - export_impl_legacy_flow
+        - export_impl_bundle
     flow_options:
       part: xck26-sfvc784-2LV-c
       board_part: xilinx.com:k26c:part0:1.4
@@ -258,7 +265,7 @@ targets:
       - impl_packaged_top_flow_rtl
     hooks:
       post_build:
-        - export_impl_legacy_flow
+        - export_impl_bundle
     flow_options:
       part: xck26-sfvc784-2LV-c
       board_part: xilinx.com:k26c:part0:1.4
