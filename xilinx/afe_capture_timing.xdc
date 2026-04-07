@@ -16,20 +16,38 @@ if {![info exists ::env(DAPHNE_TIMING_PLANE_PATH)] || [string trim $::env(DAPHNE
 }
 set timing_plane_path [string trim $::env(DAPHNE_TIMING_PLANE_PATH)]
 
-proc daphne_require_single_net {net_name purpose} {
-    set resolved_nets [get_nets -quiet $net_name]
-    if {[llength $resolved_nets] != 1} {
-        error "ERROR: expected exactly one net for $purpose at '$net_name', found [llength $resolved_nets]"
-    }
-    return [lindex $resolved_nets 0]
-}
+proc daphne_require_single_object {object_kind root_candidates relative_path purpose} {
+    set resolved_objects {}
+    foreach root_candidate [split $root_candidates ";"] {
+        set trimmed_root [string trim $root_candidate]
+        if {$trimmed_root eq ""} {
+            continue
+        }
 
-proc daphne_require_single_pin {pin_name purpose} {
-    set resolved_pins [get_pins -quiet $pin_name]
-    if {[llength $resolved_pins] != 1} {
-        error "ERROR: expected exactly one pin for $purpose at '$pin_name', found [llength $resolved_pins]"
+        if {$relative_path eq ""} {
+            set object_path $trimmed_root
+        } else {
+            set object_path "${trimmed_root}/${relative_path}"
+        }
+
+        if {$object_kind eq "net"} {
+            foreach resolved_net [get_nets -quiet $object_path] {
+                lappend resolved_objects $resolved_net
+            }
+        } elseif {$object_kind eq "pin"} {
+            foreach resolved_pin [get_pins -quiet $object_path] {
+                lappend resolved_objects $resolved_pin
+            }
+        } else {
+            error "ERROR: unsupported object kind '$object_kind' for $purpose"
+        }
     }
-    return [lindex $resolved_pins 0]
+
+    set resolved_objects [lsort -unique $resolved_objects]
+    if {[llength $resolved_objects] != 1} {
+        error "ERROR: expected exactly one $object_kind for $purpose from candidates '$root_candidates' and suffix '$relative_path', found [llength $resolved_objects]"
+    }
+    return [lindex $resolved_objects 0]
 }
 
 proc daphne_set_async_clock_groups_if_present {group_a group_b} {
@@ -72,11 +90,11 @@ proc daphne_require_env_value {name purpose} {
     return $value
 }
 
-set frontend_word_clk_ep_net [daphne_require_single_net ${endpoint_path}/ep_clk62p5 "frontend endpoint word-clock source"]
-set frontend_word_clk_local_net [daphne_require_single_net ${endpoint_path}/local_clk62p5 "frontend local word-clock source"]
-set frontend_bit_clk_pin [daphne_require_single_pin ${timing_plane_path}/clk500_o "frontend bit-clock board seam"]
-set frontend_byte_clk_pin [daphne_require_single_pin ${timing_plane_path}/clk125_o "frontend byte-clock board seam"]
-set endpoint_bclk_net [daphne_require_single_net ${endpoint_path}/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk "timing endpoint recovered bit clock"]
+set frontend_word_clk_ep_net [daphne_require_single_object net $endpoint_path "ep_clk62p5" "frontend endpoint word-clock source"]
+set frontend_word_clk_local_net [daphne_require_single_object net $endpoint_path "local_clk62p5" "frontend local word-clock source"]
+set frontend_bit_clk_pin [daphne_require_single_object pin $timing_plane_path "clk500_o" "frontend bit-clock board seam"]
+set frontend_byte_clk_pin [daphne_require_single_object pin $timing_plane_path "clk125_o" "frontend byte-clock board seam"]
+set endpoint_bclk_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk" "timing endpoint recovered bit clock"]
 
 create_generated_clock -name frontend_word_clk_ep     $frontend_word_clk_ep_net
 create_generated_clock -name frontend_word_clk_local  $frontend_word_clk_local_net

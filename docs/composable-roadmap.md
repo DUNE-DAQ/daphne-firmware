@@ -52,6 +52,9 @@ The repo has now crossed the main structural integration threshold:
   and transport subplanes
 - the frontend and timing board planes now have explicit contract audits too,
   so they stay thin wrappers around `frontend_island` and `endpoint`
+- the board timing-path defaults now explicitly cover both native board-shell
+  and packaged-IP/BD hierarchy roots, so the active AFE timing XDC no longer
+  depends on one stale hierarchy assumption
 
 That means the remaining work is no longer “make a real composable impl
 possible”; it is “prove, harden, and simplify the native path until the legacy

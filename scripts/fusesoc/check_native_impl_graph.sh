@@ -34,6 +34,7 @@ echo "INFO: Auditing native impl graph for $PLATFORM_CORE target=$TARGET board=$
 
 cd "$ROOT_DIR"
 sh "$ROOT_DIR/scripts/fusesoc/check_board_shell_planes.sh" >/dev/null
+sh "$ROOT_DIR/scripts/fusesoc/check_board_timing_path_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_frontend_plane_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_selftrigger_plane_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_timing_plane_contract.sh" >/dev/null
@@ -83,6 +84,7 @@ done
 
 echo "INFO: Native impl graph is board-shell-owned, legacy-free, and carries the required AFE timing constraints."
 echo "INFO: Board shell remains limited to explicit board-plane dependencies."
+echo "INFO: Board timing-path defaults still cover both native and packaged-IP hierarchy roots."
 echo "INFO: Frontend plane remains limited to a single frontend-island boundary."
 echo "INFO: Self-trigger plane remains limited to explicit datapath and transport subplanes."
 echo "INFO: Timing plane remains limited to a single endpoint boundary."
