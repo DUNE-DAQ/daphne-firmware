@@ -100,6 +100,9 @@ This target still preserves the qualified `xilinx/vivado_batch.tcl` flow; the
 change is that FuseSoC now owns the top-level entry point and work root.
 If you call `fusesoc run` directly, set `DAPHNE_GIT_SHA` first so the legacy
 artifact naming keeps the real commit instead of falling back to `0000000`.
+If you want the wrapper to use the composable platform instead, set
+`DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0`; the
+wrapper will then default to `DAPHNE_PLATFORM_TARGET=impl_legacy_flow`.
 
 For the composable platform, the checked-in implementation hook is still the
 transitional bridge target:
