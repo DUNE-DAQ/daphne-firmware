@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:selftrigger-xcorr-validate-stubs:0.1.0
+description: Validate-only VHDL stand-ins for mixed-language xcorr support blocks used by GHDL smoke tests
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - rtl/isolated/subsystems/trigger/validate/k_low_pass_filter.vhd
+      - rtl/isolated/subsystems/trigger/validate/IIRFilter_afe_integrator_optimized.vhd
+      - rtl/isolated/subsystems/trigger/validate/st_xc.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
