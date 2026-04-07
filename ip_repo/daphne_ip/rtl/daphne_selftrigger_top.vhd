@@ -654,26 +654,6 @@ signal clock, clk125, clk500: std_logic;
 signal core_chan_enable: std_logic_vector(39 downto 0);
 signal st_trigger_signal: std_logic_vector(39 downto 0);
 
-signal EP_AXI_AWADDR:  std_logic_vector(31 downto 0);
-signal EP_AXI_AWPROT:  std_logic_vector(2 downto 0);
-signal EP_AXI_AWVALID: std_logic;
-signal EP_AXI_AWREADY: std_logic;
-signal EP_AXI_WDATA:   std_logic_vector(31 downto 0);
-signal EP_AXI_WSTRB:   std_logic_vector(3 downto 0);
-signal EP_AXI_WVALID:  std_logic;
-signal EP_AXI_WREADY:  std_logic;
-signal EP_AXI_BRESP:   std_logic_vector(1 downto 0);
-signal EP_AXI_BVALID:  std_logic;
-signal EP_AXI_BREADY:  std_logic;
-signal EP_AXI_ARADDR:  std_logic_vector(31 downto 0);
-signal EP_AXI_ARPROT:  std_logic_vector(2 downto 0);
-signal EP_AXI_ARVALID: std_logic;
-signal EP_AXI_ARREADY: std_logic;
-signal EP_AXI_RDATA:   std_logic_vector(31 downto 0);
-signal EP_AXI_RRESP:   std_logic_vector(1 downto 0);
-signal EP_AXI_RVALID:  std_logic;
-signal EP_AXI_RREADY:  std_logic;
-
 signal eth0_p_buff: std_logic;
 signal eth0_n_buff: std_logic ;
 
@@ -713,29 +693,6 @@ begin
 --eth0_tx_p <= eth0_p_buff;
 --eth0_tx_n <= eth0_n_buff;
 -- AXI ASSIGNMNT
-
-
--- END POINT 
-
-  EP_AXI_AWADDR <= END_P_S_AXI_AWADDR; 
-  EP_AXI_AWPROT <=  END_P_S_AXI_AWPROT;
-  EP_AXI_AWVALID <=   END_P_S_AXI_AWVALID;
-  END_P_S_AXI_AWREADY <=  EP_AXI_AWREADY   ;
-  EP_AXI_WDATA <=   END_P_S_AXI_WDATA  ;
-  EP_AXI_WSTRB   <=  END_P_S_AXI_WSTRB ;
-  EP_AXI_WVALID   <= END_P_S_AXI_WVALID;
-   END_P_S_AXI_WREADY<= EP_AXI_WREADY   ;
-   END_P_S_AXI_BRESP<= EP_AXI_BRESP    ;
-   END_P_S_AXI_BVALID<= EP_AXI_BVALID   ;
-   EP_AXI_BREADY   <=  END_P_S_AXI_BREADY;
-  EP_AXI_ARADDR  <=  END_P_S_AXI_ARADDR  ;
-  EP_AXI_ARPROT  <=  END_P_S_AXI_ARPROT ;
-  EP_AXI_ARVALID   <= END_P_S_AXI_ARVALID;
-  END_P_S_AXI_ARREADY <= EP_AXI_ARREADY  ;
-   END_P_S_AXI_RDATA <= EP_AXI_RDATA     ;
-  END_P_S_AXI_RRESP<=  EP_AXI_RRESP     ;
-  END_P_S_AXI_RVALID<=  EP_AXI_RVALID    ;
-  EP_AXI_RREADY  <=  END_P_S_AXI_RREADY ;
 
 
 -- front end deskew and alignment
@@ -848,25 +805,25 @@ port map(
     timing_stat_o            => timing_stat,
     s_axi_aclk               => END_P_S_AXI_ACLK,
     s_axi_aresetn            => END_P_S_AXI_ARESETN,
-    s_axi_awaddr             => EP_AXI_AWADDR,
-    s_axi_awprot             => EP_AXI_AWPROT,
-    s_axi_awvalid            => EP_AXI_AWVALID,
-    s_axi_awready            => EP_AXI_AWREADY,
-    s_axi_wdata              => EP_AXI_WDATA,
-    s_axi_wstrb              => EP_AXI_WSTRB,
-    s_axi_wvalid             => EP_AXI_WVALID,
-    s_axi_wready             => EP_AXI_WREADY,
-    s_axi_bresp              => EP_AXI_BRESP,
-    s_axi_bvalid             => EP_AXI_BVALID,
-    s_axi_bready             => EP_AXI_BREADY,
-    s_axi_araddr             => EP_AXI_ARADDR,
-    s_axi_arprot             => EP_AXI_ARPROT,
-    s_axi_arvalid            => EP_AXI_ARVALID,
-    s_axi_arready            => EP_AXI_ARREADY,
-    s_axi_rdata              => EP_AXI_RDATA,
-    s_axi_rresp              => EP_AXI_RRESP,
-    s_axi_rvalid             => EP_AXI_RVALID,
-    s_axi_rready             => EP_AXI_RREADY
+    s_axi_awaddr             => END_P_S_AXI_AWADDR,
+    s_axi_awprot             => END_P_S_AXI_AWPROT,
+    s_axi_awvalid            => END_P_S_AXI_AWVALID,
+    s_axi_awready            => END_P_S_AXI_AWREADY,
+    s_axi_wdata              => END_P_S_AXI_WDATA,
+    s_axi_wstrb              => END_P_S_AXI_WSTRB,
+    s_axi_wvalid             => END_P_S_AXI_WVALID,
+    s_axi_wready             => END_P_S_AXI_WREADY,
+    s_axi_bresp              => END_P_S_AXI_BRESP,
+    s_axi_bvalid             => END_P_S_AXI_BVALID,
+    s_axi_bready             => END_P_S_AXI_BREADY,
+    s_axi_araddr             => END_P_S_AXI_ARADDR,
+    s_axi_arprot             => END_P_S_AXI_ARPROT,
+    s_axi_arvalid            => END_P_S_AXI_ARVALID,
+    s_axi_arready            => END_P_S_AXI_ARREADY,
+    s_axi_rdata              => END_P_S_AXI_RDATA,
+    s_axi_rresp              => END_P_S_AXI_RRESP,
+    s_axi_rvalid             => END_P_S_AXI_RVALID,
+    s_axi_rready             => END_P_S_AXI_RREADY
 );
 
 -- SPI master for AFEs and associated DACs
