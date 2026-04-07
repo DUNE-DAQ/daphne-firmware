@@ -15,6 +15,7 @@ set daphne_eth_mode [daphne_get_env_or_default DAPHNE_ETH_MODE "vendored_hdl"]
 set daphne_ip_top_hdl_default [expr {[dict exists $daphne_board_profile ip_top_hdl_file] ? [daphne_resolve_repo_relative_path $repo_root [dict get $daphne_board_profile ip_top_hdl_file]] : [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"]}]
 set daphne_ip_top_hdl_file [file normalize [daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE $daphne_ip_top_hdl_default]]
 set daphne_ip_top_module [daphne_get_env_or_default DAPHNE_IP_TOP_MODULE [expr {[dict exists $daphne_board_profile ip_top_module] ? [dict get $daphne_board_profile ip_top_module] : "daphne_selftrigger_top"}]]
+set daphne_bd_name [daphne_get_env_or_default DAPHNE_BD_NAME [expr {[dict exists $daphne_board_profile bd_name] ? [dict get $daphne_board_profile bd_name] : "daphne_selftrigger_bd"}]]
 set daphne_ip_component_identifier_default [expr {[dict exists $daphne_board_profile ip_component_identifier] ? [dict get $daphne_board_profile ip_component_identifier] : $daphne_ip_top_module}]
 set daphne_ip_component_identifier [daphne_get_env_or_default DAPHNE_IP_COMPONENT_IDENTIFIER $daphne_ip_component_identifier_default]
 set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME [expr {[dict exists $daphne_board_profile ip_display_name] ? [dict get $daphne_board_profile ip_display_name] : "${daphne_ip_component_identifier}_v1_0"}]]
@@ -706,7 +707,7 @@ set daphne_bus_parameters {
     NUM_WRITE_OUTSTANDING 1
     MAX_BURST_LENGTH 1
     PHASE 0.0
-    CLK_DOMAIN daphne_selftrigger_bd_zynq_ultra_ps_e_0_0_pl_clk0
+    CLK_DOMAIN ${daphne_bd_name}_zynq_ultra_ps_e_0_0_pl_clk0
     NUM_READ_THREADS 1
     NUM_WRITE_THREADS 1
     RUSER_BITS_PER_BYTE 0
@@ -953,9 +954,9 @@ foreach plClkInterface $daphne_pl_clk_interfaces {
             # configure the clock domain name properly, which changes from other interfaces
             if {$plClkBusParam eq "CLK_DOMAIN"} {
                 if {[string match "eth_clk_n" $plClkInterface]} {
-                    set_property VALUE daphne_selftrigger_bd_GTH0_REFCLK_N $plClk_param
+                    set_property VALUE ${daphne_bd_name}_GTH0_REFCLK_N $plClk_param
                 } elseif {[string match "eth_clk_p" $plClkInterface]} {
-                    set_property VALUE daphne_selftrigger_bd_GTH0_REFCLK_P $plClk_param
+                    set_property VALUE ${daphne_bd_name}_GTH0_REFCLK_P $plClk_param
                 } else {
                     set_property VALUE ${plClkBusParamVal}_${plClkInterface} $plClk_param
                 }
