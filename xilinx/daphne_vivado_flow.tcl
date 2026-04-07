@@ -104,6 +104,7 @@ proc daphne_prepare_project {cfg_name} {
 proc daphne_create_block_design {cfg_name} {
     upvar 1 $cfg_name cfg
 
+    set v_git_sha $cfg(v_git_sha)
     source -notrace [file join $cfg(script_dir) "daphne_bd_gen.tcl"]
     read_bd $cfg(bd_file)
     make_wrapper -top -files [get_files $cfg(bd_file)]
