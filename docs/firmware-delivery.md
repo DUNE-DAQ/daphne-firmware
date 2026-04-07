@@ -25,7 +25,7 @@ The build flow already reaches:
 but a stable repo-local step is still needed to finish the device-tree overlay
 packaging outside the main Vivado build.
 
-For the new `impl_legacy_flow` path on
+For the Flow API implementation paths on
 `dune-daq:daphne:k26c-composable-platform:0.1.0`, there is now an explicit
 handoff step before DTBO packaging:
 

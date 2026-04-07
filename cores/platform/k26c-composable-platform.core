@@ -184,12 +184,11 @@ targets:
       board_part: xilinx.com:k26c:part0:1.4
       source_mgmt_mode: None
   impl:
-    description: Default composable platform implementation target, currently backed by the qualified legacy K26C Flow API bridge
+    description: Default composable platform implementation target, now backed by the native packaged board-shell Flow API path
     flow: vivado
-    toplevel: daphne_selftrigger_bd_wrapper
+    toplevel: legacy_public_top_bridge
     filesets:
-      - legacy_flow_support
-      - legacy_flow_entry
+      - impl_packaged_top_flow_rtl
     hooks:
       post_build:
         - export_impl_legacy_flow
@@ -252,7 +251,7 @@ targets:
       pnr: none
       source_mgmt_mode: None
   impl_packaged_top_flow:
-    description: First native board-level implementation target for the isolated packaged board shell without the legacy BD wrapper flow
+    description: Alias for the native packaged board-shell implementation path
     flow: vivado
     toplevel: legacy_public_top_bridge
     filesets:
