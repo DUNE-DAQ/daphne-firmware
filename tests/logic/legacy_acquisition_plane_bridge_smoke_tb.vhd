@@ -19,6 +19,7 @@ architecture tb of legacy_acquisition_plane_bridge_smoke_tb is
   signal timing_stat_s          : timing_status_t := TIMING_STATUS_NULL;
   signal frontend_align_stat_s  : frontend_alignment_status_t := FRONTEND_ALIGNMENT_STATUS_NULL;
   signal frontend_dout_s        : array_5x9x16_type := (others => (others => (others => '0')));
+  signal frontend_trigger_s     : std_logic := '0';
   signal core_chan_enable_s     : std_logic_vector(CHANNEL_COUNT_C - 1 downto 0) := (others => '0');
   signal afe_comp_enable_s      : std_logic_vector(CHANNEL_COUNT_C - 1 downto 0) := (others => '0');
   signal invert_enable_s        : std_logic_vector(CHANNEL_COUNT_C - 1 downto 0) := (others => '0');
@@ -36,7 +37,9 @@ architecture tb of legacy_acquisition_plane_bridge_smoke_tb is
   signal rd_en_s                : std_logic_array_t(0 to CHANNEL_COUNT_C - 1) := (others => '0');
   signal frontend_prereq_s      : frontend_prereq_t;
   signal acquisition_ready_s    : acquisition_readiness_t;
+  signal timing_trigger_s       : std_logic;
   signal spy_enable_s           : std_logic;
+  signal spy_trigger_s          : std_logic;
   signal trigger_result_s       : trigger_xcorr_result_array_t(0 to CHANNEL_COUNT_C - 1);
   signal descriptor_result_s    : peak_descriptor_result_array_t(0 to CHANNEL_COUNT_C - 1);
   signal record_count_s         : slv64_array_t(0 to CHANNEL_COUNT_C - 1);
@@ -61,6 +64,7 @@ begin
       timing_stat_i            => timing_stat_s,
       frontend_align_stat_i    => frontend_align_stat_s,
       frontend_dout_i          => frontend_dout_s,
+      frontend_trigger_i       => frontend_trigger_s,
       core_chan_enable_i       => core_chan_enable_s,
       afe_comp_enable_i        => afe_comp_enable_s,
       invert_enable_i          => invert_enable_s,
@@ -78,7 +82,9 @@ begin
       rd_en_i                  => rd_en_s,
       frontend_prereq_o        => frontend_prereq_s,
       acquisition_ready_o      => acquisition_ready_s,
+      timing_trigger_o         => timing_trigger_s,
       spy_enable_o             => spy_enable_s,
+      spy_trigger_o            => spy_trigger_s,
       trigger_result_o         => trigger_result_s,
       descriptor_result_o      => descriptor_result_s,
       record_count_o           => record_count_s,
@@ -109,6 +115,12 @@ begin
     frontend_align_stat_s.training_ok      <= '1';
     frontend_align_stat_s.alignment_valid  <= '1';
 
+    wait until rising_edge(clock_s);
+    ti_trigger_s <= adhoc_s;
+    ti_trigger_stbr_s <= '1';
+
+    wait until rising_edge(clock_s);
+    ti_trigger_stbr_s <= '0';
     wait for 1 ns;
 
     assert frontend_prereq_s.config_ready = '1'
@@ -128,6 +140,18 @@ begin
       severity failure;
     assert spy_enable_s = '1'
       report "Spy enable should assert when readiness is complete"
+      severity failure;
+    assert timing_trigger_s = '1'
+      report "Timing trigger should follow the stretched adhoc match"
+      severity failure;
+    assert spy_trigger_s = '1'
+      report "Spy trigger should include the stretched timing pulse"
+      severity failure;
+
+    frontend_trigger_s <= '1';
+    wait for 1 ns;
+    assert spy_trigger_s = '1'
+      report "Frontend trigger should also drive the spy trigger"
       severity failure;
 
     stop;
