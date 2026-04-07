@@ -54,10 +54,14 @@ flowchart TD
   S --> ST[k26c-board-selftrigger-plane]
   S --> SP[k26c-board-spy-capture-plane]
   FE --> FI[frontend-island]
-  ST --> CT[trigger-control-adapter]
-  ST --> RB[selftrigger-register-bank]
-  ST --> MX[two-lane-readout-mux]
-  ST --> DP[daphne_composable_core_top]
+  ST --> STD[k26c-selftrigger-datapath-plane]
+  ST --> STE[k26c-board-transport-plane]
+  STD --> CT[trigger-control-adapter]
+  STD --> RB[selftrigger-register-bank]
+  STD --> MX[two-lane-readout-mux]
+  STD --> DP[daphne_composable_core_top]
+  STE --> HT[daphne_top / Hermes transport]
+  STE --> SB[outspybuff]
   AN --> CC[config-control]
   CC --> SRB[stuff-selftrigger-register-bank]
 ```
@@ -66,6 +70,8 @@ This is the important current milestone:
 
 - the active `impl` graph is board-plane owned
 - `k26c_board_shell` instantiates only explicit board-plane entities
+- `k26c_board_selftrigger_plane` now instantiates only explicit datapath and
+  transport subplanes
 - the active `impl` graph stages with zero `legacy-*` core names
 - the required frontend timing constraints remain present:
   - `xilinx/daphne_selftrigger_pin_map.xdc`
@@ -86,6 +92,10 @@ That script:
   feature cores
 - checks that `k26c_board_shell.vhd` instantiates only the board-plane
   entities
+- checks that `k26c-board-selftrigger-plane.core` depends only on the explicit
+  datapath and transport subplanes
+- checks that `k26c_board_selftrigger_plane.vhd` instantiates only those
+  subplanes
 - stages `k26c-composable-platform:impl`
 - locates the generated `*.eda.yml`
 - fails if any `legacy-*` core names re-enter the active graph

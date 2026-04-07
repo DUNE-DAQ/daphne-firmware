@@ -1,0 +1,25 @@
+CAPI=2:
+
+name: dune-daq:daphne:k26c-selftrigger-datapath-plane:0.1.0
+description: Board-local self-trigger datapath plane composed from adapters, composable core shell, threshold bank, and readout mux
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:daphne-composable-core-top:0.1.0
+      - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
+      - dune-daq:daphne:trigger-control-adapter:0.1.0
+      - dune-daq:daphne:selftrigger-register-bank:0.1.0
+      - dune-daq:daphne:two-lane-readout-mux:0.1.0
+    files:
+      - rtl/isolated/subsystems/readout/k26c_selftrigger_datapath_plane.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
