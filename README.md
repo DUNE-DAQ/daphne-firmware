@@ -359,21 +359,17 @@ recorded in `docs/source-audit.md`.
 - `cores/platform/k26c-composable-platform.core` is the composable platform
   wrapper for the finer-grained subsystem graph. It now exposes a GHDL-backed
   `validate` target so the isolated shell can be compiled and smoke-tested
-  without Vivado. It also now exposes a transitional `impl_legacy_bridge`
-  target so the composable platform can serve as a first-class FuseSoC entry
-  point while Vivado still builds the qualified legacy/generated K26C design.
-  It also now exposes `impl_legacy_flow`, the first board-level Flow API target
-  for that same qualified legacy/generated K26C design, `impl`, the native
-  packaged board-shell Flow API implementation target, plus
+  without Vivado. It also now exposes `impl_legacy_flow`, the board-level Flow
+  API target for the qualified legacy/generated K26C design, `impl`, the
+  native packaged board-shell Flow API implementation target, plus
   `synth_public_top_flow`, the first Flow API Vivado synth target for the
   public composable top.
 - `scripts/fusesoc/build_platform.sh --composable` now defaults to `impl` for
-  the composable platform. Use `--composable --target impl_legacy_bridge` when
-  you explicitly want the transitional Vivado-backed bridge entry point,
-  `--composable --target impl_legacy_flow` when you want the fallback
-  BD-wrapper Flow API checkpoint for the qualified legacy/generated K26C
-  design, or `--composable --target synth_public_top_flow` when you want the
-  Flow-API Vivado synthesis checkpoint for the public composable top.
+  the composable platform. Use `--composable --target impl_legacy_flow` when
+  you want the fallback BD-wrapper Flow API checkpoint for the qualified
+  legacy/generated K26C design, or `--composable --target synth_public_top_flow`
+  when you want the Flow-API Vivado synthesis checkpoint for the public
+  composable top.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache
   directories so the workflow does not depend on global user configuration.
 - `scripts/fusesoc/run_logic_test.sh` now exercises the module-level smoke
