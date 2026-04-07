@@ -36,14 +36,13 @@ if [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ] && [ 
 fi
 
 resolve_output_dir() {
-  if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
-    printf '%s\n' "$ROOT_DIR/build/dune-daq_daphne_k26c-composable-platform_0.1.0/impl_legacy_flow"
-    return 0
-  fi
-
   output_dir_value="${DAPHNE_OUTPUT_DIR-}"
   if [ -z "$output_dir_value" ]; then
-    printf '%s\n' "$ROOT_DIR/xilinx/output"
+    if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
+      printf '%s\n' "$ROOT_DIR/xilinx/output-$DAPHNE_GIT_SHA"
+    else
+      printf '%s\n' "$ROOT_DIR/xilinx/output"
+    fi
     return 0
   fi
 
@@ -61,6 +60,7 @@ resolve_output_dir() {
 }
 
 OUTPUT_DIR="$(resolve_output_dir)"
+FLOW_WORK_DIR="$ROOT_DIR/build/dune-daq_daphne_k26c-composable-platform_0.1.0/impl_legacy_flow"
 
 {
   printf 'run_id=%s\n' "$RUN_ID"
@@ -75,6 +75,7 @@ OUTPUT_DIR="$(resolve_output_dir)"
   printf 'root_dir=%s\n' "$ROOT_DIR"
   printf 'log_dir=%s\n' "$RUN_DIR"
   printf 'output_dir=%s\n' "$OUTPUT_DIR"
+  printf 'flow_work_dir=%s\n' "$FLOW_WORK_DIR"
   printf 'package_dtbo=%s\n' "$PACKAGE_DTBO"
   printf 'vivado=%s\n' "$(command -v vivado)"
   printf 'xsct=%s\n' "$(command -v xsct || true)"
@@ -109,12 +110,12 @@ fi
 
 run_stage build "$RUN_DIR/build.log" ./scripts/fusesoc/run_vivado_batch.sh
 
+if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
+  run_stage export "$RUN_DIR/export.log" ./scripts/package/export_impl_legacy_flow_bundle.sh "$FLOW_WORK_DIR" "$OUTPUT_DIR"
+fi
+
 if [ "$PACKAGE_DTBO" = "1" ]; then
-  if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
-    printf '%s\n' "INFO: Skipping legacy DTBO packaging; impl_legacy_flow currently stops at the Flow API Vivado build tree." | tee "$RUN_DIR/package.log"
-  else
-    run_stage package "$RUN_DIR/package.log" ./scripts/package/complete_dtbo_bundle.sh "$OUTPUT_DIR"
-  fi
+  run_stage package "$RUN_DIR/package.log" ./scripts/package/complete_dtbo_bundle.sh "$OUTPUT_DIR"
 fi
 
 {
@@ -128,6 +129,9 @@ echo "INFO: WSL Vivado chain completed."
 echo "INFO: Tool check log: $RUN_DIR/toolcheck.log"
 echo "INFO: Preflight log: $RUN_DIR/preflight.log"
 echo "INFO: Build log: $RUN_DIR/build.log"
+if [ "$FLOW_OWNED_LEGACY_IMPL" = "1" ]; then
+  echo "INFO: Export log: $RUN_DIR/export.log"
+fi
 if [ "$PACKAGE_DTBO" = "1" ]; then
   echo "INFO: Packaging log: $RUN_DIR/package.log"
 fi

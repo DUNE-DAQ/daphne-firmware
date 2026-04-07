@@ -25,6 +25,19 @@ The build flow already reaches:
 but a stable repo-local step is still needed to finish the device-tree overlay
 packaging outside the main Vivado build.
 
+For the new `impl_legacy_flow` path on
+`dune-daq:daphne:k26c-composable-platform:0.1.0`, there is now an explicit
+handoff step before DTBO packaging:
+
+```bash
+./scripts/package/export_impl_legacy_flow_bundle.sh
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
+```
+
+The exporter opens the Flow API Vivado project, reuses the completed `impl_1`
+run, and emits the same legacy-style `daphne_selftrigger_<gitsha>.bit/.bin/.xsa`
+contract expected by the DTBO bundler.
+
 ## Current repo-local packaging step
 
 After a successful Vivado run, once `xilinx/output/` contains:
