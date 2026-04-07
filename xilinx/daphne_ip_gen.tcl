@@ -18,6 +18,7 @@ foreach daphne_constraint_path [split $daphne_constraint_files_raw ";"] {
         lappend daphne_constraint_files [daphne_resolve_repo_relative_path $repo_root $daphne_constraint_path]
     }
 }
+daphne_require_resolved_paths "Packaged IP constraint files" $repo_root [expr {[dict exists $daphne_board_profile required_constraint_files] ? [dict get $daphne_board_profile required_constraint_files] : ""}] $daphne_constraint_files
 set daphne_constraint_file [lindex $daphne_constraint_files 0]
 set daphne_eth_mode [daphne_get_env_or_default DAPHNE_ETH_MODE "vendored_hdl"]
 set daphne_ip_top_hdl_default [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"]

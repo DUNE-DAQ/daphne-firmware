@@ -10,9 +10,11 @@ daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 
 DEFAULT_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" platform_core)"
 DEFAULT_COMPOSABLE_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
+DEFAULT_PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
 : "${DEFAULT_CORE:=dune-daq:daphne:k26c-platform:0.1.0}"
 : "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
-PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_CORE}"
+: "${DEFAULT_PLATFORM_CORE:=$DEFAULT_COMPOSABLE_CORE}"
+PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_PLATFORM_CORE}"
 
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_FPGA_PART

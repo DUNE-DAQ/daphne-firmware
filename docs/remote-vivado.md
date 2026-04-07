@@ -46,15 +46,15 @@ This runs:
 
 and stores logs under `build/remote-vivado/<timestamp>/`.
 
-To route the same wrapper through the composable platform instead of the legacy
-platform core, set:
+The board manifest now defaults the wrapper to the composable platform core.
+If you need to force it explicitly, set:
 
 ```bash
 export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
-before calling `run_remote_vivado_chain.sh`. That now defaults to the native
-board-shell `impl` target. After the build, the repo exports a legacy-style
+before calling `run_remote_vivado_chain.sh`. That drives the native board-shell
+`impl` target. After the build, the repo exports a legacy-style
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/`, so downstream DTBO packaging can keep using the same
 artifact contract.

@@ -12,108 +12,8 @@
 
 create_clock -period 10.000 -name sysclk [ get_ports sysclk_p]
 
-
-#create_clock -period 10.000 -name clk_pl_3 [get_clocks clk_pl_3]
-#create_clock -period 8.000 -name clk_pl_0 [get_pins {DAPHNE_V3_F4_1_i/ZYNQ_PS/pl_clk0}]
-#create_clock -period 40.000 -name clk_pl_1 [get_pins {DAPHNE_V3_F4_1_i/ZYNQ_PS/pl_clk1}]
-
-#create_clock -period 16.000 -name ep_clk62p5 -add [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/ep_clk62p5]
-
-# rename the auto-generated clocks...
-set daphne_use_split_afe_capture_timing 0
-if {[info exists ::env(DAPHNE_CONSTRAINT_FILES)] && [string match "*afe_capture_timing.xdc*" [string trim $::env(DAPHNE_CONSTRAINT_FILES)]]} {
-    set daphne_use_split_afe_capture_timing 1
-}
-
-if {!$daphne_use_split_afe_capture_timing} {
-if {![info exists ::env(DAPHNE_TIMING_ENDPOINT_PATH)] || [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)] eq ""} {
-    error "ERROR: DAPHNE_TIMING_ENDPOINT_PATH must be set for daphne_selftrigger_pin_map.xdc frontend timing constraints"
-}
-set endpoint_path [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)]
-
-proc daphne_require_single_net {net_name purpose} {
-    set resolved_nets [get_nets -quiet $net_name]
-    if {[llength $resolved_nets] != 1} {
-        error "ERROR: expected exactly one net for $purpose at '$net_name', found [llength $resolved_nets]"
-    }
-    return [lindex $resolved_nets 0]
-}
-
-set frontend_word_clk_ep_net [daphne_require_single_net ${endpoint_path}/ep_clk62p5 "frontend endpoint word-clock source"]
-set frontend_word_clk_local_net [daphne_require_single_net ${endpoint_path}/local_clk62p5 "frontend local word-clock source"]
-set frontend_bit_clk_net [daphne_require_single_net ${endpoint_path}/clk500 "frontend bit-clock source"]
-set frontend_byte_clk_net [daphne_require_single_net ${endpoint_path}/clk125 "frontend byte-clock source"]
-set endpoint_bclk_net [daphne_require_single_net ${endpoint_path}/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk "timing endpoint recovered bit clock"]
-
-create_generated_clock -name frontend_word_clk_ep     $frontend_word_clk_ep_net
-create_generated_clock -name frontend_word_clk_local  $frontend_word_clk_local_net
-#create_generated_clock -name clk100 [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm0_clkout2]
-#create_generated_clock -name mmcm0_clkfbout [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm0_clkfbout]
-
-
-#create_generated_clock -name ep_clk62p5_1 [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku]
-#create_generated_clock -name ep_clk4x [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku4x]
-#create_generated_clock -name clkfb          [get_nets {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clkfb}]
-
-create_generated_clock -name frontend_bit_clk_ep    -master_clock frontend_word_clk_ep    $frontend_bit_clk_net
-#create_generated_clock -name clock_0 -master_clock [get_clocks frontend_word_clk_ep] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1]
-create_generated_clock -name frontend_byte_clk_ep   -master_clock frontend_word_clk_ep    $frontend_byte_clk_net
-
-## The endpoint-driven and local-clock-driven frontend receive families reuse
-## the same byte/bit nets. Keep them as multi-clock objects tied to alternate
-## masters instead of unrelated clocks.
-create_generated_clock -add -name frontend_bit_clk_local   -master_clock frontend_word_clk_local  $frontend_bit_clk_net
-create_generated_clock -add -name frontend_byte_clk_local  -master_clock frontend_word_clk_local  $frontend_byte_clk_net
-
-# One image can expose either endpoint-driven or local-clock-driven AFE capture
-# clocks, but not both simultaneously. Model them as physically exclusive so
-# Vivado does not invent timing relationships between the alternate source
-# families.
-set_clock_groups -physically_exclusive \
-  -group {frontend_word_clk_ep frontend_bit_clk_ep frontend_byte_clk_ep} \
-  -group {frontend_word_clk_local frontend_bit_clk_local frontend_byte_clk_local}
-
-set_property CLOCK_DEDICATED_ROUTE BACKBONE $endpoint_bclk_net
-
-# Legacy async containment for remaining board/control clocks that are still
-# named by older generated-clock families. Keep these cuts until the board
-# build no longer depends on the older BD/control-plane clock baggage.
-proc daphne_set_async_clock_groups_if_present {group_a group_b} {
-    set clocks_a {}
-    set clocks_b {}
-
-    foreach clock_name $group_a {
-        foreach resolved_clock [get_clocks -quiet $clock_name] {
-            lappend clocks_a $resolved_clock
-        }
-    }
-    foreach clock_name $group_b {
-        foreach resolved_clock [get_clocks -quiet $clock_name] {
-            lappend clocks_b $resolved_clock
-        }
-    }
-
-    if {[llength $clocks_a] > 0 && [llength $clocks_b] > 0} {
-        set_clock_groups -asynchronous -group $clocks_a -group $clocks_b
-    }
-}
-
-daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm1_clkout0}
-daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm1_clkout1}
-daphne_set_async_clock_groups_if_present {mmcm1_clkout1} {mmcm1_clkout0}
-daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm0_clkout0}
-daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm0_clkout2}
-daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm0_clkout1}
-daphne_set_async_clock_groups_if_present {clk_pl_0} {clk125}
-
-daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm1_clkout0}
-daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm1_clkout1}
-
-daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm0_clkout2}
-daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm0_clkout1}
-
-daphne_set_async_clock_groups_if_present {clk_pl_2} {sysclk}
-}
+# The active AFE receive-clock timing model now lives only in
+# xilinx/afe_capture_timing.xdc, which is required through the board manifest.
 
 #set_clock_groups -name async_groups -asynchronous -group {sysclk100 clk100 mmcm0_clkfbout} -group {sb_axi_clk fe_axi_clk ep_axi_clk} -group local_clk62p5 -group {clk500_0 clock_0 clk125_0 mmcm1_clkfbout0} -group {clk500_1 clock_1 clk125_1 mmcm1_clkfbout1} -group {ep_clk62p5 ep_clk4x ep_clk2x ep_clkfbout} -group rx_tmg_clk
 
@@ -224,8 +124,8 @@ set_property PACKAGE_PIN Y5       [get_ports GTH0_REFCLK_N] ;  # pin location SO
 
 #set_property PACKAGE_PIN F23      [get_ports {GTR_REFCLK_P}]   # pin location SOM240_1_C47
 #set_property PACKAGE_PIN F24      [get_ports {GTR_REFCLK_N}]   # pin location SOM240_1_C48
-set_property PACKAGE_PIN L7       [get_ports sysclk_p] 
-set_property PACKAGE_PIN L6       [get_ports sysclk_n] 
+set_property PACKAGE_PIN L7       [get_ports sysclk_p]
+set_property PACKAGE_PIN L6       [get_ports sysclk_n]
 set_property IOSTANDARD LVDS [get_ports sysclk_p]
 set_property IOSTANDARD LVDS [get_ports sysclk_n]
 set_property DIFF_TERM true [get_ports sysclk_p]
@@ -712,8 +612,8 @@ set_property IOSTANDARD LVTTL [get_ports {MUXA[1]}]
 #set_property PACKAGE_PIN G6       [get_ports {stat_led[4]}]   # pin location SOM240_1_A9
 #set_property PACKAGE_PIN F6       [get_ports {stat_led[5]}]   # pin location SOM240_1_A10
 
-#set_property IOSTANDARD LVTTL [get_ports {stat_led[0]}] 
-#set_property IOSTANDARD LVTTL [get_ports {stat_led[1]}] 
+#set_property IOSTANDARD LVTTL [get_ports {stat_led[0]}]
+#set_property IOSTANDARD LVTTL [get_ports {stat_led[1]}]
 #set_property IOSTANDARD LVTTL [get_ports {stat_led[2]}]
 #set_property IOSTANDARD LVTTL [get_ports {stat_led[3]}]
 #set_property IOSTANDARD LVTTL  [get_ports {stat_led[4]}]
@@ -791,4 +691,3 @@ set_property IOSTANDARD LVCMOS18 [get_ports {VBIAS_EN}]
 #TRIGER
 set_property PACKAGE_PIN F11 [get_ports trig_IN]
 set_property IOSTANDARD LVTTL [get_ports trig_IN]
-

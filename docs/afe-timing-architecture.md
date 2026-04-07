@@ -70,8 +70,9 @@ per-AFE state now factored into `frontend_register_bank.vhd`.
 
 The timing side is still weaker than it should be:
 
-- `xilinx/daphne_selftrigger_pin_map.xdc` still carries stale generated-clock
-  and clock-group baggage from older hierarchy names and experiments.
+- `xilinx/daphne_selftrigger_pin_map.xdc` still carries stale commented timing
+  baggage from older hierarchy names and experiments, even though the active
+  AFE receive-clock model has been split out already.
 - The legacy async clock-group section now uses guarded `get_clocks -quiet`
   lookups so stale names stop producing avoidable warnings, but that is only a
   containment step, not the final receive-path timing model.
@@ -87,21 +88,21 @@ The timing side is still weaker than it should be:
    Do not rewrite `febit3` or the legacy `front_end` path just to clean up
    naming.
 
-2. Extract the AFE capture timing intent into a dedicated constraint section or
-   dedicated XDC file.
+2. Keep the AFE capture timing intent in a dedicated XDC file.
    The content should cover:
    - receive/generated clocks for the frontend path
    - source-synchronous relationships around `clock`, `clk500`, and `clk125`
    - the real async boundaries only
    - the repo now carries `xilinx/afe_capture_timing_scaffold.xdc` as the
-     design note and `xilinx/afe_capture_timing.xdc` as the active split
-     constraint file wired through the board manifest
+     design note and `xilinx/afe_capture_timing.xdc` as the active, required
+     split constraint file wired through the board manifest
    - active hierarchy roots such as the timing endpoint path should come from
      the board manifest/build defaults instead of being hardcoded inside the
      XDC
 
 3. Remove or quarantine stale/generated-clock lines that no longer match the
-   synthesized hierarchy.
+   synthesized hierarchy from the board pinmap XDC so the split file is the
+   sole active owner of the AFE receive-clock family.
 
 4. Keep runtime alignment explicit.
    Static constraints should not try to encode away the need for IDELAY/bitslip

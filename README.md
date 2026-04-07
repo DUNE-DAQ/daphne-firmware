@@ -100,10 +100,10 @@ This target still preserves the qualified `xilinx/vivado_batch.tcl` flow; the
 change is that FuseSoC now owns the top-level entry point and work root.
 If you call `fusesoc run` directly, set `DAPHNE_GIT_SHA` first so the legacy
 artifact naming keeps the real commit instead of falling back to `0000000`.
-If you want the wrapper to use the composable platform instead, set
-`DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0`; the
-wrapper will then default to `DAPHNE_PLATFORM_TARGET=impl`, which now drives
-the native board-shell Flow API path.
+The board manifest now defaults the wrapper/build helpers to the composable
+platform core, so `run_vivado_batch.sh` and `build_platform.sh` resolve to the
+native board-shell `impl` target unless you override `DAPHNE_PLATFORM_CORE`
+explicitly.
 
 The composable platform now also exposes `impl` as its default implementation
 target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
@@ -112,6 +112,8 @@ path (`k26c_board_shell`). The native board-shell path now resolves
 through an explicit `k26c-board-shell` feature core instead of the generated
 `daphne-ip` manifest, so the board implementation is materially more
 FuseSoC-owned while the underlying RTL entity name is still converging.
+The K26C board manifest also requires `xilinx/afe_capture_timing.xdc`, so the
+split AFE receive-clock timing model cannot silently drop out of the build.
 
 The IP packaging Tcl also now accepts top-identity overrides
 (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,
