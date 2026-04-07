@@ -62,6 +62,9 @@ daphne_resolve_board_defaults() {
   board_part="$(daphne_board_manifest_value "$root_dir" "$board_name" board_part)"
   pfm_name="$(daphne_board_manifest_value "$root_dir" "$board_name" pfm_name)"
   constraint_file="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_file)"
+  user_ip_vlnv="$(daphne_board_manifest_value "$root_dir" "$board_name" user_ip_vlnv)"
+  bd_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_name)"
+  build_name_prefix="$(daphne_board_manifest_value "$root_dir" "$board_name" build_name_prefix)"
   ip_cell_bind_root="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_cell_bind_root)"
 
   if [ "$supported" != "true" ]; then
@@ -81,6 +84,15 @@ daphne_resolve_board_defaults() {
   : "${DAPHNE_BOARD_PART:=$board_part}"
   : "${DAPHNE_PFM_NAME:=$pfm_name}"
   : "${DAPHNE_CONSTRAINT_FILE:=$constraint_file}"
+  if [ -n "$user_ip_vlnv" ]; then
+    : "${DAPHNE_USER_IP_VLNV:=$user_ip_vlnv}"
+  fi
+  if [ -n "$bd_name" ]; then
+    : "${DAPHNE_BD_NAME:=$bd_name}"
+  fi
+  if [ -n "$build_name_prefix" ]; then
+    : "${DAPHNE_BUILD_NAME_PREFIX:=$build_name_prefix}"
+  fi
   if [ -n "$ip_cell_bind_root" ]; then
     : "${DAPHNE_IP_CELL_BIND_ROOT:=$ip_cell_bind_root}"
   fi
@@ -91,6 +103,15 @@ daphne_resolve_board_defaults() {
   export DAPHNE_BOARD_PART
   export DAPHNE_PFM_NAME
   export DAPHNE_CONSTRAINT_FILE
+  if [ -n "${DAPHNE_USER_IP_VLNV-}" ]; then
+    export DAPHNE_USER_IP_VLNV
+  fi
+  if [ -n "${DAPHNE_BD_NAME-}" ]; then
+    export DAPHNE_BD_NAME
+  fi
+  if [ -n "${DAPHNE_BUILD_NAME_PREFIX-}" ]; then
+    export DAPHNE_BUILD_NAME_PREFIX
+  fi
   if [ -n "${DAPHNE_IP_CELL_BIND_ROOT-}" ]; then
     export DAPHNE_IP_CELL_BIND_ROOT
   fi
