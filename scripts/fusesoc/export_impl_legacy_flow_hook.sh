@@ -5,6 +5,8 @@ ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && 
 BUILD_DIR="$(pwd)"
 PACKAGE_DTBO="${DAPHNE_PACKAGE_DTBO:-auto}"
 BOARD="${DAPHNE_BOARD:-k26c}"
+TARGET_NAME="${DAPHNE_PLATFORM_TARGET:-impl}"
+ARTIFACT_LIST_NAME="${DAPHNE_EXPORT_ARTIFACT_LIST_NAME:-${TARGET_NAME}_artifacts.txt}"
 
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
@@ -91,10 +93,11 @@ OVERLAY_NAME_PREFIX="${DAPHNE_OVERLAY_NAME_PREFIX:-${BUILD_NAME_PREFIX}_ol}"
 
 need_cmd vivado
 
-echo "INFO: Flow-owned legacy export hook"
+echo "INFO: Flow-owned Vivado export hook"
 echo "INFO: build dir  = $BUILD_DIR"
 echo "INFO: project    = $project_xpr"
 echo "INFO: output dir = $OUTPUT_DIR"
+echo "INFO: target     = $TARGET_NAME"
 
 vivado -mode batch \
   -source "$ROOT_DIR/xilinx/daphne_export_flow_handoff.tcl" \
@@ -108,7 +111,7 @@ find "$OUTPUT_DIR" -maxdepth 1 \
   -o -name "${BUILD_NAME_PREFIX}_*.xsa" \
   -o -name "${BUILD_NAME_PREFIX}_*.dtbo" \
   -o -name "${OVERLAY_NAME_PREFIX}_*.zip" \
-  -o -name 'SHA256SUMS' \) | sort >"$BUILD_DIR/impl_legacy_flow_artifacts.txt"
+  -o -name 'SHA256SUMS' \) | sort >"$BUILD_DIR/$ARTIFACT_LIST_NAME"
 
-echo "INFO: Flow-owned legacy export hook complete"
-cat "$BUILD_DIR/impl_legacy_flow_artifacts.txt"
+echo "INFO: Flow-owned Vivado export hook complete"
+cat "$BUILD_DIR/$ARTIFACT_LIST_NAME"

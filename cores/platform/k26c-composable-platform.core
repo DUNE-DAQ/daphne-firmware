@@ -257,6 +257,9 @@ targets:
     toplevel: legacy_public_top_bridge
     filesets:
       - impl_packaged_top_flow_rtl
+    hooks:
+      post_build:
+        - export_impl_legacy_flow
     flow_options:
       part: xck26-sfvc784-2LV-c
       board_part: xilinx.com:k26c:part0:1.4
