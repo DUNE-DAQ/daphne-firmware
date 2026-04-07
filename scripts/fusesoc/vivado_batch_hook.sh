@@ -109,6 +109,7 @@ export DAPHNE_FPGA_PART
 export DAPHNE_BOARD_PART
 export DAPHNE_PFM_NAME
 export DAPHNE_CONSTRAINT_FILE
+export DAPHNE_CONSTRAINT_FILES
 export DAPHNE_GIT_SHA
 export DAPHNE_OUTPUT_DIR
 if [ -n "${DAPHNE_IP_REPO_ROOT-}" ]; then
@@ -139,6 +140,7 @@ append_env_tcl DAPHNE_FPGA_PART
 append_env_tcl DAPHNE_BOARD_PART
 append_env_tcl DAPHNE_PFM_NAME
 append_env_tcl DAPHNE_CONSTRAINT_FILE
+append_env_tcl DAPHNE_CONSTRAINT_FILES
 append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_ETH_MODE
 append_env_tcl DAPHNE_GIT_SHA

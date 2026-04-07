@@ -19,6 +19,17 @@ proc daphne_resolve_git_sha {} {
     return $git_sha
 }
 
+proc daphne_resolve_repo_relative_paths {repo_root raw_paths} {
+    set resolved_paths {}
+    foreach path_value [split $raw_paths ";"] {
+        set trimmed_path [string trim $path_value]
+        if {$trimmed_path ne ""} {
+            lappend resolved_paths [daphne_resolve_repo_relative_path $repo_root $trimmed_path]
+        }
+    }
+    return $resolved_paths
+}
+
 proc daphne_resolve_config {script_dir} {
     source -notrace [file join $script_dir "daphne_board_env.tcl"]
 
@@ -56,7 +67,12 @@ proc daphne_resolve_config {script_dir} {
     set cfg(overlay_name_prefix) [daphne_get_env_or_default DAPHNE_OVERLAY_NAME_PREFIX $board_overlay_name_prefix]
     set cfg(bd_file) [file join $cfg(repo_root) "bd" $cfg(bd_name) "${cfg(bd_name)}.bd"]
     set cfg(bd_wrapper_vhd) [file join $cfg(repo_root) "bd" $cfg(bd_name) "hdl" "${cfg(bd_wrapper_name)}.vhd"]
-    set cfg(pinmap_xdc) [daphne_resolve_repo_relative_path $cfg(repo_root) [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILE [dict get $board_profile constraint_file]]]
+    set board_constraint_files_raw [expr {[dict exists $board_profile constraint_files] ? [dict get $board_profile constraint_files] : [dict get $board_profile constraint_file]}]
+    set cfg(constraint_files) [daphne_resolve_repo_relative_paths $cfg(repo_root) [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILES $board_constraint_files_raw]]
+    if {[llength $cfg(constraint_files)] == 0} {
+        error "ERROR: board profile did not resolve any XDC files."
+    }
+    set cfg(pinmap_xdc) [lindex $cfg(constraint_files) 0]
     set cfg(dtbo_gen_tcl) [file join $script_dir "daphne_dtbo_gen.tcl"]
     set cfg(axi_quad_spi_patch) [file join $script_dir "scripts" "axi_quad_spi_dtbo_patch.sed"]
 
@@ -120,7 +136,9 @@ proc daphne_create_block_design {cfg_name} {
     }
     make_wrapper -top -files $bd_file_obj
     read_vhdl $cfg(bd_wrapper_vhd)
-    read_xdc -verbose $cfg(pinmap_xdc)
+    foreach constraint_file $cfg(constraint_files) {
+        read_xdc -verbose $constraint_file
+    }
     set_property synth_checkpoint_mode None $bd_file_obj
     generate_target all $bd_file_obj
 
