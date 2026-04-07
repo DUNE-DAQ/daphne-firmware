@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:legacy-frontend-plane-bridge:0.1.0
+description: Legacy frontend-plane compatibility bridge wrapping the live frontend island behind the original top-level AFE and AXI contract
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:frontend-island:0.1.0
+    files:
+      - rtl/isolated/subsystems/frontend/legacy_frontend_plane_bridge.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

@@ -647,37 +647,12 @@ end component;
 
 
 
-signal afe_p_array, afe_n_array: array_5x9_type;
 signal din_full_array: array_5x9x16_type;
-signal din_array: array_5x8x14_type;
 signal trig: std_logic;
 signal timestamp: std_logic_vector(63 downto 0);
 signal clock, clk125, clk500: std_logic;
 signal core_chan_enable: std_logic_vector(39 downto 0);
 signal st_trigger_signal: std_logic_vector(39 downto 0);
-
-signal S_AXI_ACLK:    std_logic;
-signal S_AXI_ARESETN: std_logic;
-
-signal FE_AXI_AWADDR:  std_logic_vector(31 downto 0);
-signal FE_AXI_AWPROT:  std_logic_vector(2 downto 0);
-signal FE_AXI_AWVALID: std_logic;
-signal FE_AXI_AWREADY: std_logic;
-signal FE_AXI_WDATA:   std_logic_vector(31 downto 0);
-signal FE_AXI_WSTRB:   std_logic_vector(3 downto 0);
-signal FE_AXI_WVALID:  std_logic;
-signal FE_AXI_WREADY:  std_logic;
-signal FE_AXI_BRESP:   std_logic_vector(1 downto 0);
-signal FE_AXI_BVALID:  std_logic;
-signal FE_AXI_BREADY:  std_logic;
-signal FE_AXI_ARADDR:  std_logic_vector(31 downto 0);
-signal FE_AXI_ARPROT:  std_logic_vector(2 downto 0);
-signal FE_AXI_ARVALID: std_logic;
-signal FE_AXI_ARREADY: std_logic;
-signal FE_AXI_RDATA:   std_logic_vector(31 downto 0);
-signal FE_AXI_RRESP:   std_logic_vector(1 downto 0);
-signal FE_AXI_RVALID:  std_logic;
-signal FE_AXI_RREADY:  std_logic;
 
 signal EP_AXI_AWADDR:  std_logic_vector(31 downto 0);
 signal EP_AXI_AWPROT:  std_logic_vector(2 downto 0);
@@ -737,51 +712,7 @@ begin
 
 --eth0_tx_p <= eth0_p_buff;
 --eth0_tx_n <= eth0_n_buff;
-din_debug_reg <=  din_array(1)(0);
-
-     
-
-   
-     
--- pack SLV AFE LVDS signals into 5x9 2D arrays
-
-afe_p_array(0)(8 downto 0) <= afe0_p(8 downto 0); 
-afe_p_array(1)(8 downto 0) <= afe1_p(8 downto 0); 
-afe_p_array(2)(8 downto 0) <= afe2_p(8 downto 0); 
-afe_p_array(3)(8 downto 0) <= afe3_p(8 downto 0); 
-afe_p_array(4)(8 downto 0) <= afe4_p(8 downto 0); 
-
-afe_n_array(0)(8 downto 0) <= afe0_n(8 downto 0);
-afe_n_array(1)(8 downto 0) <= afe1_n(8 downto 0);
-afe_n_array(2)(8 downto 0) <= afe2_n(8 downto 0);
-afe_n_array(3)(8 downto 0) <= afe3_n(8 downto 0);
-afe_n_array(4)(8 downto 0) <= afe4_n(8 downto 0);
-
 -- AXI ASSIGNMNT
-
-
-
--- FRONT END
-
- FE_AXI_AWADDR <=   FRONT_END_S_AXI_AWADDR;
- FE_AXI_AWPROT <= FRONT_END_S_AXI_AWPROT;
- FE_AXI_AWVALID <= FRONT_END_S_AXI_AWVALID;
- FRONT_END_S_AXI_AWREADY <= FE_AXI_AWREADY  ;
- FE_AXI_WDATA <= FRONT_END_S_AXI_WDATA;
- FE_AXI_WSTRB <= FRONT_END_S_AXI_WSTRB;
- FE_AXI_WVALID <= FRONT_END_S_AXI_WVALID;
- FRONT_END_S_AXI_WREADY <= FE_AXI_WREADY  ;
- FRONT_END_S_AXI_BRESP<= FE_AXI_BRESP  ;
- FRONT_END_S_AXI_BVALID <= FE_AXI_BVALID  ;
- FE_AXI_BREADY <= FRONT_END_S_AXI_BREADY;
- FE_AXI_ARADDR <= FRONT_END_S_AXI_ARADDR;
- FE_AXI_ARPROT <= FRONT_END_S_AXI_ARPROT;
- FE_AXI_ARVALID <= FRONT_END_S_AXI_ARVALID;
- FRONT_END_S_AXI_ARREADY<= FE_AXI_ARREADY  ;
- FRONT_END_S_AXI_RDATA <= FE_AXI_RDATA  ;
- FRONT_END_S_AXI_RRESP <= FE_AXI_RRESP  ;
- FRONT_END_S_AXI_RVALID<=  FE_AXI_RVALID  ;
- FE_AXI_RREADY <= FRONT_END_S_AXI_RREADY ;
 
 
 -- END POINT 
@@ -809,40 +740,48 @@ afe_n_array(4)(8 downto 0) <= afe4_n(8 downto 0);
 
 -- front end deskew and alignment
 
-front_end_inst: front_end 
+frontend_plane_inst: entity work.legacy_frontend_plane_bridge
 port map(
-    afe_p           => afe_p_array,
-    afe_n           => afe_n_array,
-    
-    afe_clk_p       => afe_clk_p,
-    afe_clk_n       => afe_clk_n,
-    clock           => clock,
-    clk125          => clk125,
-    clk500          => clk500,
-    dout            => din_full_array,
-    trig            => trig,
-    trig_IN         => trig_IN,
-	S_AXI_ACLK	    => FRONT_END_S_AXI_ACLK,
-	S_AXI_ARESETN	=> FRONT_END_S_AXI_ARESETN,
-	S_AXI_AWADDR	=> FE_AXI_AWADDR,
-	S_AXI_AWPROT	=> FE_AXI_AWPROT,
-	S_AXI_AWVALID	=> FE_AXI_AWVALID,
-	S_AXI_AWREADY	=> FE_AXI_AWREADY,
-	S_AXI_WDATA	    => FE_AXI_WDATA,
-	S_AXI_WSTRB	    => FE_AXI_WSTRB,
-	S_AXI_WVALID	=> FE_AXI_WVALID,
-	S_AXI_WREADY	=> FE_AXI_WREADY,
-	S_AXI_BRESP	    => FE_AXI_BRESP,
-	S_AXI_BVALID	=> FE_AXI_BVALID,
-	S_AXI_BREADY	=> FE_AXI_BREADY,
-	S_AXI_ARADDR	=> FE_AXI_ARADDR,
-	S_AXI_ARPROT	=> FE_AXI_ARPROT,
-	S_AXI_ARVALID	=> FE_AXI_ARVALID,
-	S_AXI_ARREADY	=> FE_AXI_ARREADY,
-	S_AXI_RDATA	    => FE_AXI_RDATA,
-	S_AXI_RRESP	    => FE_AXI_RRESP,
-	S_AXI_RVALID	=> FE_AXI_RVALID,
-	S_AXI_RREADY	=> FE_AXI_RREADY
+    afe0_p         => afe0_p,
+    afe0_n         => afe0_n,
+    afe1_p         => afe1_p,
+    afe1_n         => afe1_n,
+    afe2_p         => afe2_p,
+    afe2_n         => afe2_n,
+    afe3_p         => afe3_p,
+    afe3_n         => afe3_n,
+    afe4_p         => afe4_p,
+    afe4_n         => afe4_n,
+    afe_clk_p      => afe_clk_p,
+    afe_clk_n      => afe_clk_n,
+    clock_i        => clock,
+    clk125_i       => clk125,
+    clk500_i       => clk500,
+    trig_in_i      => trig_IN,
+    frontend_dout_o => din_full_array,
+    frontend_trigger_o => trig,
+    din_debug_o    => din_debug_reg,
+    s_axi_aclk     => FRONT_END_S_AXI_ACLK,
+    s_axi_aresetn  => FRONT_END_S_AXI_ARESETN,
+    s_axi_awaddr   => FRONT_END_S_AXI_AWADDR,
+    s_axi_awprot   => FRONT_END_S_AXI_AWPROT,
+    s_axi_awvalid  => FRONT_END_S_AXI_AWVALID,
+    s_axi_awready  => FRONT_END_S_AXI_AWREADY,
+    s_axi_wdata    => FRONT_END_S_AXI_WDATA,
+    s_axi_wstrb    => FRONT_END_S_AXI_WSTRB,
+    s_axi_wvalid   => FRONT_END_S_AXI_WVALID,
+    s_axi_wready   => FRONT_END_S_AXI_WREADY,
+    s_axi_bresp    => FRONT_END_S_AXI_BRESP,
+    s_axi_bvalid   => FRONT_END_S_AXI_BVALID,
+    s_axi_bready   => FRONT_END_S_AXI_BREADY,
+    s_axi_araddr   => FRONT_END_S_AXI_ARADDR,
+    s_axi_arprot   => FRONT_END_S_AXI_ARPROT,
+    s_axi_arvalid  => FRONT_END_S_AXI_ARVALID,
+    s_axi_arready  => FRONT_END_S_AXI_ARREADY,
+    s_axi_rdata    => FRONT_END_S_AXI_RDATA,
+    s_axi_rresp    => FRONT_END_S_AXI_RRESP,
+    s_axi_rvalid   => FRONT_END_S_AXI_RVALID,
+    s_axi_rready   => FRONT_END_S_AXI_RREADY
   );
 
 -- Input spy capture
@@ -1043,16 +982,6 @@ port map(
     stuff_s_axi_rvalid => STUFF_S_AXI_RVALID,
     stuff_s_axi_rready => STUFF_S_AXI_RREADY
 );
-
--- reduce din_array, since we don't need the full 45 channels * 16 bits for the core
-
-gena_din: for a in 4 downto 0 generate
-genc_din: for c in 7 downto 0 generate
-
-    din_array(a)(c)(13 downto 0) <= din_full_array(a)(c)(15 downto 2);
-
-end generate genc_din;
-end generate gena_din;
 
 -- core logic is 40 self-trig senders + 10G Ethernet sender
 

@@ -1,0 +1,23 @@
+CAPI=2:
+
+name: dune-daq:daphne:legacy-selftrigger-core-bridge:0.1.0
+description: Legacy selftrigger-core compatibility bridge wrapping the extracted fabric, mux, and AXI register ownership
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:legacy-selftrigger-fabric-bridge:0.1.0
+      - dune-daq:daphne:legacy-two-lane-readout-mux:0.1.0
+      - dune-daq:daphne:legacy-selftrigger-register-bank:0.1.0
+    files:
+      - rtl/isolated/subsystems/readout/legacy_selftrigger_core_bridge.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

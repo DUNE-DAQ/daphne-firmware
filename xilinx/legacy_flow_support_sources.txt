@@ -14,10 +14,12 @@ rtl/isolated/subsystems/frontend/frontend_capture_bank.vhd
 rtl/isolated/subsystems/frontend/frontend_register_slice.vhd
 rtl/isolated/subsystems/frontend/frontend_register_bank.vhd
 rtl/isolated/subsystems/frontend/frontend_island.vhd
+rtl/isolated/subsystems/frontend/legacy_frontend_plane_bridge.vhd
 rtl/isolated/subsystems/trigger/afe_capture_to_trigger_bank.vhd
 rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd
 rtl/isolated/subsystems/readout/legacy_core_readout_bridge.vhd
 rtl/isolated/subsystems/readout/legacy_deimos_readout_bridge.vhd
+rtl/isolated/subsystems/readout/legacy_selftrigger_core_bridge.vhd
 rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd
 rtl/isolated/subsystems/readout/legacy_two_lane_readout_mux.vhd
 rtl/isolated/subsystems/spy/legacy_spy_capture_bridge.vhd
