@@ -5,16 +5,8 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 PLATFORM_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 BOARD="${DAPHNE_BOARD:-k26c}"
 
-case "$BOARD" in
-  k26c)
-    : "${DAPHNE_FPGA_PART:=xck26-sfvc784-2LV-c}"
-    : "${DAPHNE_BOARD_PART:=xilinx.com:k26c:part0:1.4}"
-    ;;
-  *)
-    echo "ERROR: unsupported board '$BOARD' for composable OOC synthesis." >&2
-    exit 2
-    ;;
-esac
+. "$PLATFORM_ROOT/scripts/fusesoc/board_env.sh"
+daphne_resolve_board_defaults "$PLATFORM_ROOT" "$BOARD"
 
 if ! command -v vivado >/dev/null 2>&1; then
   echo "ERROR: vivado is not installed or not on PATH." >&2
@@ -38,6 +30,7 @@ append_env_tcl() {
 append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_FPGA_PART
 append_env_tcl DAPHNE_BOARD_PART
+append_env_tcl DAPHNE_CONSTRAINT_FILE
 append_env_tcl DAPHNE_GIT_SHA
 append_env_tcl DAPHNE_MAX_THREADS
 append_env_tcl DAPHNE_OUTPUT_DIR

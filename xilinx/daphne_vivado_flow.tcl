@@ -26,10 +26,11 @@ proc daphne_resolve_config {script_dir} {
 
     set cfg(script_dir) $script_dir
     set cfg(repo_root) [file normalize [file join $script_dir ".."]]
+    set board_profile [daphne_resolve_board_profile $cfg(repo_root)]
     set cfg(vivado_version) 2024.1
-    set cfg(fpga_part) [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
-    set cfg(board_part) [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
-    set cfg(pfm_name) [daphne_get_env_or_default DAPHNE_PFM_NAME "xilinx:k26c:name:0.0"]
+    set cfg(fpga_part) [daphne_get_env_or_default DAPHNE_FPGA_PART [dict get $board_profile fpga_part]]
+    set cfg(board_part) [daphne_get_env_or_default DAPHNE_BOARD_PART [dict get $board_profile board_part]]
+    set cfg(pfm_name) [daphne_get_env_or_default DAPHNE_PFM_NAME [dict get $board_profile pfm_name]]
     set cfg(max_threads) [daphne_get_env_or_default DAPHNE_MAX_THREADS "8"]
     set cfg(synth_directive) [daphne_get_env_or_default DAPHNE_SYNTH_DIRECTIVE "PerformanceOptimized"]
     set cfg(opt_directive) [daphne_get_env_or_default DAPHNE_OPT_DIRECTIVE "Explore"]
@@ -51,7 +52,7 @@ proc daphne_resolve_config {script_dir} {
     set cfg(overlay_name_prefix) [daphne_get_env_or_default DAPHNE_OVERLAY_NAME_PREFIX "${cfg(build_name_prefix)}_ol"]
     set cfg(bd_file) [file join $cfg(repo_root) "bd" $cfg(bd_name) "${cfg(bd_name)}.bd"]
     set cfg(bd_wrapper_vhd) [file join $cfg(repo_root) "bd" $cfg(bd_name) "hdl" "${cfg(bd_wrapper_name)}.vhd"]
-    set cfg(pinmap_xdc) [file join $script_dir "daphne_selftrigger_pin_map.xdc"]
+    set cfg(pinmap_xdc) [daphne_resolve_repo_relative_path $cfg(repo_root) [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILE [dict get $board_profile constraint_file]]]
     set cfg(dtbo_gen_tcl) [file join $script_dir "daphne_dtbo_gen.tcl"]
     set cfg(axi_quad_spi_patch) [file join $script_dir "scripts" "axi_quad_spi_dtbo_patch.sed"]
 

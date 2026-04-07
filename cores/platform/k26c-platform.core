@@ -28,6 +28,7 @@ filesets:
     file_type: user
   hooks:
     files:
+      - scripts/fusesoc/board_env.sh
       - scripts/fusesoc/vivado_batch_hook.sh
     file_type: user
 

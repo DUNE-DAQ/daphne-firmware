@@ -7,23 +7,8 @@ PLATFORM_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 BOARD="${DAPHNE_BOARD:-k26c}"
 ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
 
-case "$BOARD" in
-  k26c)
-    : "${DAPHNE_FPGA_PART:=xck26-sfvc784-2LV-c}"
-    : "${DAPHNE_BOARD_PART:=xilinx.com:k26c:part0:1.4}"
-    : "${DAPHNE_PFM_NAME:=xilinx:k26c:name:0.0}"
-    ;;
-  kr260)
-    echo "ERROR: board '$BOARD' is scaffolded but not yet supported." >&2
-    echo "Missing items are tracked in boards/kr260/board.yml." >&2
-    exit 2
-    ;;
-  *)
-    echo "ERROR: unknown board '$BOARD'." >&2
-    echo "Set DAPHNE_BOARD=k26c or provide explicit DAPHNE_FPGA_PART/DAPHNE_BOARD_PART/DAPHNE_PFM_NAME overrides." >&2
-    exit 2
-    ;;
-esac
+. "$PLATFORM_ROOT/scripts/fusesoc/board_env.sh"
+daphne_resolve_board_defaults "$PLATFORM_ROOT" "$BOARD"
 
 if ! command -v vivado >/dev/null 2>&1; then
   echo "ERROR: vivado is not installed or not on PATH." >&2
@@ -150,6 +135,7 @@ export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_FPGA_PART
 export DAPHNE_BOARD_PART
 export DAPHNE_PFM_NAME
+export DAPHNE_CONSTRAINT_FILE
 export DAPHNE_GIT_SHA
 export DAPHNE_OUTPUT_DIR
 if [ -n "${DAPHNE_IP_REPO_ROOT-}" ]; then
@@ -179,6 +165,7 @@ append_env_tcl() {
 append_env_tcl DAPHNE_FPGA_PART
 append_env_tcl DAPHNE_BOARD_PART
 append_env_tcl DAPHNE_PFM_NAME
+append_env_tcl DAPHNE_CONSTRAINT_FILE
 append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_ETH_MODE
 append_env_tcl DAPHNE_GIT_SHA
