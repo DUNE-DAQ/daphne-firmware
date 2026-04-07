@@ -32,6 +32,7 @@ filesets:
     files:
       - scripts/fusesoc/vivado_batch_hook.sh
       - scripts/fusesoc/vivado_composable_ooc_hook.sh
+      - scripts/fusesoc/export_impl_legacy_flow_hook.sh
     file_type: user
   ooc_public_top_rtl:
     depend:
@@ -56,6 +57,7 @@ filesets:
       - petalinux/toolchains/aarch64-petalinux.cmake
       - xilinx/daphne_board_env.tcl
       - xilinx/daphne_bd_gen.tcl
+      - xilinx/daphne_export_flow_handoff.tcl
       - xilinx/daphne_dtbo_gen.tcl
       - xilinx/daphne_ip_gen.tcl
       - xilinx/daphne_selftrigger_pin_map.xdc
@@ -105,6 +107,12 @@ scripts:
       - src/dune-daq_daphne_k26c-composable-platform_0.1.0/scripts/fusesoc/vivado_composable_ooc_hook.sh
     filesets:
       - hooks
+  export_impl_legacy_flow:
+    cmd:
+      - sh
+      - src/dune-daq_daphne_k26c-composable-platform_0.1.0/scripts/fusesoc/export_impl_legacy_flow_hook.sh
+    filesets:
+      - hooks
 
 targets:
   default:
@@ -134,6 +142,9 @@ targets:
     filesets:
       - legacy_flow_support
       - legacy_flow_entry
+    hooks:
+      post_build:
+        - export_impl_legacy_flow
     flow_options:
       part: xck26-sfvc784-2LV-c
       board_part: xilinx.com:k26c:part0:1.4
@@ -145,6 +156,9 @@ targets:
     filesets:
       - legacy_flow_support
       - legacy_flow_entry
+    hooks:
+      post_build:
+        - export_impl_legacy_flow
     flow_options:
       part: xck26-sfvc784-2LV-c
       board_part: xilinx.com:k26c:part0:1.4
