@@ -48,6 +48,24 @@ On this host, the reliable path is the clean build worktree under
 Use manual Windows-tool invocation from WSL with `cmd.exe /c` and `pushd` so
 the WSL UNC path is mapped to a temporary Windows drive.
 
+### Scripted helper
+
+From the clean worktree root, this helper reproduces the stable manual path
+without requiring hand-written Tcl or manual environment setup:
+
+```bash
+cd ~/work/daphne-firmware-build
+./scripts/wsl/run_manual_vivado_pushd.sh all
+```
+
+It resolves the current repo git SHA, writes `xilinx/.manual-preflight.tcl` and
+`xilinx/.manual-build.tcl`, runs the preflight, confirms the generated IP
+artifacts, and then launches the full Vivado batch build through
+`cmd.exe /c "pushd ... && vivado.bat ..."` from a Windows-local working
+directory.
+
+Use `preflight` or `build` as the argument to run only one stage.
+
 ### Manual preflight
 
 From `~/work/daphne-firmware-build/xilinx`, prepare:
