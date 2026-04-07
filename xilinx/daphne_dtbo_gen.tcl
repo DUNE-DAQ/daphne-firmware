@@ -5,6 +5,11 @@
 # Normalize WSL/Windows path strings for XSCT on Windows.
 # In particular, createdts is stricter than hsi::open_hw_design about UNC
 # paths with backslashes, so canonicalize everything to forward-slash form.
+set script_dir [file dirname [file normalize [info script]]]
+set repo_root [file normalize [file join $script_dir ".."]]
+source -notrace [file join $script_dir "daphne_board_env.tcl"]
+set daphne_board_profile [daphne_resolve_board_profile $repo_root]
+
 proc daphne_normalize_path {path_value} {
     return [file normalize [string map {\\ /} $path_value]]
 }
@@ -19,12 +24,14 @@ set out_dir  [daphne_normalize_path [lindex $argv 1]]
 set git_sha [lindex $argv 2]
 set artifact_prefix [lindex $argv 3]
 set overlay_prefix [lindex $argv 4]
+set default_artifact_prefix [expr {[dict exists $daphne_board_profile build_name_prefix] ? [dict get $daphne_board_profile build_name_prefix] : "daphne_selftrigger"}]
+set default_overlay_prefix [expr {[dict exists $daphne_board_profile overlay_name_prefix] ? [dict get $daphne_board_profile overlay_name_prefix] : "${default_artifact_prefix}_ol"}]
 
 if {$artifact_prefix eq ""} {
-    set artifact_prefix "daphne_selftrigger"
+    set artifact_prefix [daphne_get_env_or_default DAPHNE_BUILD_NAME_PREFIX $default_artifact_prefix]
 }
 if {$overlay_prefix eq ""} {
-    set overlay_prefix "${artifact_prefix}_ol"
+    set overlay_prefix [daphne_get_env_or_default DAPHNE_OVERLAY_NAME_PREFIX $default_overlay_prefix]
 }
  
 # Prefer the explicit HW argument. createdts only treats paths starting with
