@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:selftrigger-register-bank:0.1.0
-description: AXI-Lite threshold and self-trigger counter register plane for composable self-trigger paths
+description: AXI-Lite threshold and self-trigger counter register plane extracted from selftrig_core
 provider:
   name: local
 
