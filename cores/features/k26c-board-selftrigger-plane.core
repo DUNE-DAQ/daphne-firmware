@@ -1,0 +1,21 @@
+CAPI=2:
+
+name: dune-daq:daphne:k26c-board-selftrigger-plane:0.1.0
+description: K26C board-owned self-trigger/readout plane composed from the extracted core and output bridges
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:legacy-selftrigger-core-bridge:0.1.0
+      - dune-daq:daphne:legacy-selftrigger-output-bridge:0.1.0
+    files:
+      - rtl/isolated/subsystems/readout/k26c_board_selftrigger_plane.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
