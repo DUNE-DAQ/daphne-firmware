@@ -298,10 +298,7 @@ entity k26c_board_shell is
 end entity k26c_board_shell;
 
 architecture rtl of k26c_board_shell is
-  signal afe_p_array_s           : array_5x9_type;
-  signal afe_n_array_s           : array_5x9_type;
   signal din_full_array          : array_5x9x16_type;
-  signal din_debug_lanes_s       : array_5x8x14_type;
   signal trig                    : std_logic;
   signal timestamp               : std_logic_vector(63 downto 0);
   signal clock                   : std_logic;
@@ -320,62 +317,48 @@ architecture rtl of k26c_board_shell is
   signal din_debug_reg           : std_logic_vector(13 downto 0);
   signal out_buff_trig_s         : std_logic;
 begin
-  afe_p_array_s(0)(8 downto 0) <= afe0_p;
-  afe_p_array_s(1)(8 downto 0) <= afe1_p;
-  afe_p_array_s(2)(8 downto 0) <= afe2_p;
-  afe_p_array_s(3)(8 downto 0) <= afe3_p;
-  afe_p_array_s(4)(8 downto 0) <= afe4_p;
-
-  afe_n_array_s(0)(8 downto 0) <= afe0_n;
-  afe_n_array_s(1)(8 downto 0) <= afe1_n;
-  afe_n_array_s(2)(8 downto 0) <= afe2_n;
-  afe_n_array_s(3)(8 downto 0) <= afe3_n;
-  afe_n_array_s(4)(8 downto 0) <= afe4_n;
-
-  din_debug_reg <= din_debug_lanes_s(1)(0);
-
-  gen_debug_lanes : for a in 4 downto 0 generate
-    gen_debug_channels : for c in 7 downto 0 generate
-      din_debug_lanes_s(a)(c)(13 downto 0) <= din_full_array(a)(c)(15 downto 2);
-    end generate gen_debug_channels;
-  end generate gen_debug_lanes;
-
-  frontend_island_inst : entity work.frontend_island
-    generic map (
-      AFE_COUNT_G => 5
-    )
+  frontend_plane_inst : entity work.k26c_board_frontend_plane
     port map (
-      afe_p         => afe_p_array_s,
-      afe_n         => afe_n_array_s,
-      afe_clk_p     => afe_clk_p,
-      afe_clk_n     => afe_clk_n,
-      clk500        => clk500,
-      clk125        => clk125,
-      clock         => clock,
-      dout          => din_full_array,
-      trig          => trig,
-      trig_IN       => trig_IN,
-      S_AXI_ACLK    => FRONT_END_S_AXI_ACLK,
-      S_AXI_ARESETN => FRONT_END_S_AXI_ARESETN,
-      S_AXI_AWADDR  => FRONT_END_S_AXI_AWADDR,
-      S_AXI_AWPROT  => FRONT_END_S_AXI_AWPROT,
-      S_AXI_AWVALID => FRONT_END_S_AXI_AWVALID,
-      S_AXI_AWREADY => FRONT_END_S_AXI_AWREADY,
-      S_AXI_WDATA   => FRONT_END_S_AXI_WDATA,
-      S_AXI_WSTRB   => FRONT_END_S_AXI_WSTRB,
-      S_AXI_WVALID  => FRONT_END_S_AXI_WVALID,
-      S_AXI_WREADY  => FRONT_END_S_AXI_WREADY,
-      S_AXI_BRESP   => FRONT_END_S_AXI_BRESP,
-      S_AXI_BVALID  => FRONT_END_S_AXI_BVALID,
-      S_AXI_BREADY  => FRONT_END_S_AXI_BREADY,
-      S_AXI_ARADDR  => FRONT_END_S_AXI_ARADDR,
-      S_AXI_ARPROT  => FRONT_END_S_AXI_ARPROT,
-      S_AXI_ARVALID => FRONT_END_S_AXI_ARVALID,
-      S_AXI_ARREADY => FRONT_END_S_AXI_ARREADY,
-      S_AXI_RDATA   => FRONT_END_S_AXI_RDATA,
-      S_AXI_RRESP   => FRONT_END_S_AXI_RRESP,
-      S_AXI_RVALID  => FRONT_END_S_AXI_RVALID,
-      S_AXI_RREADY  => FRONT_END_S_AXI_RREADY
+      afe0_p         => afe0_p,
+      afe0_n         => afe0_n,
+      afe1_p         => afe1_p,
+      afe1_n         => afe1_n,
+      afe2_p         => afe2_p,
+      afe2_n         => afe2_n,
+      afe3_p         => afe3_p,
+      afe3_n         => afe3_n,
+      afe4_p         => afe4_p,
+      afe4_n         => afe4_n,
+      afe_clk_p      => afe_clk_p,
+      afe_clk_n      => afe_clk_n,
+      clock_i        => clock,
+      clk125_i       => clk125,
+      clk500_i       => clk500,
+      trig_in_i      => trig_IN,
+      frontend_dout_o    => din_full_array,
+      frontend_trigger_o => trig,
+      din_debug_o        => din_debug_reg,
+      s_axi_aclk     => FRONT_END_S_AXI_ACLK,
+      s_axi_aresetn  => FRONT_END_S_AXI_ARESETN,
+      s_axi_awaddr   => FRONT_END_S_AXI_AWADDR,
+      s_axi_awprot   => FRONT_END_S_AXI_AWPROT,
+      s_axi_awvalid  => FRONT_END_S_AXI_AWVALID,
+      s_axi_awready  => FRONT_END_S_AXI_AWREADY,
+      s_axi_wdata    => FRONT_END_S_AXI_WDATA,
+      s_axi_wstrb    => FRONT_END_S_AXI_WSTRB,
+      s_axi_wvalid   => FRONT_END_S_AXI_WVALID,
+      s_axi_wready   => FRONT_END_S_AXI_WREADY,
+      s_axi_bresp    => FRONT_END_S_AXI_BRESP,
+      s_axi_bvalid   => FRONT_END_S_AXI_BVALID,
+      s_axi_bready   => FRONT_END_S_AXI_BREADY,
+      s_axi_araddr   => FRONT_END_S_AXI_ARADDR,
+      s_axi_arprot   => FRONT_END_S_AXI_ARPROT,
+      s_axi_arvalid  => FRONT_END_S_AXI_ARVALID,
+      s_axi_arready  => FRONT_END_S_AXI_ARREADY,
+      s_axi_rdata    => FRONT_END_S_AXI_RDATA,
+      s_axi_rresp    => FRONT_END_S_AXI_RRESP,
+      s_axi_rvalid   => FRONT_END_S_AXI_RVALID,
+      s_axi_rready   => FRONT_END_S_AXI_RREADY
     );
 
   spy_capture_bridge_inst : entity work.k26c_board_spy_capture_plane
