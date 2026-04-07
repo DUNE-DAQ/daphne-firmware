@@ -119,6 +119,7 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
       frontend_register_bank.vhd \
       afe_capture_to_trigger_bank.vhd \
       frontend_to_selftrigger_adapter.vhd \
+      legacy_core_readout_bridge.vhd \
       legacy_deimos_readout_bridge.vhd \
       legacy_two_lane_readout_mux.vhd \
       legacy_timing_subsystem_bridge.vhd \

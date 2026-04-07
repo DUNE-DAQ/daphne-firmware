@@ -106,6 +106,7 @@ for support_leaf in \
   legacy_selftrigger_fabric_bridge.vhd \
   afe_capture_to_trigger_bank.vhd \
   frontend_to_selftrigger_adapter.vhd \
+  legacy_core_readout_bridge.vhd \
   legacy_selftrigger_datapath.vhd \
   legacy_two_lane_readout_mux.vhd \
   afe_trigger_bank.vhd \
