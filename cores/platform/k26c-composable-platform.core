@@ -13,7 +13,6 @@ filesets:
       - dune-daq:daphne:daphne-composable:0.1.0
     files:
       - boards/k26c/board.yml
-      - boards/k26c/bd_shell.tcl
       - Memory_Map.md
       - petalinux/README.md
       - petalinux/daphne-server-deps.lock.cmake
@@ -21,12 +20,8 @@ filesets:
       - xilinx/daphne_selftrigger_pin_map.xdc
       - xilinx/afe_capture_timing.xdc
       - xilinx/frontend_control_cdc.xdc
-      - xilinx/daphne_bd_gen.tcl
       - xilinx/daphne_dtbo_gen.tcl
-      - xilinx/daphne_ip_gen.tcl
-      - xilinx/legacy_flow_support_sources.txt
       - xilinx/daphne_vivado_flow.tcl
-      - xilinx/daphne_xgui_gen.tcl
       - xilinx/daphne_board_env.tcl
       - xilinx/vivado_impl_entry.tcl
       - xilinx/scripts/axi_quad_spi_dtbo_patch.sed
