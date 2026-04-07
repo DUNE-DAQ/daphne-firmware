@@ -89,6 +89,21 @@ daphne_default_platform_core() {
   fi
 }
 
+daphne_platform_requires_packaged_ip_preflight() {
+  root_dir="$1"
+  board_name="$2"
+  platform_core="${3:-$(daphne_default_platform_core "$root_dir" "$board_name")}"
+  composable_core="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_platform_core)"
+
+  : "${composable_core:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
+
+  if [ "$platform_core" = "$composable_core" ]; then
+    return 1
+  fi
+
+  return 0
+}
+
 daphne_resolve_board_defaults() {
   root_dir="$1"
   board_name="${2:-${DAPHNE_BOARD:-k26c}}"
