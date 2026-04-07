@@ -20,7 +20,10 @@ create_clock -period 10.000 -name sysclk [ get_ports sysclk_p]
 #create_clock -period 16.000 -name ep_clk62p5 -add [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/ep_clk62p5]
 
 # rename the auto-generated clocks...
-set endpoint_path daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst
+set endpoint_path "daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst"
+if {[info exists ::env(DAPHNE_TIMING_ENDPOINT_PATH)] && [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)] ne ""} {
+    set endpoint_path [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)]
+}
 
 proc daphne_require_single_net {net_name purpose} {
     set resolved_nets [get_nets -quiet $net_name]

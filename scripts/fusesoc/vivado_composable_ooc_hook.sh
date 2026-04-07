@@ -31,6 +31,7 @@ append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_FPGA_PART
 append_env_tcl DAPHNE_BOARD_PART
 append_env_tcl DAPHNE_CONSTRAINT_FILE
+append_env_tcl DAPHNE_TIMING_ENDPOINT_PATH
 append_env_tcl DAPHNE_GIT_SHA
 append_env_tcl DAPHNE_MAX_THREADS
 append_env_tcl DAPHNE_OUTPUT_DIR

@@ -8,6 +8,7 @@ user_ip_vlnv: dune.pds:user:daphne_selftrigger_top:1.0
 bd_name: daphne_selftrigger_bd
 build_name_prefix: daphne_selftrigger
 ip_cell_bind_root: core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst
+timing_endpoint_path: daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst
 notes:
   - Current firmware baseline validated around the Kria K26C SoM flow in the
     imported non-project Vivado tree.
