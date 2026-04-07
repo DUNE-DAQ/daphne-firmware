@@ -10,7 +10,8 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
-      - dune-daq:daphne:legacy-selftrigger-fabric-bridge:0.1.0
+      - dune-daq:daphne:daphne-composable-core-top:0.1.0
+      - dune-daq:daphne:legacy-selftrigger-inputs-bridge:0.1.0
       - dune-daq:daphne:legacy-two-lane-readout-mux:0.1.0
       - dune-daq:daphne:legacy-selftrigger-register-bank:0.1.0
     files:
