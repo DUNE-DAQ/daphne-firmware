@@ -378,7 +378,7 @@ begin
       S_AXI_RREADY  => FRONT_END_S_AXI_RREADY
     );
 
-  spy_capture_bridge_inst : entity work.legacy_spy_capture_bridge
+  spy_capture_bridge_inst : entity work.k26c_board_spy_capture_plane
     port map (
       clock_i             => clock,
       reset_i             => '0',
@@ -411,7 +411,7 @@ begin
       s_axi_rready        => SPY_BUF_S_S_AXI_RREADY
     );
 
-  timing_bridge_inst : entity work.legacy_timing_plane_bridge
+  timing_bridge_inst : entity work.k26c_board_timing_plane
     port map (
       sysclk_p                => sysclk_p,
       sysclk_n                => sysclk_n,
@@ -457,7 +457,7 @@ begin
       s_axi_rready            => END_P_S_AXI_RREADY
     );
 
-  analog_control_plane_inst : entity work.legacy_analog_control_plane_bridge
+  analog_control_plane_inst : entity work.k26c_board_analog_control_plane
     port map (
       fan_tach               => fan_tach,
       fan_ctrl               => fan_ctrl,
