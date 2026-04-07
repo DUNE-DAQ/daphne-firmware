@@ -71,6 +71,7 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
             legacy_deimos_readout_bridge.vhd
             legacy_selftrigger_plane_bridge.vhd
             legacy_two_lane_readout_mux.vhd
+            legacy_spy_capture_bridge.vhd
             legacy_timing_subsystem_bridge.vhd
             self_trigger_xcorr_channel.vhd
             peak_descriptor_channel.vhd
