@@ -205,7 +205,7 @@ begin
   outbuff_s_axi_rresp   <= outbuff_axi_out.RRESP;
   outbuff_s_axi_rvalid  <= outbuff_axi_out.RVALID;
 
-  core_inst: entity work.core
+  legacy_core_readout_bridge_inst : entity work.legacy_core_readout_bridge
     port map(
       link_id                => link_id,
       slot_id                => slot_id,

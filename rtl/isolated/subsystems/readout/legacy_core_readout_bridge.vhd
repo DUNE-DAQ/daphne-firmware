@@ -139,6 +139,9 @@ begin
       ext_port_addr_i => DEFAULT_ext_port_addr_0
     );
 
+  -- Keep the legacy debug trigger meaningful even though the readout data path is
+  -- now split across the extracted selftrigger and Deimos bridges.
+  out_buff_trig <= valid(0) or valid(1);
   out_buff_data <= dout;
   VALID_DEBUG   <= valid;
   LAST_DEBUG    <= last;
