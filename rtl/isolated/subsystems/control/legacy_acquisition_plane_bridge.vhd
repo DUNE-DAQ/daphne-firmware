@@ -15,6 +15,7 @@ entity legacy_acquisition_plane_bridge is
     timing_stat_i             : in  timing_status_t;
     frontend_align_stat_i     : in  frontend_alignment_status_t;
     frontend_dout_i           : in  array_5x9x16_type;
+    frontend_trigger_i        : in  std_logic;
     core_chan_enable_i        : in  std_logic_vector((AFE_COUNT_G * 8) - 1 downto 0);
     afe_comp_enable_i         : in  std_logic_vector((AFE_COUNT_G * 8) - 1 downto 0);
     invert_enable_i           : in  std_logic_vector((AFE_COUNT_G * 8) - 1 downto 0);
@@ -32,7 +33,9 @@ entity legacy_acquisition_plane_bridge is
     rd_en_i                   : in  std_logic_array_t(0 to (AFE_COUNT_G * 8) - 1);
     frontend_prereq_o         : out frontend_prereq_t;
     acquisition_ready_o       : out acquisition_readiness_t;
+    timing_trigger_o          : out std_logic;
     spy_enable_o              : out std_logic;
+    spy_trigger_o             : out std_logic;
     trigger_result_o          : out trigger_xcorr_result_array_t(0 to (AFE_COUNT_G * 8) - 1);
     descriptor_result_o       : out peak_descriptor_result_array_t(0 to (AFE_COUNT_G * 8) - 1);
     record_count_o            : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
@@ -94,12 +97,18 @@ begin
       trigger_samples_o => trigger_samples_s
     );
 
-  spy_boundary_inst : entity work.spy_buffer_boundary
+  spy_trigger_bridge_inst : entity work.legacy_spy_trigger_bridge
     port map (
-      clk          => clock_i,
-      reset        => reset_i,
-      readiness_i  => acquisition_ready_s,
-      spy_enable_o => spy_enable_o
+      clock_i            => clock_i,
+      reset_i            => reset_i,
+      readiness_i        => acquisition_ready_s,
+      frontend_trigger_i => frontend_trigger_i,
+      adhoc_i            => adhoc_i,
+      ti_trigger_i       => ti_trigger_i,
+      ti_trigger_stbr_i  => ti_trigger_stbr_i,
+      timing_trigger_o   => timing_trigger_o,
+      spy_enable_o       => spy_enable_o,
+      spy_trigger_o      => spy_trigger_o
     );
 
   selftrigger_fabric_inst : entity work.selftrigger_fabric
