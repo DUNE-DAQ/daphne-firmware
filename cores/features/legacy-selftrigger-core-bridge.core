@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:legacy-selftrigger-core-bridge:0.1.0
-description: Legacy selftrigger-core compatibility bridge wrapping the extracted fabric, mux, and AXI register ownership
+description: Legacy selftrigger-core compatibility bridge wrapping the composable core shell, mux, and AXI register ownership
 provider:
   name: local
 
