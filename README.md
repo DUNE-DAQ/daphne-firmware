@@ -140,6 +140,17 @@ runs Vivado out-of-context synthesis on the public composable top. It is an
 intermediate milestone: useful to validate the real composable source set in
 Vivado, but not yet a board-ready K26C bitstream.
 
+There is now also a first-class Flow API variant of that checkpoint:
+
+```bash
+./scripts/fusesoc/build_platform.sh --composable --target synth_public_top_flow
+```
+
+That target resolves the same `daphne_composable_top` graph but uses Edalize's
+Vivado flow API instead of the deprecated tool-backend entry. It is still OOC
+Vivado synthesis rather than a board implementation target, but it is the
+first real FuseSoC/flow-owned synth path in the repo.
+
 If Vivado runs on a remote server instead of the local workstation, use the
 repo-local runbook and wrapper:
 
@@ -332,10 +343,14 @@ recorded in `docs/source-audit.md`.
   without Vivado. It also now exposes a transitional `impl_legacy_bridge`
   target so the composable platform can serve as a first-class FuseSoC entry
   point while Vivado still builds the qualified legacy/generated K26C design.
+  It also now exposes `synth_public_top_flow`, the first Flow API Vivado synth
+  target for the public composable top.
 - `scripts/fusesoc/build_platform.sh --composable` now defaults to the safe
   `validate_public_top` target for the composable platform. Use
   `--composable --target impl_legacy_bridge` when you explicitly want the
-  transitional Vivado-backed bridge entry point.
+  transitional Vivado-backed bridge entry point, or
+  `--composable --target synth_public_top_flow` when you want the first
+  Flow-API Vivado synthesis checkpoint for the public composable top.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache
   directories so the workflow does not depend on global user configuration.
 - `scripts/fusesoc/run_logic_test.sh` now exercises the module-level smoke
