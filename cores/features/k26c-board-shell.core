@@ -9,7 +9,7 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:legacy-frontend-plane-bridge:0.1.0
+      - dune-daq:daphne:frontend-island:0.1.0
       - dune-daq:daphne:legacy-spy-capture-bridge:0.1.0
       - dune-daq:daphne:legacy-timing-plane-bridge:0.1.0
       - dune-daq:daphne:legacy-analog-control-plane-bridge:0.1.0
