@@ -35,6 +35,8 @@ append_env_tcl DAPHNE_CONSTRAINT_FILES
 append_env_tcl DAPHNE_TIMING_ENDPOINT_PATH
 append_env_tcl DAPHNE_PUBLIC_TOP_HDL_FILE
 append_env_tcl DAPHNE_PUBLIC_TOP_MODULE
+append_env_tcl DAPHNE_IP_TOP_HDL_FILE
+append_env_tcl DAPHNE_IP_TOP_MODULE
 append_env_tcl DAPHNE_GIT_SHA
 append_env_tcl DAPHNE_MAX_THREADS
 append_env_tcl DAPHNE_OUTPUT_DIR
