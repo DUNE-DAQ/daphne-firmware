@@ -20,6 +20,7 @@ filesets:
       - petalinux/toolchains/aarch64-petalinux.cmake
       - xilinx/daphne_selftrigger_pin_map.xdc
       - xilinx/afe_capture_timing.xdc
+      - xilinx/frontend_control_cdc.xdc
       - xilinx/daphne_bd_gen.tcl
       - xilinx/daphne_dtbo_gen.tcl
       - xilinx/daphne_ip_gen.tcl
@@ -74,6 +75,7 @@ filesets:
       - boards/k26c/board.yml
       - xilinx/daphne_selftrigger_pin_map.xdc
       - xilinx/afe_capture_timing.xdc
+      - xilinx/frontend_control_cdc.xdc
     file_type: user
   validate_rtl:
     depend:

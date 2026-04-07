@@ -19,6 +19,7 @@ filesets:
       - rtl/isolated/subsystems/analog/afe_config_slice.vhd
       - rtl/isolated/subsystems/analog/afe_config_slice_boundary.vhd
       - rtl/isolated/subsystems/analog/analog_control_boundary.vhd
+      - rtl/isolated/subsystems/analog/k26c_board_analog_control_plane.vhd
       - rtl/isolated/subsystems/analog/legacy_afe_dac_io_bridge.vhd
       - rtl/isolated/subsystems/analog/legacy_analog_control_plane_bridge.vhd
       - rtl/isolated/subsystems/control/control_plane_boundary.vhd
@@ -41,14 +42,17 @@ filesets:
       - rtl/isolated/subsystems/frontend/frontend_register_slice.vhd
       - rtl/isolated/subsystems/frontend/legacy_frontend_plane_bridge.vhd
       - rtl/isolated/subsystems/hermes/hermes_boundary.vhd
+      - rtl/isolated/subsystems/readout/k26c_board_selftrigger_plane.vhd
       - rtl/isolated/subsystems/readout/legacy_core_readout_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_deimos_readout_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_selftrigger_core_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_selftrigger_output_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_two_lane_readout_mux.vhd
+      - rtl/isolated/subsystems/spy/k26c_board_spy_capture_plane.vhd
       - rtl/isolated/subsystems/spy/legacy_spy_capture_bridge.vhd
       - rtl/isolated/subsystems/spy/spy_buffer_boundary.vhd
+      - rtl/isolated/subsystems/timing/k26c_board_timing_plane.vhd
       - rtl/isolated/subsystems/timing/legacy_timing_plane_bridge.vhd
       - rtl/isolated/subsystems/timing/legacy_timing_subsystem_bridge.vhd
       - rtl/isolated/subsystems/timing/timing_endpoint_contract.vhd
