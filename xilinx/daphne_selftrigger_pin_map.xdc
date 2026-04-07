@@ -50,6 +50,14 @@ create_generated_clock -name clk500_1        -master_clock local_clk62p5 [get_ne
 
 create_generated_clock -name clk125_1        -master_clock local_clk62p5 [get_nets daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst/clk125]
 
+# One image can expose either endpoint-driven or local-clock-driven AFE capture
+# clocks, but not both simultaneously. Model them as physically exclusive so
+# Vivado does not invent timing relationships between the alternate source
+# families.
+set_clock_groups -physically_exclusive \
+  -group {ep_clk62p5 clk500 clk125} \
+  -group {local_clk62p5 clk500_1 clk125_1}
+
 #create_generated_clock -name clock -master_clock [get_clocks local_clk62p5] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1]
 #create_generated_clock -name mmcm1_clkfbout1 -master_clock [get_clocks local_clk62p5] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkfbout]
 #create_generated_clock -name clk125_1        -master_clock clk500_1   [get_nets  {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout0}]
