@@ -49,6 +49,7 @@ filesets:
       - ip_repo/daphne_ip/rtl/config/stuff.vhd
       - ip_repo/daphne_ip/rtl/dac/spim_dac.vhd
       - ip_repo/daphne_ip/rtl/daphne_package.vhd
+      - ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd
       - ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
       - ip_repo/daphne_ip/rtl/frontend/febit3.vhd
       - ip_repo/daphne_ip/rtl/frontend/front_end.vhd
@@ -111,7 +112,7 @@ filesets:
     file_type: user
   rtl_top_export:
     files:
-      - ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd
+      - rtl/isolated/tops/legacy_public_top_bridge.vhd
     file_type: user
   daq_vhdl_93_export:
     files:
