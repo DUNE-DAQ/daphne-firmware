@@ -62,6 +62,23 @@ def load_manifest_lines(path: Path) -> list[str]:
     return entries
 
 
+def expand_manifest_vhdl_entries(entries: list[str]) -> list[str]:
+    expanded: list[str] = []
+    for entry in entries:
+        resolved = ROOT / entry
+        if resolved.is_dir():
+            expanded.extend(
+                path
+                for path in sorted_relative_files(resolved, "*.vhd")
+                if "/validate/" not in path and not path.endswith("_validate_stub.vhd")
+            )
+        elif resolved.is_file():
+            expanded.append(entry)
+        else:
+            raise RuntimeError(f"Missing legacy support entry: {resolved}")
+    return sorted(set(expanded))
+
+
 def load_manifest_scalar(path: Path, key: str) -> str | None:
     if not path.exists():
         return None
@@ -128,7 +145,7 @@ def emit_core(
 
 def main() -> None:
     tcl_text = TCL_PATH.read_text()
-    extra_rtl_vhdl = load_manifest_lines(LEGACY_FLOW_SUPPORT_PATH)
+    extra_rtl_vhdl = expand_manifest_vhdl_entries(load_manifest_lines(LEGACY_FLOW_SUPPORT_PATH))
 
     board_top_hdl = load_manifest_scalar(DEFAULT_BOARD_MANIFEST, "ip_top_hdl_file")
     if not board_top_hdl:

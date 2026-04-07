@@ -12,27 +12,35 @@ filesets:
       - rtl/isolated/common/primitives/configurable_delay_line.vhd
       - rtl/isolated/common/primitives/fixed_delay_line.vhd
       - rtl/isolated/common/primitives/sync_fifo_fwft.vhd
-      - rtl/isolated/subsystems/analog/legacy_afe_dac_io_bridge.vhd
-      - rtl/isolated/subsystems/analog/legacy_analog_control_plane_bridge.vhd
+      - rtl/isolated/subsystems/afe/afe_subsystem_fabric.vhd
+      - rtl/isolated/subsystems/afe/afe_subsystem_island.vhd
+      - rtl/isolated/subsystems/analog/afe_analog_island.vhd
+      - rtl/isolated/subsystems/analog/afe_config_bank.vhd
       - rtl/isolated/subsystems/analog/afe_config_slice.vhd
       - rtl/isolated/subsystems/analog/afe_config_slice_boundary.vhd
-      - rtl/isolated/subsystems/analog/afe_analog_island.vhd
+      - rtl/isolated/subsystems/analog/analog_control_boundary.vhd
+      - rtl/isolated/subsystems/analog/legacy_afe_dac_io_bridge.vhd
+      - rtl/isolated/subsystems/analog/legacy_analog_control_plane_bridge.vhd
+      - rtl/isolated/subsystems/control/control_plane_boundary.vhd
+      - rtl/isolated/subsystems/control/legacy_acquisition_plane_bridge.vhd
       - rtl/isolated/subsystems/control/legacy_board_control_bridge.vhd
+      - rtl/isolated/subsystems/control/legacy_control_plane_bridge.vhd
+      - rtl/isolated/subsystems/control/legacy_selftrigger_fabric_bridge.vhd
+      - rtl/isolated/subsystems/control/legacy_selftrigger_inputs_bridge.vhd
       - rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd
+      - rtl/isolated/subsystems/control/legacy_spy_trigger_bridge.vhd
       - rtl/isolated/subsystems/control/legacy_stuff_selftrigger_register_bank.vhd
       - rtl/isolated/subsystems/control/legacy_trigger_control_adapter.vhd
-      - rtl/isolated/subsystems/control/legacy_selftrigger_inputs_bridge.vhd
-      - rtl/isolated/subsystems/afe/afe_subsystem_island.vhd
-      - rtl/isolated/subsystems/afe/afe_subsystem_fabric.vhd
-      - rtl/isolated/subsystems/frontend/frontend_common.vhd
       - rtl/isolated/subsystems/frontend/afe_capture_slice.vhd
+      - rtl/isolated/subsystems/frontend/afe_capture_slice_boundary.vhd
+      - rtl/isolated/subsystems/frontend/frontend_boundary.vhd
       - rtl/isolated/subsystems/frontend/frontend_capture_bank.vhd
-      - rtl/isolated/subsystems/frontend/frontend_register_slice.vhd
-      - rtl/isolated/subsystems/frontend/frontend_register_bank.vhd
+      - rtl/isolated/subsystems/frontend/frontend_common.vhd
       - rtl/isolated/subsystems/frontend/frontend_island.vhd
+      - rtl/isolated/subsystems/frontend/frontend_register_bank.vhd
+      - rtl/isolated/subsystems/frontend/frontend_register_slice.vhd
       - rtl/isolated/subsystems/frontend/legacy_frontend_plane_bridge.vhd
-      - rtl/isolated/subsystems/trigger/afe_capture_to_trigger_bank.vhd
-      - rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd
+      - rtl/isolated/subsystems/hermes/hermes_boundary.vhd
       - rtl/isolated/subsystems/readout/legacy_core_readout_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_deimos_readout_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_selftrigger_core_bridge.vhd
@@ -40,18 +48,25 @@ filesets:
       - rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_two_lane_readout_mux.vhd
       - rtl/isolated/subsystems/spy/legacy_spy_capture_bridge.vhd
-      - rtl/isolated/subsystems/hermes/hermes_boundary.vhd
+      - rtl/isolated/subsystems/spy/spy_buffer_boundary.vhd
       - rtl/isolated/subsystems/timing/legacy_timing_plane_bridge.vhd
       - rtl/isolated/subsystems/timing/legacy_timing_subsystem_bridge.vhd
+      - rtl/isolated/subsystems/timing/timing_endpoint_contract.vhd
       - rtl/isolated/subsystems/timing/timing_subsystem_boundary.vhd
-      - rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd
-      - rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd
-      - rtl/isolated/subsystems/trigger/afe_trigger_bank.vhd
-      - rtl/isolated/subsystems/trigger/legacy_selftrigger_datapath.vhd
+      - rtl/isolated/subsystems/trigger/afe_capture_to_trigger_bank.vhd
       - rtl/isolated/subsystems/trigger/afe_selftrigger_island.vhd
+      - rtl/isolated/subsystems/trigger/afe_trigger_bank.vhd
+      - rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd
+      - rtl/isolated/subsystems/trigger/legacy_selftrigger_datapath.vhd
+      - rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd
+      - rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd
       - rtl/isolated/subsystems/trigger/selftrigger_fabric.vhd
       - rtl/isolated/subsystems/trigger/stc3_record_builder.vhd
+      - rtl/isolated/subsystems/trigger/trigger_pipeline_boundary.vhd
       - rtl/isolated/tops/daphne_composable_core_top.vhd
+      - rtl/isolated/tops/daphne_composable_frontend_shell.vhd
+      - rtl/isolated/tops/daphne_composable_top.vhd
+      - rtl/isolated/tops/legacy_public_top_bridge.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_afe.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_dac2.vhd
