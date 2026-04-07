@@ -20,6 +20,9 @@ filesets:
     files:
       - tests/logic/legacy_acquisition_plane_bridge_smoke_tb.vhd
     file_type: vhdlSource
+  sim_support:
+    depend:
+      - dune-daq:daphne:selftrigger-xcorr-validate-stubs:0.1.0
 
 targets:
   default: &default_target
@@ -30,6 +33,7 @@ targets:
     description: GHDL smoke test for the legacy acquisition bridge
     default_tool: ghdl
     filesets_append:
+      - sim_support
       - tb_smoke
     toplevel: legacy_acquisition_plane_bridge_smoke_tb
     tools:

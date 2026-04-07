@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.env.all;
 
 use work.daphne_package.all;
 use work.daphne_subsystem_pkg.all;
@@ -89,6 +90,7 @@ begin
     reset_s <= '0';
     wait for 160 ns;
     assert true report "legacy selftrigger fabric bridge smoke completed" severity note;
+    stop;
     wait;
   end process;
 end architecture tb;
