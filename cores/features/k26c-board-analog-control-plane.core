@@ -1,15 +1,16 @@
 CAPI=2:
 
 name: dune-daq:daphne:k26c-board-analog-control-plane:0.1.0
-description: K26C board-owned analog control plane built from the extracted board-control and AFE/DAC IO seams
+description: K26C board-owned analog control plane built directly on the imported board-control and AFE/DAC interfaces
 provider:
   name: local
 
 filesets:
   rtl:
     depend:
-      - dune-daq:daphne:legacy-afe-dac-io-bridge:0.1.0
-      - dune-daq:daphne:legacy-board-control-bridge:0.1.0
+      - dune-daq:daphne:afe-interface:0.1.0
+      - dune-daq:daphne:config-control:0.1.0
+      - dune-daq:daphne:dac-interface:0.1.0
     files:
       - rtl/isolated/subsystems/analog/k26c_board_analog_control_plane.vhd
     file_type: vhdlSource
