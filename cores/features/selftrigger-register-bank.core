@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:selftrigger-register-bank:0.1.0
+description: AXI-Lite threshold and self-trigger counter register plane for composable self-trigger paths
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - rtl/isolated/subsystems/control/selftrigger_register_bank.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
