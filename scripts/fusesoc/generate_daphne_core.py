@@ -24,6 +24,7 @@ EXTRA_RTL_VHDL = [
     "rtl/isolated/subsystems/frontend/frontend_register_slice.vhd",
     "rtl/isolated/subsystems/frontend/frontend_register_bank.vhd",
     "rtl/isolated/subsystems/frontend/frontend_island.vhd",
+    "rtl/isolated/subsystems/readout/legacy_deimos_readout_bridge.vhd",
     "rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd",
     "rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd",
     "rtl/isolated/subsystems/trigger/legacy_selftrigger_datapath.vhd",

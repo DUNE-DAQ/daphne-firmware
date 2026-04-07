@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:legacy-deimos-readout-bridge:0.1.0
+description: Extracted legacy 10G self-trigger readout bridge wrapping the existing daphne_top transport block
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+    files:
+      - rtl/isolated/subsystems/readout/legacy_deimos_readout_bridge.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
