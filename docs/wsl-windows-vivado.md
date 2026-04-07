@@ -74,14 +74,7 @@ export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
 before calling `run_wsl_vivado_chain.sh`. That now drives the native packaged
-board-shell `impl` target by default. If older automation still exports:
-
-```bash
-export DAPHNE_PLATFORM_TARGET=impl_legacy_flow
-```
-
-that now aliases the same native `impl` path. The repo still exports a
-legacy-style
+board-shell `impl` target by default. The repo still exports a legacy-style
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/` before running the usual DTBO packaging step.
 
