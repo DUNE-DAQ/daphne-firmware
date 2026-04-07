@@ -76,6 +76,11 @@ export DAPHNE_PLATFORM_TARGET=impl_legacy_flow
 
 before calling `run_wsl_vivado_chain.sh`.
 
+In that mode, the wrapper skips the standalone legacy preflight and skips the
+legacy DTBO bundle step. The Flow API target performs the BD/IP preflight
+inside the Vivado project, and outputs stay in the FuseSoC build tree rather
+than the legacy `xilinx/output-*` directory.
+
 ## Output directory rule
 
 When Windows Vivado is launched from WSL, keep `DAPHNE_OUTPUT_DIR` unset or set
