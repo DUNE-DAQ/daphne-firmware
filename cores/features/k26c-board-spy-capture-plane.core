@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:k26c-board-spy-capture-plane:0.1.0
-description: K26C board-owned spy-capture plane built from the extracted spy-trigger seam and live spy buffer
+description: K26C board-owned spy-capture plane built directly on the spy-buffer boundary and live spy buffer
 provider:
   name: local
 
@@ -9,9 +9,9 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:legacy-spy-trigger-bridge:0.1.0
-      - dune-daq:daphne:spy-buffer:0.1.0
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:spy-buffer-boundary:0.1.0
+      - dune-daq:daphne:spy-buffer:0.1.0
     files:
       - rtl/isolated/subsystems/spy/k26c_board_spy_capture_plane.vhd
     file_type: vhdlSource

@@ -40,22 +40,41 @@ entity k26c_board_spy_capture_plane is
 end entity k26c_board_spy_capture_plane;
 
 architecture rtl of k26c_board_spy_capture_plane is
-  signal spy_trigger_s : std_logic;
-  signal readiness_s   : acquisition_readiness_t :=
+  signal spy_trigger_s    : std_logic;
+  signal ti_trigger_en_s  : std_logic;
+  signal ti_trigger_en0_s : std_logic := '0';
+  signal ti_trigger_en1_s : std_logic := '0';
+  signal ti_trigger_en2_s : std_logic := '0';
+  signal timing_trigger_s : std_logic;
+  signal readiness_s      : acquisition_readiness_t :=
     (config_ready => '1', timing_ready => '1', alignment_ready => '1');
 begin
-  spy_trigger_bridge_inst : entity work.legacy_spy_trigger_bridge
+  ti_trigger_en_s <= '1' when (ti_trigger_i = adhoc_i and ti_trigger_stbr_i = '1') else '0';
+
+  trigger_sync_proc : process (clock_i)
+  begin
+    if rising_edge(clock_i) then
+      if reset_i = '1' then
+        ti_trigger_en0_s <= '0';
+        ti_trigger_en1_s <= '0';
+        ti_trigger_en2_s <= '0';
+      else
+        ti_trigger_en0_s <= ti_trigger_en_s;
+        ti_trigger_en1_s <= ti_trigger_en0_s;
+        ti_trigger_en2_s <= ti_trigger_en1_s;
+      end if;
+    end if;
+  end process trigger_sync_proc;
+
+  timing_trigger_s <= ti_trigger_en0_s or ti_trigger_en1_s or ti_trigger_en2_s;
+  spy_trigger_s    <= frontend_trigger_i or timing_trigger_s;
+
+  spy_boundary_inst : entity work.spy_buffer_boundary
     port map (
-      clock_i            => clock_i,
-      reset_i            => reset_i,
-      readiness_i        => readiness_s,
-      frontend_trigger_i => frontend_trigger_i,
-      adhoc_i            => adhoc_i,
-      ti_trigger_i       => ti_trigger_i,
-      ti_trigger_stbr_i  => ti_trigger_stbr_i,
-      timing_trigger_o   => open,
-      spy_enable_o       => open,
-      spy_trigger_o      => spy_trigger_s
+      clk          => clock_i,
+      reset        => reset_i,
+      readiness_i  => readiness_s,
+      spy_enable_o => open
     );
 
   spybuffers_inst : entity work.spybuffers
