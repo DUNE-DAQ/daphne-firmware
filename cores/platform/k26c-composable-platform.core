@@ -18,6 +18,7 @@ filesets:
       - petalinux/daphne-server-deps.lock.cmake
       - petalinux/toolchains/aarch64-petalinux.cmake
       - xilinx/daphne_selftrigger_pin_map.xdc
+      - xilinx/afe_capture_timing.xdc
       - xilinx/daphne_bd_gen.tcl
       - xilinx/daphne_dtbo_gen.tcl
       - xilinx/daphne_ip_gen.tcl
@@ -69,6 +70,7 @@ filesets:
       - xilinx/daphne_ip_gen.tcl
       - xilinx/legacy_flow_support_sources.txt
       - xilinx/daphne_selftrigger_pin_map.xdc
+      - xilinx/afe_capture_timing.xdc
       - xilinx/daphne_vivado_flow.tcl
       - xilinx/daphne_xgui_gen.tcl
       - xilinx/scripts/axi_quad_spi_dtbo_patch.sed

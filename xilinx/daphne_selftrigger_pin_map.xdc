@@ -20,6 +20,12 @@ create_clock -period 10.000 -name sysclk [ get_ports sysclk_p]
 #create_clock -period 16.000 -name ep_clk62p5 -add [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/ep_clk62p5]
 
 # rename the auto-generated clocks...
+set daphne_use_split_afe_capture_timing 0
+if {[info exists ::env(DAPHNE_CONSTRAINT_FILES)] && [string match "*afe_capture_timing.xdc*" [string trim $::env(DAPHNE_CONSTRAINT_FILES)]]} {
+    set daphne_use_split_afe_capture_timing 1
+}
+
+if {!$daphne_use_split_afe_capture_timing} {
 set endpoint_path "daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst"
 if {[info exists ::env(DAPHNE_TIMING_ENDPOINT_PATH)] && [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)] ne ""} {
     set endpoint_path [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)]
@@ -107,6 +113,7 @@ daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm0_clkout2}
 daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm0_clkout1}
 
 daphne_set_async_clock_groups_if_present {clk_pl_2} {sysclk}
+}
 
 #set_clock_groups -name async_groups -asynchronous -group {sysclk100 clk100 mmcm0_clkfbout} -group {sb_axi_clk fe_axi_clk ep_axi_clk} -group local_clk62p5 -group {clk500_0 clock_0 clk125_0 mmcm1_clkfbout0} -group {clk500_1 clock_1 clk125_1 mmcm1_clkfbout1} -group {ep_clk62p5 ep_clk4x ep_clk2x ep_clkfbout} -group rx_tmg_clk
 

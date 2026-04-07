@@ -67,6 +67,7 @@ daphne_resolve_board_defaults() {
   board_part="$(daphne_board_manifest_value "$root_dir" "$board_name" board_part)"
   pfm_name="$(daphne_board_manifest_value "$root_dir" "$board_name" pfm_name)"
   constraint_file="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_file)"
+  constraint_files="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_files)"
   user_ip_vlnv="$(daphne_board_manifest_value "$root_dir" "$board_name" user_ip_vlnv)"
   bd_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_name)"
   bd_wrapper_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_wrapper_name)"
@@ -94,10 +95,15 @@ daphne_resolve_board_defaults() {
     exit 2
   fi
 
+  if [ -z "$constraint_files" ]; then
+    constraint_files="$constraint_file"
+  fi
+
   : "${DAPHNE_FPGA_PART:=$fpga_part}"
   : "${DAPHNE_BOARD_PART:=$board_part}"
   : "${DAPHNE_PFM_NAME:=$pfm_name}"
   : "${DAPHNE_CONSTRAINT_FILE:=$constraint_file}"
+  : "${DAPHNE_CONSTRAINT_FILES:=$constraint_files}"
   if [ -n "$user_ip_vlnv" ]; then
     : "${DAPHNE_USER_IP_VLNV:=$user_ip_vlnv}"
   fi
@@ -144,6 +150,7 @@ daphne_resolve_board_defaults() {
   export DAPHNE_BOARD_PART
   export DAPHNE_PFM_NAME
   export DAPHNE_CONSTRAINT_FILE
+  export DAPHNE_CONSTRAINT_FILES
   if [ -n "${DAPHNE_USER_IP_VLNV-}" ]; then
     export DAPHNE_USER_IP_VLNV
   fi

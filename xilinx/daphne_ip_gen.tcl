@@ -10,7 +10,15 @@ set daphne_ip_root [file normalize [daphne_get_env_or_default DAPHNE_IP_REPO_ROO
 set daphne_board_profile [daphne_resolve_board_profile $repo_root]
 set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART [dict get $daphne_board_profile fpga_part]]
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART [dict get $daphne_board_profile board_part]]
-set daphne_constraint_file [daphne_resolve_repo_relative_path $repo_root [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILE [dict get $daphne_board_profile constraint_file]]]
+set daphne_constraint_files_raw [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILES [expr {[dict exists $daphne_board_profile constraint_files] ? [dict get $daphne_board_profile constraint_files] : [dict get $daphne_board_profile constraint_file]}]]
+set daphne_constraint_files {}
+foreach daphne_constraint_path [split $daphne_constraint_files_raw ";"] {
+    set daphne_constraint_path [string trim $daphne_constraint_path]
+    if {$daphne_constraint_path ne ""} {
+        lappend daphne_constraint_files [daphne_resolve_repo_relative_path $repo_root $daphne_constraint_path]
+    }
+}
+set daphne_constraint_file [lindex $daphne_constraint_files 0]
 set daphne_eth_mode [daphne_get_env_or_default DAPHNE_ETH_MODE "vendored_hdl"]
 set daphne_ip_top_hdl_default [expr {[dict exists $daphne_board_profile ip_top_hdl_file] ? [daphne_resolve_repo_relative_path $repo_root [dict get $daphne_board_profile ip_top_hdl_file]] : [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"]}]
 set daphne_ip_top_hdl_file [file normalize [daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE $daphne_ip_top_hdl_default]]
@@ -410,7 +418,11 @@ set wibTypeExceptionList {
 }
 
 set constraintsFiles_aux [get_files_recursive $constDir "*.xdc"]
-set constraintsFiles [ignore_files $constraintsFiles_aux [file tail $daphne_constraint_file]]
+set ignoredConstraintFiles {}
+foreach boardConstraintFile $daphne_constraint_files {
+    lappend ignoredConstraintFiles [file tail $boardConstraintFile]
+}
+set constraintsFiles [ignore_files $constraintsFiles_aux $ignoredConstraintFiles]
 set constraintsDAQFiles [get_files_recursive $constDAQDir "*.tcl"]
 
 set tclFiles [get_files_recursive $tclConstDir "*.tcl"]

@@ -19,6 +19,7 @@ export DAPHNE_FPGA_PART
 export DAPHNE_BOARD_PART
 export DAPHNE_PFM_NAME
 export DAPHNE_CONSTRAINT_FILE
+export DAPHNE_CONSTRAINT_FILES
 export DAPHNE_PLATFORM_CORE
 
 if [ -z "${DAPHNE_GIT_SHA-}" ] && command -v git >/dev/null 2>&1; then

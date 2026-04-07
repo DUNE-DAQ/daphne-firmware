@@ -93,8 +93,9 @@ The timing side is still weaker than it should be:
    - receive/generated clocks for the frontend path
    - source-synchronous relationships around `clock`, `clk500`, and `clk125`
    - the real async boundaries only
-   - the repo now carries `xilinx/afe_capture_timing_scaffold.xdc` as a
-     non-active split point for that work
+   - the repo now carries `xilinx/afe_capture_timing_scaffold.xdc` as the
+     design note and `xilinx/afe_capture_timing.xdc` as the active split
+     constraint file wired through the board manifest
    - active hierarchy roots such as the timing endpoint path should come from
      the board manifest/build defaults instead of being hardcoded inside the
      XDC
