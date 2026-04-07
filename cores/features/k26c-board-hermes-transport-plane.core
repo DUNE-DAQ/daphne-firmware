@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:k26c-board-hermes-transport-plane:0.1.0
+description: Board-local Hermes ethernet transport plane
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:hermes-transport:0.1.0
+    files:
+      - rtl/isolated/subsystems/readout/k26c_board_hermes_transport_plane.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

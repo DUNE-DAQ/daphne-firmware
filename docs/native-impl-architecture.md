@@ -56,12 +56,14 @@ flowchart TD
   FE --> FI[frontend-island]
   ST --> STD[k26c-selftrigger-datapath-plane]
   ST --> STE[k26c-board-transport-plane]
+  STE --> HER[k26c-board-hermes-transport-plane]
+  STE --> OBT[k26c-board-outbuffer-plane]
   STD --> CT[trigger-control-adapter]
   STD --> RB[selftrigger-register-bank]
   STD --> MX[two-lane-readout-mux]
   STD --> DP[daphne_composable_core_top]
-  STE --> HT[daphne_top / Hermes transport]
-  STE --> SB[outspybuff]
+  HER --> HT[daphne_top / Hermes transport]
+  OBT --> SB[outspybuff]
   AN --> CC[config-control]
   CC --> SRB[stuff-selftrigger-register-bank]
 ```
@@ -77,6 +79,8 @@ This is the important current milestone:
   plus the live `spybuffers`
 - `k26c_board_selftrigger_plane` now instantiates only explicit datapath and
   transport subplanes
+- `k26c_board_transport_plane` now instantiates only explicit Hermes and
+  outbuffer subplanes
 - `k26c_board_timing_plane` still instantiates only the imported `endpoint`
 - the active `impl` graph stages with zero `legacy-*` core names
 - the board timing-path defaults now cover both the native board-shell
@@ -115,6 +119,10 @@ That script:
 - checks that `k26c-board-selftrigger-plane.core` depends only on the explicit
   datapath and transport subplanes
 - checks that `k26c_board_selftrigger_plane.vhd` instantiates only those
+  subplanes
+- checks that `k26c-board-transport-plane.core` depends only on the explicit
+  Hermes and outbuffer subplanes
+- checks that `k26c_board_transport_plane.vhd` instantiates only those
   subplanes
 - checks that `k26c-board-timing-plane.core` depends only on the imported
   `timing-endpoint`

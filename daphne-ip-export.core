@@ -45,6 +45,8 @@ filesets:
       - rtl/isolated/subsystems/frontend/k26c_board_frontend_plane.vhd
       - rtl/isolated/subsystems/frontend/legacy_frontend_plane_bridge.vhd
       - rtl/isolated/subsystems/hermes/hermes_boundary.vhd
+      - rtl/isolated/subsystems/readout/k26c_board_hermes_transport_plane.vhd
+      - rtl/isolated/subsystems/readout/k26c_board_outbuffer_plane.vhd
       - rtl/isolated/subsystems/readout/k26c_board_selftrigger_plane.vhd
       - rtl/isolated/subsystems/readout/k26c_board_transport_plane.vhd
       - rtl/isolated/subsystems/readout/k26c_selftrigger_datapath_plane.vhd

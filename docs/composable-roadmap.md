@@ -58,6 +58,9 @@ The repo has now crossed the main structural integration threshold:
 - the board timing-path defaults now explicitly cover both native board-shell
   and packaged-IP/BD hierarchy roots, so the active AFE timing XDC no longer
   depends on one stale hierarchy assumption
+- the board transport plane is now split into explicit Hermes and outbuffer
+  subplanes, so the self-trigger/readout path is no longer carrying that
+  compatibility bundle as one block
 - the board manifest now owns the optional AFE input-delay model, so the
   active AFE timing XDC can stay generic while measured board-family bounds
   remain data rather than Tcl/script constants
