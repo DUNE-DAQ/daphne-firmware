@@ -123,6 +123,18 @@ The IP packaging Tcl also now accepts top-identity overrides
 scaffolding step only: source discovery is still centered on the imported
 legacy tree until the composable implementation becomes the real build owner.
 
+There is now also a FuseSoC-owned composable synth checkpoint that does not go
+through the legacy block design:
+
+```bash
+./scripts/fusesoc/build_platform.sh --composable --target synth_public_top_ooc
+```
+
+That target stages the `daphne_composable_top` source graph through FuseSoC and
+runs Vivado out-of-context synthesis on the public composable top. It is an
+intermediate milestone: useful to validate the real composable source set in
+Vivado, but not yet a board-ready K26C bitstream.
+
 If Vivado runs on a remote server instead of the local workstation, use the
 repo-local runbook and wrapper:
 
@@ -143,6 +155,19 @@ If you are in WSL2 and Vivado/Vitis 2024.1 are installed on Windows, use:
 - Vivado preflight
 - synth/implementation
 - DT overlay packaging
+
+On the known-problem WSL host where wrapper behavior is still under repair, the
+explicit fallback remains:
+
+```bash
+./scripts/wsl/run_manual_vivado_pushd.sh all
+```
+
+then, if needed:
+
+```bash
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
+```
 
 For WSL-driven Windows Vivado runs, keep `DAPHNE_OUTPUT_DIR` unset or set it to
 something relative to the staged `xilinx/` directory in the active FuseSoC

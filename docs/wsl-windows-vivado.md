@@ -64,7 +64,8 @@ This performs:
 
 and stores logs under `build/wsl-vivado/<timestamp>/`.
 
-This is the intended single-command path for WSL-driven Windows builds.
+This is the intended repo-default single-command path for WSL-driven Windows
+builds.
 
 ## Output directory rule
 
@@ -173,5 +174,18 @@ If you still see stale local state, re-run:
 ./scripts/wsl/check_windows_xilinx.sh
 ```
 
-If that still fails on a specific host, the manual `pushd \\wsl.localhost\...`
-commands in `docs/wsl-agent-summary.md` remain the reference fallback.
+If that still fails on a specific host, the manual fallback remains:
+
+```bash
+./scripts/wsl/run_manual_vivado_pushd.sh all
+```
+
+then, if needed:
+
+```bash
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
+```
+
+Also note that `run_wsl_vivado_chain.sh` now runs under `bash` with
+`pipefail`, so failed preflight/build/package stages are no longer hidden by
+their `tee` logging pipeline.
