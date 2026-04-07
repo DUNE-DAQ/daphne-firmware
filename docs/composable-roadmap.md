@@ -88,7 +88,8 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      the end state.
    - The shared Vivado flow now accepts `DAPHNE_BD_NAME` /
      `DAPHNE_BD_WRAPPER_NAME`, plus build/overlay naming overrides
-     `DAPHNE_BUILD_NAME_PREFIX` / `DAPHNE_OVERLAY_NAME_PREFIX`, and the BD
+     `DAPHNE_BUILD_NAME_PREFIX` / `DAPHNE_OVERLAY_NAME_PREFIX`, plus
+     `DAPHNE_USER_IP_VLNV` for the packaged user-IP identity, and the BD
      generator now removes only the active design directory. That is enough to
      let future composable design identities coexist alongside the legacy
      `daphne_selftrigger_bd` while the migration is still hybrid.

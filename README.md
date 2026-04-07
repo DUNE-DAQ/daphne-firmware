@@ -111,10 +111,11 @@ transitional bridge target:
 That bridge still builds the qualified legacy K26C design, but the Vivado hook
 and block-design flow now honor `DAPHNE_BD_NAME` / `DAPHNE_BD_WRAPPER_NAME`
  overrides, plus `DAPHNE_BUILD_NAME_PREFIX` /
- `DAPHNE_OVERLAY_NAME_PREFIX` for artifact naming, and only clear the active
- block-design directory instead of deleting the entire `bd/` tree. This keeps
- the migration path open for side-by-side legacy and future composable design
- identities.
+ `DAPHNE_OVERLAY_NAME_PREFIX` for artifact naming, and `DAPHNE_USER_IP_VLNV`
+ for the packaged user-IP identity. The BD generator also now clears only the
+ active block-design directory instead of deleting the entire `bd/` tree. This
+ keeps the migration path open for side-by-side legacy and future composable
+ design identities.
 
 The IP packaging Tcl also now accepts top-identity overrides
 (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,
