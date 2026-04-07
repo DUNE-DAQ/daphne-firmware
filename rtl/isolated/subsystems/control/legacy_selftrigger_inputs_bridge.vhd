@@ -40,7 +40,7 @@ begin
       trigger_samples_o => trigger_samples_o
     );
 
-  control_adapter_inst : entity work.legacy_trigger_control_adapter
+  control_adapter_inst : entity work.trigger_control_adapter
     generic map (
       CHANNEL_COUNT_G => AFE_COUNT_G * 8
     )

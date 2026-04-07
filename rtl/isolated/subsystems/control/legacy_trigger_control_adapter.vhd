@@ -28,19 +28,25 @@ end entity legacy_trigger_control_adapter;
 
 architecture rtl of legacy_trigger_control_adapter is
 begin
-  descriptor_config_o <= descriptor_config_i;
-  signal_delay_o      <= signal_delay_i;
-  reset_st_counters_o <= reset_st_counters_i;
-
-  gen_channels : for idx in 0 to CHANNEL_COUNT_G - 1 generate
-  begin
-    trigger_control_o(idx).enable                 <= core_chan_enable_i(idx);
-    trigger_control_o(idx).afe_comp_enable        <= afe_comp_enable_i(idx);
-    trigger_control_o(idx).invert_enable          <= invert_enable_i(idx);
-    trigger_control_o(idx).filter_output_selector <= filter_output_selector_i;
-    trigger_control_o(idx).threshold_xc           <= threshold_xc_i(idx);
-    trigger_control_o(idx).adhoc                  <= adhoc_i;
-    trigger_control_o(idx).ti_trigger             <= ti_trigger_i;
-    trigger_control_o(idx).ti_trigger_stbr        <= ti_trigger_stbr_i;
-  end generate gen_channels;
+  trigger_control_adapter_inst : entity work.trigger_control_adapter
+    generic map (
+      CHANNEL_COUNT_G => CHANNEL_COUNT_G
+    )
+    port map (
+      core_chan_enable_i       => core_chan_enable_i,
+      afe_comp_enable_i        => afe_comp_enable_i,
+      invert_enable_i          => invert_enable_i,
+      threshold_xc_i           => threshold_xc_i,
+      adhoc_i                  => adhoc_i,
+      filter_output_selector_i => filter_output_selector_i,
+      ti_trigger_i             => ti_trigger_i,
+      ti_trigger_stbr_i        => ti_trigger_stbr_i,
+      descriptor_config_i      => descriptor_config_i,
+      signal_delay_i           => signal_delay_i,
+      reset_st_counters_i      => reset_st_counters_i,
+      trigger_control_o        => trigger_control_o,
+      descriptor_config_o      => descriptor_config_o,
+      signal_delay_o           => signal_delay_o,
+      reset_st_counters_o      => reset_st_counters_o
+    );
 end architecture rtl;

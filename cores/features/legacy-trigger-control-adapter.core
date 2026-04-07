@@ -1,14 +1,14 @@
 CAPI=2:
 
 name: dune-daq:daphne:legacy-trigger-control-adapter:0.1.0
-description: Adapter from legacy flat self-trigger control words to the composable per-channel trigger-control bank
+description: Compatibility wrapper around trigger-control-adapter for legacy flat self-trigger control words
 provider:
   name: local
 
 filesets:
   rtl:
     depend:
-      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:trigger-control-adapter:0.1.0
     files:
       - rtl/isolated/subsystems/control/legacy_trigger_control_adapter.vhd
     file_type: vhdlSource
