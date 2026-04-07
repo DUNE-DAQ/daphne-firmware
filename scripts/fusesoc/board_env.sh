@@ -66,6 +66,7 @@ daphne_resolve_board_defaults() {
   bd_name="$(daphne_board_manifest_value "$root_dir" "$board_name" bd_name)"
   build_name_prefix="$(daphne_board_manifest_value "$root_dir" "$board_name" build_name_prefix)"
   ip_cell_bind_root="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_cell_bind_root)"
+  timing_endpoint_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_endpoint_path)"
 
   if [ "$supported" != "true" ]; then
     echo "ERROR: board '$board_name' is scaffolded but not yet supported." >&2
@@ -96,6 +97,9 @@ daphne_resolve_board_defaults() {
   if [ -n "$ip_cell_bind_root" ]; then
     : "${DAPHNE_IP_CELL_BIND_ROOT:=$ip_cell_bind_root}"
   fi
+  if [ -n "$timing_endpoint_path" ]; then
+    : "${DAPHNE_TIMING_ENDPOINT_PATH:=$timing_endpoint_path}"
+  fi
   DAPHNE_BOARD="$board_name"
 
   export DAPHNE_BOARD
@@ -114,6 +118,9 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "${DAPHNE_IP_CELL_BIND_ROOT-}" ]; then
     export DAPHNE_IP_CELL_BIND_ROOT
+  fi
+  if [ -n "${DAPHNE_TIMING_ENDPOINT_PATH-}" ]; then
+    export DAPHNE_TIMING_ENDPOINT_PATH
   fi
 }
 

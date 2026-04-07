@@ -95,6 +95,9 @@ The timing side is still weaker than it should be:
    - the real async boundaries only
    - the repo now carries `xilinx/afe_capture_timing_scaffold.xdc` as a
      non-active split point for that work
+   - active hierarchy roots such as the timing endpoint path should come from
+     the board manifest/build defaults instead of being hardcoded inside the
+     XDC
 
 3. Remove or quarantine stale/generated-clock lines that no longer match the
    synthesized hierarchy.
