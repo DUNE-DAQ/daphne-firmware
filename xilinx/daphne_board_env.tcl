@@ -50,7 +50,7 @@ proc daphne_resolve_board_profile {repo_root {board_name ""}} {
         dict set profile inherits $parent_board
     }
 
-    foreach field {fpga_part board_part pfm_name constraint_file} {
+    foreach field {fpga_part board_part pfm_name constraint_file ip_cell_bind_root} {
         set value [daphne_read_board_manifest_value $manifest_path $field ""]
         if {$value ne ""} {
             dict set profile $field $value

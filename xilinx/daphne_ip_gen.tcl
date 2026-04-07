@@ -17,7 +17,11 @@ set daphne_ip_top_module [daphne_get_env_or_default DAPHNE_IP_TOP_MODULE "daphne
 set daphne_ip_component_identifier [daphne_get_env_or_default DAPHNE_IP_COMPONENT_IDENTIFIER $daphne_ip_top_module]
 set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME "${daphne_ip_component_identifier}_v1_0"]
 set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE "${daphne_ip_component_identifier}_v1_0.tcl"]
-set daphne_ip_cell_bind_root [daphne_get_env_or_default DAPHNE_IP_CELL_BIND_ROOT "core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst"]
+set daphne_ip_cell_bind_root_default "core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst"
+if {[dict exists $daphne_board_profile ip_cell_bind_root]} {
+    set daphne_ip_cell_bind_root_default [dict get $daphne_board_profile ip_cell_bind_root]
+}
+set daphne_ip_cell_bind_root [daphne_get_env_or_default DAPHNE_IP_CELL_BIND_ROOT $daphne_ip_cell_bind_root_default]
 set daphne_ip_top_basename [file tail $daphne_ip_top_hdl_file]
 set daphne_ip_include_dirs [list [file join $daphne_ip_root "rtl"] [file dirname $daphne_ip_top_hdl_file]]
 
