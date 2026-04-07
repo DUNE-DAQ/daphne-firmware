@@ -22,27 +22,42 @@ end entity frontend_common;
 
 architecture rtl of frontend_common is
   signal clock_out_temp       : std_logic;
-  signal idelayctrl_reset_500 : std_logic;
-  signal trig_reg             : std_logic := '0';
+  signal idelayctrl_reset_500_meta : std_logic := '0';
+  signal idelayctrl_reset_500_sync : std_logic := '0';
+  signal idelay_load_clk125_meta   : std_logic_vector(4 downto 0) := (others => '0');
+  signal idelay_load_clk125_sync   : std_logic_vector(4 downto 0) := (others => '0');
+  signal trig_meta                 : std_logic := '0';
+  signal trig_reg                  : std_logic := '0';
+
+  attribute ASYNC_REG : string;
+  attribute ASYNC_REG of idelayctrl_reset_500_meta : signal is "TRUE";
+  attribute ASYNC_REG of idelayctrl_reset_500_sync : signal is "TRUE";
+  attribute ASYNC_REG of idelay_load_clk125_meta   : signal is "TRUE";
+  attribute ASYNC_REG of idelay_load_clk125_sync   : signal is "TRUE";
+  attribute ASYNC_REG of trig_meta                 : signal is "TRUE";
+  attribute ASYNC_REG of trig_reg                  : signal is "TRUE";
 begin
   idelayctrl_resync_proc : process(clk500_i)
   begin
     if rising_edge(clk500_i) then
-      idelayctrl_reset_500 <= idelayctrl_reset_i;
+      idelayctrl_reset_500_meta <= idelayctrl_reset_i;
+      idelayctrl_reset_500_sync <= idelayctrl_reset_500_meta;
     end if;
   end process idelayctrl_resync_proc;
 
   clk125_resync_proc : process(clk125_i)
   begin
     if rising_edge(clk125_i) then
-      idelay_load_clk125_o <= idelay_load_i;
+      idelay_load_clk125_meta <= idelay_load_i;
+      idelay_load_clk125_sync <= idelay_load_clk125_meta;
     end if;
   end process clk125_resync_proc;
 
   clock_resync_proc : process(clock_i)
   begin
     if rising_edge(clock_i) then
-      trig_reg <= trig_axi_i;
+      trig_meta <= trig_axi_i;
+      trig_reg  <= trig_meta;
     end if;
   end process clock_resync_proc;
 
@@ -52,7 +67,7 @@ begin
     )
     port map (
       REFCLK => clk500_i,
-      RST    => idelayctrl_reset_500,
+      RST    => idelayctrl_reset_500_sync,
       RDY    => idelayctrl_ready_o
     );
 
@@ -78,5 +93,6 @@ begin
       OB => afe_clk_n_o
     );
 
-  trig_o <= trig_reg;
+  idelay_load_clk125_o <= idelay_load_clk125_sync;
+  trig_o               <= trig_reg;
 end architecture rtl;
