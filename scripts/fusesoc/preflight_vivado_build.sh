@@ -8,6 +8,26 @@ ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 
+resolve_ip_repo_root() {
+  if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -d "${DAPHNE_IP_REPO_ROOT}" ]; then
+    printf '%s\n' "$DAPHNE_IP_REPO_ROOT"
+    return 0
+  fi
+
+  if [ -d "$ROOT_DIR/ip_repo/daphne_ip" ]; then
+    printf '%s\n' "$ROOT_DIR/ip_repo/daphne_ip"
+    return 0
+  fi
+
+  if [ -d "$ROOT_DIR/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip" ]; then
+    printf '%s\n' "$ROOT_DIR/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
+    return 0
+  fi
+
+  echo "ERROR: could not resolve DAPHNE IP repo root." >&2
+  exit 2
+}
+
 if ! command -v vivado >/dev/null 2>&1; then
   echo "ERROR: vivado is not installed or not on PATH." >&2
   exit 2
@@ -57,8 +77,9 @@ printf 'exit\n' >>"$shim_tcl"
 echo "INFO: Running packaging preflight for board=$BOARD eth_mode=$ETH_MODE."
 vivado -mode batch -source "$shim_tcl"
 
-component_xml="$ROOT_DIR/ip_repo/daphne_ip/component.xml"
-eth_xci="$ROOT_DIR/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
+ip_repo_root="$(resolve_ip_repo_root)"
+component_xml="$ip_repo_root/component.xml"
+eth_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
 cell_bind_root="${DAPHNE_IP_CELL_BIND_ROOT:-core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst}"
 eth_binding="CELL_NAME_${cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe"
 bram_binding="CELL_NAME_${cell_bind_root}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl"
