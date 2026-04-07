@@ -12,11 +12,13 @@ set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART [dict get $daph
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART [dict get $daphne_board_profile board_part]]
 set daphne_constraint_file [daphne_resolve_repo_relative_path $repo_root [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILE [dict get $daphne_board_profile constraint_file]]]
 set daphne_eth_mode [daphne_get_env_or_default DAPHNE_ETH_MODE "vendored_hdl"]
-set daphne_ip_top_hdl_file [file normalize [daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"]]]
-set daphne_ip_top_module [daphne_get_env_or_default DAPHNE_IP_TOP_MODULE "daphne_selftrigger_top"]
-set daphne_ip_component_identifier [daphne_get_env_or_default DAPHNE_IP_COMPONENT_IDENTIFIER $daphne_ip_top_module]
-set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME "${daphne_ip_component_identifier}_v1_0"]
-set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE "${daphne_ip_component_identifier}_v1_0.tcl"]
+set daphne_ip_top_hdl_default [expr {[dict exists $daphne_board_profile ip_top_hdl_file] ? [daphne_resolve_repo_relative_path $repo_root [dict get $daphne_board_profile ip_top_hdl_file]] : [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"]}]
+set daphne_ip_top_hdl_file [file normalize [daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE $daphne_ip_top_hdl_default]]
+set daphne_ip_top_module [daphne_get_env_or_default DAPHNE_IP_TOP_MODULE [expr {[dict exists $daphne_board_profile ip_top_module] ? [dict get $daphne_board_profile ip_top_module] : "daphne_selftrigger_top"}]]
+set daphne_ip_component_identifier_default [expr {[dict exists $daphne_board_profile ip_component_identifier] ? [dict get $daphne_board_profile ip_component_identifier] : $daphne_ip_top_module}]
+set daphne_ip_component_identifier [daphne_get_env_or_default DAPHNE_IP_COMPONENT_IDENTIFIER $daphne_ip_component_identifier_default]
+set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME [expr {[dict exists $daphne_board_profile ip_display_name] ? [dict get $daphne_board_profile ip_display_name] : "${daphne_ip_component_identifier}_v1_0"}]]
+set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE [expr {[dict exists $daphne_board_profile ip_xgui_file] ? [dict get $daphne_board_profile ip_xgui_file] : "${daphne_ip_component_identifier}_v1_0.tcl"}]]
 set daphne_ip_cell_bind_root_default "core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst"
 if {[dict exists $daphne_board_profile ip_cell_bind_root]} {
     set daphne_ip_cell_bind_root_default [dict get $daphne_board_profile ip_cell_bind_root]

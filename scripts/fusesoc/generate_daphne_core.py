@@ -12,6 +12,7 @@ TCL_PATH = ROOT / "xilinx" / "daphne_ip_gen.tcl"
 OUT_PATH = ROOT / "daphne-ip.core"
 EXPORT_OUT_PATH = ROOT / "daphne-ip-export.core"
 LEGACY_FLOW_SUPPORT_PATH = ROOT / "xilinx" / "legacy_flow_support_sources.txt"
+DEFAULT_BOARD_MANIFEST = ROOT / "boards" / "k26c" / "board.yml"
 CORE_PREFIX = ""
 
 
@@ -59,6 +60,22 @@ def load_manifest_lines(path: Path) -> list[str]:
         if line:
             entries.append(line)
     return entries
+
+
+def load_manifest_scalar(path: Path, key: str) -> str | None:
+    if not path.exists():
+        return None
+    pattern = re.compile(rf"^\s*{re.escape(key)}:\s*(.*?)\s*$")
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        match = pattern.match(line)
+        if not match:
+            continue
+        value = match.group(1).strip().strip("\"'")
+        return value or None
+    return None
 
 
 def emit_fileset(
@@ -113,13 +130,23 @@ def main() -> None:
     tcl_text = TCL_PATH.read_text()
     extra_rtl_vhdl = load_manifest_lines(LEGACY_FLOW_SUPPORT_PATH)
 
-    default_top_vhdl = extract_default_string(
-        tcl_text,
-        r'set daphne_ip_top_hdl_file \[file normalize \[daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE \[file join \$daphne_ip_root "rtl" "([^"]+)"\]\]\]',
+    board_top_hdl = load_manifest_scalar(DEFAULT_BOARD_MANIFEST, "ip_top_hdl_file")
+    default_top_vhdl = (
+        Path(board_top_hdl).name
+        if board_top_hdl
+        else extract_default_string(
+            tcl_text,
+            r'set daphne_ip_top_hdl_file \[file normalize \[daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE \[file join \$daphne_ip_root "rtl" "([^"]+)"\]\]\]',
+        )
     )
-    default_top_module = extract_default_string(
-        tcl_text,
-        r'set daphne_ip_top_module \[daphne_get_env_or_default DAPHNE_IP_TOP_MODULE "([^"]+)"\]',
+    board_top_module = load_manifest_scalar(DEFAULT_BOARD_MANIFEST, "ip_top_module")
+    default_top_module = (
+        board_top_module
+        if board_top_module
+        else extract_default_string(
+            tcl_text,
+            r'set daphne_ip_top_module \[daphne_get_env_or_default DAPHNE_IP_TOP_MODULE "([^"]+)"\]',
+        )
     )
     rtl_ignored = set(
         extract_quoted_list_any(
