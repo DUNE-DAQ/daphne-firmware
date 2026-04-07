@@ -6,10 +6,10 @@
 #
 # The primary sysclk definition remains in xilinx/daphne_selftrigger_pin_map.xdc.
 
-set endpoint_path "daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst"
-if {[info exists ::env(DAPHNE_TIMING_ENDPOINT_PATH)] && [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)] ne ""} {
-    set endpoint_path [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)]
+if {![info exists ::env(DAPHNE_TIMING_ENDPOINT_PATH)] || [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)] eq ""} {
+    error "ERROR: DAPHNE_TIMING_ENDPOINT_PATH must be set for afe_capture_timing.xdc"
 }
+set endpoint_path [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)]
 
 proc daphne_require_single_net {net_name purpose} {
     set resolved_nets [get_nets -quiet $net_name]
