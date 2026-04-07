@@ -4,6 +4,10 @@ set -euo pipefail
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BUILD_DIR="$(pwd)"
 PACKAGE_DTBO="${DAPHNE_PACKAGE_DTBO:-auto}"
+BOARD="${DAPHNE_BOARD:-k26c}"
+
+. "$ROOT_DIR/scripts/fusesoc/board_env.sh"
+daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 
 if [[ -z "${DAPHNE_GIT_SHA:-}" ]] && command -v git >/dev/null 2>&1; then
   if resolved_git_sha="$(git -C "$ROOT_DIR" rev-parse --short=7 HEAD 2>/dev/null)"; then
@@ -82,6 +86,9 @@ fi
 OUTPUT_DIR="$(resolve_output_dir)"
 mkdir -p "$OUTPUT_DIR"
 
+BUILD_NAME_PREFIX="${DAPHNE_BUILD_NAME_PREFIX:-daphne_selftrigger}"
+OVERLAY_NAME_PREFIX="${DAPHNE_OVERLAY_NAME_PREFIX:-${BUILD_NAME_PREFIX}_ol}"
+
 need_cmd vivado
 
 echo "INFO: Flow-owned legacy export hook"
@@ -96,11 +103,11 @@ vivado -mode batch \
 run_dtbo_packaging
 
 find "$OUTPUT_DIR" -maxdepth 1 \
-  \( -name 'daphne_selftrigger_*.bit' \
-  -o -name 'daphne_selftrigger_*.bin' \
-  -o -name 'daphne_selftrigger_*.xsa' \
-  -o -name 'daphne_selftrigger_*.dtbo' \
-  -o -name 'daphne_selftrigger_ol_*.zip' \
+  \( -name "${BUILD_NAME_PREFIX}_*.bit" \
+  -o -name "${BUILD_NAME_PREFIX}_*.bin" \
+  -o -name "${BUILD_NAME_PREFIX}_*.xsa" \
+  -o -name "${BUILD_NAME_PREFIX}_*.dtbo" \
+  -o -name "${OVERLAY_NAME_PREFIX}_*.zip" \
   -o -name 'SHA256SUMS' \) | sort >"$BUILD_DIR/impl_legacy_flow_artifacts.txt"
 
 echo "INFO: Flow-owned legacy export hook complete"
