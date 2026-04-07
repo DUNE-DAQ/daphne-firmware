@@ -81,11 +81,6 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
 
 5. Keep the composable platform validate target green, then add a real `impl`
    target only after the shell has stable top-level entity and pin/clock ownership.
-   - The repo now has a transitional `impl_legacy_bridge` target on
-     `k26c-composable-platform` so the composable platform can be used as a
-     first-class FuseSoC entry point without claiming that the production
-     netlist already comes from the composable top. This is a bridge only, not
-     the end state.
    - The shared Vivado flow now accepts `DAPHNE_BD_NAME` /
      `DAPHNE_BD_WRAPPER_NAME`, plus build/overlay naming overrides
      `DAPHNE_BUILD_NAME_PREFIX` / `DAPHNE_OVERLAY_NAME_PREFIX`, plus
