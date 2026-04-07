@@ -30,6 +30,7 @@ filesets:
     file_type: user
   hooks:
     files:
+      - scripts/fusesoc/board_env.sh
       - scripts/fusesoc/vivado_batch_hook.sh
       - scripts/fusesoc/vivado_composable_ooc_hook.sh
       - scripts/fusesoc/export_impl_legacy_flow_hook.sh

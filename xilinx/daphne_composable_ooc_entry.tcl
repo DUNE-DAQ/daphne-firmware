@@ -15,10 +15,13 @@ proc daphne_ooc_collect_files {root pattern} {
 }
 
 set work_root [file dirname [file normalize [info script]]]
+set repo_root [file normalize [file join $work_root ".."]]
+source -notrace [file join $work_root "daphne_board_env.tcl"]
+set daphne_board_profile [daphne_resolve_board_profile $repo_root]
 set src_root [file join $work_root "src"]
 set output_dir [daphne_ooc_get_env_or_default DAPHNE_OUTPUT_DIR "./output-composable-ooc"]
-set fpga_part [daphne_ooc_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
-set board_part [daphne_ooc_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
+set fpga_part [daphne_ooc_get_env_or_default DAPHNE_FPGA_PART [dict get $daphne_board_profile fpga_part]]
+set board_part [daphne_ooc_get_env_or_default DAPHNE_BOARD_PART [dict get $daphne_board_profile board_part]]
 set max_threads [daphne_ooc_get_env_or_default DAPHNE_MAX_THREADS "8"]
 set top_name [daphne_ooc_get_env_or_default DAPHNE_COMPOSABLE_OOC_TOP "daphne_composable_top"]
 

@@ -7,8 +7,10 @@ set script_dir [file dirname [file normalize [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
 source -notrace [file join $script_dir "daphne_board_env.tcl"]
 set daphne_ip_root [file normalize [daphne_get_env_or_default DAPHNE_IP_REPO_ROOT [file join $repo_root "ip_repo" "daphne_ip"]]]
-set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
-set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
+set daphne_board_profile [daphne_resolve_board_profile $repo_root]
+set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART [dict get $daphne_board_profile fpga_part]]
+set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART [dict get $daphne_board_profile board_part]]
+set daphne_constraint_file [daphne_resolve_repo_relative_path $repo_root [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILE [dict get $daphne_board_profile constraint_file]]]
 set daphne_eth_mode [daphne_get_env_or_default DAPHNE_ETH_MODE "vendored_hdl"]
 set daphne_ip_top_hdl_file [file normalize [daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE [file join $daphne_ip_root "rtl" "daphne_selftrigger_top.vhd"]]]
 set daphne_ip_top_module [daphne_get_env_or_default DAPHNE_IP_TOP_MODULE "daphne_selftrigger_top"]
@@ -432,7 +434,7 @@ set wibTypeExceptionList {
 }
 
 set constraintsFiles_aux [get_files_recursive $constDir "*.xdc"]
-set constraintsFiles [ignore_files $constraintsFiles_aux "daphne_selftrigger_pin_map.xdc"]
+set constraintsFiles [ignore_files $constraintsFiles_aux [file tail $daphne_constraint_file]]
 set constraintsDAQFiles [get_files_recursive $constDAQDir "*.tcl"]
 
 set tclFiles [get_files_recursive $tclConstDir "*.tcl"]

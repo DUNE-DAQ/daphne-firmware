@@ -69,21 +69,8 @@ require_cmd wslpath
 : "${DAPHNE_BOARD:=k26c}"
 : "${DAPHNE_ETH_MODE:=create_ip}"
 
-case "$DAPHNE_BOARD" in
-  k26c)
-    : "${DAPHNE_FPGA_PART:=xck26-sfvc784-2LV-c}"
-    : "${DAPHNE_BOARD_PART:=xilinx.com:k26c:part0:1.4}"
-    : "${DAPHNE_PFM_NAME:=xilinx:k26c:name:0.0}"
-    ;;
-  kr260)
-    echo "ERROR: board '$DAPHNE_BOARD' is scaffolded but not yet supported." >&2
-    exit 2
-    ;;
-  *)
-    echo "ERROR: unknown board '$DAPHNE_BOARD'." >&2
-    exit 2
-    ;;
-esac
+. "$ROOT_DIR/scripts/fusesoc/board_env.sh"
+daphne_resolve_board_defaults "$ROOT_DIR" "$DAPHNE_BOARD"
 
 if [ "$DAPHNE_ETH_MODE" != "create_ip" ]; then
   echo "ERROR: DAPHNE_ETH_MODE must be create_ip for the current WSL/Windows Vivado path." >&2
@@ -122,6 +109,7 @@ SCRIPT_DIR_TCL="$(tcl_escape "$XILINX_DIR_WIN")"
 FPGA_PART_TCL="$(tcl_escape "$DAPHNE_FPGA_PART")"
 BOARD_PART_TCL="$(tcl_escape "$DAPHNE_BOARD_PART")"
 PFM_NAME_TCL="$(tcl_escape "$DAPHNE_PFM_NAME")"
+CONSTRAINT_FILE_TCL="$(tcl_escape "$DAPHNE_CONSTRAINT_FILE")"
 BOARD_TCL="$(tcl_escape "$DAPHNE_BOARD")"
 ETH_MODE_TCL="$(tcl_escape "$DAPHNE_ETH_MODE")"
 GIT_SHA_TCL="$(tcl_escape "$DAPHNE_GIT_SHA")"
@@ -138,6 +126,7 @@ create_project -in_memory -part "$FPGA_PART_TCL"
 set ::env(DAPHNE_FPGA_PART) "$FPGA_PART_TCL"
 set ::env(DAPHNE_BOARD_PART) "$BOARD_PART_TCL"
 set ::env(DAPHNE_PFM_NAME) "$PFM_NAME_TCL"
+set ::env(DAPHNE_CONSTRAINT_FILE) "$CONSTRAINT_FILE_TCL"
 set ::env(DAPHNE_BOARD) "$BOARD_TCL"
 set ::env(DAPHNE_ETH_MODE) "$ETH_MODE_TCL"
 set ::env(DAPHNE_GIT_SHA) "$GIT_SHA_TCL"
@@ -152,6 +141,7 @@ set script_dir "$SCRIPT_DIR_TCL"
 set ::env(DAPHNE_FPGA_PART) "$FPGA_PART_TCL"
 set ::env(DAPHNE_BOARD_PART) "$BOARD_PART_TCL"
 set ::env(DAPHNE_PFM_NAME) "$PFM_NAME_TCL"
+set ::env(DAPHNE_CONSTRAINT_FILE) "$CONSTRAINT_FILE_TCL"
 set ::env(DAPHNE_BOARD) "$BOARD_TCL"
 set ::env(DAPHNE_ETH_MODE) "$ETH_MODE_TCL"
 set ::env(DAPHNE_GIT_SHA) "$GIT_SHA_TCL"
