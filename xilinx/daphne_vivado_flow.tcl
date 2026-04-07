@@ -1,22 +1,11 @@
 # Shared Tcl helpers for the DAPHNE selftrigger Vivado batch flow.
 
+source -notrace [file join [file dirname [file normalize [info script]]] "daphne_board_env.tcl"]
+
 proc daphne_run_nonfatal {label command} {
     if {[catch {uplevel 1 $command} err]} {
         puts "WARNING: $label failed: $err"
     }
-}
-
-proc daphne_resolve_git_sha {} {
-    set git_sha_override [daphne_get_env_or_default DAPHNE_GIT_SHA ""]
-    if {$git_sha_override ne ""} {
-        puts "INFO: Using git SHA override from DAPHNE_GIT_SHA=$git_sha_override"
-        return $git_sha_override
-    }
-    if {[catch {exec git rev-parse --short=7 HEAD} git_sha]} {
-        puts "WARNING: Could not resolve git HEAD. Falling back to git SHA 0000000."
-        return "0000000"
-    }
-    return $git_sha
 }
 
 proc daphne_resolve_repo_relative_paths {repo_root raw_paths} {
@@ -31,17 +20,14 @@ proc daphne_resolve_repo_relative_paths {repo_root raw_paths} {
 }
 
 proc daphne_resolve_config {script_dir} {
-    source -notrace [file join $script_dir "daphne_board_env.tcl"]
-
     array set cfg {}
 
     set cfg(script_dir) $script_dir
     set cfg(repo_root) [file normalize [file join $script_dir ".."]]
     set board_profile [daphne_resolve_board_profile $cfg(repo_root)]
-    set board_bd_name [expr {[dict exists $board_profile bd_name] ? [dict get $board_profile bd_name] : "daphne_selftrigger_bd"}]
-    set board_bd_wrapper_name [expr {[dict exists $board_profile bd_wrapper_name] ? [dict get $board_profile bd_wrapper_name] : "${board_bd_name}_wrapper"}]
-    set board_build_name_prefix [expr {[dict exists $board_profile build_name_prefix] ? [dict get $board_profile build_name_prefix] : "daphne_selftrigger"}]
-    set board_overlay_name_prefix [expr {[dict exists $board_profile overlay_name_prefix] ? [dict get $board_profile overlay_name_prefix] : "${board_build_name_prefix}_ol"}]
+    set artifact_profile [daphne_resolve_artifact_profile $cfg(repo_root) $board_profile]
+    set board_bd_name [daphne_board_profile_value $board_profile bd_name "daphne_selftrigger_bd"]
+    set board_bd_wrapper_name [daphne_board_profile_value $board_profile bd_wrapper_name "${board_bd_name}_wrapper"]
     set cfg(vivado_version) 2024.1
     set cfg(fpga_part) [daphne_get_env_or_default DAPHNE_FPGA_PART [dict get $board_profile fpga_part]]
     set cfg(board_part) [daphne_get_env_or_default DAPHNE_BOARD_PART [dict get $board_profile board_part]]
@@ -63,8 +49,8 @@ proc daphne_resolve_config {script_dir} {
 
     set cfg(bd_name) [daphne_get_env_or_default DAPHNE_BD_NAME $board_bd_name]
     set cfg(bd_wrapper_name) [daphne_get_env_or_default DAPHNE_BD_WRAPPER_NAME $board_bd_wrapper_name]
-    set cfg(build_name_prefix) [daphne_get_env_or_default DAPHNE_BUILD_NAME_PREFIX $board_build_name_prefix]
-    set cfg(overlay_name_prefix) [daphne_get_env_or_default DAPHNE_OVERLAY_NAME_PREFIX $board_overlay_name_prefix]
+    set cfg(build_name_prefix) [dict get $artifact_profile build_name_prefix]
+    set cfg(overlay_name_prefix) [dict get $artifact_profile overlay_name_prefix]
     set cfg(bd_file) [file join $cfg(repo_root) "bd" $cfg(bd_name) "${cfg(bd_name)}.bd"]
     set cfg(bd_wrapper_vhd) [file join $cfg(repo_root) "bd" $cfg(bd_name) "hdl" "${cfg(bd_wrapper_name)}.vhd"]
     set board_constraint_files_raw [expr {[dict exists $board_profile constraint_files] ? [dict get $board_profile constraint_files] : [dict get $board_profile constraint_file]}]
@@ -78,10 +64,10 @@ proc daphne_resolve_config {script_dir} {
     set cfg(dtbo_gen_tcl) [file join $script_dir "daphne_dtbo_gen.tcl"]
     set cfg(axi_quad_spi_patch) [file join $script_dir "scripts" "axi_quad_spi_dtbo_patch.sed"]
 
-    set cfg(git_sha) [daphne_resolve_git_sha]
+    set cfg(git_sha) [dict get $artifact_profile git_sha]
     set cfg(v_git_sha) "28'h$cfg(git_sha)"
-    set cfg(build_name) "${cfg(build_name_prefix)}_$cfg(git_sha)"
-    set cfg(overlay_name) "${cfg(overlay_name_prefix)}_$cfg(git_sha)"
+    set cfg(build_name) [dict get $artifact_profile build_name]
+    set cfg(overlay_name) [dict get $artifact_profile overlay_name]
 
     return [array get cfg]
 }
