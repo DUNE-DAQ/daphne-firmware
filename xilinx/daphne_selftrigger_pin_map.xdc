@@ -22,8 +22,22 @@ create_clock -period 10.000 -name sysclk [ get_ports sysclk_p]
 # rename the auto-generated clocks...
 set endpoint_path daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst
 
-create_generated_clock -name ep_clk62p5     [get_nets ${endpoint_path}/ep_clk62p5]
-create_generated_clock -name local_clk62p5  [get_nets ${endpoint_path}/local_clk62p5]
+proc daphne_require_single_net {net_name purpose} {
+    set resolved_nets [get_nets -quiet $net_name]
+    if {[llength $resolved_nets] != 1} {
+        error "ERROR: expected exactly one net for $purpose at '$net_name', found [llength $resolved_nets]"
+    }
+    return [lindex $resolved_nets 0]
+}
+
+set frontend_word_clk_ep_net [daphne_require_single_net ${endpoint_path}/ep_clk62p5 "frontend endpoint word-clock source"]
+set frontend_word_clk_local_net [daphne_require_single_net ${endpoint_path}/local_clk62p5 "frontend local word-clock source"]
+set frontend_bit_clk_net [daphne_require_single_net ${endpoint_path}/clk500 "frontend bit-clock source"]
+set frontend_byte_clk_net [daphne_require_single_net ${endpoint_path}/clk125 "frontend byte-clock source"]
+set endpoint_bclk_net [daphne_require_single_net ${endpoint_path}/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk "timing endpoint recovered bit clock"]
+
+create_generated_clock -name frontend_word_clk_ep     $frontend_word_clk_ep_net
+create_generated_clock -name frontend_word_clk_local  $frontend_word_clk_local_net
 #create_generated_clock -name clk100 [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm0_clkout2]
 #create_generated_clock -name mmcm0_clkfbout [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm0_clkfbout]
 
@@ -32,26 +46,25 @@ create_generated_clock -name local_clk62p5  [get_nets ${endpoint_path}/local_clk
 #create_generated_clock -name ep_clk4x [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku4x]
 #create_generated_clock -name clkfb          [get_nets {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clkfb}]
 
-create_generated_clock -name clk500        -master_clock ep_clk62p5 [get_nets ${endpoint_path}/clk500]
-#create_generated_clock -name clock_0 -master_clock [get_clocks ep_clk62p5] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1]
-create_generated_clock -name clk125        -master_clock ep_clk62p5 [get_nets ${endpoint_path}/clk125]
+create_generated_clock -name frontend_bit_clk_ep    -master_clock frontend_word_clk_ep    $frontend_bit_clk_net
+#create_generated_clock -name clock_0 -master_clock [get_clocks frontend_word_clk_ep] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1]
+create_generated_clock -name frontend_byte_clk_ep   -master_clock frontend_word_clk_ep    $frontend_byte_clk_net
 
-## ep_clk62p5/local_clk62p5 are the alternate frontend word-clock families.
-## The byte/bit clocks below reuse the same nets and must therefore be defined
-## as multi-clock objects, not as unrelated clocks.
-create_generated_clock -add -name clk500_1  -master_clock local_clk62p5 [get_nets ${endpoint_path}/clk500]
-
-create_generated_clock -add -name clk125_1  -master_clock local_clk62p5 [get_nets ${endpoint_path}/clk125]
+## The endpoint-driven and local-clock-driven frontend receive families reuse
+## the same byte/bit nets. Keep them as multi-clock objects tied to alternate
+## masters instead of unrelated clocks.
+create_generated_clock -add -name frontend_bit_clk_local   -master_clock frontend_word_clk_local  $frontend_bit_clk_net
+create_generated_clock -add -name frontend_byte_clk_local  -master_clock frontend_word_clk_local  $frontend_byte_clk_net
 
 # One image can expose either endpoint-driven or local-clock-driven AFE capture
 # clocks, but not both simultaneously. Model them as physically exclusive so
 # Vivado does not invent timing relationships between the alternate source
 # families.
 set_clock_groups -physically_exclusive \
-  -group {ep_clk62p5 clk500 clk125} \
-  -group {local_clk62p5 clk500_1 clk125_1}
+  -group {frontend_word_clk_ep frontend_bit_clk_ep frontend_byte_clk_ep} \
+  -group {frontend_word_clk_local frontend_bit_clk_local frontend_byte_clk_local}
 
-set_property CLOCK_DEDICATED_ROUTE BACKBONE [get_nets daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk]
+set_property CLOCK_DEDICATED_ROUTE BACKBONE $endpoint_bclk_net
 
 # Legacy async containment for remaining board/control clocks that are still
 # named by older generated-clock families. Keep these cuts until the board
