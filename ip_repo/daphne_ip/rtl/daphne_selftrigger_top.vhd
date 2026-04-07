@@ -13,6 +13,7 @@ library unisim;
 use unisim.vcomponents.all;
 
 use work.daphne_package.all;
+use work.daphne_subsystem_pkg.all;
 
 entity daphne_selftrigger_top is
 generic(
@@ -846,6 +847,7 @@ signal reset_st_counters: std_logic;
 
 signal  f_ok,sysclk_ibuf,mmcm0_clkout2,ep_clk62p5: std_logic ;
 signal sctr, cctr: std_logic_vector (15 downto 0);
+signal timing_stat: timing_status_t;
          
 
 begin
@@ -1174,68 +1176,52 @@ port map(
 
 -- Timing Endpoint
 
-endpoint_inst: endpoint
+timing_bridge_inst: entity work.legacy_timing_subsystem_bridge
 port map(
-    sysclk_p        => sysclk_p,
-    sysclk_n        => sysclk_n,
-    --sysclk100     => sysclk100,
-    sfp_tmg_los     => sfp_tmg_los,
-    rx0_tmg_p       => rx0_tmg_p,
-    rx0_tmg_n       => rx0_tmg_n,
-    sfp_tmg_tx_dis  => sfp_tmg_tx_dis,
-    tx0_tmg_p       => tx0_tmg_p,
-    tx0_tmg_n       => tx0_tmg_n,
-    clock           => clock,
-    clk500          => clk500,
-    clk125          => clk125,
-    timestamp       => timestamp,
-    sync => ti_trigger_reg, -- Sync command output (clk domain)
-    sync_stb => ti_trigger_stbr_reg, -- Sync command strobe (clk domain)
-    
-    
-    -- endpoint debug signals
-    
-    
- F_OK_DEBUG       =>f_ok,
- SCTR_DEBUG=> sctr,
- CCTR_DEBUG => cctr,
- mmcm0_locked_o => open,
- mmcm1_locked_o => open,
- endpoint_ready_o => open,
- endpoint_state_o => open,
- timestamp_valid_o => open,
-clock_gen_debug       =>sysclk_ibuf,
-mmcm0_100MHZ_CLK_debug       =>mmcm0_clkout2,
-ep_62p5MHZ_CLK_debug       =>ep_clk62p5,   
-    
-   -- mmc0_locked_debug => ep_mmcm0_locked, 
-    --mmc1_locked_debug => ep_mmcm1_locked,
-    --mclk            => clk_62p5_debug,
-    --rx_tmg_debug    => ep_rx_debug,
-   -- ep_stat_debug   => ep_stat_debug,
-   -- mmcm1_reset_debug => mmcm1_reset_debug,
-    --ep_reset_debug => ep_reset_debug,
-    S_AXI_ACLK	    => END_P_S_AXI_ACLK,
-	S_AXI_ARESETN	=> END_P_S_AXI_ARESETN,
-	S_AXI_AWADDR	=> EP_AXI_AWADDR,
-	S_AXI_AWPROT	=> EP_AXI_AWPROT,
-	S_AXI_AWVALID	=> EP_AXI_AWVALID,
-	S_AXI_AWREADY	=> EP_AXI_AWREADY,
-	S_AXI_WDATA	    => EP_AXI_WDATA,
-	S_AXI_WSTRB	    => EP_AXI_WSTRB,
-	S_AXI_WVALID	=> EP_AXI_WVALID,
-	S_AXI_WREADY	=> EP_AXI_WREADY,
-	S_AXI_BRESP	    => EP_AXI_BRESP,
-	S_AXI_BVALID	=> EP_AXI_BVALID,
-	S_AXI_BREADY	=> EP_AXI_BREADY,
-	S_AXI_ARADDR	=> EP_AXI_ARADDR,
-	S_AXI_ARPROT	=> EP_AXI_ARPROT,
-	S_AXI_ARVALID	=> EP_AXI_ARVALID,
-	S_AXI_ARREADY	=> EP_AXI_ARREADY,
-	S_AXI_RDATA	    => EP_AXI_RDATA,
-	S_AXI_RRESP	    => EP_AXI_RRESP,
-	S_AXI_RVALID	=> EP_AXI_RVALID,
-	S_AXI_RREADY	=> EP_AXI_RREADY
+    sysclk_p                 => sysclk_p,
+    sysclk_n                 => sysclk_n,
+    sfp_tmg_los              => sfp_tmg_los,
+    rx0_tmg_p                => rx0_tmg_p,
+    rx0_tmg_n                => rx0_tmg_n,
+    sfp_tmg_tx_dis           => sfp_tmg_tx_dis,
+    tx0_tmg_p                => tx0_tmg_p,
+    tx0_tmg_n                => tx0_tmg_n,
+    clock_gen_debug_o        => sysclk_ibuf,
+    mmcm0_100mhz_clk_debug_o => mmcm0_clkout2,
+    ep_62p5mhz_clk_debug_o   => ep_clk62p5,
+    f_ok_debug_o             => f_ok,
+    sctr_debug_o             => sctr,
+    cctr_debug_o             => cctr,
+    mclk_o                   => open,
+    clock_o                  => clock,
+    clk500_o                 => clk500,
+    clk125_o                 => clk125,
+    sclk200_o                => open,
+    timestamp_o              => timestamp,
+    sync_o                   => ti_trigger_reg,
+    sync_stb_o               => ti_trigger_stbr_reg,
+    timing_stat_o            => timing_stat,
+    s_axi_aclk               => END_P_S_AXI_ACLK,
+    s_axi_aresetn            => END_P_S_AXI_ARESETN,
+    s_axi_awaddr             => EP_AXI_AWADDR,
+    s_axi_awprot             => EP_AXI_AWPROT,
+    s_axi_awvalid            => EP_AXI_AWVALID,
+    s_axi_awready            => EP_AXI_AWREADY,
+    s_axi_wdata              => EP_AXI_WDATA,
+    s_axi_wstrb              => EP_AXI_WSTRB,
+    s_axi_wvalid             => EP_AXI_WVALID,
+    s_axi_wready             => EP_AXI_WREADY,
+    s_axi_bresp              => EP_AXI_BRESP,
+    s_axi_bvalid             => EP_AXI_BVALID,
+    s_axi_bready             => EP_AXI_BREADY,
+    s_axi_araddr             => EP_AXI_ARADDR,
+    s_axi_arprot             => EP_AXI_ARPROT,
+    s_axi_arvalid            => EP_AXI_ARVALID,
+    s_axi_arready            => EP_AXI_ARREADY,
+    s_axi_rdata              => EP_AXI_RDATA,
+    s_axi_rresp              => EP_AXI_RRESP,
+    s_axi_rvalid             => EP_AXI_RVALID,
+    s_axi_rready             => EP_AXI_RREADY
 );
 
 ti_trigger_en <= '1' when ( ti_trigger_reg=adhoc and ti_trigger_stbr_reg='1' ) else '0';

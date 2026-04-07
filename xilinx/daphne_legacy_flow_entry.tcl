@@ -61,6 +61,7 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
             frontend_register_bank.vhd
             frontend_island.vhd
             legacy_deimos_readout_bridge.vhd
+            legacy_timing_subsystem_bridge.vhd
             self_trigger_xcorr_channel.vhd
             peak_descriptor_channel.vhd
             legacy_selftrigger_datapath.vhd

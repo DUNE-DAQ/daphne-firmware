@@ -94,6 +94,7 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
     "$WORK_ROOT/rtl/isolated/common" \
     "$WORK_ROOT/rtl/isolated/common/primitives" \
     "$WORK_ROOT/rtl/isolated/subsystems/frontend" \
+    "$WORK_ROOT/rtl/isolated/subsystems/timing" \
     "$WORK_ROOT/rtl/isolated/subsystems/trigger"
   do
     if [ -d "$candidate_dir" ]; then
@@ -111,6 +112,7 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
       frontend_register_slice.vhd \
       frontend_register_bank.vhd \
       legacy_deimos_readout_bridge.vhd \
+      legacy_timing_subsystem_bridge.vhd \
       self_trigger_xcorr_channel.vhd \
       peak_descriptor_channel.vhd \
       legacy_selftrigger_datapath.vhd \
