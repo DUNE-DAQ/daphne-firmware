@@ -1,15 +1,14 @@
 CAPI=2:
 
 name: dune-daq:daphne:legacy-selftrigger-register-bank:0.1.0
-description: Legacy AXI-Lite threshold and self-trigger counter register plane extracted from selftrig_core
+description: Compatibility wrapper around selftrigger-register-bank for legacy self-trigger paths
 provider:
   name: local
 
 filesets:
   rtl:
     depend:
-      - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:selftrigger-register-bank:0.1.0
     files:
       - rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd
     file_type: vhdlSource

@@ -11,7 +11,7 @@ filesets:
       - dune-daq:daphne:daphne-package:0.1.0
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
       - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
-      - dune-daq:daphne:legacy-trigger-control-adapter:0.1.0
+      - dune-daq:daphne:trigger-control-adapter:0.1.0
     files:
       - rtl/isolated/subsystems/control/legacy_selftrigger_inputs_bridge.vhd
     file_type: vhdlSource

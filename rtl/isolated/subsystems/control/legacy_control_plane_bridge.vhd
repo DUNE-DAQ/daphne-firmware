@@ -43,7 +43,7 @@ begin
   acquisition_ready_o.timing_ready    <= timing_ready_s;
   acquisition_ready_o.alignment_ready <= frontend_align_stat_i.alignment_valid;
 
-  trigger_control_adapter_inst : entity work.legacy_trigger_control_adapter
+  trigger_control_adapter_inst : entity work.trigger_control_adapter
     generic map (
       CHANNEL_COUNT_G => CHANNEL_COUNT_G
     )

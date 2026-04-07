@@ -1,15 +1,14 @@
 CAPI=2:
 
 name: dune-daq:daphne:legacy-two-lane-readout-mux:0.1.0
-description: Legacy two-lane round-robin readout mux for composable per-channel self-trigger records
+description: Compatibility wrapper around two-lane-readout-mux for legacy self-trigger readout paths
 provider:
   name: local
 
 filesets:
   rtl:
     depend:
-      - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:two-lane-readout-mux:0.1.0
     files:
       - rtl/isolated/subsystems/readout/legacy_two_lane_readout_mux.vhd
     file_type: vhdlSource
