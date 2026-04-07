@@ -76,6 +76,7 @@ append_env_tcl DAPHNE_BD_NAME
 append_env_tcl DAPHNE_BD_WRAPPER_NAME
 append_env_tcl DAPHNE_BUILD_NAME_PREFIX
 append_env_tcl DAPHNE_OVERLAY_NAME_PREFIX
+append_env_tcl DAPHNE_USER_IP_VLNV
 append_env_tcl DAPHNE_IP_TOP_HDL_FILE
 append_env_tcl DAPHNE_IP_TOP_MODULE
 append_env_tcl DAPHNE_IP_COMPONENT_IDENTIFIER

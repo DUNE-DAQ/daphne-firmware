@@ -12,6 +12,7 @@ source -notrace [file join $script_dir "daphne_board_env.tcl"]
 set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
 set daphne_pfm_name [daphne_get_env_or_default DAPHNE_PFM_NAME "xilinx:k26c:name:0.0"]
+set daphne_user_ip_vlnv [daphne_get_env_or_default DAPHNE_USER_IP_VLNV "dune.pds:user:daphne_selftrigger_top:1.0"]
 set designName [daphne_get_env_or_default DAPHNE_BD_NAME "daphne_selftrigger_bd"]
 set blockDesignDir [file join $blockDesignRoot $designName]
 
@@ -101,7 +102,7 @@ xilinx.com:ip:axi_iic:2.1\
 xilinx.com:ip:axi_quad_spi:3.2\
 xilinx.com:ip:axi_intc:4.1\
 xilinx.com:ip:xlconcat:2.1\
-dune.pds:user:daphne_selftrigger_top:1.0\
+$daphne_user_ip_vlnv\
 "
     set list_ips_missing ""
     puts "INFO: Checking if the following IPs exist in the project's IP catalog: $list_check_ips ."
@@ -1267,7 +1268,7 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
 ] $zynq_ultra_ps_e_0
 
 # create instance: daphne_selftrigger_top_0
-set daphneVlnv dune.pds:user:daphne_selftrigger_top:1.0
+set daphneVlnv $daphne_user_ip_vlnv
 set block_cell_name daphne_selftrigger_top
 if {[catch {set daphne_selftrigger_top_0 [create_bd_cell -vlnv $daphneVlnv -type IP $block_cell_name]} errmsg]} {
     puts "ERROR: Failed to add block <$block_cell_name>. Please ensure it is defined and sourced properly before running this script."
