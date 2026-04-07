@@ -185,6 +185,10 @@ daphne_resolve_board_defaults() {
   public_top_module="$(daphne_board_manifest_value "$root_dir" "$board_name" public_top_module)"
   timing_endpoint_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_endpoint_path)"
   timing_plane_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_plane_path)"
+  afe_capture_input_delay_enable="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_input_delay_enable)"
+  afe_capture_virtual_launch_period_ns="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_virtual_launch_period_ns)"
+  afe_capture_input_delay_min_ns="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_input_delay_min_ns)"
+  afe_capture_input_delay_max_ns="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_input_delay_max_ns)"
 
   if [ -z "$ip_top_hdl_file" ] && [ -n "$public_top_hdl_file" ]; then
     ip_top_hdl_file="$public_top_hdl_file"
@@ -295,6 +299,18 @@ daphne_resolve_board_defaults() {
   if [ -n "$timing_plane_path" ]; then
     : "${DAPHNE_TIMING_PLANE_PATH:=$timing_plane_path}"
   fi
+  if [ -n "$afe_capture_input_delay_enable" ]; then
+    : "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE:=$afe_capture_input_delay_enable}"
+  fi
+  if [ -n "$afe_capture_virtual_launch_period_ns" ]; then
+    : "${DAPHNE_AFE_CAPTURE_VIRTUAL_LAUNCH_PERIOD_NS:=$afe_capture_virtual_launch_period_ns}"
+  fi
+  if [ -n "$afe_capture_input_delay_min_ns" ]; then
+    : "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_MIN_NS:=$afe_capture_input_delay_min_ns}"
+  fi
+  if [ -n "$afe_capture_input_delay_max_ns" ]; then
+    : "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_MAX_NS:=$afe_capture_input_delay_max_ns}"
+  fi
   DAPHNE_BOARD="$board_name"
 
   export DAPHNE_BOARD
@@ -356,6 +372,18 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "${DAPHNE_TIMING_PLANE_PATH-}" ]; then
     export DAPHNE_TIMING_PLANE_PATH
+  fi
+  if [ -n "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE-}" ]; then
+    export DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE
+  fi
+  if [ -n "${DAPHNE_AFE_CAPTURE_VIRTUAL_LAUNCH_PERIOD_NS-}" ]; then
+    export DAPHNE_AFE_CAPTURE_VIRTUAL_LAUNCH_PERIOD_NS
+  fi
+  if [ -n "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_MIN_NS-}" ]; then
+    export DAPHNE_AFE_CAPTURE_INPUT_DELAY_MIN_NS
+  fi
+  if [ -n "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_MAX_NS-}" ]; then
+    export DAPHNE_AFE_CAPTURE_INPUT_DELAY_MAX_NS
   fi
 }
 

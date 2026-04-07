@@ -29,6 +29,12 @@ public_top_hdl_file: rtl/isolated/tops/daphne_composable_top.vhd
 public_top_module: daphne_composable_top
 timing_endpoint_path: daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst
 timing_plane_path: timing_bridge_inst
+# Board-owned AFE input-delay model defaults. Keep disabled until measured
+# serializer/board skew numbers are available for this hardware family.
+afe_capture_input_delay_enable: false
+afe_capture_virtual_launch_period_ns: 2.000
+afe_capture_input_delay_min_ns:
+afe_capture_input_delay_max_ns:
 notes:
   - Current firmware baseline validated around the Kria K26C SoM flow in the
     imported non-project Vivado tree.

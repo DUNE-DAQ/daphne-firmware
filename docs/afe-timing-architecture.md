@@ -76,8 +76,9 @@ The timing side is still weaker than it should be:
 - The legacy async clock-group section now uses guarded `get_clocks -quiet`
   lookups so stale names stop producing avoidable warnings, but that is only a
   containment step, not the final receive-path timing model.
-- The static constraints for the AFE capture path are not yet isolated into a
-  dedicated, reviewable timing block.
+- The active AFE receive-clock model now lives in `xilinx/afe_capture_timing.xdc`,
+  but the board-owned input-delay model is still disabled until measured
+  min/max timing numbers are available.
 - Some frontend ownership is split between the legacy `front_end` and the newer
   isolated/frontend helper blocks, which makes it harder to reason about what
   changed in a given implementation.
@@ -103,6 +104,10 @@ The timing side is still weaker than it should be:
    - active hierarchy roots such as the timing endpoint path should come from
      the board manifest/build defaults instead of being hardcoded inside the
      XDC
+   - board manifests should own the optional AFE input-delay model too
+     (`afe_capture_input_delay_enable`, launch-clock period, min/max bounds),
+     so the live XDC can remain generic and board-family-specific values stay
+     out of the Tcl flow
 
 3. Remove or quarantine stale/generated-clock lines that no longer match the
    synthesized hierarchy from the board pinmap XDC so the split file is the

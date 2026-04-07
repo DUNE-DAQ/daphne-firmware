@@ -61,16 +61,21 @@
 # measured input-delay model. Add these only when AFE serializer timing and
 # board skew numbers are available.
 #
-# Example placeholder shape:
+# Example placeholder shape. The board manifest now carries the same intent via:
+# - afe_capture_input_delay_enable
+# - afe_capture_virtual_launch_period_ns
+# - afe_capture_input_delay_min_ns
+# - afe_capture_input_delay_max_ns
+# The live XDC only applies the model when that board-owned enable is true.
 #
 # create_clock -name afe_launch_clk_virtual -period 2.000
 #
 # set afe_data_ports [list \
-#   [get_ports {afe0_p[*]}] [get_ports {afe0_n[*]}] \
-#   [get_ports {afe1_p[*]}] [get_ports {afe1_n[*]}] \
-#   [get_ports {afe2_p[*]}] [get_ports {afe2_n[*]}] \
-#   [get_ports {afe3_p[*]}] [get_ports {afe3_n[*]}] \
-#   [get_ports {afe4_p[*]}] [get_ports {afe4_n[*]}] \
+#   [get_ports {afe0_p[*]}] \
+#   [get_ports {afe1_p[*]}] \
+#   [get_ports {afe2_p[*]}] \
+#   [get_ports {afe3_p[*]}] \
+#   [get_ports {afe4_p[*]}] \
 # ]
 #
 # set_input_delay -clock afe_launch_clk_virtual -max <MEASURED_MAX_NS> $afe_data_ports
