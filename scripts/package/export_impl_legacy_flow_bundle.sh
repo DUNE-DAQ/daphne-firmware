@@ -24,6 +24,9 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
+BOARD="${DAPHNE_BOARD:-k26c}"
+. "$ROOT_DIR/scripts/fusesoc/board_env.sh"
+daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 DEFAULT_FLOW_WORK_DIR="$ROOT_DIR/build/dune-daq_daphne_k26c-composable-platform_0.1.0/impl_legacy_flow"
 FLOW_WORK_DIR_INPUT="${1:-$DEFAULT_FLOW_WORK_DIR}"
 
@@ -56,6 +59,7 @@ resolve_output_dir() {
 OUTPUT_DIR_INPUT="${2:-${DAPHNE_OUTPUT_DIR:-}}"
 FLOW_WORK_DIR="$(CDPATH= cd -- "$FLOW_WORK_DIR_INPUT" && pwd)"
 OUTPUT_DIR="$(resolve_output_dir "$OUTPUT_DIR_INPUT")"
+BUILD_NAME_PREFIX="${DAPHNE_BUILD_NAME_PREFIX:-daphne_selftrigger}"
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -103,4 +107,4 @@ vivado -mode batch \
   -tclargs "$project_xpr" "$OUTPUT_DIR"
 
 echo "INFO: export complete"
-find "$OUTPUT_DIR" -maxdepth 1 \( -name 'daphne_selftrigger_*.bit' -o -name 'daphne_selftrigger_*.bin' -o -name 'daphne_selftrigger_*.xsa' \) | sort
+find "$OUTPUT_DIR" -maxdepth 1 \( -name "${BUILD_NAME_PREFIX}_*.bit" -o -name "${BUILD_NAME_PREFIX}_*.bin" -o -name "${BUILD_NAME_PREFIX}_*.xsa" \) | sort
