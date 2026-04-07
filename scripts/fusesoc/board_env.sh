@@ -45,6 +45,11 @@ daphne_board_manifest_value() {
   fi
 }
 
+daphne_platform_core_build_slug() {
+  platform_core="$1"
+  printf '%s' "$platform_core" | tr ':' '_'
+}
+
 daphne_resolve_board_defaults() {
   root_dir="$1"
   board_name="${2:-${DAPHNE_BOARD:-k26c}}"

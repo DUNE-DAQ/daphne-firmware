@@ -27,7 +27,9 @@ ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && 
 BOARD="${DAPHNE_BOARD:-k26c}"
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
-DEFAULT_FLOW_WORK_DIR="$ROOT_DIR/build/dune-daq_daphne_k26c-composable-platform_0.1.0/impl_legacy_flow"
+DEFAULT_FLOW_PLATFORM_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
+: "${DEFAULT_FLOW_PLATFORM_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
+DEFAULT_FLOW_WORK_DIR="$ROOT_DIR/build/$(daphne_platform_core_build_slug "$DEFAULT_FLOW_PLATFORM_CORE")/impl_legacy_flow"
 FLOW_WORK_DIR_INPUT="${1:-$DEFAULT_FLOW_WORK_DIR}"
 
 if [[ -z "${DAPHNE_GIT_SHA:-}" ]] && command -v git >/dev/null 2>&1; then

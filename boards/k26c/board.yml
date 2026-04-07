@@ -4,6 +4,9 @@ fpga_part: xck26-sfvc784-2LV-c
 board_part: xilinx.com:k26c:part0:1.4
 pfm_name: xilinx:k26c:name:0.0
 constraint_file: xilinx/daphne_selftrigger_pin_map.xdc
+platform_core: dune-daq:daphne:k26c-platform:0.1.0
+modular_platform_core: dune-daq:daphne:k26c-modular-platform:0.1.0
+composable_platform_core: dune-daq:daphne:k26c-composable-platform:0.1.0
 user_ip_vlnv: dune.pds:user:daphne_selftrigger_top:1.0
 bd_name: daphne_selftrigger_bd
 bd_wrapper_name: daphne_selftrigger_bd_wrapper
