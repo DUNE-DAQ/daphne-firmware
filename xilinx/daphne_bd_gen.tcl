@@ -28,6 +28,8 @@ if {[dict exists $daphne_board_profile ip_cell_name]} {
     set daphne_ip_cell_name_default [dict get $daphne_board_profile ip_cell_name]
 } elseif {[dict exists $daphne_board_profile ip_top_module]} {
     set daphne_ip_cell_name_default [dict get $daphne_board_profile ip_top_module]
+} elseif {[dict exists $daphne_board_profile public_top_module]} {
+    set daphne_ip_cell_name_default [dict get $daphne_board_profile public_top_module]
 }
 set daphne_ip_cell_name [daphne_get_env_or_default DAPHNE_IP_CELL_NAME $daphne_ip_cell_name_default]
 set designName [daphne_get_env_or_default DAPHNE_BD_NAME $daphne_bd_name_default]
