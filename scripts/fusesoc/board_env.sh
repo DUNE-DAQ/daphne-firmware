@@ -123,6 +123,7 @@ daphne_resolve_board_defaults() {
   public_top_hdl_file="$(daphne_board_manifest_value "$root_dir" "$board_name" public_top_hdl_file)"
   public_top_module="$(daphne_board_manifest_value "$root_dir" "$board_name" public_top_module)"
   timing_endpoint_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_endpoint_path)"
+  timing_plane_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_plane_path)"
 
   if [ -z "$ip_top_hdl_file" ] && [ -n "$public_top_hdl_file" ]; then
     ip_top_hdl_file="$public_top_hdl_file"
@@ -224,6 +225,9 @@ daphne_resolve_board_defaults() {
   if [ -n "$timing_endpoint_path" ]; then
     : "${DAPHNE_TIMING_ENDPOINT_PATH:=$timing_endpoint_path}"
   fi
+  if [ -n "$timing_plane_path" ]; then
+    : "${DAPHNE_TIMING_PLANE_PATH:=$timing_plane_path}"
+  fi
   DAPHNE_BOARD="$board_name"
 
   export DAPHNE_BOARD
@@ -279,6 +283,9 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "${DAPHNE_TIMING_ENDPOINT_PATH-}" ]; then
     export DAPHNE_TIMING_ENDPOINT_PATH
+  fi
+  if [ -n "${DAPHNE_TIMING_PLANE_PATH-}" ]; then
+    export DAPHNE_TIMING_PLANE_PATH
   fi
 }
 

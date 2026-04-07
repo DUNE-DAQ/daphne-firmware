@@ -4,8 +4,8 @@ fpga_part: xck26-sfvc784-2LV-c
 board_part: xilinx.com:k26c:part0:1.4
 pfm_name: xilinx:k26c:name:0.0
 constraint_file: xilinx/daphne_selftrigger_pin_map.xdc
-constraint_files: xilinx/daphne_selftrigger_pin_map.xdc;xilinx/afe_capture_timing.xdc
-required_constraint_files: xilinx/afe_capture_timing.xdc
+constraint_files: xilinx/daphne_selftrigger_pin_map.xdc;xilinx/afe_capture_timing.xdc;xilinx/frontend_control_cdc.xdc
+required_constraint_files: xilinx/afe_capture_timing.xdc;xilinx/frontend_control_cdc.xdc
 platform_core: dune-daq:daphne:k26c-platform:0.1.0
 modular_platform_core: dune-daq:daphne:k26c-modular-platform:0.1.0
 composable_platform_core: dune-daq:daphne:k26c-composable-platform:0.1.0
@@ -27,6 +27,7 @@ ip_cell_bind_root: selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daph
 public_top_hdl_file: rtl/isolated/tops/daphne_composable_top.vhd
 public_top_module: daphne_composable_top
 timing_endpoint_path: daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst
+timing_plane_path: timing_bridge_inst
 notes:
   - Current firmware baseline validated around the Kria K26C SoM flow in the
     imported non-project Vivado tree.

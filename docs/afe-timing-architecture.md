@@ -96,6 +96,10 @@ The timing side is still weaker than it should be:
    - the repo now carries `xilinx/afe_capture_timing_scaffold.xdc` as the
      design note and `xilinx/afe_capture_timing.xdc` as the active, required
      split constraint file wired through the board manifest
+   - the repo now carries `xilinx/frontend_control_cdc.xdc` as the active,
+     required control-CDC companion file for AXI-originated frontend control
+     strobes/state (`idelayctrl_reset`, `idelay_load`, `idelay_tap`,
+     `idelay_en_vtc`, `iserdes_reset`, `iserdes_bitslip`, `trig_axi`)
    - active hierarchy roots such as the timing endpoint path should come from
      the board manifest/build defaults instead of being hardcoded inside the
      XDC

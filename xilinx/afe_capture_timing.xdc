@@ -11,12 +11,25 @@ if {![info exists ::env(DAPHNE_TIMING_ENDPOINT_PATH)] || [string trim $::env(DAP
 }
 set endpoint_path [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)]
 
+if {![info exists ::env(DAPHNE_TIMING_PLANE_PATH)] || [string trim $::env(DAPHNE_TIMING_PLANE_PATH)] eq ""} {
+    error "ERROR: DAPHNE_TIMING_PLANE_PATH must be set for afe_capture_timing.xdc"
+}
+set timing_plane_path [string trim $::env(DAPHNE_TIMING_PLANE_PATH)]
+
 proc daphne_require_single_net {net_name purpose} {
     set resolved_nets [get_nets -quiet $net_name]
     if {[llength $resolved_nets] != 1} {
         error "ERROR: expected exactly one net for $purpose at '$net_name', found [llength $resolved_nets]"
     }
     return [lindex $resolved_nets 0]
+}
+
+proc daphne_require_single_pin {pin_name purpose} {
+    set resolved_pins [get_pins -quiet $pin_name]
+    if {[llength $resolved_pins] != 1} {
+        error "ERROR: expected exactly one pin for $purpose at '$pin_name', found [llength $resolved_pins]"
+    }
+    return [lindex $resolved_pins 0]
 }
 
 proc daphne_set_async_clock_groups_if_present {group_a group_b} {
@@ -41,16 +54,16 @@ proc daphne_set_async_clock_groups_if_present {group_a group_b} {
 
 set frontend_word_clk_ep_net [daphne_require_single_net ${endpoint_path}/ep_clk62p5 "frontend endpoint word-clock source"]
 set frontend_word_clk_local_net [daphne_require_single_net ${endpoint_path}/local_clk62p5 "frontend local word-clock source"]
-set frontend_bit_clk_net [daphne_require_single_net ${endpoint_path}/clk500 "frontend bit-clock source"]
-set frontend_byte_clk_net [daphne_require_single_net ${endpoint_path}/clk125 "frontend byte-clock source"]
+set frontend_bit_clk_pin [daphne_require_single_pin ${timing_plane_path}/clk500_o "frontend bit-clock board seam"]
+set frontend_byte_clk_pin [daphne_require_single_pin ${timing_plane_path}/clk125_o "frontend byte-clock board seam"]
 set endpoint_bclk_net [daphne_require_single_net ${endpoint_path}/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk "timing endpoint recovered bit clock"]
 
 create_generated_clock -name frontend_word_clk_ep     $frontend_word_clk_ep_net
 create_generated_clock -name frontend_word_clk_local  $frontend_word_clk_local_net
-create_generated_clock -name frontend_bit_clk_ep      -master_clock frontend_word_clk_ep    $frontend_bit_clk_net
-create_generated_clock -name frontend_byte_clk_ep     -master_clock frontend_word_clk_ep    $frontend_byte_clk_net
-create_generated_clock -add -name frontend_bit_clk_local   -master_clock frontend_word_clk_local  $frontend_bit_clk_net
-create_generated_clock -add -name frontend_byte_clk_local  -master_clock frontend_word_clk_local  $frontend_byte_clk_net
+create_generated_clock -name frontend_bit_clk_ep           -master_clock frontend_word_clk_ep       $frontend_bit_clk_pin
+create_generated_clock -name frontend_byte_clk_ep          -master_clock frontend_word_clk_ep       $frontend_byte_clk_pin
+create_generated_clock -add -name frontend_bit_clk_local   -master_clock frontend_word_clk_local    $frontend_bit_clk_pin
+create_generated_clock -add -name frontend_byte_clk_local  -master_clock frontend_word_clk_local    $frontend_byte_clk_pin
 
 set_clock_groups -physically_exclusive \
   -group {frontend_word_clk_ep frontend_bit_clk_ep frontend_byte_clk_ep} \
