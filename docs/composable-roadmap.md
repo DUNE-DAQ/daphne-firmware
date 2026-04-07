@@ -34,6 +34,24 @@ land in the composable graph.
 The next implementation steps should stay additive and avoid disturbing the
 currently qualified monolithic path until each replacement is proven.
 
+## Current baseline
+
+The repo has now crossed the main structural integration threshold:
+
+- `boards/k26c/board.yml` defaults to
+  `dune-daq:daphne:k26c-composable-platform:0.1.0`
+- `./scripts/fusesoc/build_platform.sh` defaults to the native `impl` target
+  for that platform
+- the active `impl` target builds `k26c_board_shell` through the Vivado Flow
+  API
+- the active `impl` graph is board-plane owned
+- `scripts/fusesoc/check_native_impl_graph.sh` now audits that staged graph for
+  `legacy-*` regressions and required frontend timing constraints
+
+That means the remaining work is no longer “make a real composable impl
+possible”; it is “prove, harden, and simplify the native path until the legacy
+lane is only a compatibility fallback”.
+
 The vendor-neutral primitive seam is now in place for the isolated
 self-trigger path. The main portability blocker has moved up to the frontend
 side: the trigger/descriptor/record-builder stack and the new AFE subsystem
@@ -42,45 +60,67 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
 
 ## Immediate next steps
 
-1. Keep the frontend split thin and compatibility-safe.
-   - `frontend_common.vhd` now owns the shared `IDELAYCTRL`, forwarded AFE
-     clock, and CDC/pulse resync logic.
-   - `frontend_register_slice.vhd` and `frontend_register_bank.vhd` now own
-     the per-AFE tap/bitslip state under the existing `fe_axi.vhd` AXI ABI.
-   - Keep `frontend_island.vhd` as the drop-in wrapper so software does not
-     need to change while the internals are decomposed further.
+1. Keep the native `impl` graph auditable and stable.
+   - `scripts/fusesoc/check_native_impl_graph.sh` should stay green after every
+     board-plane or build-wrapper refactor.
+   - Treat reintroduction of `legacy-*` core names into the active
+     `k26c-composable-platform:impl` graph as a regression.
+   - Keep the required constraint set present:
+     `daphne_selftrigger_pin_map.xdc`, `afe_capture_timing.xdc`,
+     `frontend_control_cdc.xdc`.
 
-2. Add an AFE config bank wrapper.
-   - Done for the direct SPI ownership layer with `afe_config_bank.vhd`.
-   - Next refinement is to preserve the existing physical grouping
-     (`afe0`, `afe12`, and `afe34`) as a higher-level compatibility shell.
-   - Allow inactive slices to be tied off cleanly when `AFE_COUNT_G < 5`.
-   - The repo now also has `afe_subsystem_island.vhd` so one AFE can own both
-     analog configuration and self-trigger composition behind a single reusable
-     boundary.
+2. Prove the native board-shell path on hardware.
+   - Use the current default `build_platform.sh` / `run_vivado_batch.sh`
+     entrypoint and compare it directly against the known-good build lane.
+   - Keep timing/AFE readout qualification ahead of further wide refactors.
+   - Preserve full build trees and reports from known-good native runs.
 
-3. Keep pushing the frontend-to-trigger seam down to the AFE boundary.
-   - `afe_capture_to_trigger_bank.vhd` now owns one AFE's sample-lane mapping.
-   - `frontend_to_selftrigger_adapter.vhd` is now only the flat wrapper that
-     stitches those per-AFE adapters into the legacy flattened trigger bank.
+3. Reduce the dual-lane delivery burden.
+   - Keep the legacy Tcl/IP/export path available, but treat it as a
+     compatibility lane rather than the architectural source of truth.
+   - Make the remote/WSL runbooks explicit about when packaged-IP preflight is
+     skipped and when it is still required.
+   - Keep deployment artifact naming stable while the native path is being
+     qualified.
 
-4. Grow the first composable top-level shell.
-   - The repo now has a source-only `daphne_composable_top` that wires
-     `frontend_island -> frontend_to_selftrigger_adapter -> afe_subsystem_fabric`.
-   - The repo also now has `daphne_composable_core_top`, a vendor-neutral shell
-     that wraps the AFE subsystem fabric with the current timing and Hermes
-     boundaries so the platform can be validated offline.
-   - The repo now also has `daphne_composable_frontend_shell`, which sits one
-     layer closer to the public top: it owns the frontend sample handoff into
-     the vendor-neutral core-top and validates that seam without requiring the
-     vendor-specific frontend island.
-   - Self-trigger enable now lives inside the AFE subsystem island/fabric,
-     which keeps analog configuration and trigger ownership aligned per AFE.
-   - Next additions should pull spybuffer and the remaining public reset
-     contract into that shell family without changing the generic contract.
+4. Keep the public/composable documentation aligned with reality.
+   - `modular-architecture.md`, `native-impl-architecture.md`, and the remote
+     runbooks should describe the actual default build path, not the historical
+     one.
+   - Record board-shell and board-plane ownership explicitly so future work is
+     easier to review.
 
-5. Keep the composable platform validate target green, then add a real `impl`
-   target only after the shell has stable top-level entity and pin/clock ownership.
+5. Decide when the legacy lane can be demoted further.
+   - The key question is no longer whether a native `impl` exists.
+   - The key question is when hardware confidence is high enough that routine
+     development stops depending on the legacy delivery path.
+
+## Historical implementation milestones
+
+The sections below summarize the major steps that made the current baseline
+possible. They remain useful context when debugging why certain wrappers or
+compatibility layers still exist.
+
+### Earlier milestone: native impl target
+
+The repo already has a real `impl` target on
+`k26c-composable-platform`, which builds `k26c_board_shell`
+directly through the Vivado Flow API and exports the same
+`daphne_selftrigger_<gitsha>` artifact contract. This is the current
+default composable build entrypoint.
+
+### Earlier milestone: explicit board-shell ownership
+
+The native board-shell synth/impl path now resolves through an
+explicit `k26c-board-shell` feature core and the extracted bridge graph
+rather than the generated `daphne-ip` source manifest. The generated
+packaged-IP manifest still exists for the legacy export/build lane, but
+the default native `impl` target is now meaningfully closer to a full
+FuseSoC-owned source graph. `k26c_board_shell` now owns the live
+implementation directly, with `legacy_public_top_bridge` retained only as
+a compatibility alias for older manifest consumers.
+
+### Earlier milestone: public-top and board-shell synth checkpoints
    - The shared Vivado flow now accepts `DAPHNE_BD_NAME` /
      `DAPHNE_BD_WRAPPER_NAME`, plus build/overlay naming overrides
      `DAPHNE_BUILD_NAME_PREFIX` / `DAPHNE_OVERLAY_NAME_PREFIX`, plus
@@ -112,19 +152,6 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      through the Edalize Vivado Flow API instead of the deprecated tool API.
      This is still OOC synthesis, but it is the first real flow-owned synth
      target in the migration.
-   - The repo now also has the native board-shell `impl` target on
-     `k26c-composable-platform`, which builds `k26c_board_shell`
-     directly through the Vivado Flow API and exports the same
-     `daphne_selftrigger_<gitsha>` artifact contract. This is the current
-     default composable build entrypoint.
-   - The native board-shell synth/impl path now resolves through an
-     explicit `k26c-board-shell` feature core and the extracted bridge graph
-     rather than the generated `daphne-ip` source manifest. The generated
-     packaged-IP manifest still exists for the legacy export/build lane, but
-     the default native `impl` target is now meaningfully closer to a full
-     FuseSoC-owned source graph. `k26c_board_shell` now owns the live
-     implementation directly, with `legacy_public_top_bridge` retained only as
-     a compatibility alias for older manifest consumers.
 
 ## Trigger and descriptor split
 
