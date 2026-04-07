@@ -80,6 +80,8 @@ daphne_resolve_board_defaults() {
   ip_display_name="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_display_name)"
   ip_xgui_file="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_xgui_file)"
   ip_cell_bind_root="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_cell_bind_root)"
+  public_top_hdl_file="$(daphne_board_manifest_value "$root_dir" "$board_name" public_top_hdl_file)"
+  public_top_module="$(daphne_board_manifest_value "$root_dir" "$board_name" public_top_module)"
   timing_endpoint_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_endpoint_path)"
 
   if [ "$supported" != "true" ]; then
@@ -140,6 +142,12 @@ daphne_resolve_board_defaults() {
   if [ -n "$ip_cell_bind_root" ]; then
     : "${DAPHNE_IP_CELL_BIND_ROOT:=$ip_cell_bind_root}"
   fi
+  if [ -n "$public_top_hdl_file" ]; then
+    : "${DAPHNE_PUBLIC_TOP_HDL_FILE:=$public_top_hdl_file}"
+  fi
+  if [ -n "$public_top_module" ]; then
+    : "${DAPHNE_PUBLIC_TOP_MODULE:=$public_top_module}"
+  fi
   if [ -n "$timing_endpoint_path" ]; then
     : "${DAPHNE_TIMING_ENDPOINT_PATH:=$timing_endpoint_path}"
   fi
@@ -186,6 +194,12 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "${DAPHNE_IP_CELL_BIND_ROOT-}" ]; then
     export DAPHNE_IP_CELL_BIND_ROOT
+  fi
+  if [ -n "${DAPHNE_PUBLIC_TOP_HDL_FILE-}" ]; then
+    export DAPHNE_PUBLIC_TOP_HDL_FILE
+  fi
+  if [ -n "${DAPHNE_PUBLIC_TOP_MODULE-}" ]; then
+    export DAPHNE_PUBLIC_TOP_MODULE
   fi
   if [ -n "${DAPHNE_TIMING_ENDPOINT_PATH-}" ]; then
     export DAPHNE_TIMING_ENDPOINT_PATH

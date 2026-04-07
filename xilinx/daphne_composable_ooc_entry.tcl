@@ -23,7 +23,8 @@ set output_dir [daphne_ooc_get_env_or_default DAPHNE_OUTPUT_DIR "./output-compos
 set fpga_part [daphne_ooc_get_env_or_default DAPHNE_FPGA_PART [dict get $daphne_board_profile fpga_part]]
 set board_part [daphne_ooc_get_env_or_default DAPHNE_BOARD_PART [dict get $daphne_board_profile board_part]]
 set max_threads [daphne_ooc_get_env_or_default DAPHNE_MAX_THREADS "8"]
-set top_name [daphne_ooc_get_env_or_default DAPHNE_COMPOSABLE_OOC_TOP "daphne_composable_top"]
+set public_top_module_default [expr {[dict exists $daphne_board_profile public_top_module] ? [dict get $daphne_board_profile public_top_module] : "daphne_composable_top"}]
+set top_name [daphne_ooc_get_env_or_default DAPHNE_COMPOSABLE_OOC_TOP [daphne_ooc_get_env_or_default DAPHNE_PUBLIC_TOP_MODULE $public_top_module_default]]
 
 if {![file isdirectory $src_root]} {
     error "ERROR: expected FuseSoC-staged source tree at $src_root"
