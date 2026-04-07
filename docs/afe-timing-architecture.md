@@ -79,6 +79,10 @@ The timing side is still weaker than it should be:
 - The active AFE receive-clock model now lives in `xilinx/afe_capture_timing.xdc`,
   but the board-owned input-delay model is still disabled until measured
   min/max timing numbers are available.
+- `frontend_common.vhd` now makes the `idelayctrl_reset`, `idelay_load`, and
+  `trig_axi` crossings explicit two-stage synchronizers with `ASYNC_REG`
+  marking, which is a better timing/CDC baseline than the earlier single-flop
+  resync.
 - Some frontend ownership is split between the legacy `front_end` and the newer
   isolated/frontend helper blocks, which makes it harder to reason about what
   changed in a given implementation.
@@ -121,7 +125,13 @@ The timing side is still weaker than it should be:
    Static constraints should not try to encode away the need for IDELAY/bitslip
    training.
 
-5. Once the composable frontend shell becomes the real synth path, move timing
+5. Narrow the frontend CDC exceptions once the new synchronizer boundaries have
+   been exercised in build reports.
+   - `xilinx/frontend_control_cdc.xdc` should eventually stop relying on the
+     broad wildcard `set_false_path -through` list and instead match the
+     explicit synchronizer structure.
+
+6. Once the composable frontend shell becomes the real synth path, move timing
    ownership alongside it so `frontend_common` becomes the natural home for the
    shared capture timing contract.
 

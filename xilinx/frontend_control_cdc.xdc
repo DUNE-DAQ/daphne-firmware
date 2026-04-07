@@ -4,9 +4,11 @@
 # source-synchronous AFE capture clock family in afe_capture_timing.xdc.
 #
 # These nets are intentionally not timed as synchronous data paths:
-# - idelayctrl_reset crosses into clk500 via frontend_common
-# - idelay_load crosses into clk125 via frontend_common
-# - trig_axi crosses into clock via frontend_common
+# - idelayctrl_reset crosses into clk500 via explicit two-stage sync in
+#   frontend_common
+# - idelay_load crosses into clk125 via explicit two-stage sync in
+#   frontend_common
+# - trig_axi crosses into clock via explicit two-stage sync in frontend_common
 # - idelay_tap/idelay_en_vtc/iserdes_reset/iserdes_bitslip drive IDELAY/ISERDES
 #   control pins or fabric alignment state outside the AXI clock domain
 
