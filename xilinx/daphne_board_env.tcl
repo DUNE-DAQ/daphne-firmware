@@ -71,6 +71,33 @@ proc daphne_resolve_board_config {script_dir} {
     return [daphne_resolve_board_profile $repo_root]
 }
 
+proc daphne_read_path_manifest {manifest_path} {
+    if {![file exists $manifest_path]} {
+        error "ERROR: expected manifest at $manifest_path"
+    }
+
+    set handle [open $manifest_path r]
+    set entries {}
+    while {[gets $handle line] >= 0} {
+        regsub {[[:space:]]+#.*$} $line "" line
+        set trimmed_line [string trim $line]
+        if {$trimmed_line ne ""} {
+            lappend entries $trimmed_line
+        }
+    }
+    close $handle
+    return $entries
+}
+
+proc daphne_resolve_legacy_support_sources {repo_root} {
+    set manifest_path [file join $repo_root "xilinx" "legacy_flow_support_sources.txt"]
+    set sources {}
+    foreach rel_path [daphne_read_path_manifest $manifest_path] {
+        lappend sources [daphne_resolve_repo_relative_path $repo_root $rel_path]
+    }
+    return $sources
+}
+
 proc daphne_get_board_env_or_default {cfg_name env_name key {default_value ""}} {
     upvar 1 $cfg_name cfg
 

@@ -21,6 +21,7 @@ filesets:
       - xilinx/daphne_bd_gen.tcl
       - xilinx/daphne_dtbo_gen.tcl
       - xilinx/daphne_ip_gen.tcl
+      - xilinx/legacy_flow_support_sources.txt
       - xilinx/daphne_vivado_flow.tcl
       - xilinx/daphne_xgui_gen.tcl
       - xilinx/daphne_board_env.tcl
@@ -63,6 +64,7 @@ filesets:
       - xilinx/daphne_export_flow_handoff.tcl
       - xilinx/daphne_dtbo_gen.tcl
       - xilinx/daphne_ip_gen.tcl
+      - xilinx/legacy_flow_support_sources.txt
       - xilinx/daphne_selftrigger_pin_map.xdc
       - xilinx/daphne_vivado_flow.tcl
       - xilinx/daphne_xgui_gen.tcl

@@ -11,40 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 TCL_PATH = ROOT / "xilinx" / "daphne_ip_gen.tcl"
 OUT_PATH = ROOT / "daphne-ip.core"
 EXPORT_OUT_PATH = ROOT / "daphne-ip-export.core"
+LEGACY_FLOW_SUPPORT_PATH = ROOT / "xilinx" / "legacy_flow_support_sources.txt"
 CORE_PREFIX = ""
-EXTRA_RTL_VHDL = [
-    "rtl/isolated/common/daphne_subsystem_pkg.vhd",
-    "rtl/isolated/common/primitives/configurable_delay_line.vhd",
-    "rtl/isolated/common/primitives/fixed_delay_line.vhd",
-    "rtl/isolated/common/primitives/sync_fifo_fwft.vhd",
-    "rtl/isolated/subsystems/analog/legacy_analog_control_plane_bridge.vhd",
-    "rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd",
-    "rtl/isolated/subsystems/control/legacy_stuff_selftrigger_register_bank.vhd",
-    "rtl/isolated/subsystems/control/legacy_trigger_control_adapter.vhd",
-    "rtl/isolated/subsystems/control/legacy_selftrigger_inputs_bridge.vhd",
-    "rtl/isolated/subsystems/control/legacy_selftrigger_fabric_bridge.vhd",
-    "rtl/isolated/subsystems/frontend/frontend_common.vhd",
-    "rtl/isolated/subsystems/frontend/afe_capture_slice.vhd",
-    "rtl/isolated/subsystems/frontend/frontend_capture_bank.vhd",
-    "rtl/isolated/subsystems/frontend/frontend_register_slice.vhd",
-    "rtl/isolated/subsystems/frontend/frontend_register_bank.vhd",
-    "rtl/isolated/subsystems/frontend/frontend_island.vhd",
-    "rtl/isolated/subsystems/trigger/afe_capture_to_trigger_bank.vhd",
-    "rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd",
-    "rtl/isolated/subsystems/readout/legacy_core_readout_bridge.vhd",
-    "rtl/isolated/subsystems/readout/legacy_deimos_readout_bridge.vhd",
-    "rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd",
-    "rtl/isolated/subsystems/readout/legacy_two_lane_readout_mux.vhd",
-    "rtl/isolated/subsystems/spy/legacy_spy_capture_bridge.vhd",
-    "rtl/isolated/subsystems/timing/legacy_timing_subsystem_bridge.vhd",
-    "rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd",
-    "rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd",
-    "rtl/isolated/subsystems/trigger/afe_trigger_bank.vhd",
-    "rtl/isolated/subsystems/trigger/legacy_selftrigger_datapath.vhd",
-    "rtl/isolated/subsystems/trigger/afe_selftrigger_island.vhd",
-    "rtl/isolated/subsystems/trigger/selftrigger_fabric.vhd",
-    "rtl/isolated/subsystems/trigger/stc3_record_builder.vhd",
-]
 
 
 def sorted_relative_files(base: Path, pattern: str) -> list[str]:
@@ -82,6 +50,15 @@ def extract_default_string(text: str, pattern: str) -> str:
     if not match:
         raise RuntimeError(f"Could not find pattern: {pattern}")
     return match.group(1)
+
+
+def load_manifest_lines(path: Path) -> list[str]:
+    entries: list[str] = []
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if line:
+            entries.append(line)
+    return entries
 
 
 def emit_fileset(
@@ -134,6 +111,7 @@ def emit_core(
 
 def main() -> None:
     tcl_text = TCL_PATH.read_text()
+    extra_rtl_vhdl = load_manifest_lines(LEGACY_FLOW_SUPPORT_PATH)
 
     default_top_vhdl = extract_default_string(
         tcl_text,
@@ -175,7 +153,7 @@ def main() -> None:
     ips_root = ROOT / "ip_repo" / "daphne_ip" / "ips"
 
     rtl_vhdl = core_relative(
-        EXTRA_RTL_VHDL
+        extra_rtl_vhdl
         + basename_filtered(sorted_relative_files(rtl_root, "*.vhd"), rtl_ignored)
     )
     rtl_verilog = core_relative(sorted_relative_files(rtl_root, "*.v"))

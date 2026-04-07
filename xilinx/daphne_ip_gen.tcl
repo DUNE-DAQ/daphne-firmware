@@ -31,39 +31,7 @@ proc parse_extra_roots {rawValue} {
     return $roots
 }
 
-set daphne_packaged_support_vhdl_src [list \
-    [file join $repo_root "rtl" "isolated" "common" "daphne_subsystem_pkg.vhd"] \
-    [file join $repo_root "rtl" "isolated" "common" "primitives" "configurable_delay_line.vhd"] \
-    [file join $repo_root "rtl" "isolated" "common" "primitives" "fixed_delay_line.vhd"] \
-    [file join $repo_root "rtl" "isolated" "common" "primitives" "sync_fifo_fwft.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "analog" "legacy_analog_control_plane_bridge.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_selftrigger_register_bank.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_stuff_selftrigger_register_bank.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_trigger_control_adapter.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_selftrigger_inputs_bridge.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_selftrigger_fabric_bridge.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_common.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "afe_capture_slice.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_capture_bank.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_register_slice.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_register_bank.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_island.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "afe_capture_to_trigger_bank.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "frontend_to_selftrigger_adapter.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "readout" "legacy_core_readout_bridge.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "readout" "legacy_deimos_readout_bridge.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "readout" "legacy_selftrigger_plane_bridge.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "readout" "legacy_two_lane_readout_mux.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "spy" "legacy_spy_capture_bridge.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "timing" "legacy_timing_subsystem_bridge.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "self_trigger_xcorr_channel.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "peak_descriptor_channel.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "afe_trigger_bank.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "legacy_selftrigger_datapath.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "afe_selftrigger_island.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "selftrigger_fabric.vhd"] \
-    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "stc3_record_builder.vhd"] \
-]
+set daphne_packaged_support_vhdl_src [daphne_resolve_legacy_support_sources $repo_root]
 set daphne_packaged_support_stage_dir [file join $daphne_ip_root "src" "generated_support"]
 if {[file exists $daphne_packaged_support_stage_dir]} {
     puts "INFO: Generated support source staging directory already exists at $daphne_packaged_support_stage_dir."
