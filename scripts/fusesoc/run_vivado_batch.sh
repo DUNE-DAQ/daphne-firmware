@@ -37,7 +37,7 @@ if [ -z "${DAPHNE_GIT_SHA-}" ] && command -v git >/dev/null 2>&1; then
 fi
 
 if [ -z "$PLATFORM_TARGET" ] && [ "$PLATFORM_CORE" = "dune-daq:daphne:k26c-composable-platform:0.1.0" ]; then
-  PLATFORM_TARGET="impl_legacy_flow"
+  PLATFORM_TARGET="impl"
 fi
 
 if [ -n "$PLATFORM_TARGET" ]; then

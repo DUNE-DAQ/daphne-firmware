@@ -102,7 +102,8 @@ If you call `fusesoc run` directly, set `DAPHNE_GIT_SHA` first so the legacy
 artifact naming keeps the real commit instead of falling back to `0000000`.
 If you want the wrapper to use the composable platform instead, set
 `DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0`; the
-wrapper will then default to `DAPHNE_PLATFORM_TARGET=impl_legacy_flow`.
+wrapper will then default to `DAPHNE_PLATFORM_TARGET=impl`, which currently
+aliases the legacy-flow board build.
 
 For the composable platform, the checked-in implementation hook is still the
 transitional bridge target:
@@ -134,6 +135,11 @@ API instead of the older pre-build hook/backend path. This is the first honest
 board-facing Flow API checkpoint in the migration: the public composable top is
 still not the deployed top, but the board implementation now has a flow-owned
 entry point as well.
+
+The composable platform now also exposes `impl` as its default implementation
+target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
+target automatically. Today `impl` is an alias for the same legacy-flow board
+build while the migration continues.
 
 The IP packaging Tcl also now accepts top-identity overrides
 (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,

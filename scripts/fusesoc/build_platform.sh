@@ -83,7 +83,7 @@ esac
 if [ -z "$BUILD_TARGET" ]; then
   case "$PLATFORM_CORE" in
     "$DEFAULT_COMPOSABLE_CORE")
-      BUILD_TARGET="validate_public_top"
+      BUILD_TARGET="impl"
       ;;
     *)
       BUILD_TARGET="impl"
