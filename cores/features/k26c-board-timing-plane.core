@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:k26c-board-timing-plane:0.1.0
+description: K26C board-owned timing plane built directly on the extracted timing subsystem bridge
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:legacy-timing-subsystem-bridge:0.1.0
+    files:
+      - rtl/isolated/subsystems/timing/k26c_board_timing_plane.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl
