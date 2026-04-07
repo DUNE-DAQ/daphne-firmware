@@ -45,8 +45,10 @@ proc daphne_resolve_config {script_dir} {
         set cfg(output_dir) [file normalize [file join $script_dir $cfg(output_dir)]]
     }
 
-    set cfg(bd_name) "daphne_selftrigger_bd"
-    set cfg(bd_wrapper_name) "${cfg(bd_name)}_wrapper"
+    set cfg(bd_name) [daphne_get_env_or_default DAPHNE_BD_NAME "daphne_selftrigger_bd"]
+    set cfg(bd_wrapper_name) [daphne_get_env_or_default DAPHNE_BD_WRAPPER_NAME "${cfg(bd_name)}_wrapper"]
+    set cfg(build_name_prefix) [daphne_get_env_or_default DAPHNE_BUILD_NAME_PREFIX "daphne_selftrigger"]
+    set cfg(overlay_name_prefix) [daphne_get_env_or_default DAPHNE_OVERLAY_NAME_PREFIX "${cfg(build_name_prefix)}_ol"]
     set cfg(bd_file) [file join $cfg(repo_root) "bd" $cfg(bd_name) "${cfg(bd_name)}.bd"]
     set cfg(bd_wrapper_vhd) [file join $cfg(repo_root) "bd" $cfg(bd_name) "hdl" "${cfg(bd_wrapper_name)}.vhd"]
     set cfg(pinmap_xdc) [file join $script_dir "daphne_selftrigger_pin_map.xdc"]
@@ -55,8 +57,8 @@ proc daphne_resolve_config {script_dir} {
 
     set cfg(git_sha) [daphne_resolve_git_sha]
     set cfg(v_git_sha) "28'h$cfg(git_sha)"
-    set cfg(build_name) "daphne_selftrigger_$cfg(git_sha)"
-    set cfg(overlay_name) "daphne_selftrigger_ol_$cfg(git_sha)"
+    set cfg(build_name) "${cfg(build_name_prefix)}_$cfg(git_sha)"
+    set cfg(overlay_name) "${cfg(overlay_name_prefix)}_$cfg(git_sha)"
 
     return [array get cfg]
 }

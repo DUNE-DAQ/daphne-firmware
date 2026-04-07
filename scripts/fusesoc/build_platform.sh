@@ -4,9 +4,11 @@ set -eu
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
 DEFAULT_CORE="dune-daq:daphne:k26c-platform:0.1.0"
 DEFAULT_MODULAR_CORE="dune-daq:daphne:k26c-modular-platform:0.1.0"
+DEFAULT_COMPOSABLE_CORE="dune-daq:daphne:k26c-composable-platform:0.1.0"
 
 DRY_RUN=0
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_CORE}"
+BUILD_TARGET="${DAPHNE_PLATFORM_TARGET:-}"
 
 usage() {
   cat <<EOF
@@ -17,6 +19,8 @@ Build the DAPHNE firmware through the repo-local FuseSoC platform layer.
 Options:
   --platform-core <VLNV>  Use an explicit platform core
   --modular               Use $DEFAULT_MODULAR_CORE
+  --composable            Use $DEFAULT_COMPOSABLE_CORE
+  --target <name>         Use an explicit FuseSoC target for the selected platform core
   --dry-run               Resolve the platform core and print what would run
   -h, --help              Show this help text
 EOF
@@ -35,6 +39,17 @@ while [ "$#" -gt 0 ]; do
     --modular)
       PLATFORM_CORE="$DEFAULT_MODULAR_CORE"
       ;;
+    --composable)
+      PLATFORM_CORE="$DEFAULT_COMPOSABLE_CORE"
+      ;;
+    --target)
+      shift
+      [ "$#" -gt 0 ] || {
+        echo "ERROR: --target requires a target name." >&2
+        exit 2
+      }
+      BUILD_TARGET="$1"
+      ;;
     --dry-run)
       DRY_RUN=1
       ;;
@@ -52,7 +67,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 case "$PLATFORM_CORE" in
-  dune-daq:daphne:k26c-platform:0.1.0|dune-daq:daphne:k26c-modular-platform:0.1.0)
+  dune-daq:daphne:k26c-platform:0.1.0|dune-daq:daphne:k26c-modular-platform:0.1.0|dune-daq:daphne:k26c-composable-platform:0.1.0)
     BOARD="k26c"
     ;;
   *)
@@ -60,9 +75,21 @@ case "$PLATFORM_CORE" in
     echo "Supported cores today are:" >&2
     echo "  $DEFAULT_CORE" >&2
     echo "  $DEFAULT_MODULAR_CORE" >&2
+    echo "  $DEFAULT_COMPOSABLE_CORE" >&2
     exit 2
     ;;
 esac
+
+if [ -z "$BUILD_TARGET" ]; then
+  case "$PLATFORM_CORE" in
+    "$DEFAULT_COMPOSABLE_CORE")
+      BUILD_TARGET="validate_public_top"
+      ;;
+    *)
+      BUILD_TARGET="impl"
+      ;;
+  esac
+fi
 
 cd "$ROOT_DIR"
 "$ROOT_DIR/scripts/fusesoc/refresh_cores.sh" >/dev/null
@@ -70,10 +97,11 @@ cd "$ROOT_DIR"
 
 echo "INFO: Selected FuseSoC platform core: $PLATFORM_CORE"
 echo "INFO: Resolved board profile: $BOARD"
-echo "INFO: Build mode: impl"
+echo "INFO: Selected FuseSoC target: $BUILD_TARGET"
 
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
+export DAPHNE_PLATFORM_TARGET="$BUILD_TARGET"
 
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "INFO: Dry-run only, stopping before Vivado."
@@ -83,5 +111,5 @@ fi
 exec "$ROOT_DIR/scripts/fusesoc/fusesoc.sh" run \
   --setup \
   --build \
-  --target impl \
+  --target "$BUILD_TARGET" \
   "$PLATFORM_CORE"

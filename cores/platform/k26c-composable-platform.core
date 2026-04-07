@@ -27,6 +27,10 @@ filesets:
       - xilinx/scripts/axi_quad_spi_dtbo_patch.sed
       - xilinx/vivado_batch.tcl
     file_type: user
+  hooks:
+    files:
+      - scripts/fusesoc/vivado_batch_hook.sh
+    file_type: user
   validate_rtl:
     depend:
       - dune-daq:daphne:daphne-composable-core-top-selftrigger-off:0.1.0
@@ -52,11 +56,35 @@ filesets:
       - tests/logic/daphne_composable_top_smoke_tb.vhd
     file_type: vhdlSource
 
+scripts:
+  vivado_batch:
+    cmd:
+      - sh
+      - scripts/fusesoc/vivado_batch_hook.sh
+    filesets:
+      - hooks
+
 targets:
   default:
     description: Source-only platform manifest for the composable K26C subsystem graph and top shell
     filesets:
       - platform
+  impl_legacy_bridge:
+    description: Transitional FuseSoC implementation entry point for the composable platform while Vivado still builds the qualified legacy/generated K26C design
+    default_tool: vivado
+    toplevel: daphne_selftrigger_bd_wrapper
+    filesets:
+      - platform
+    hooks:
+      pre_build:
+        - vivado_batch
+    tools:
+      vivado:
+        part: xck26-sfvc784-2LV-c
+        board_part: xilinx.com:k26c:part0:1.4
+        synth: none
+        pnr: none
+        source_mgmt_mode: None
   validate:
     description: GHDL validation of the vendor-free composable core shell behind the K26C platform graph
     default_tool: ghdl

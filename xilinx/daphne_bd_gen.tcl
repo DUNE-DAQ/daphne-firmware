@@ -5,23 +5,24 @@
 # general setup stuff
 set script_dir [file dirname [file normalize [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
-set blockDesignDir [file join $repo_root "bd"]
-
-# check if the block design folder already exists
-if {[file exists $blockDesignDir]} {
-    # block design folder already exists, so delete it
-    puts "INFO: Block Design files already exists at $blockDesignDir."
-    puts "INFO: Deleting older version of Block Design..."
-    file delete -force $blockDesignDir
-}
-# create the new folder to populate later with the design
-file mkdir $blockDesignDir 
+set blockDesignRoot [file join $repo_root "bd"]
 
 # configure the current in-memory project
 source -notrace [file join $script_dir "daphne_board_env.tcl"]
 set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
 set daphne_pfm_name [daphne_get_env_or_default DAPHNE_PFM_NAME "xilinx:k26c:name:0.0"]
+set designName [daphne_get_env_or_default DAPHNE_BD_NAME "daphne_selftrigger_bd"]
+set blockDesignDir [file join $blockDesignRoot $designName]
+
+# keep sibling block designs intact so alternate design identities can coexist
+# during the transition away from the legacy monolithic build path.
+if {[file exists $blockDesignDir]} {
+    puts "INFO: Block Design files already exist at $blockDesignDir."
+    puts "INFO: Deleting older version of active Block Design..."
+    file delete -force $blockDesignDir
+}
+file mkdir $blockDesignRoot
 set_part $daphne_fpga_part
 set_property BOARD_PART $daphne_board_part [current_project]
 set_property TARGET_LANGUAGE VHDL [current_project]
@@ -37,8 +38,7 @@ set_property IP_REPO_PATHS [file join $repo_root "ip_repo"] [current_project]
 update_ip_catalog
 
 # set design name here
-variable designName 
-set designName daphne_selftrigger_bd
+variable designName
 
 # set variables to control errors
 set errMsg ""
@@ -75,7 +75,7 @@ if {${designName} eq ""} {
     puts "INFO: Currently there is no design <$designName> in project, so creating one..."
 
     # command to create the block design
-    create_bd_design -dir $blockDesignDir $designName
+    create_bd_design -dir $blockDesignRoot $designName
 
     puts "INFO: Making design <$designName> as current_bd_design."
     current_bd_design $designName
