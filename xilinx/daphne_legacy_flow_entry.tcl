@@ -55,17 +55,26 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
             sync_fifo_fwft.vhd
             legacy_selftrigger_register_bank.vhd
             legacy_stuff_selftrigger_register_bank.vhd
+            legacy_trigger_control_adapter.vhd
+            legacy_selftrigger_inputs_bridge.vhd
+            legacy_selftrigger_fabric_bridge.vhd
             frontend_common.vhd
             afe_capture_slice.vhd
             frontend_capture_bank.vhd
             frontend_register_slice.vhd
             frontend_register_bank.vhd
             frontend_island.vhd
+            afe_capture_to_trigger_bank.vhd
+            frontend_to_selftrigger_adapter.vhd
             legacy_deimos_readout_bridge.vhd
+            legacy_two_lane_readout_mux.vhd
             legacy_timing_subsystem_bridge.vhd
             self_trigger_xcorr_channel.vhd
             peak_descriptor_channel.vhd
+            afe_trigger_bank.vhd
             legacy_selftrigger_datapath.vhd
+            afe_selftrigger_island.vhd
+            selftrigger_fabric.vhd
             stc3_record_builder.vhd
         } {
             set found_dir [daphne_find_first_file_dir $src_root $required_leaf]

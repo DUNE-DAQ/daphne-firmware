@@ -46,6 +46,7 @@ filesets:
       - dune-daq:daphne:legacy-selftrigger-datapath:0.1.0
       - dune-daq:daphne:legacy-selftrigger-register-bank:0.1.0
       - dune-daq:daphne:legacy-stuff-selftrigger-register-bank:0.1.0
+      - dune-daq:daphne:legacy-two-lane-readout-mux:0.1.0
       - dune-daq:daphne:legacy-trigger-control-adapter:0.1.0
       - dune-daq:daphne:legacy-spy-trigger-bridge:0.1.0
       - dune-daq:daphne:legacy-selftrigger-inputs-bridge:0.1.0

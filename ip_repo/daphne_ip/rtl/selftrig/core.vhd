@@ -141,6 +141,7 @@ port map (
     signal_delay => signal_delay,
     timestamp  => timestamp,
     forcetrig  => forcetrig,
+    enable  => enable,
     st_trigger_signal => st_trigger_signal,
     adhoc => adhoc,
     ti_trigger => ti_trigger,
