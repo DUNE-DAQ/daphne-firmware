@@ -32,9 +32,12 @@ filesets:
   hooks:
     files:
       - scripts/fusesoc/board_env.sh
+      - scripts/package/complete_dtbo_bundle.sh
       - scripts/fusesoc/vivado_batch_hook.sh
       - scripts/fusesoc/vivado_composable_ooc_hook.sh
       - scripts/fusesoc/export_impl_legacy_flow_hook.sh
+      - scripts/wsl/run_windows_batch_tool.sh
+      - scripts/wsl/setup_windows_xilinx.sh
     file_type: user
   ooc_public_top_rtl:
     depend:
