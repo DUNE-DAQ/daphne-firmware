@@ -17,6 +17,18 @@ set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME "${
 set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE "${daphne_ip_component_identifier}_v1_0.tcl"]
 set daphne_ip_top_basename [file tail $daphne_ip_top_hdl_file]
 set daphne_ip_include_dirs [list [file join $daphne_ip_root "rtl"] [file dirname $daphne_ip_top_hdl_file]]
+
+proc parse_extra_roots {rawValue} {
+    set roots {}
+    foreach item [split $rawValue ";"] {
+        set trimmed [string trim $item]
+        if {$trimmed ne ""} {
+            lappend roots [file normalize $trimmed]
+        }
+    }
+    return $roots
+}
+
 set daphne_packaged_support_vhdl_src [list \
     [file join $repo_root "rtl" "isolated" "common" "daphne_subsystem_pkg.vhd"] \
     [file join $repo_root "rtl" "isolated" "common" "primitives" "configurable_delay_line.vhd"] \
@@ -24,17 +36,26 @@ set daphne_packaged_support_vhdl_src [list \
     [file join $repo_root "rtl" "isolated" "common" "primitives" "sync_fifo_fwft.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_selftrigger_register_bank.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_stuff_selftrigger_register_bank.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_trigger_control_adapter.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_selftrigger_inputs_bridge.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "control" "legacy_selftrigger_fabric_bridge.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_common.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "afe_capture_slice.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_capture_bank.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_register_slice.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_register_bank.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "frontend" "frontend_island.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "afe_capture_to_trigger_bank.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "frontend_to_selftrigger_adapter.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "readout" "legacy_deimos_readout_bridge.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "readout" "legacy_two_lane_readout_mux.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "timing" "legacy_timing_subsystem_bridge.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "self_trigger_xcorr_channel.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "peak_descriptor_channel.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "afe_trigger_bank.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "legacy_selftrigger_datapath.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "afe_selftrigger_island.vhd"] \
+    [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "selftrigger_fabric.vhd"] \
     [file join $repo_root "rtl" "isolated" "subsystems" "trigger" "stc3_record_builder.vhd"] \
 ]
 set daphne_packaged_support_stage_dir [file join $daphne_ip_root "src" "generated_support"]
@@ -180,17 +201,6 @@ proc ignore_files {listToVerify itemsToIgnore} {
         }
     }    
     return $newList
-}
-
-proc parse_extra_roots {rawValue} {
-    set roots {}
-    foreach item [split $rawValue ";"] {
-        set trimmed [string trim $item]
-        if {$trimmed ne ""} {
-            lappend roots [file normalize $trimmed]
-        }
-    }
-    return $roots
 }
 
 # create a proc in order to find the latest version of an IP definition int he catalog

@@ -95,6 +95,7 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
     "$WORK_ROOT/rtl/isolated/common/primitives" \
     "$WORK_ROOT/rtl/isolated/subsystems/control" \
     "$WORK_ROOT/rtl/isolated/subsystems/frontend" \
+    "$WORK_ROOT/rtl/isolated/subsystems/readout" \
     "$WORK_ROOT/rtl/isolated/subsystems/timing" \
     "$WORK_ROOT/rtl/isolated/subsystems/trigger"
   do
@@ -111,13 +112,22 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
       sync_fifo_fwft.vhd \
       legacy_selftrigger_register_bank.vhd \
       legacy_stuff_selftrigger_register_bank.vhd \
+      legacy_trigger_control_adapter.vhd \
+      legacy_selftrigger_inputs_bridge.vhd \
+      legacy_selftrigger_fabric_bridge.vhd \
       frontend_register_slice.vhd \
       frontend_register_bank.vhd \
+      afe_capture_to_trigger_bank.vhd \
+      frontend_to_selftrigger_adapter.vhd \
       legacy_deimos_readout_bridge.vhd \
+      legacy_two_lane_readout_mux.vhd \
       legacy_timing_subsystem_bridge.vhd \
       self_trigger_xcorr_channel.vhd \
       peak_descriptor_channel.vhd \
+      afe_trigger_bank.vhd \
       legacy_selftrigger_datapath.vhd \
+      afe_selftrigger_island.vhd \
+      selftrigger_fabric.vhd \
       stc3_record_builder.vhd
     do
       found_dir="$(find_first_file_dir "$WORK_ROOT/src" "$required_leaf")"

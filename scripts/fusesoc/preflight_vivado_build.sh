@@ -101,7 +101,16 @@ fi
 for support_leaf in \
   legacy_selftrigger_register_bank.vhd \
   legacy_stuff_selftrigger_register_bank.vhd \
+  legacy_trigger_control_adapter.vhd \
+  legacy_selftrigger_inputs_bridge.vhd \
+  legacy_selftrigger_fabric_bridge.vhd \
+  afe_capture_to_trigger_bank.vhd \
+  frontend_to_selftrigger_adapter.vhd \
   legacy_selftrigger_datapath.vhd \
+  legacy_two_lane_readout_mux.vhd \
+  afe_trigger_bank.vhd \
+  afe_selftrigger_island.vhd \
+  selftrigger_fabric.vhd \
   legacy_deimos_readout_bridge.vhd \
   legacy_timing_subsystem_bridge.vhd
 do
