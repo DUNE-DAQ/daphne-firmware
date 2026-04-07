@@ -62,6 +62,7 @@ daphne_resolve_board_defaults() {
   board_part="$(daphne_board_manifest_value "$root_dir" "$board_name" board_part)"
   pfm_name="$(daphne_board_manifest_value "$root_dir" "$board_name" pfm_name)"
   constraint_file="$(daphne_board_manifest_value "$root_dir" "$board_name" constraint_file)"
+  ip_cell_bind_root="$(daphne_board_manifest_value "$root_dir" "$board_name" ip_cell_bind_root)"
 
   if [ "$supported" != "true" ]; then
     echo "ERROR: board '$board_name' is scaffolded but not yet supported." >&2
@@ -80,6 +81,9 @@ daphne_resolve_board_defaults() {
   : "${DAPHNE_BOARD_PART:=$board_part}"
   : "${DAPHNE_PFM_NAME:=$pfm_name}"
   : "${DAPHNE_CONSTRAINT_FILE:=$constraint_file}"
+  if [ -n "$ip_cell_bind_root" ]; then
+    : "${DAPHNE_IP_CELL_BIND_ROOT:=$ip_cell_bind_root}"
+  fi
   DAPHNE_BOARD="$board_name"
 
   export DAPHNE_BOARD
@@ -87,6 +91,9 @@ daphne_resolve_board_defaults() {
   export DAPHNE_BOARD_PART
   export DAPHNE_PFM_NAME
   export DAPHNE_CONSTRAINT_FILE
+  if [ -n "${DAPHNE_IP_CELL_BIND_ROOT-}" ]; then
+    export DAPHNE_IP_CELL_BIND_ROOT
+  fi
 }
 
 daphne_legacy_support_source_list() {
