@@ -5,6 +5,7 @@
 This summary is for the next agent running inside WSL2 on the host where:
 
 - the firmware repo lives at `~/work/daphne-firmware`;
+- the clean build worktree lives at `~/work/daphne-firmware-build`;
 - Vivado 2024.1 is installed on Windows at `C:\Xilinx\Vivado\2024.1`;
 - Vitis 2024.1 is installed on Windows at `C:\Xilinx\Vitis\2024.1`.
 
@@ -41,21 +42,25 @@ export XILINX_VITIS='C:\Xilinx\Vitis\2024.1'
 
 Do not start with `./scripts/wsl/check_windows_xilinx.sh`.
 
+On this host, the reliable path is the clean build worktree under
+`~/work/daphne-firmware-build/xilinx`.
+
 Use manual Windows-tool invocation from WSL with `cmd.exe /c` and `pushd` so
 the WSL UNC path is mapped to a temporary Windows drive.
 
 ### Manual preflight
 
-From `~/work/daphne-firmware/xilinx`, prepare:
+From `~/work/daphne-firmware-build/xilinx`, prepare:
 
 ```tcl
-set script_dir "\\\\wsl.localhost\\Debian\\home\\neutrino\\work\\daphne-firmware\\xilinx"
+set script_dir "\\\\wsl.localhost\\Debian\\home\\neutrino\\work\\daphne-firmware-build\\xilinx"
 create_project -in_memory -part "xck26-sfvc784-2LV-c"
 set ::env(DAPHNE_FPGA_PART) "xck26-sfvc784-2LV-c"
 set ::env(DAPHNE_BOARD_PART) "xilinx.com:k26c:part0:1.4"
 set ::env(DAPHNE_PFM_NAME) "xilinx:k26c:name:0.0"
 set ::env(DAPHNE_BOARD) "k26c"
 set ::env(DAPHNE_ETH_MODE) "create_ip"
+set ::env(DAPHNE_GIT_SHA) "2942d3d"
 source -notrace [file join $script_dir "daphne_ip_gen.tcl"]
 exit
 ```
@@ -63,20 +68,29 @@ exit
 Run:
 
 ```bash
-cmd.exe /c "pushd \\wsl.localhost\Debian\home\neutrino\work\daphne-firmware\xilinx && C:\Xilinx\Vivado\2024.1\bin\vivado.bat -mode batch -source .manual-preflight.tcl && popd"
+cmd.exe /c "pushd \\wsl.localhost\Debian\home\neutrino\work\daphne-firmware-build\xilinx && C:\Xilinx\Vivado\2024.1\bin\vivado.bat -mode batch -source .manual-preflight.tcl && popd"
+```
+
+Confirm:
+
+```bash
+ls -l ../ip_repo/daphne_ip/component.xml
+ls -l ../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci
 ```
 
 ### Manual build
 
-From `~/work/daphne-firmware/xilinx`, prepare:
+From `~/work/daphne-firmware-build/xilinx`, prepare:
 
 ```tcl
-set script_dir "\\\\wsl.localhost\\Debian\\home\\neutrino\\work\\daphne-firmware\\xilinx"
+set script_dir "\\\\wsl.localhost\\Debian\\home\\neutrino\\work\\daphne-firmware-build\\xilinx"
 set ::env(DAPHNE_FPGA_PART) "xck26-sfvc784-2LV-c"
 set ::env(DAPHNE_BOARD_PART) "xilinx.com:k26c:part0:1.4"
 set ::env(DAPHNE_PFM_NAME) "xilinx:k26c:name:0.0"
 set ::env(DAPHNE_BOARD) "k26c"
 set ::env(DAPHNE_ETH_MODE) "create_ip"
+set ::env(DAPHNE_GIT_SHA) "2942d3d"
+set ::env(DAPHNE_OUTPUT_DIR) "./output-2942d3d"
 set ::env(DAPHNE_MAX_THREADS) "12"
 set ::env(DAPHNE_SKIP_POST_SYNTH_REPORTS) "1"
 set ::env(DAPHNE_SKIP_POST_SYNTH_CHECKPOINT) "1"
@@ -87,8 +101,32 @@ source -notrace [file join $script_dir "vivado_batch.tcl"]
 Run:
 
 ```bash
-cmd.exe /c "pushd \\wsl.localhost\Debian\home\neutrino\work\daphne-firmware\xilinx && C:\Xilinx\Vivado\2024.1\bin\vivado.bat -mode batch -source .manual-build.tcl && popd"
+cmd.exe /c "pushd \\wsl.localhost\Debian\home\neutrino\work\daphne-firmware-build\xilinx && C:\Xilinx\Vivado\2024.1\bin\vivado.bat -mode batch -source .manual-build.tcl && popd"
 ```
+
+After the build:
+
+```bash
+ls -l output-2942d3d
+sed -n '1,120p' output-2942d3d/post_route_timing_summary.rpt
+```
+
+If the `.dtbo` is missing, finish packaging separately:
+
+```bash
+cd ~/work/daphne-firmware-build
+./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-2942d3d
+```
+
+### Agent/automation notes
+
+- If this command is embedded inside another shell string, make sure the
+  argument that reaches `cmd.exe` still starts with
+  `\\wsl.localhost\Debian\...`. If it arrives as `\wsl.localhost\Debian\...`,
+  `pushd` fails with `The system cannot find the path specified.`
+- When launching through automation, prefer starting `cmd.exe` from a
+  Windows-local working directory such as `/mnt/c/Windows/System32`, then let
+  `pushd` map the WSL UNC path to a temporary drive letter.
 
 ## Latest known build outcome
 
@@ -109,12 +147,9 @@ value.
 ## Immediate next objective
 
 1. Re-run manual preflight with `pushd`.
-2. Confirm these files exist after preflight:
-   - `ip_repo/daphne_ip/component.xml`
-   - `ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci`
+2. Confirm `ip_repo/daphne_ip/component.xml` and
+   `ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci`.
 3. Re-run manual build with `pushd`.
-4. Capture resulting artifacts under `xilinx/output/`.
-5. If the build succeeds again, decide whether to:
-   - patch the repo wrappers to use the same `cmd.exe /c pushd ...` strategy; or
-   - keep the manual Tcl path for this host and document dtbo completion
-     separately.
+4. Capture resulting artifacts under `xilinx/output-2942d3d/`.
+5. If the `.dtbo` is absent, finish packaging with
+   `./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-2942d3d`.
