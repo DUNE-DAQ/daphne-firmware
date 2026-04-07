@@ -1,15 +1,3 @@
-
-
-#create_generated_clock -name ep_clk2x [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku2x]
-#create_generated_clock -name mmcm1_clkout0 -master_clock [get_clocks ep_clk62p5] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout0_BUFGCE]
-#create_generated_clock -name clk500 -master_clock [get_clocks local_clk62p5] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout0_BUFGCE]
-#create_generated_clock -name clk125 -master_clock [get_clocks clk500_1] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/clk125]
-#create_generated_clock -name clk500_1 -master_clock [get_clocks ep_clk62p5] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout0_BUFGCE]
-#set_false_path -from [get_clocks clk500_1] -to [get_clocks clock]
-#set_false_path -from [get_clocks clk500] -to [get_clocks clock]
-#set_false_path -from [get_clocks clk500] -to [get_clocks clk500_1]
-#set_false_path -from [get_clocks clk_pl_0] -to [get_clocks clk500]
-
 #J.OLSEN
 # J.NTAHOTURI, T.DELINE, M.MARCHAN
 # this file contains all signals locations and voltage properties
@@ -63,45 +51,11 @@ set_clock_groups -physically_exclusive \
   -group {ep_clk62p5 clk500 clk125} \
   -group {local_clk62p5 clk500_1 clk125_1}
 
-#create_generated_clock -name clock -master_clock [get_clocks local_clk62p5] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1]
-#create_generated_clock -name mmcm1_clkfbout1 -master_clock [get_clocks local_clk62p5] [get_nets DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkfbout]
-#create_generated_clock -name clk125_1        -master_clock clk500_1   [get_nets  {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout0}]
-#create_generated_clock -name clk500_b        -master_clock clk500   [get_nets  {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/front_end_inst/clk500_b}]
-#create_generated_clock -name CLK         -source [get_nets {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/front_end_inst/clk500}] -divide_by 1 [get_pins {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/front_end_inst/gen_afe.gen_bit.febit3_inst/ISERDESE3_inst/CLK}]
-#create_generated_clock -name CLK_B       -source [get_nets {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/front_end_inst/clk500_b}] -divide_by 1 [get_pins {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/front_end_inst/gen_afe.gen_bit.febit3_inst/ISERDESE3_inst/CLK_B}]
-#set_clock_groups -name exclusive_clk -physically_exclusive -group CLK CLK_B clk500 clk500_b
-#set_clock_groups -name exclusive_clk -physically_exclusive -group [get_clocks {clk500   clk_serdes_INTERNAL_DIVCLK2}]
-# define clock groups this is how we tell vivado which clocks are related and which are NOT
-#create_clock -period 6.400 -name eth_clk -add [get_clocks {clk_pl_2}]
-#create_generated_clock -name clk125 -source [get_cells  -hierarchical -filter {NAME =~ *mmcm1_clkout0*}] -master_clock [get_cells -hierarchical -filter {NAME =~ *mmcm1_clkout0*}] [get_cells -hierarchical -filter {NAME =~ *clk125*}]
-
-#set_false_path -from [get_cells  -hierarchical -filter {NAME =~ *mmcm1_clkout0*}] -to [get_cells   -hierarchical -filter {NAME =~ *mmcm1_clkout1*}]
-
-#set_false_path -from [get_clocks clk100] -to [get_clocks ep_clk62p5]
-#set_false_path -from [get_clocks ep_clk62p5] -to [get_clocks clock]
-#set_false_path -from [get_clocks ep_clk62p5] -to [get_clocks clk100]
-#set_false_path -from [get_clocks  -hierarchical -filter {NAME =~ *mmcm1_clkout0*}] -to [get_clocks {clk_pl_0}]
-#set_false_path -from [get_clocks {clk125_1}] -to [get_clocks {mmcm1_clkout}]
-#set_false_path -from [get_clocks  -hierarchical -filter {NAME =~ *mmcm1_clkout0*}] -to [get_clocks  -hierarchical -filter {NAME =~ *mmcm1_clkout0*}]
-#set_false_path -from [get_clocks clk_pl_0] -to [get_cells  -hierarchical -filter {NAME =~ *mmcm1_clkout0*}]
-#set_false_path -from [get_clocks clk_pl_0] -to [get_cells  -hierarchical -filter {NAME =~ *mmcm1_clkout1*}]
-#set_false_path -from [get_clocks {clk_pl_3}] -to [get_clocks {clk_pl_2}]
-#set_false_path -from [get_clocks {mmcm1_clkout2}] -to [get_clocks {clk_pl_2}]
-#set_false_path -from [get_clocks clk_pl_0] -to [get_clocks {clk125}]
-#set_false_path -from [get_clocks {mmcm1_clkout1}] -to [get_clocks {clk_pl_2}]
-#set_false_path -from [get_clocks {clk_pl_0}] -to [get_clocks {clk_pl_2}]
-#set_false_path -from [get_clocks {clk_pl_1}] -to [get_clocks {eth_clk}]
-#set_false_path -from [get_clocks {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1}] -to [get_clocks {clock}]
-#set_false_path -from [get_clocks {clk500}] -to [get_clocks {clk125_1}]
-#set_false_path -from [get_cells DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clk2_inst] -to [get_clocks clock]
-#set_false_path -from [get_clocks clk_pl_0] -to [get_cells DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clk2_inst]
-
-#set_false_path -from [get_cells DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clk2_inst] -to [get_cells DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkfb_inst]
-#set_false_path -from [get_cells DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clk2_inst] -to [get_cells DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clk0_inst]
-#set_false_path -from [get_cells DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clk2_inst] -to [get_cells DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clk1_inst]
-
 set_property CLOCK_DEDICATED_ROUTE BACKBONE [get_nets daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk]
 
+# Legacy async containment for remaining board/control clocks that are still
+# named by older generated-clock families. Keep these cuts until the board
+# build no longer depends on the older BD/control-plane clock baggage.
 proc daphne_set_async_clock_groups_if_present {group_a group_b} {
     set clocks_a {}
     set clocks_b {}
@@ -122,14 +76,10 @@ proc daphne_set_async_clock_groups_if_present {group_a group_b} {
     }
 }
 
-#set_clock_groups -**async_default**  [get_clocks {mmcm1_clkout0_1}] to [get_clocks {mmcm1_clkout0}]
 daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm1_clkout0}
 daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm1_clkout1}
 daphne_set_async_clock_groups_if_present {mmcm1_clkout1} {mmcm1_clkout0}
-#set_clock_groups -asynchronous -group [get_clocks DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku] -group [get_clocks DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1]
-#set_clock_groups -asynchronous -group [get_clocks {mmcm1_clkout0_1}] -group [get_clocks {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1}]
 daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm0_clkout0}
-#set_clock_groups -asynchronous -group [get_clocks {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout0}] -group [get_clocks {mmcm1_clkout1_1}]
 daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm0_clkout2}
 daphne_set_async_clock_groups_if_present {clk_pl_0} {mmcm0_clkout1}
 daphne_set_async_clock_groups_if_present {clk_pl_0} {clk125}
@@ -141,13 +91,6 @@ daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm0_clkout2}
 daphne_set_async_clock_groups_if_present {clk_pl_2} {mmcm0_clkout1}
 
 daphne_set_async_clock_groups_if_present {clk_pl_2} {sysclk}
-
-
-#set_clock_groups -asynchronous -group [get_clocks {clku}] -group [get_clocks {clk100}]
-#set_clock_groups -asynchronous -group [get_clocks {mmcm1_clkout0_1_DIV4_INV}] -group [get_clocks {mmcm1_clkout1}]
-#set_clock_groups -asynchronous -group [get_clocks {mmcm1_clkout2_1}] -group [get_clocks {DAPHNE_V3_F4_1_i/daphne_selftrigger_top_0/U0/endpoint_inst/mmcm1_clkout1}]
-#set_clock_groups -asynchronous -group [get_clocks {mmcm1_clkout0_DIV4_INV}] -group [get_clocks {mmcm1_clkout1_1}]
-#set_clock_groups -asynchronous -group [get_clocks {mmcm1_clkout2}] -group [get_clocks {mmcm1_clkout1_1}]
 
 #set_clock_groups -name async_groups -asynchronous -group {sysclk100 clk100 mmcm0_clkfbout} -group {sb_axi_clk fe_axi_clk ep_axi_clk} -group local_clk62p5 -group {clk500_0 clock_0 clk125_0 mmcm1_clkfbout0} -group {clk500_1 clock_1 clk125_1 mmcm1_clkfbout1} -group {ep_clk62p5 ep_clk4x ep_clk2x ep_clkfbout} -group rx_tmg_clk
 
