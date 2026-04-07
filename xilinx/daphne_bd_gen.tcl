@@ -84,7 +84,7 @@ proc daphne_create_user_ip_cell {user_ip_vlnv block_cell_name version_value} {
     return $daphne_top_cell
 }
 
-proc daphne_connect_user_ip {block_cell_name} {
+proc daphne_connect_default_user_ip {block_cell_name} {
     connect_bd_intf_net -intf_net smartconnect_0_M00_AXI [get_bd_intf_pins smartconnect_0/M00_AXI] [daphne_bd_intf_pin $block_cell_name AFE_SPI_S_AXI]
     connect_bd_intf_net -intf_net smartconnect_0_M02_AXI [get_bd_intf_pins smartconnect_0/M02_AXI] [daphne_bd_intf_pin $block_cell_name END_P_S_AXI]
     connect_bd_intf_net -intf_net smartconnect_0_M03_AXI [get_bd_intf_pins smartconnect_0/M03_AXI] [daphne_bd_intf_pin $block_cell_name FRONT_END_S_AXI]
@@ -153,7 +153,7 @@ proc daphne_connect_user_ip {block_cell_name} {
     connect_bd_net -net zynq_ultra_ps_e_0_pl_clk3 [get_bd_pins zynq_ultra_ps_e_0/pl_clk3] [daphne_bd_pin $block_cell_name sysclk100]
 }
 
-proc daphne_assign_user_ip_addresses {block_cell_name} {
+proc daphne_assign_default_user_ip_addresses {block_cell_name} {
     assign_bd_address -offset 0x80000000 -range 0x04000000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name AFE_SPI_S_AXI/reg0] -force
     assign_bd_address -offset 0x84000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 1] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name END_P_S_AXI/reg0] -force
     assign_bd_address -offset 0x88000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 2] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name FRONT_END_S_AXI/reg0] -force
@@ -163,6 +163,22 @@ proc daphne_assign_user_ip_addresses {block_cell_name} {
     assign_bd_address -offset 0x94000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 6] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name STUFF_S_AXI/reg0] -force
     assign_bd_address -offset 0xA0010000 -range 0x00010000 -with_name [daphne_bd_addr_seg_label $block_cell_name 7] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name THRESH_S_AXI/reg0] -force
     assign_bd_address -offset 0x98000000 -range 0x04000000 -with_name [daphne_bd_addr_seg_label $block_cell_name 8] -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [daphne_bd_addr_seg $block_cell_name TRIRG_S_AXI/reg0] -force
+}
+
+proc daphne_connect_user_ip {block_cell_name} {
+    if {[llength [info procs daphne_connect_board_user_ip]] > 0} {
+        daphne_connect_board_user_ip $block_cell_name
+        return
+    }
+    daphne_connect_default_user_ip $block_cell_name
+}
+
+proc daphne_assign_user_ip_addresses {block_cell_name} {
+    if {[llength [info procs daphne_assign_board_user_ip_addresses]] > 0} {
+        daphne_assign_board_user_ip_addresses $block_cell_name
+        return
+    }
+    daphne_assign_default_user_ip_addresses $block_cell_name
 }
 
 puts "INFO: Building block design for part <$daphne_fpga_part> board_part <$daphne_board_part> pfm <$daphne_pfm_name>."
