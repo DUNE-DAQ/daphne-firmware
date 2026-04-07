@@ -50,6 +50,8 @@ The repo has now crossed the main structural integration threshold:
   plane ownership regressions
 - the board self-trigger plane is now internally split into explicit datapath
   and transport subplanes
+- the frontend and timing board planes now have explicit contract audits too,
+  so they stay thin wrappers around `frontend_island` and `endpoint`
 
 That means the remaining work is no longer “make a real composable impl
 possible”; it is “prove, harden, and simplify the native path until the legacy

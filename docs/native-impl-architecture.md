@@ -70,8 +70,10 @@ This is the important current milestone:
 
 - the active `impl` graph is board-plane owned
 - `k26c_board_shell` instantiates only explicit board-plane entities
+- `k26c_board_frontend_plane` still instantiates only `frontend_island`
 - `k26c_board_selftrigger_plane` now instantiates only explicit datapath and
   transport subplanes
+- `k26c_board_timing_plane` still instantiates only the imported `endpoint`
 - the active `impl` graph stages with zero `legacy-*` core names
 - the required frontend timing constraints remain present:
   - `xilinx/daphne_selftrigger_pin_map.xdc`
@@ -92,10 +94,17 @@ That script:
   feature cores
 - checks that `k26c_board_shell.vhd` instantiates only the board-plane
   entities
+- checks that `k26c-board-frontend-plane.core` depends only on
+  `frontend-island`
+- checks that `k26c_board_frontend_plane.vhd` instantiates only
+  `frontend_island`
 - checks that `k26c-board-selftrigger-plane.core` depends only on the explicit
   datapath and transport subplanes
 - checks that `k26c_board_selftrigger_plane.vhd` instantiates only those
   subplanes
+- checks that `k26c-board-timing-plane.core` depends only on the imported
+  `timing-endpoint`
+- checks that `k26c_board_timing_plane.vhd` instantiates only `endpoint`
 - stages `k26c-composable-platform:impl`
 - locates the generated `*.eda.yml`
 - fails if any `legacy-*` core names re-enter the active graph
