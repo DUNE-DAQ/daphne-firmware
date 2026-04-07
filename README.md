@@ -101,6 +101,21 @@ change is that FuseSoC now owns the top-level entry point and work root.
 If you call `fusesoc run` directly, set `DAPHNE_GIT_SHA` first so the legacy
 artifact naming keeps the real commit instead of falling back to `0000000`.
 
+For the composable platform, the checked-in implementation hook is still the
+transitional bridge target:
+
+```bash
+./scripts/fusesoc/build_platform.sh --composable --target impl_legacy_bridge
+```
+
+That bridge still builds the qualified legacy K26C design, but the Vivado hook
+and block-design flow now honor `DAPHNE_BD_NAME` / `DAPHNE_BD_WRAPPER_NAME`
+ overrides, plus `DAPHNE_BUILD_NAME_PREFIX` /
+ `DAPHNE_OVERLAY_NAME_PREFIX` for artifact naming, and only clear the active
+ block-design directory instead of deleting the entire `bd/` tree. This keeps
+ the migration path open for side-by-side legacy and future composable design
+ identities.
+
 If Vivado runs on a remote server instead of the local workstation, use the
 repo-local runbook and wrapper:
 
@@ -277,7 +292,13 @@ recorded in `docs/source-audit.md`.
 - `cores/platform/k26c-composable-platform.core` is the composable platform
   wrapper for the finer-grained subsystem graph. It now exposes a GHDL-backed
   `validate` target so the isolated shell can be compiled and smoke-tested
-  without Vivado.
+  without Vivado. It also now exposes a transitional `impl_legacy_bridge`
+  target so the composable platform can serve as a first-class FuseSoC entry
+  point while Vivado still builds the qualified legacy/generated K26C design.
+- `scripts/fusesoc/build_platform.sh --composable` now defaults to the safe
+  `validate_public_top` target for the composable platform. Use
+  `--composable --target impl_legacy_bridge` when you explicitly want the
+  transitional Vivado-backed bridge entry point.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache
   directories so the workflow does not depend on global user configuration.
 - `scripts/fusesoc/run_logic_test.sh` now exercises the module-level smoke
