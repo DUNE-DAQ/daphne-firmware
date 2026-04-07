@@ -92,6 +92,13 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      generator now removes only the active design directory. That is enough to
      let future composable design identities coexist alongside the legacy
      `daphne_selftrigger_bd` while the migration is still hybrid.
+   - The IP packager now also accepts top-identity overrides
+     (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,
+     `DAPHNE_IP_COMPONENT_IDENTIFIER`, `DAPHNE_IP_DISPLAY_NAME`,
+     `DAPHNE_IP_XGUI_FILE`) so the next migration step can swap package
+     identity without rewriting the script. Source discovery is still centered
+     on the imported legacy tree, so this is scaffolding, not the final
+     composable implementation path.
 
 ## Trigger and descriptor split
 
