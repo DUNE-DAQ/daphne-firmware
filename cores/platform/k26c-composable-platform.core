@@ -8,6 +8,7 @@ provider:
 filesets:
   platform:
     depend:
+      - dune-daq:daphne:daphne-ip:0.1.0
       - dune-daq:daphne:daphne-composable-top:0.1.0
       - dune-daq:daphne:daphne-composable:0.1.0
     files:
@@ -67,13 +68,13 @@ scripts:
   vivado_batch:
     cmd:
       - sh
-      - scripts/fusesoc/vivado_batch_hook.sh
+      - src/dune-daq_daphne_k26c-composable-platform_0.1.0/scripts/fusesoc/vivado_batch_hook.sh
     filesets:
       - hooks
   vivado_composable_ooc:
     cmd:
       - sh
-      - scripts/fusesoc/vivado_composable_ooc_hook.sh
+      - src/dune-daq_daphne_k26c-composable-platform_0.1.0/scripts/fusesoc/vivado_composable_ooc_hook.sh
     filesets:
       - hooks
 

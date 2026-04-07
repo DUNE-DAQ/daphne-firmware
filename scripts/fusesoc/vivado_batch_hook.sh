@@ -2,6 +2,8 @@
 set -eu
 
 WORK_ROOT="${PWD}"
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+PLATFORM_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 BOARD="${DAPHNE_BOARD:-k26c}"
 ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
 
@@ -42,6 +44,85 @@ fi
 
 : "${DAPHNE_OUTPUT_DIR:=./output-$DAPHNE_GIT_SHA}"
 
+append_unique_path() {
+  current="$1"
+  candidate="$2"
+  [ -n "$candidate" ] || {
+    printf '%s' "$current"
+    return 0
+  }
+  case ";$current;" in
+    *";$candidate;"*)
+      printf '%s' "$current"
+      ;;
+    "")
+      printf '%s' "$candidate"
+      ;;
+    *)
+      printf '%s;%s' "$current" "$candidate"
+      ;;
+  esac
+}
+
+find_first_file_dir() {
+  search_root="$1"
+  leaf="$2"
+  if [ ! -d "$search_root" ]; then
+    return 0
+  fi
+  found_path=$(find "$search_root" -type f -name "$leaf" -print -quit 2>/dev/null || true)
+  if [ -n "$found_path" ]; then
+    dirname "$found_path"
+  fi
+}
+
+if [ -z "${DAPHNE_IP_REPO_ROOT-}" ]; then
+  if [ -d "$WORK_ROOT/ip_repo/daphne_ip" ]; then
+    DAPHNE_IP_REPO_ROOT="$WORK_ROOT/ip_repo/daphne_ip"
+  elif [ -d "$WORK_ROOT/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip" ]; then
+    DAPHNE_IP_REPO_ROOT="$WORK_ROOT/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
+  fi
+fi
+
+if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -z "${DAPHNE_USER_IP_REPO_PARENT-}" ]; then
+  DAPHNE_USER_IP_REPO_PARENT="$(dirname "$DAPHNE_IP_REPO_ROOT")"
+fi
+
+if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
+  auto_extra_roots=""
+  for candidate_dir in \
+    "$WORK_ROOT/rtl/isolated/common" \
+    "$WORK_ROOT/rtl/isolated/common/primitives" \
+    "$WORK_ROOT/rtl/isolated/subsystems/frontend" \
+    "$WORK_ROOT/rtl/isolated/subsystems/trigger"
+  do
+    if [ -d "$candidate_dir" ]; then
+      auto_extra_roots="$(append_unique_path "$auto_extra_roots" "$candidate_dir")"
+    fi
+  done
+
+  if [ -d "$WORK_ROOT/src" ]; then
+    for required_leaf in \
+      daphne_subsystem_pkg.vhd \
+      configurable_delay_line.vhd \
+      fixed_delay_line.vhd \
+      sync_fifo_fwft.vhd \
+      frontend_register_slice.vhd \
+      frontend_register_bank.vhd \
+      self_trigger_xcorr_channel.vhd \
+      peak_descriptor_channel.vhd \
+      stc3_record_builder.vhd
+    do
+      found_dir="$(find_first_file_dir "$WORK_ROOT/src" "$required_leaf")"
+      auto_extra_roots="$(append_unique_path "$auto_extra_roots" "$found_dir")"
+    done
+  fi
+
+  if [ -n "$auto_extra_roots" ]; then
+    DAPHNE_IP_EXTRA_SOURCE_ROOTS="$auto_extra_roots"
+  fi
+fi
+
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_FPGA_PART
@@ -49,8 +130,17 @@ export DAPHNE_BOARD_PART
 export DAPHNE_PFM_NAME
 export DAPHNE_GIT_SHA
 export DAPHNE_OUTPUT_DIR
+if [ -n "${DAPHNE_IP_REPO_ROOT-}" ]; then
+  export DAPHNE_IP_REPO_ROOT
+fi
+if [ -n "${DAPHNE_USER_IP_REPO_PARENT-}" ]; then
+  export DAPHNE_USER_IP_REPO_PARENT
+fi
+if [ -n "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
+  export DAPHNE_IP_EXTRA_SOURCE_ROOTS
+fi
 
-cd "$WORK_ROOT/xilinx"
+cd "$PLATFORM_ROOT/xilinx"
 
 shim_tcl=".daphne-vivado-shim.$$.tcl"
 trap 'rm -f "$shim_tcl"' EXIT INT TERM HUP
@@ -82,6 +172,9 @@ append_env_tcl DAPHNE_IP_TOP_MODULE
 append_env_tcl DAPHNE_IP_COMPONENT_IDENTIFIER
 append_env_tcl DAPHNE_IP_DISPLAY_NAME
 append_env_tcl DAPHNE_IP_XGUI_FILE
+append_env_tcl DAPHNE_IP_EXTRA_SOURCE_ROOTS
+append_env_tcl DAPHNE_IP_REPO_ROOT
+append_env_tcl DAPHNE_USER_IP_REPO_PARENT
 append_env_tcl DAPHNE_SKIP_POST_SYNTH_REPORTS
 append_env_tcl DAPHNE_SKIP_POST_SYNTH_CHECKPOINT
 append_env_tcl DAPHNE_SYNTH_DIRECTIVE

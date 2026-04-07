@@ -5,8 +5,8 @@
 # set project properties
 set script_dir [file dirname [file normalize [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
-set daphne_ip_root [file join $repo_root "ip_repo" "daphne_ip"]
 source -notrace [file join $script_dir "daphne_board_env.tcl"]
+set daphne_ip_root [file normalize [daphne_get_env_or_default DAPHNE_IP_REPO_ROOT [file join $repo_root "ip_repo" "daphne_ip"]]]
 set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-2LV-c"]
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
 set daphne_eth_mode [daphne_get_env_or_default DAPHNE_ETH_MODE "vendored_hdl"]
@@ -17,11 +17,20 @@ set daphne_ip_display_name [daphne_get_env_or_default DAPHNE_IP_DISPLAY_NAME "${
 set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE "${daphne_ip_component_identifier}_v1_0.tcl"]
 set daphne_ip_top_basename [file tail $daphne_ip_top_hdl_file]
 set daphne_ip_include_dirs [list [file join $daphne_ip_root "rtl"] [file dirname $daphne_ip_top_hdl_file]]
+set daphne_ip_extra_source_roots [parse_extra_roots [daphne_get_env_or_default DAPHNE_IP_EXTRA_SOURCE_ROOTS ""]]
+foreach extraRoot $daphne_ip_extra_source_roots {
+    if {[lsearch -exact $daphne_ip_include_dirs $extraRoot] == -1} {
+        lappend daphne_ip_include_dirs $extraRoot
+    }
+}
 set_part $daphne_fpga_part
 set_property BOARD_PART $daphne_board_part [current_project]
 set_property TARGET_LANGUAGE VHDL [current_project]
 set_property DEFAULT_LIB work [current_project]
 puts "INFO: Packaging <$daphne_ip_component_identifier> from <$daphne_ip_top_hdl_file> for part <$daphne_fpga_part> board_part <$daphne_board_part> eth_mode <$daphne_eth_mode>."
+if {[llength $daphne_ip_extra_source_roots] > 0} {
+    puts "INFO: Including extra IP source roots: $daphne_ip_extra_source_roots"
+}
 
 # list the directories that must be deleted at the start of the process when generating a new iteration of the IP
 # this is purposely done so that older versions of IPs or files are updated to avoid later conflict or invalid configurations
@@ -129,6 +138,17 @@ proc ignore_files {listToVerify itemsToIgnore} {
         }
     }    
     return $newList
+}
+
+proc parse_extra_roots {rawValue} {
+    set roots {}
+    foreach item [split $rawValue ";"] {
+        set trimmed [string trim $item]
+        if {$trimmed ne ""} {
+            lappend roots [file normalize $trimmed]
+        }
+    }
+    return $roots
 }
 
 # create a proc in order to find the latest version of an IP definition int he catalog
@@ -320,6 +340,16 @@ set xciDAQFiles [ignore_files $xciDAQFiles_aux {"xxv_ethernet_0.xci" "xxv_ethern
 set vhdlFiles_aux [get_files_recursive $rtlDir "*.vhd"]
 set vhdlFiles [ignore_files $vhdlFiles_aux [list $daphne_ip_top_basename "auto_afe.vhd" "auto_fsm.vhd" "i2cm.vhd" "spim_cm.vhd" "DAQ_CLOCKS.vhd" "AXI_RAM.vhd" "dual_st20_top.vhd" "thresholds.vhd" "st40_top.vhd" "baseline.vhd" "trig.vhd"]]
 set verilogFiles [get_files_recursive $rtlDir "*.v"]
+
+foreach extraRoot $daphne_ip_extra_source_roots {
+    set extraVhdlFiles [get_files_recursive $extraRoot "*.vhd"]
+    set extraVerilogFiles [get_files_recursive $extraRoot "*.v"]
+    set extraSystemVerilogFiles [get_files_recursive $extraRoot "*.sv"]
+    set vhdlFiles [concat $vhdlFiles [ignore_files $extraVhdlFiles [list $daphne_ip_top_basename]]]
+    set verilogFiles [concat $verilogFiles $extraVerilogFiles $extraSystemVerilogFiles]
+}
+set vhdlFiles [lsort -unique $vhdlFiles]
+set verilogFiles [lsort -unique $verilogFiles]
 
 set tbFilesVhdl [get_files_recursive $tbDir "*.vhd"]
 set tbFilesVerilog [get_files_recursive $tbDir "*.v"]

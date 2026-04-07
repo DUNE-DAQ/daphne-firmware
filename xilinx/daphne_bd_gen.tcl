@@ -13,6 +13,7 @@ set daphne_fpga_part [daphne_get_env_or_default DAPHNE_FPGA_PART "xck26-sfvc784-
 set daphne_board_part [daphne_get_env_or_default DAPHNE_BOARD_PART "xilinx.com:k26c:part0:1.4"]
 set daphne_pfm_name [daphne_get_env_or_default DAPHNE_PFM_NAME "xilinx:k26c:name:0.0"]
 set daphne_user_ip_vlnv [daphne_get_env_or_default DAPHNE_USER_IP_VLNV "dune.pds:user:daphne_selftrigger_top:1.0"]
+set daphne_user_ip_repo_parent [file normalize [daphne_get_env_or_default DAPHNE_USER_IP_REPO_PARENT [file join $repo_root "ip_repo"]]]
 set designName [daphne_get_env_or_default DAPHNE_BD_NAME "daphne_selftrigger_bd"]
 set blockDesignDir [file join $blockDesignRoot $designName]
 
@@ -35,7 +36,7 @@ puts "INFO: Building block design for part <$daphne_fpga_part> board_part <$daph
 source -notrace [file join $script_dir "daphne_ip_gen.tcl"]
 
 # update IP catalog
-set_property IP_REPO_PATHS [file join $repo_root "ip_repo"] [current_project]
+set_property IP_REPO_PATHS $daphne_user_ip_repo_parent [current_project]
 update_ip_catalog
 
 # set design name here

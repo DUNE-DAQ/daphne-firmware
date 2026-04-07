@@ -27,11 +27,18 @@
 # create the folder where the file will be located
 set script_dir [file dirname [file normalize [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
-set xgui_dir [file join $repo_root "ip_repo" "daphne_ip" "xgui"]
+if {![info exists daphne_ip_root]} {
+    source -notrace [file join $script_dir "daphne_board_env.tcl"]
+    set daphne_ip_root [file normalize [daphne_get_env_or_default DAPHNE_IP_REPO_ROOT [file join $repo_root "ip_repo" "daphne_ip"]]]
+}
+if {![info exists daphne_ip_xgui_file]} {
+    set daphne_ip_xgui_file [daphne_get_env_or_default DAPHNE_IP_XGUI_FILE "daphne_selftrigger_top_v1_0.tcl"]
+}
+set xgui_dir [file join $daphne_ip_root "xgui"]
 file mkdir $xgui_dir
 
 # set the file path
-set xgui_file_path [file join $xgui_dir "daphne_selftrigger_top_v1_0.tcl"]
+set xgui_file_path [file join $xgui_dir $daphne_ip_xgui_file]
 
 # create/open the file 
 set fileId [open $xgui_file_path "w"]

@@ -93,12 +93,19 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
      generator now removes only the active design directory. That is enough to
      let future composable design identities coexist alongside the legacy
      `daphne_selftrigger_bd` while the migration is still hybrid.
+   - The transitional bridge now stages the generated `daphne-ip` manifest as a
+     real FuseSoC dependency and the Vivado hook auto-discovers the isolated
+     HDL roots needed by the packaged-IP synth. This fixes the current
+     `daphne_subsystem_pkg`/isolated-source visibility problem without claiming
+     that the real board implementation already comes from the composable top.
    - The IP packager now also accepts top-identity overrides
      (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,
      `DAPHNE_IP_COMPONENT_IDENTIFIER`, `DAPHNE_IP_DISPLAY_NAME`,
-     `DAPHNE_IP_XGUI_FILE`) so the next migration step can swap package
-     identity without rewriting the script. Source discovery is still centered
-     on the imported legacy tree, so this is scaffolding, not the final
+     `DAPHNE_IP_XGUI_FILE`) plus semicolon-separated
+     `DAPHNE_IP_EXTRA_SOURCE_ROOTS` so the next migration step can swap package
+     identity without rewriting the script and can pull auxiliary HDL from
+     composable trees outside `ip_repo/daphne_ip/rtl`. The default source set
+     is still legacy-first, so this remains scaffolding rather than the final
      composable implementation path.
    - The repo now also has `synth_public_top_ooc` on
      `k26c-composable-platform`, which stages the real `daphne_composable_top`
