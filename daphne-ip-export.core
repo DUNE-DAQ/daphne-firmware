@@ -57,7 +57,9 @@ filesets:
       - rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_two_lane_readout_mux.vhd
       - rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd
+      - rtl/isolated/subsystems/spy/k26c_board_spy_buffer_plane.vhd
       - rtl/isolated/subsystems/spy/k26c_board_spy_capture_plane.vhd
+      - rtl/isolated/subsystems/spy/k26c_board_spy_trigger_plane.vhd
       - rtl/isolated/subsystems/spy/legacy_spy_capture_bridge.vhd
       - rtl/isolated/subsystems/spy/spy_buffer_boundary.vhd
       - rtl/isolated/subsystems/timing/k26c_board_timing_plane.vhd

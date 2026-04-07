@@ -1,0 +1,22 @@
+CAPI=2:
+
+name: dune-daq:daphne:k26c-board-spy-buffer-plane:0.1.0
+description: K26C board-local spy-buffer sink plane
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:spy-buffer-boundary:0.1.0
+      - dune-daq:daphne:spy-buffer:0.1.0
+    files:
+      - rtl/isolated/subsystems/spy/k26c_board_spy_buffer_plane.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

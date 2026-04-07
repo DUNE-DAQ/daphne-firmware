@@ -64,6 +64,9 @@ The repo has now crossed the main structural integration threshold:
 - the board manifest now separates legacy packaged-IP identity from the native
   board-shell defaults through explicit `legacy_*` keys, so future native
   cleanup no longer needs to keep those names implicit
+- the board spy-capture plane is now split into explicit spy-trigger and
+  spy-buffer subplanes, so that path no longer carries trigger glue and the
+  live sink in one board-plane block
 - the board manifest now owns the optional AFE input-delay model, so the
   active AFE timing XDC can stay generic while measured board-family bounds
   remain data rather than Tcl/script constants

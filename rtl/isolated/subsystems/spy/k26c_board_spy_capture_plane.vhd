@@ -40,69 +40,46 @@ entity k26c_board_spy_capture_plane is
 end entity k26c_board_spy_capture_plane;
 
 architecture rtl of k26c_board_spy_capture_plane is
-  signal spy_trigger_s    : std_logic;
-  signal ti_trigger_en_s  : std_logic;
-  signal ti_trigger_en0_s : std_logic := '0';
-  signal ti_trigger_en1_s : std_logic := '0';
-  signal ti_trigger_en2_s : std_logic := '0';
-  signal timing_trigger_s : std_logic;
-  signal readiness_s      : acquisition_readiness_t :=
-    (config_ready => '1', timing_ready => '1', alignment_ready => '1');
+  signal spy_trigger_s : std_logic;
 begin
-  ti_trigger_en_s <= '1' when (ti_trigger_i = adhoc_i and ti_trigger_stbr_i = '1') else '0';
-
-  trigger_sync_proc : process (clock_i)
-  begin
-    if rising_edge(clock_i) then
-      if reset_i = '1' then
-        ti_trigger_en0_s <= '0';
-        ti_trigger_en1_s <= '0';
-        ti_trigger_en2_s <= '0';
-      else
-        ti_trigger_en0_s <= ti_trigger_en_s;
-        ti_trigger_en1_s <= ti_trigger_en0_s;
-        ti_trigger_en2_s <= ti_trigger_en1_s;
-      end if;
-    end if;
-  end process trigger_sync_proc;
-
-  timing_trigger_s <= ti_trigger_en0_s or ti_trigger_en1_s or ti_trigger_en2_s;
-  spy_trigger_s    <= frontend_trigger_i or timing_trigger_s;
-
-  spy_boundary_inst : entity work.spy_buffer_boundary
+  spy_trigger_plane_inst : entity work.k26c_board_spy_trigger_plane
     port map (
-      clk          => clock_i,
-      reset        => reset_i,
-      readiness_i  => readiness_s,
-      spy_enable_o => open
+      clock_i            => clock_i,
+      reset_i            => reset_i,
+      frontend_trigger_i => frontend_trigger_i,
+      adhoc_i            => adhoc_i,
+      ti_trigger_i       => ti_trigger_i,
+      ti_trigger_stbr_i  => ti_trigger_stbr_i,
+      spy_trigger_o      => spy_trigger_s
     );
 
-  spybuffers_inst : entity work.spybuffers
+  spy_buffer_plane_inst : entity work.k26c_board_spy_buffer_plane
     port map (
-      clock         => clock_i,
-      trig          => spy_trigger_s,
-      din           => afe_dout_i,
-      timestamp     => timestamp_i,
-      S_AXI_ACLK    => s_axi_aclk,
-      S_AXI_ARESETN => s_axi_aresetn,
-      S_AXI_AWADDR  => s_axi_awaddr,
-      S_AXI_AWPROT  => s_axi_awprot,
-      S_AXI_AWVALID => s_axi_awvalid,
-      S_AXI_AWREADY => s_axi_awready,
-      S_AXI_WDATA   => s_axi_wdata,
-      S_AXI_WSTRB   => s_axi_wstrb,
-      S_AXI_WVALID  => s_axi_wvalid,
-      S_AXI_WREADY  => s_axi_wready,
-      S_AXI_BRESP   => s_axi_bresp,
-      S_AXI_BVALID  => s_axi_bvalid,
-      S_AXI_BREADY  => s_axi_bready,
-      S_AXI_ARADDR  => s_axi_araddr,
-      S_AXI_ARPROT  => s_axi_arprot,
-      S_AXI_ARVALID => s_axi_arvalid,
-      S_AXI_ARREADY => s_axi_arready,
-      S_AXI_RDATA   => s_axi_rdata,
-      S_AXI_RRESP   => s_axi_rresp,
-      S_AXI_RVALID  => s_axi_rvalid,
-      S_AXI_RREADY  => s_axi_rready
+      clock_i       => clock_i,
+      reset_i       => reset_i,
+      spy_trigger_i => spy_trigger_s,
+      afe_dout_i    => afe_dout_i,
+      timestamp_i   => timestamp_i,
+      s_axi_aclk    => s_axi_aclk,
+      s_axi_aresetn => s_axi_aresetn,
+      s_axi_awaddr  => s_axi_awaddr,
+      s_axi_awprot  => s_axi_awprot,
+      s_axi_awvalid => s_axi_awvalid,
+      s_axi_awready => s_axi_awready,
+      s_axi_wdata   => s_axi_wdata,
+      s_axi_wstrb   => s_axi_wstrb,
+      s_axi_wvalid  => s_axi_wvalid,
+      s_axi_wready  => s_axi_wready,
+      s_axi_bresp   => s_axi_bresp,
+      s_axi_bvalid  => s_axi_bvalid,
+      s_axi_bready  => s_axi_bready,
+      s_axi_araddr  => s_axi_araddr,
+      s_axi_arprot  => s_axi_arprot,
+      s_axi_arvalid => s_axi_arvalid,
+      s_axi_arready => s_axi_arready,
+      s_axi_rdata   => s_axi_rdata,
+      s_axi_rresp   => s_axi_rresp,
+      s_axi_rvalid  => s_axi_rvalid,
+      s_axi_rready  => s_axi_rready
     );
 end architecture rtl;
