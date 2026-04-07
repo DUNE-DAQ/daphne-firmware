@@ -5,6 +5,7 @@ package daphne_subsystem_pkg is
 
   type sample14_array_t is array (natural range <>) of std_logic_vector(13 downto 0);
   type std_logic_array_t is array (natural range <>) of std_logic;
+  type slv28_array_t is array (natural range <>) of std_logic_vector(27 downto 0);
   type slv64_array_t is array (natural range <>) of std_logic_vector(63 downto 0);
   type slv72_array_t is array (natural range <>) of std_logic_vector(71 downto 0);
 
