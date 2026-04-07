@@ -319,7 +319,7 @@ recorded in `docs/source-audit.md`.
 - `cores/features/daphne-modular.core` remains as the older transitional
   source-graph wrapper. New decomposition work should land in
   `daphne-composable`.
-- `cores/generated/daphne-ip.core` is generated from the source-selection rules
+- `daphne-ip.core` is generated from the source-selection rules
   in `xilinx/daphne_ip_gen.tcl` and remains the compatibility path for the
   current K26C Vivado build.
 - `cores/platform/k26c-platform.core` keeps the working legacy K26C path.

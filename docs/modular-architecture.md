@@ -5,7 +5,7 @@
 The repository now carries two parallel packaging views of the same imported
 firmware:
 
-- `cores/generated/daphne-ip.core` is the compatibility manifest generated
+- `daphne-ip.core` is the compatibility manifest generated
   from the existing Vivado Tcl flow. This is the safe path for the currently
   qualified K26C build.
 - `cores/features/*.core` plus `cores/features/daphne-modular.core` are the

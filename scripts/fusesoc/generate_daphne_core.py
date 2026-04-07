@@ -9,9 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TCL_PATH = ROOT / "xilinx" / "daphne_ip_gen.tcl"
-OUT_DIR = ROOT / "cores" / "generated"
-OUT_PATH = OUT_DIR / "daphne-ip.core"
-CORE_PREFIX = "../../"
+OUT_PATH = ROOT / "daphne-ip.core"
+CORE_PREFIX = ""
 EXTRA_RTL_VHDL = [
     "rtl/isolated/common/daphne_subsystem_pkg.vhd",
     "rtl/isolated/common/primitives/configurable_delay_line.vhd",
@@ -209,7 +208,6 @@ def main() -> None:
     elif all_xci:
         lines.extend(["    filesets_append:", "      - daq_xci"])
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text("\n".join(lines) + "\n")
     print(f"Wrote {OUT_PATH.relative_to(ROOT)}")
 
