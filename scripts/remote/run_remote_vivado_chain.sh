@@ -62,7 +62,7 @@ if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && [ "$PLATFORM_TARGET" = "
 fi
 
 FLOW_EXPORTED_IMPL=0
-if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && { [ "$PLATFORM_TARGET" = "impl" ] || [ "$PLATFORM_TARGET" = "impl_legacy_flow" ] || [ "$PLATFORM_TARGET" = "impl_packaged_top_flow" ]; }; then
+if [ "$PLATFORM_CORE" = "$DEFAULT_COMPOSABLE_CORE" ] && { [ "$PLATFORM_TARGET" = "impl" ] || [ "$PLATFORM_TARGET" = "impl_legacy_flow" ]; }; then
   FLOW_EXPORTED_IMPL=1
 fi
 
