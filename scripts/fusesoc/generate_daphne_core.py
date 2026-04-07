@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 TCL_PATH = ROOT / "xilinx" / "daphne_ip_gen.tcl"
 OUT_PATH = ROOT / "daphne-ip.core"
+EXPORT_OUT_PATH = ROOT / "daphne-ip-export.core"
 CORE_PREFIX = ""
 EXTRA_RTL_VHDL = [
     "rtl/isolated/common/daphne_subsystem_pkg.vhd",
@@ -86,6 +87,33 @@ def emit_fileset(
     lines.append(f"    file_type: {file_type}")
 
 
+def emit_core(
+    out_path: Path,
+    name: str,
+    description: str,
+    filesets: list[tuple[str, list[str], str, list[str] | None]],
+    target_lines: list[str],
+) -> None:
+    lines = [
+        "CAPI=2:",
+        "",
+        f"name: {name}",
+        f"description: {description}",
+        "provider:",
+        "  name: local",
+        "",
+        "filesets:",
+    ]
+
+    for fileset_name, files, file_type, depends in filesets:
+        emit_fileset(lines, fileset_name, files, file_type, depends)
+
+    lines.extend(["", "targets:"])
+    lines.extend(target_lines)
+    out_path.write_text("\n".join(lines) + "\n")
+    print(f"Wrote {out_path.relative_to(ROOT)}")
+
+
 def main() -> None:
     tcl_text = TCL_PATH.read_text()
 
@@ -154,32 +182,23 @@ def main() -> None:
     )
     all_xci = sorted(set(local_xci + daq_xci))
 
-    lines = [
-        "CAPI=2:",
-        "",
-        "name: dune-daq:daphne:daphne-ip:0.1.0",
-        "description: Generated source manifest matching xilinx/daphne_ip_gen.tcl",
-        "provider:",
-        "  name: local",
-        "",
-        "filesets:",
-    ]
-
-    emit_fileset(lines, "rtl_vhdl", rtl_vhdl, "vhdlSource")
-    emit_fileset(lines, "rtl_verilog", rtl_verilog, "verilogSource")
-    emit_fileset(lines, "rtl_top", rtl_top, "vhdlSource")
-    emit_fileset(lines, "sim_vhdl", sim_vhdl, "vhdlSource")
-    emit_fileset(lines, "sim_verilog", sim_verilog, "verilogSource")
-    emit_fileset(lines, "daq_vhdl_93", daq_vhdl_93, "vhdlSource")
-    emit_fileset(lines, "daq_vhdl_2008", daq_vhdl_2008, "vhdlSource-2008")
-    emit_fileset(lines, "daq_verilog", daq_verilog, "verilogSource")
-    emit_fileset(lines, "daq_tcl", daq_tcl, "tclSource")
-    emit_fileset(lines, "daq_xci", all_xci, "xci")
-
-    lines.extend(
+    emit_core(
+        OUT_PATH,
+        "dune-daq:daphne:daphne-ip:0.1.0",
+        "Generated source manifest matching xilinx/daphne_ip_gen.tcl",
         [
-            "",
-            "targets:",
+            ("rtl_vhdl", rtl_vhdl, "vhdlSource", None),
+            ("rtl_verilog", rtl_verilog, "verilogSource", None),
+            ("rtl_top", rtl_top, "vhdlSource", None),
+            ("sim_vhdl", sim_vhdl, "vhdlSource", None),
+            ("sim_verilog", sim_verilog, "verilogSource", None),
+            ("daq_vhdl_93", daq_vhdl_93, "vhdlSource", None),
+            ("daq_vhdl_2008", daq_vhdl_2008, "vhdlSource-2008", None),
+            ("daq_verilog", daq_verilog, "verilogSource", None),
+            ("daq_tcl", daq_tcl, "tclSource", None),
+            ("daq_xci", all_xci, "xci", None),
+        ],
+        [
             "  default: &default_target",
             "    description: Synthesizable daphne_selftrigger_top PL source manifest",
             "    filesets:",
@@ -198,18 +217,47 @@ def main() -> None:
             "  vivado-src:",
             "    <<: *default_target",
             "    description: Source manifest plus Tcl/XCI collateral expected by Vivado",
-        ]
+            *(
+                ["    filesets_append:", "      - daq_tcl"]
+                + (["      - daq_xci"] if all_xci else [])
+                if daq_tcl
+                else (["    filesets_append:", "      - daq_xci"] if all_xci else [])
+            ),
+        ],
     )
 
-    if daq_tcl:
-        lines.extend(["    filesets_append:", "      - daq_tcl"])
-        if all_xci:
-            lines.append("      - daq_xci")
-    elif all_xci:
-        lines.extend(["    filesets_append:", "      - daq_xci"])
-
-    OUT_PATH.write_text("\n".join(lines) + "\n")
-    print(f"Wrote {OUT_PATH.relative_to(ROOT)}")
+    emit_core(
+        EXPORT_OUT_PATH,
+        "dune-daq:daphne:daphne-ip-export:0.1.0",
+        "Generated export-only staging manifest matching xilinx/daphne_ip_gen.tcl",
+        [
+            ("rtl_vhdl_export", rtl_vhdl, "user", None),
+            ("rtl_verilog_export", rtl_verilog, "user", None),
+            ("rtl_top_export", rtl_top, "user", None),
+            ("daq_vhdl_93_export", daq_vhdl_93, "user", None),
+            ("daq_vhdl_2008_export", daq_vhdl_2008, "user", None),
+            ("daq_verilog_export", daq_verilog, "user", None),
+            ("daq_tcl_export", daq_tcl, "user", None),
+            ("daq_xci_export", all_xci, "user", None),
+        ],
+        [
+            "  default:",
+            "    description: Export-only manifest that stages legacy HDL/Tcl/XCI collateral without loading it as active design source",
+            "    filesets:",
+            "      - rtl_vhdl_export",
+            "      - rtl_verilog_export",
+            "      - daq_vhdl_93_export",
+            "      - daq_vhdl_2008_export",
+            "      - daq_verilog_export",
+            "      - rtl_top_export",
+            *(
+                ["      - daq_tcl_export"] if daq_tcl else []
+            ),
+            *(
+                ["      - daq_xci_export"] if all_xci else []
+            ),
+        ],
+    )
 
 
 if __name__ == "__main__":

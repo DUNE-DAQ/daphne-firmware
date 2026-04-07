@@ -346,6 +346,9 @@ recorded in `docs/source-audit.md`.
 - `daphne-ip.core` is generated from the source-selection rules
   in `xilinx/daphne_ip_gen.tcl` and remains the compatibility path for the
   current K26C Vivado build.
+- `daphne-ip-export.core` is the export-only companion manifest generated from
+  the same Tcl rules. It stages the legacy HDL/Tcl/XCI tree for board-level
+  Flow API targets without loading that tree as active design source.
 - `cores/platform/k26c-platform.core` keeps the working legacy K26C path.
 - `cores/platform/k26c-modular-platform.core` is the source-only platform
   wrapper for the older transitional modular graph and should not receive new

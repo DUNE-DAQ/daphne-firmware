@@ -42,10 +42,6 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
         }
     }
 
-    if {[info exists ::env(DAPHNE_IP_REPO_ROOT)] && $::env(DAPHNE_IP_REPO_ROOT) ne "" && (![info exists ::env(DAPHNE_IP_EXPORT_ROOT)] || $::env(DAPHNE_IP_EXPORT_ROOT) eq "")} {
-        set ::env(DAPHNE_IP_EXPORT_ROOT) [file dirname [file dirname $::env(DAPHNE_IP_REPO_ROOT)]]
-    }
-
     if {[info exists ::env(DAPHNE_IP_REPO_ROOT)] && $::env(DAPHNE_IP_REPO_ROOT) ne "" && (![info exists ::env(DAPHNE_USER_IP_REPO_PARENT)] || $::env(DAPHNE_USER_IP_REPO_PARENT) eq "")} {
         set ::env(DAPHNE_USER_IP_REPO_PARENT) [file dirname $::env(DAPHNE_IP_REPO_ROOT)]
     }
@@ -76,30 +72,8 @@ proc daphne_configure_fusesoc_export_env {script_dir} {
     }
 }
 
-proc daphne_remove_staged_daphne_ip_sources {} {
-    if {![info exists ::env(DAPHNE_IP_EXPORT_ROOT)] || $::env(DAPHNE_IP_EXPORT_ROOT) eq ""} {
-        return
-    }
-
-    set export_root [file normalize $::env(DAPHNE_IP_EXPORT_ROOT)]
-    set to_remove {}
-
-    foreach src_file [get_files -quiet] {
-        set normalized [file normalize $src_file]
-        if {[string first $export_root $normalized] == 0} {
-            lappend to_remove $src_file
-        }
-    }
-
-    if {[llength $to_remove] > 0} {
-        puts "INFO: Removing staged daphne-ip HDL sources from the flow-owned project before BD generation."
-        remove_files -quiet {*}$to_remove
-    }
-}
-
 set script_dir [file dirname [file normalize [info script]]]
 daphne_configure_fusesoc_export_env $script_dir
-daphne_remove_staged_daphne_ip_sources
 
 source -notrace [file join $script_dir "daphne_vivado_flow.tcl"]
 
