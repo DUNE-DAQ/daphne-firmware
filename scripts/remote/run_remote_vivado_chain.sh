@@ -14,19 +14,12 @@ PACKAGE_DTBO="${DAPHNE_REMOTE_PACKAGE_DTBO:-0}"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 
 DEFAULT_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" platform_core)"
-DEFAULT_COMPOSABLE_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
 DEFAULT_PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
 DEFAULT_PLATFORM_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$DEFAULT_PLATFORM_CORE")"
 : "${DEFAULT_CORE:=dune-daq:daphne:k26c-platform:0.1.0}"
-: "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
-: "${DEFAULT_PLATFORM_CORE:=$DEFAULT_COMPOSABLE_CORE}"
+: "${DEFAULT_PLATFORM_CORE:=$DEFAULT_CORE}"
 : "${DEFAULT_PLATFORM_TARGET:=impl}"
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$DEFAULT_PLATFORM_CORE}"
-PREFLIGHT_REQUIRED=1
-
-if ! daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE"; then
-  PREFLIGHT_REQUIRED=0
-fi
 
 mkdir -p "$RUN_DIR"
 
@@ -63,6 +56,11 @@ if [ -z "$PLATFORM_TARGET" ]; then
 fi
 if [ -n "$PLATFORM_TARGET" ]; then
   export DAPHNE_PLATFORM_TARGET="$PLATFORM_TARGET"
+fi
+
+PREFLIGHT_REQUIRED=1
+if ! daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE" "$PLATFORM_TARGET"; then
+  PREFLIGHT_REQUIRED=0
 fi
 
 FLOW_EXPORTED_IMPL=0

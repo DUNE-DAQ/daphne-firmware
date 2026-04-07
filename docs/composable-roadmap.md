@@ -81,8 +81,8 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
 3. Reduce the dual-lane delivery burden.
    - Keep the legacy Tcl/IP/export path available, but treat it as a
      compatibility lane rather than the architectural source of truth.
-   - Make the remote/WSL runbooks explicit about when packaged-IP preflight is
-     skipped and when it is still required.
+   - Keep packaged-IP preflight decisions tied to the resolved platform core
+     and target, not to historical composable-only special cases.
    - Keep deployment artifact naming stable while the native path is being
      qualified.
 
@@ -142,9 +142,10 @@ a compatibility alias for older manifest consumers.
      `DAPHNE_IP_XGUI_FILE`) plus semicolon-separated
      `DAPHNE_IP_EXTRA_SOURCE_ROOTS` so the next migration step can swap package
      identity without rewriting the script and can pull auxiliary HDL from
-     composable trees outside `ip_repo/daphne_ip/rtl`. The default source set
-     is still legacy-first, so this remains scaffolding rather than the final
-     composable implementation path.
+     composable trees outside `ip_repo/daphne_ip/rtl`. The active board `impl`
+     path is now the native board-shell flow; these overrides remain
+     compatibility scaffolding for packaged-IP/export lanes, not the primary
+     implementation path.
    - The repo now also has `synth_public_top_ooc` on
      `k26c-composable-platform`, which stages the real `daphne_composable_top`
      source graph through FuseSoC and runs Vivado out-of-context synthesis.

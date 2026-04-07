@@ -59,7 +59,8 @@ This performs:
 
 1. WSL tool check
 2. `./scripts/fusesoc/preflight_vivado_build.sh`
-   - automatically skipped for the native composable `impl` target
+   - automatically skipped for the default native `impl` path and the native
+     Flow-API synth targets
 3. `./scripts/fusesoc/run_vivado_batch.sh`
 4. `./scripts/package/complete_dtbo_bundle.sh`
 
@@ -68,15 +69,15 @@ and stores logs under `build/wsl-vivado/<timestamp>/`.
 This is the intended repo-default single-command path for WSL-driven Windows
 builds.
 
-The board manifest now defaults the wrapper to the composable platform core.
-If you need to force it explicitly, set:
+The board manifest now defaults the wrapper to the native board-owned platform
+core and its default target. If you need to force it explicitly, set:
 
 ```bash
 export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
 before calling `run_wsl_vivado_chain.sh`. That drives the native board-shell
-`impl` target. The repo still exports a legacy-style
+default target. The repo still exports a compatibility
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/` before running the usual DTBO packaging step.
 
@@ -86,6 +87,10 @@ run:
 ```bash
 ./scripts/fusesoc/check_native_impl_graph.sh
 ```
+
+That audit also confirms that the staged `impl` target still resolves
+`k26c_board_shell` and that the board shell remains constrained to the
+explicit board-plane contract.
 
 ## Output directory rule
 

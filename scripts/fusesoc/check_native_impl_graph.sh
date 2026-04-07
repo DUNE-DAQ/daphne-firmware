@@ -48,6 +48,11 @@ if [ -z "$EDA_YML" ] || [ ! -f "$EDA_YML" ]; then
   exit 2
 fi
 
+if ! rg -Fq 'toplevel: k26c_board_shell' "$EDA_YML"; then
+  echo "ERROR: native impl graph no longer resolves k26c_board_shell as its toplevel." >&2
+  exit 1
+fi
+
 legacy_hits="$(rg -n 'dune-daq:daphne:legacy-[^:]+' "$EDA_YML" || true)"
 if [ -n "$legacy_hits" ]; then
   echo "ERROR: native impl graph still contains legacy core names:" >&2
@@ -73,6 +78,6 @@ for required_path in "$@"; do
   fi
 done
 
-echo "INFO: Native impl graph is legacy-free and carries the required AFE timing constraints."
+echo "INFO: Native impl graph is board-shell-owned, legacy-free, and carries the required AFE timing constraints."
 echo "INFO: Board shell remains limited to explicit board-plane dependencies."
 echo "INFO: EDA description: $EDA_YML"
