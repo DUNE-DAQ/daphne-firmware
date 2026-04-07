@@ -124,84 +124,64 @@ port(
 end core;
 
 architecture core_arch of core is
-
-signal dout: array_2x64_type;
-signal valid, last: std_logic_vector(1 downto 0);
 begin
-selftrig_core_inst: entity work.selftrig_core
-port map (
-    clock  => clock,  -- main clock 62.5 MHz
-    reset  => reset,
-    reset_st_counters => reset_st_counters,
-    version  => version (3 downto 0),
-    filter_output_selector => filter_output_selector, --Esteban
+legacy_core_readout_bridge_inst : entity work.legacy_core_readout_bridge
+  port map (
+    link_id => link_id,
+    slot_id => slot_id,
+    crate_id => crate_id,
+    detector_id => detector_id,
+    version => version,
+    filter_output_selector => filter_output_selector,
     afe_comp_enable => afe_comp_enable,
     invert_enable => invert_enable,
-    st_config => st_config, -- Config param for Self-Trigger and Local Primitive Calculation, CIEMAT (Nacho)
+    st_config => st_config,
     signal_delay => signal_delay,
-    timestamp  => timestamp,
-    forcetrig  => forcetrig,
-    enable  => enable,
+    clock => clock,
+    reset => reset,
+    reset_st_counters => reset_st_counters,
+    timestamp => timestamp,
+    enable => enable,
+    forcetrig => forcetrig,
     st_trigger_signal => st_trigger_signal,
     adhoc => adhoc,
     ti_trigger => ti_trigger,
     ti_trigger_stbr => ti_trigger_stbr,
-	din  => din_core , -- 45 AFE channels feed into this module
-    dout  => dout,
+    din_core => din_core,
     afe_dat_filtered => afe_dat_filtered,
-    valid  => valid,
-    last  => last,
-    AXI_IN   => AXI_IN,
-    AXI_OUT   => AXI_OUT  
-    
-);
-
-legacy_deimos_readout_bridge_inst : entity work.legacy_deimos_readout_bridge
-  port map (
-    s_axi_aclk_i => S_AXI_ACLK,
-    s_axi_aresetn_i => S_AXI_ARESETN,
-    s_axi_awaddr_i => S_AXI_AWADDR,
-    s_axi_awprot_i => S_AXI_AWPROT,
-    s_axi_awvalid_i => S_AXI_AWVALID,
-    s_axi_awready_o => S_AXI_AWREADY,
-    s_axi_wdata_i => S_AXI_WDATA,
-    s_axi_wstrb_i => S_AXI_WSTRB,
-    s_axi_wvalid_i => S_AXI_WVALID,
-    s_axi_wready_o => S_AXI_WREADY,
-    s_axi_bresp_o => S_AXI_BRESP,
-    s_axi_bvalid_o => S_AXI_BVALID,
-    s_axi_bready_i => S_AXI_BREADY,
-    s_axi_araddr_i => S_AXI_ARADDR,
-    s_axi_arprot_i => S_AXI_ARPROT,
-    s_axi_arvalid_i => S_AXI_ARVALID,
-    s_axi_arready_o => S_AXI_ARREADY,
-    s_axi_rdata_o => S_AXI_RDATA,
-    s_axi_rresp_o => S_AXI_RRESP,
-    s_axi_rvalid_o => S_AXI_RVALID,
-    s_axi_rready_i => S_AXI_RREADY,
-    eth_clk_p_i => eth_clk_p,
-    eth_clk_n_i => eth_clk_n,
-    eth_rx_p_i => eth0_rx_p,
-    eth_rx_n_i => eth0_rx_n,
-    eth_tx_p_o => eth0_tx_p,
-    eth_tx_n_o => eth0_tx_n,
-    eth_tx_dis_o => eth0_tx_dis,
-    dune_base_clk_i => clock,
-    dune_base_rst_i => reset,
-    data_clk_i => clock,
-    data_clk_rst_i => reset,
-    d_i => dout,
-    valid_i => valid,
-    last_i => last,
-    timestamp_i => timestamp,
-    ext_mac_addr_i => DEFAULT_ext_mac_addr_0,
-    ext_ip_addr_i => DEFAULT_ext_ip_addr_0,
-    ext_port_addr_i => DEFAULT_ext_port_addr_0
+    S_AXI_ACLK => S_AXI_ACLK,
+    S_AXI_ARESETN => S_AXI_ARESETN,
+    S_AXI_AWADDR => S_AXI_AWADDR,
+    S_AXI_AWPROT => S_AXI_AWPROT,
+    S_AXI_AWVALID => S_AXI_AWVALID,
+    S_AXI_AWREADY => S_AXI_AWREADY,
+    S_AXI_WDATA => S_AXI_WDATA,
+    S_AXI_WSTRB => S_AXI_WSTRB,
+    S_AXI_WVALID => S_AXI_WVALID,
+    S_AXI_WREADY => S_AXI_WREADY,
+    S_AXI_BRESP => S_AXI_BRESP,
+    S_AXI_BVALID => S_AXI_BVALID,
+    S_AXI_BREADY => S_AXI_BREADY,
+    S_AXI_ARADDR => S_AXI_ARADDR,
+    S_AXI_ARPROT => S_AXI_ARPROT,
+    S_AXI_ARVALID => S_AXI_ARVALID,
+    S_AXI_ARREADY => S_AXI_ARREADY,
+    S_AXI_RDATA => S_AXI_RDATA,
+    S_AXI_RRESP => S_AXI_RRESP,
+    S_AXI_RVALID => S_AXI_RVALID,
+    S_AXI_RREADY => S_AXI_RREADY,
+    AXI_IN => AXI_IN,
+    AXI_OUT => AXI_OUT,
+    eth_clk_p => eth_clk_p,
+    eth_clk_n => eth_clk_n,
+    eth0_rx_p => eth0_rx_p,
+    eth0_rx_n => eth0_rx_n,
+    eth0_tx_p => eth0_tx_p,
+    eth0_tx_n => eth0_tx_n,
+    eth0_tx_dis => eth0_tx_dis,
+    out_buff_data => out_buff_data,
+    out_buff_trig => out_buff_trig,
+    VALID_DEBUG => VALID_DEBUG,
+    LAST_DEBUG => LAST_DEBUG
   );
-
-    out_buff_data <= dout;
-     VALID_DEBUG   <= valid ;
-     LAST_DEBUG    <= last;  
-  
-
 end core_arch;
