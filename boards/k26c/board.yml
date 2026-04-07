@@ -13,13 +13,13 @@ bd_name: daphne_selftrigger_bd
 bd_wrapper_name: daphne_selftrigger_bd_wrapper
 build_name_prefix: daphne_selftrigger
 overlay_name_prefix: daphne_selftrigger_ol
-ip_top_hdl_file: ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd
-ip_top_module: daphne_selftrigger_top
+ip_top_hdl_file: rtl/isolated/tops/legacy_public_top_bridge.vhd
+ip_top_module: legacy_public_top_bridge
 ip_cell_name: daphne_selftrigger_top
 ip_component_identifier: daphne_selftrigger_top
 ip_display_name: daphne_selftrigger_top_v1_0
 ip_xgui_file: daphne_selftrigger_top_v1_0.tcl
-ip_cell_bind_root: core_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst
+ip_cell_bind_root: selftrigger_plane_inst/legacy_core_readout_bridge_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst
 timing_endpoint_path: daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/endpoint_inst
 notes:
   - Current firmware baseline validated around the Kria K26C SoM flow in the

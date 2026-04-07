@@ -49,6 +49,7 @@ filesets:
       - ip_repo/daphne_ip/rtl/config/stuff.vhd
       - ip_repo/daphne_ip/rtl/dac/spim_dac.vhd
       - ip_repo/daphne_ip/rtl/daphne_package.vhd
+      - ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd
       - ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
       - ip_repo/daphne_ip/rtl/frontend/febit3.vhd
       - ip_repo/daphne_ip/rtl/frontend/front_end.vhd
@@ -111,7 +112,7 @@ filesets:
     file_type: verilogSource
   rtl_top:
     files:
-      - ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd
+      - rtl/isolated/tops/legacy_public_top_bridge.vhd
     file_type: vhdlSource
   sim_vhdl:
     files:
@@ -251,7 +252,7 @@ filesets:
 
 targets:
   default: &default_target
-    description: Synthesizable daphne_selftrigger_top PL source manifest
+    description: Synthesizable legacy_public_top_bridge PL source manifest
     filesets:
       - rtl_vhdl
       - rtl_verilog

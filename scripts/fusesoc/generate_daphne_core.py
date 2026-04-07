@@ -131,14 +131,15 @@ def main() -> None:
     extra_rtl_vhdl = load_manifest_lines(LEGACY_FLOW_SUPPORT_PATH)
 
     board_top_hdl = load_manifest_scalar(DEFAULT_BOARD_MANIFEST, "ip_top_hdl_file")
-    default_top_vhdl = (
-        Path(board_top_hdl).name
-        if board_top_hdl
-        else extract_default_string(
+    if board_top_hdl:
+        default_top_vhdl = board_top_hdl
+        default_top_basename = Path(board_top_hdl).name
+    else:
+        default_top_basename = extract_default_string(
             tcl_text,
             r'set daphne_ip_top_hdl_file \[file normalize \[daphne_get_env_or_default DAPHNE_IP_TOP_HDL_FILE \[file join \$daphne_ip_root "rtl" "([^"]+)"\]\]\]',
         )
-    )
+        default_top_vhdl = f"ip_repo/daphne_ip/rtl/{default_top_basename}"
     board_top_module = load_manifest_scalar(DEFAULT_BOARD_MANIFEST, "ip_top_module")
     default_top_module = (
         board_top_module
@@ -157,7 +158,7 @@ def main() -> None:
             ],
         )
     )
-    rtl_ignored.add(default_top_vhdl)
+    rtl_ignored.add(default_top_basename)
     wib_type_exceptions = set(
         extract_quoted_list(tcl_text, r"set wibTypeExceptionList \{(.*?)\}")
     )
@@ -188,7 +189,7 @@ def main() -> None:
         + basename_filtered(sorted_relative_files(rtl_root, "*.vhd"), rtl_ignored)
     )
     rtl_verilog = core_relative(sorted_relative_files(rtl_root, "*.v"))
-    rtl_top = [f"{CORE_PREFIX}ip_repo/daphne_ip/rtl/{default_top_vhdl}"]
+    rtl_top = [f"{CORE_PREFIX}{default_top_vhdl}"]
 
     sim_vhdl = core_relative(sorted_relative_files(sim_root, "*.vhd"))
     sim_verilog = core_relative(sorted_relative_files(sim_root, "*.v"))
