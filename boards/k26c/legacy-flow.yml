@@ -1,0 +1,9 @@
+legacy_user_ip_vlnv: dune.pds:user:daphne_selftrigger_top:1.0
+legacy_bd_name: daphne_selftrigger_bd
+legacy_bd_wrapper_name: daphne_selftrigger_bd_wrapper
+legacy_bd_shell_tcl: boards/k26c/bd_shell.tcl
+legacy_ip_cell_name: daphne_selftrigger_top
+legacy_ip_component_identifier: daphne_selftrigger_top
+legacy_ip_display_name: daphne_selftrigger_top_v1_0
+legacy_ip_xgui_file: daphne_selftrigger_top_v1_0.tcl
+legacy_ip_cell_bind_root: selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst
