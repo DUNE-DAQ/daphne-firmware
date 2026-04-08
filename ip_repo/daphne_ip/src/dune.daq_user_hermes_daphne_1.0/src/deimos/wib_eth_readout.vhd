@@ -76,6 +76,7 @@ architecture rtl of eth_readout is
     signal tx_axi4s_mosi: t_axi4s_mosi_arr(3 downto 0);
     signal tx_axi4s_miso: t_axi4s_miso_arr(3 downto 0);
     constant N_INFO_REG: positive := 4;
+    constant BOARD_DESIGN_ID : std_logic_vector(7 downto 0) := X"07";
 
     constant REFCLK_INFO_C: std_logic_vector(3 downto 0) :=
         X"1" when REF_FREQ = f156_25 else
@@ -86,8 +87,6 @@ architecture rtl of eth_readout is
         X"00" & C_HERMES_VERSION_HEX &
         BOARD_DESIGN_ID & C_VERSION_HEX &
         X"DEADBEEF";
-
-    constant BOARD_DESIGN_ID : std_logic_vector(7 downto 0) := X"07";
     signal ctrl_sel_mux: std_logic_vector(1 downto 0);
     signal ipbw_mux: ipb_wbus_array(N_MGT - 1 downto 0);
     signal ipbr_mux: ipb_rbus_array(N_MGT - 1 downto 0);
