@@ -75,7 +75,8 @@ resolve_output_dir() {
 }
 
 OUTPUT_DIR="$(resolve_output_dir)"
-FLOW_WORK_DIR="$ROOT_DIR/build/$(daphne_platform_core_build_slug "$PLATFORM_CORE")/${PLATFORM_TARGET:-impl}"
+SYSTEM_NAME="${DAPHNE_SYSTEM_NAME:-$(daphne_platform_system_name "$PLATFORM_CORE")}"
+FLOW_WORK_DIR="${DAPHNE_FUSESOC_WORK_ROOT:-$(daphne_platform_flow_work_dir "$ROOT_DIR" "$PLATFORM_CORE" "${PLATFORM_TARGET:-impl}" "$SYSTEM_NAME")}"
 
 {
   printf 'run_id=%s\n' "$RUN_ID"
