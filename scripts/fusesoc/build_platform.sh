@@ -136,6 +136,12 @@ if [ "$DRY_RUN" -eq 1 ]; then
   exit 0
 fi
 
+if daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE" "$BUILD_TARGET"; then
+  echo "INFO: Running packaged-IP preflight before native build."
+  "$ROOT_DIR/scripts/fusesoc/preflight_vivado_build.sh"
+  export DAPHNE_PACKAGED_IP_PREFLIGHT_DONE=1
+fi
+
 if [ "$PLATFORM_CORE" = "$DEFAULT_PLATFORM_CORE" ] && \
    [ "$BUILD_TARGET" = "$DEFAULT_PLATFORM_TARGET" ] && \
    [ "$AUDIT_NATIVE_IMPL_GRAPH" != "0" ]; then
