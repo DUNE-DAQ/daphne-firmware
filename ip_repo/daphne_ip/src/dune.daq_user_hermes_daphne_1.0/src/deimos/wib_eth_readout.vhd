@@ -77,8 +77,15 @@ architecture rtl of eth_readout is
     signal tx_axi4s_miso: t_axi4s_miso_arr(3 downto 0);
     constant N_INFO_REG: positive := 4;
 
-    signal info_vec: std_logic_vector(N_INFO_REG*32-1 downto 0);
-    signal refclk_info: std_logic_vector(3 downto 0);
+    constant REFCLK_INFO_C: std_logic_vector(3 downto 0) :=
+        X"1" when REF_FREQ = f156_25 else
+        X"2" when REF_FREQ = f125 else
+        X"0";
+    constant INFO_VEC_C: std_logic_vector(N_INFO_REG*32-1 downto 0) :=
+        X"000" & REFCLK_INFO_C & std_logic_vector(to_unsigned(N_MGT, 8)) & std_logic_vector(to_unsigned(N_SRC, 8)) &
+        X"00" & C_HERMES_VERSION_HEX &
+        BOARD_DESIGN_ID & C_VERSION_HEX &
+        X"DEADBEEF";
 
     constant BOARD_DESIGN_ID : std_logic_vector(7 downto 0) := X"07";
     signal ctrl_sel_mux: std_logic_vector(1 downto 0);
@@ -110,21 +117,10 @@ begin
             ipb_from_slaves => ipbr
         );
 
--- Multiplexer
-    refclk_info <= X"1" when (REF_FREQ = f156_25) else
-                   X"2" when (REF_FREQ = f125)    else 
-                   X"0";
-
-    info_vec <= 
-        X"000" & refclk_info & std_logic_vector(to_unsigned(N_MGT, 8)) & std_logic_vector(to_unsigned(N_SRC, 8)) & -- generics
-        X"00" & C_HERMES_VERSION_HEX & -- version
-        BOARD_DESIGN_ID & C_VERSION_HEX & -- version
-        X"DEADBEEF"; -- magic
-
     info : entity work.ipbus_roreg_v
         generic map(
             N_REG => N_INFO_REG,
-            DATA => info_vec
+            DATA => INFO_VEC_C
         )
         port map(
             ipb_in => ipbw(N_SLV_INFO),
