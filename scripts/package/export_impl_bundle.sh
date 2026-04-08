@@ -8,7 +8,7 @@ Usage: $(basename "$0") [FLOW_WORK_DIR] [OUTPUT_DIR]
 Export handoff artifacts from a Flow API Vivado implementation project.
 
 Arguments:
-  FLOW_WORK_DIR  Default: build/<composable-platform-core-slug>/<target>
+  FLOW_WORK_DIR  Default: build/<short-platform-system-name>/<target>
                  Target defaults to DAPHNE_PLATFORM_TARGET or 'impl'
   OUTPUT_DIR     Default: xilinx/output-<gitsha> (or DAPHNE_OUTPUT_DIR if set)
 
@@ -31,7 +31,8 @@ daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 DEFAULT_FLOW_PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
 : "${DEFAULT_FLOW_PLATFORM_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
 TARGET_NAME="${DAPHNE_PLATFORM_TARGET:-$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$DEFAULT_FLOW_PLATFORM_CORE")}"
-DEFAULT_FLOW_WORK_DIR="$ROOT_DIR/build/$(daphne_platform_core_build_slug "$DEFAULT_FLOW_PLATFORM_CORE")/$TARGET_NAME"
+DEFAULT_SYSTEM_NAME="${DAPHNE_SYSTEM_NAME:-$(daphne_platform_system_name "$DEFAULT_FLOW_PLATFORM_CORE")}"
+DEFAULT_FLOW_WORK_DIR="${DAPHNE_FUSESOC_WORK_ROOT:-$(daphne_platform_flow_work_dir "$ROOT_DIR" "$DEFAULT_FLOW_PLATFORM_CORE" "$TARGET_NAME" "$DEFAULT_SYSTEM_NAME")}"
 FLOW_WORK_DIR_INPUT="${1:-$DEFAULT_FLOW_WORK_DIR}"
 
 if [[ -z "${DAPHNE_GIT_SHA:-}" ]] && command -v git >/dev/null 2>&1; then

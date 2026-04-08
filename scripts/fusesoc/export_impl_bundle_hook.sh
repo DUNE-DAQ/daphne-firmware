@@ -44,7 +44,7 @@ resolve_project_xpr() {
   local project_xpr_value="${DAPHNE_EXPORT_PROJECT_XPR:-}"
 
   if [[ -z "$system_name" && -n "${DAPHNE_PLATFORM_CORE:-}" ]]; then
-    system_name="$(daphne_platform_core_build_slug "$DAPHNE_PLATFORM_CORE")"
+    system_name="$(daphne_platform_system_name "$DAPHNE_PLATFORM_CORE")"
   fi
   if [[ -z "$project_xpr_value" && -n "$system_name" ]]; then
     project_xpr_value="${system_name}.xpr"

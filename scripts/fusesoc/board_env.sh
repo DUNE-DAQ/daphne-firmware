@@ -119,7 +119,33 @@ daphne_board_legacy_manifest_value_with_fallback() {
 
 daphne_platform_core_build_slug() {
   platform_core="$1"
-  printf '%s' "$platform_core" | tr ':' '_'
+  case "$platform_core" in
+    dune-daq:daphne:k26c-platform:0.1.0)
+      printf '%s' "k26c_legacy"
+      ;;
+    dune-daq:daphne:k26c-modular-platform:0.1.0)
+      printf '%s' "k26c_mod"
+      ;;
+    dune-daq:daphne:k26c-composable-platform:0.1.0)
+      printf '%s' "k26c_comp"
+      ;;
+    *)
+      printf '%s' "$platform_core" | tr ':.-' '_'
+      ;;
+  esac
+}
+
+daphne_platform_system_name() {
+  platform_core="$1"
+  printf '%s' "$(daphne_platform_core_build_slug "$platform_core")"
+}
+
+daphne_platform_flow_work_dir() {
+  root_dir="$1"
+  platform_core="$2"
+  platform_target="$3"
+  system_name="${4:-$(daphne_platform_system_name "$platform_core")}"
+  printf '%s/build/%s/%s' "$root_dir" "$system_name" "$platform_target"
 }
 
 daphne_default_platform_core() {

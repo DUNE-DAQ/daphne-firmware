@@ -111,17 +111,21 @@ cd "$ROOT_DIR"
 "$ROOT_DIR/scripts/fusesoc/refresh_cores.sh" >/dev/null
 "$ROOT_DIR/scripts/fusesoc/fusesoc.sh" core-info "$PLATFORM_CORE" >/dev/null
 
+SYSTEM_NAME="${DAPHNE_SYSTEM_NAME:-$(daphne_platform_system_name "$PLATFORM_CORE")}"
+FLOW_WORK_DIR="${DAPHNE_FUSESOC_WORK_ROOT:-$(daphne_platform_flow_work_dir "$ROOT_DIR" "$PLATFORM_CORE" "$BUILD_TARGET" "$SYSTEM_NAME")}"
+
 echo "INFO: Selected FuseSoC platform core: $PLATFORM_CORE"
 echo "INFO: Resolved board profile: $BOARD"
 echo "INFO: Selected FuseSoC target: $BUILD_TARGET"
+echo "INFO: Selected FuseSoC system name: $SYSTEM_NAME"
+echo "INFO: Selected FuseSoC work root: $FLOW_WORK_DIR"
 
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
 export DAPHNE_PLATFORM_TARGET="$BUILD_TARGET"
 export DAPHNE_AUDIT_NATIVE_IMPL_GRAPH="$AUDIT_NATIVE_IMPL_GRAPH"
-
-SYSTEM_NAME="${DAPHNE_SYSTEM_NAME:-$(daphne_platform_core_build_slug "$PLATFORM_CORE")}"
 export DAPHNE_SYSTEM_NAME="$SYSTEM_NAME"
+export DAPHNE_FUSESOC_WORK_ROOT="$FLOW_WORK_DIR"
 : "${DAPHNE_EXPORT_PROJECT_XPR:=${SYSTEM_NAME}.xpr}"
 : "${DAPHNE_EXPORT_IMPL_RUN:=impl_1}"
 export DAPHNE_EXPORT_PROJECT_XPR
@@ -142,5 +146,7 @@ fi
 exec "$ROOT_DIR/scripts/fusesoc/fusesoc.sh" run \
   --setup \
   --build \
+  --work-root "$FLOW_WORK_DIR" \
+  --system-name "$SYSTEM_NAME" \
   --target "$BUILD_TARGET" \
   "$PLATFORM_CORE"
