@@ -77,6 +77,9 @@ This is the important current milestone:
   board-shell platform collateral; legacy Tcl/export files are explicitly
   segregated as compatibility support instead of part of the main platform
   contract
+- the board manifest now keeps only native board defaults in `boards/k26c/board.yml`,
+  while the packaged-IP/BD compatibility identity lives in
+  `boards/k26c/legacy-flow.yml`
 - `k26c_board_analog_control_plane` still instantiates only the imported
   AFE/DAC/control endpoints
 - `k26c_board_shell` instantiates only explicit board-plane entities

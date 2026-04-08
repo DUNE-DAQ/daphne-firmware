@@ -45,6 +45,41 @@ proc daphne_board_profile_value_with_fallback {board_profile preferred_key fallb
     return [daphne_board_profile_value $board_profile $fallback_key $default_value]
 }
 
+proc daphne_merge_legacy_board_profile {repo_root board_profile} {
+    if {![dict exists $board_profile legacy_manifest]} {
+        return $board_profile
+    }
+
+    set legacy_manifest_rel [string trim [dict get $board_profile legacy_manifest]]
+    if {$legacy_manifest_rel eq ""} {
+        return $board_profile
+    }
+
+    set legacy_manifest_path [daphne_resolve_repo_relative_path $repo_root $legacy_manifest_rel]
+    if {![file exists $legacy_manifest_path]} {
+        error "ERROR: expected legacy manifest at $legacy_manifest_path"
+    }
+
+    foreach field {
+        legacy_user_ip_vlnv
+        legacy_bd_name
+        legacy_bd_wrapper_name
+        legacy_bd_shell_tcl
+        legacy_ip_cell_name
+        legacy_ip_component_identifier
+        legacy_ip_display_name
+        legacy_ip_xgui_file
+        legacy_ip_cell_bind_root
+    } {
+        set value [daphne_read_board_manifest_value $legacy_manifest_path $field ""]
+        if {$value ne ""} {
+            dict set board_profile $field $value
+        }
+    }
+
+    return $board_profile
+}
+
 proc daphne_resolve_git_sha {} {
     set git_sha_override [daphne_get_env_or_default DAPHNE_GIT_SHA ""]
     if {$git_sha_override ne ""} {
@@ -103,12 +138,14 @@ proc daphne_resolve_board_profile {repo_root {board_name ""}} {
         dict set profile inherits $parent_board
     }
 
-    foreach field {fpga_part board_part pfm_name constraint_file constraint_files required_constraint_files platform_core modular_platform_core composable_platform_core default_platform_core default_platform_target user_ip_vlnv bd_name bd_wrapper_name bd_shell_tcl legacy_user_ip_vlnv legacy_bd_name legacy_bd_wrapper_name legacy_bd_shell_tcl build_name_prefix overlay_name_prefix ip_top_hdl_file ip_top_module ip_cell_name ip_component_identifier ip_display_name ip_xgui_file ip_cell_bind_root legacy_ip_cell_name legacy_ip_component_identifier legacy_ip_display_name legacy_ip_xgui_file legacy_ip_cell_bind_root public_top_hdl_file public_top_module timing_endpoint_path timing_plane_path afe_capture_input_delay_enable afe_capture_virtual_launch_period_ns afe_capture_input_delay_min_ns afe_capture_input_delay_max_ns} {
+    foreach field {fpga_part board_part pfm_name constraint_file constraint_files required_constraint_files platform_core modular_platform_core composable_platform_core default_platform_core default_platform_target user_ip_vlnv bd_name bd_wrapper_name bd_shell_tcl legacy_manifest build_name_prefix overlay_name_prefix ip_top_hdl_file ip_top_module ip_cell_name ip_component_identifier ip_display_name ip_xgui_file ip_cell_bind_root public_top_hdl_file public_top_module timing_endpoint_path timing_plane_path afe_capture_input_delay_enable afe_capture_virtual_launch_period_ns afe_capture_input_delay_min_ns afe_capture_input_delay_max_ns} {
         set value [daphne_read_board_manifest_value $manifest_path $field ""]
         if {$value ne ""} {
             dict set profile $field $value
         }
     }
+
+    set profile [daphne_merge_legacy_board_profile $repo_root $profile]
 
     if {![dict exists $profile default_platform_core] || [string trim [dict get $profile default_platform_core]] eq ""} {
         if {[dict exists $profile composable_platform_core] && [string trim [dict get $profile composable_platform_core]] ne ""} {

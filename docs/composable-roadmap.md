@@ -67,6 +67,9 @@ The repo has now crossed the main structural integration threshold:
 - the `k26c-composable-platform` default manifest is now native-only, while the
   remaining legacy Tcl/export collateral is grouped under explicit compatibility
   support instead of riding along in the main platform contract
+- the `legacy_*` packaged-IP and BD identity keys are now split out of the main
+  board manifest into `boards/k26c/legacy-flow.yml`, so `boards/k26c/board.yml`
+  is no longer the place where native and compatibility identity are mixed
 - the board spy-capture plane is now split into explicit spy-trigger and
   spy-buffer subplanes, so that path no longer carries trigger glue and the
   live sink in one board-plane block
