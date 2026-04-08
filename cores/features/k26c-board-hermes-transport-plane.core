@@ -12,7 +12,7 @@ filesets:
       - dune-daq:daphne:hermes-transport:0.1.0
     files:
       - rtl/isolated/subsystems/readout/k26c_board_hermes_transport_plane.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

@@ -9,7 +9,7 @@ filesets:
   rtl:
     files:
       - rtl/isolated/subsystems/spy/k26c_board_spy_trigger_plane.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

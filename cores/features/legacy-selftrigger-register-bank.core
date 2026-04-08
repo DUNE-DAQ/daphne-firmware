@@ -11,11 +11,11 @@ filesets:
       - dune-daq:daphne:selftrigger-register-bank:0.1.0
     files:
       - rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   tb_smoke:
     files:
       - tests/logic/legacy_selftrigger_register_bank_smoke_tb.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

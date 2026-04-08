@@ -9,7 +9,7 @@ filesets:
   rtl:
     files:
       - rtl/isolated/subsystems/frontend/frontend_register_slice.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

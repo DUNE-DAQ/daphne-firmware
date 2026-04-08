@@ -11,7 +11,7 @@ filesets:
       - rtl/isolated/subsystems/trigger/validate/k_low_pass_filter.vhd
       - rtl/isolated/subsystems/trigger/validate/IIRFilter_afe_integrator_optimized.vhd
       - rtl/isolated/subsystems/trigger/validate/st_xc.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

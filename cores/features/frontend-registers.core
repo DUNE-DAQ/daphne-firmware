@@ -12,11 +12,11 @@ filesets:
       - dune-daq:daphne:frontend-register-bank:0.1.0
     files:
       - ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   tb_axi_smoke:
     files:
       - tests/logic/fe_axi_smoke_tb.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   formal:
     files:
       - ../../formal/sby/fe_axi_axi_lite.sby

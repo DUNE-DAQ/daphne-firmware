@@ -13,13 +13,13 @@ filesets:
       - ip_repo/daphne_ip/rtl/afe/spim_afe.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
       - ip_repo/daphne_ip/rtl/afe/spim_dac2.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   tb_legacy:
     files:
       - ip_repo/daphne_ip/sim/afe/AFE5808A.vhd
       - ip_repo/daphne_ip/sim/dac/AD5327.vhd
       - ip_repo/daphne_ip/sim/afe/spim_afe_testbench.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default: &default_target

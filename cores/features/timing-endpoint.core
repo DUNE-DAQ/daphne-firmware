@@ -45,7 +45,7 @@ filesets:
       - ip_repo/daphne_ip/rtl/timing/pdts_tx.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_tx_phy.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_tx_pkt.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

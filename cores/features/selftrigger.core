@@ -33,13 +33,13 @@ filesets:
       - ip_repo/daphne_ip/rtl/selftrig/thresholds.vhd
       - ip_repo/daphne_ip/rtl/selftrig/trig.vhd
       - ip_repo/daphne_ip/rtl/selftrig/trig_xc.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   rtl_thresholds:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
     files:
       - ip_repo/daphne_ip/rtl/selftrig/thresholds.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   rtl_verilog:
     files:
       - ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/IIRFilter_afe_integrator_optimized.v
@@ -48,12 +48,12 @@ filesets:
   tb_axi_smoke:
     files:
       - tests/logic/thresholds_axi_smoke_tb.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   tb_legacy_vhdl:
     files:
       - ip_repo/daphne_ip/sim/selftrig/st40_top_testbench.vhd
       - ip_repo/daphne_ip/sim/selftrig/stc3_testbench.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   tb_legacy_data:
     files:
       - ip_repo/daphne_ip/sim/selftrig/st40_top_testbench.txt

@@ -31,7 +31,7 @@ filesets:
       - ip_repo/daphne_ip/rtl/i2c/i2cm.vhd
       - ip_repo/daphne_ip/rtl/cm/spim_cm.vhd
       - ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

@@ -12,11 +12,11 @@ filesets:
       - ip_repo/daphne_ip/rtl/spy/spybuff.vhd
       - ip_repo/daphne_ip/rtl/spy/spybuffers.vhd
       - ip_repo/daphne_ip/rtl/spy/spyram.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   tb_legacy:
     files:
       - ip_repo/daphne_ip/sim/spy/spybuff_tb.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default: &default_target

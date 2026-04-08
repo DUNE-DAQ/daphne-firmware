@@ -9,7 +9,7 @@ filesets:
   rtl:
     files:
       - ip_repo/daphne_ip/rtl/frontend/febit3.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:
