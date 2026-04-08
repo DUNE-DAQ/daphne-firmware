@@ -115,8 +115,8 @@ set_property IOSTANDARD LVTTL [get_ports IIC_0_sda_io];
 #set_property IOSTANDARD LVDS [get_ports GTH0_REFCLK_P]
 #set_property IOSTANDARD LVDS [get_ports GTH0_REFCLK_N]
 
-set_property PACKAGE_PIN Y6       [get_ports GTH0_REFCLK_P]  ; # pin location SOM240_2_C3
-set_property PACKAGE_PIN Y5       [get_ports GTH0_REFCLK_N] ;  # pin location SOM240_2_C4
+set_property PACKAGE_PIN Y6       [get_ports -quiet {GTH0_REFCLK_P eth_clk_p}]  ; # pin location SOM240_2_C3
+set_property PACKAGE_PIN Y5       [get_ports -quiet {GTH0_REFCLK_N eth_clk_n}] ;  # pin location SOM240_2_C4
 
 #set_property IOSTANDARD LVDS [get_ports GTH0_REFCLK_P];
 #set_property IOSTANDARD LVDS [get_ports GTH0_REFCLK_N];

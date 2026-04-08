@@ -2,6 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library xpm;
+use xpm.vcomponents.all;
+
 entity sync_fifo_fwft is
   generic (
     DATA_WIDTH_G        : positive := 72;
@@ -25,54 +28,71 @@ entity sync_fifo_fwft is
 end entity sync_fifo_fwft;
 
 architecture rtl of sync_fifo_fwft is
-  type mem_t is array (0 to DEPTH_G - 1) of std_logic_vector(DATA_WIDTH_G - 1 downto 0);
-
-  function inc_ptr(ptr : natural) return natural is
-  begin
-    if ptr = DEPTH_G - 1 then
-      return 0;
-    end if;
-    return ptr + 1;
-  end function inc_ptr;
-
-  signal mem_s    : mem_t := (others => (others => '0'));
-  signal rd_ptr_s : natural range 0 to DEPTH_G - 1 := 0;
-  signal wr_ptr_s : natural range 0 to DEPTH_G - 1 := 0;
-  signal count_s  : natural range 0 to DEPTH_G := 0;
+  signal ignored_almost_empty_s : std_logic;
+  signal ignored_almost_full_s  : std_logic;
+  signal ignored_data_valid_s   : std_logic;
+  signal ignored_dbiterr_s      : std_logic;
+  signal ignored_empty_s        : std_logic;
+  signal ignored_full_s         : std_logic;
+  signal ignored_overflow_s     : std_logic;
+  signal ignored_rd_count_s     : std_logic_vector(COUNT_WIDTH_G - 1 downto 0);
+  signal ignored_rd_busy_s      : std_logic;
+  signal ignored_sbiterr_s      : std_logic;
+  signal ignored_underflow_s    : std_logic;
+  signal ignored_wr_ack_s       : std_logic;
+  signal ignored_wr_busy_s      : std_logic;
 begin
-  fifo_proc : process(clock_i)
-    variable rd_fire_v : boolean;
-    variable wr_fire_v : boolean;
-  begin
-    if rising_edge(clock_i) then
-      if reset_i = '1' then
-        rd_ptr_s <= 0;
-        wr_ptr_s <= 0;
-        count_s  <= 0;
-      else
-        rd_fire_v := (rd_en_i = '1' and count_s > 0);
-        wr_fire_v := (wr_en_i = '1' and sleep_i = '0' and (count_s < DEPTH_G or rd_fire_v));
-
-        if wr_fire_v then
-          mem_s(wr_ptr_s) <= din_i;
-          wr_ptr_s <= inc_ptr(wr_ptr_s);
-        end if;
-
-        if rd_fire_v then
-          rd_ptr_s <= inc_ptr(rd_ptr_s);
-        end if;
-
-        if wr_fire_v and not rd_fire_v then
-          count_s <= count_s + 1;
-        elsif rd_fire_v and not wr_fire_v then
-          count_s <= count_s - 1;
-        end if;
-      end if;
-    end if;
-  end process fifo_proc;
-
-  dout_o <= mem_s(rd_ptr_s) when count_s > 0 else (others => '0');
-  prog_empty_o <= '1' when count_s <= PROG_EMPTY_THRESH_G else '0';
-  prog_full_o <= '1' when count_s >= PROG_FULL_THRESH_G else '0';
-  wr_data_count_o <= std_logic_vector(to_unsigned(count_s, COUNT_WIDTH_G));
+  -- The STC3 record-builder FIFO is a large single-clock FWFT buffer. The
+  -- vendor-neutral behavioral array used during early composable bring-up
+  -- synthesizes into LUTRAM and over-utilizes the K26C device. Use the native
+  -- XPM FIFO here so the implementation path recovers the intended URAM-backed
+  -- behavior.
+  xpm_fifo_sync_inst : xpm_fifo_sync
+    generic map (
+      CASCADE_HEIGHT      => 0,
+      DOUT_RESET_VALUE    => "0",
+      ECC_MODE            => "no_ecc",
+      EN_SIM_ASSERT_ERR   => "warning",
+      FIFO_MEMORY_TYPE    => "ultra",
+      FIFO_READ_LATENCY   => 0,
+      FIFO_WRITE_DEPTH    => DEPTH_G,
+      FULL_RESET_VALUE    => 0,
+      PROG_EMPTY_THRESH   => PROG_EMPTY_THRESH_G,
+      PROG_FULL_THRESH    => PROG_FULL_THRESH_G,
+      RD_DATA_COUNT_WIDTH => COUNT_WIDTH_G,
+      READ_DATA_WIDTH     => DATA_WIDTH_G,
+      READ_MODE           => "fwft",
+      SIM_ASSERT_CHK      => 0,
+      USE_ADV_FEATURES    => "0707",
+      WAKEUP_TIME         => 0,
+      WRITE_DATA_WIDTH    => DATA_WIDTH_G,
+      WR_DATA_COUNT_WIDTH => COUNT_WIDTH_G
+    )
+    port map (
+      almost_empty  => ignored_almost_empty_s,
+      almost_full   => ignored_almost_full_s,
+      data_valid    => ignored_data_valid_s,
+      dbiterr       => ignored_dbiterr_s,
+      dout          => dout_o,
+      empty         => ignored_empty_s,
+      full          => ignored_full_s,
+      overflow      => ignored_overflow_s,
+      prog_empty    => prog_empty_o,
+      prog_full     => prog_full_o,
+      rd_data_count => ignored_rd_count_s,
+      rd_rst_busy   => ignored_rd_busy_s,
+      sbiterr       => ignored_sbiterr_s,
+      underflow     => ignored_underflow_s,
+      wr_ack        => ignored_wr_ack_s,
+      wr_data_count => wr_data_count_o,
+      wr_rst_busy   => ignored_wr_busy_s,
+      din           => din_i,
+      injectdbiterr => '0',
+      injectsbiterr => '0',
+      rd_en         => rd_en_i,
+      rst           => reset_i,
+      sleep         => sleep_i,
+      wr_clk        => clock_i,
+      wr_en         => wr_en_i
+    );
 end architecture rtl;
