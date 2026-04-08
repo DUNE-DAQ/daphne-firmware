@@ -101,12 +101,6 @@ if [ -z "$BUILD_TARGET" ]; then
   BUILD_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE")"
 fi
 
-if [ "$PLATFORM_CORE" = "$DEFAULT_PLATFORM_CORE" ] && [ "$BUILD_TARGET" = "impl_legacy_flow" ]; then
-  echo "ERROR: target 'impl_legacy_flow' has been retired." >&2
-  echo "Use '--composable --target impl' for the native board-shell implementation path." >&2
-  exit 2
-fi
-
 cd "$ROOT_DIR"
 "$ROOT_DIR/scripts/fusesoc/refresh_cores.sh" >/dev/null
 "$ROOT_DIR/scripts/fusesoc/fusesoc.sh" core-info "$PLATFORM_CORE" >/dev/null
@@ -143,7 +137,7 @@ if daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFOR
 fi
 
 if [ "$PLATFORM_CORE" = "$DEFAULT_PLATFORM_CORE" ] && \
-   [ "$BUILD_TARGET" = "$DEFAULT_PLATFORM_TARGET" ] && \
+   [ "$BUILD_TARGET" = "impl_board_shell_flow" ] && \
    [ "$AUDIT_NATIVE_IMPL_GRAPH" != "0" ]; then
   echo "INFO: Auditing native impl graph before build."
   "$ROOT_DIR/scripts/fusesoc/check_native_impl_graph.sh"

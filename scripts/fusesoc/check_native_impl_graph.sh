@@ -11,10 +11,10 @@ daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 
 PLATFORM_CORE="${DAPHNE_PLATFORM_CORE:-$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")}"
 TARGET="${DAPHNE_PLATFORM_TARGET:-$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE")}"
-DEFAULT_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE")"
+NATIVE_TARGET="${DAPHNE_NATIVE_IMPL_TARGET:-impl_board_shell_flow}"
 
-if [ "$TARGET" != "$DEFAULT_TARGET" ]; then
-  echo "ERROR: check_native_impl_graph.sh only supports the default native target ($DEFAULT_TARGET)." >&2
+if [ "$TARGET" != "$NATIVE_TARGET" ]; then
+  echo "ERROR: check_native_impl_graph.sh only supports the explicit native board-shell target ($NATIVE_TARGET)." >&2
   exit 2
 fi
 
