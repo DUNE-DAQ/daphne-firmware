@@ -23,26 +23,6 @@ if ! daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATF
   exit 0
 fi
 
-resolve_ip_repo_root() {
-  if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -d "${DAPHNE_IP_REPO_ROOT}" ]; then
-    printf '%s\n' "$DAPHNE_IP_REPO_ROOT"
-    return 0
-  fi
-
-  if [ -d "$ROOT_DIR/ip_repo/daphne_ip" ]; then
-    printf '%s\n' "$ROOT_DIR/ip_repo/daphne_ip"
-    return 0
-  fi
-
-  if [ -d "$ROOT_DIR/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip" ]; then
-    printf '%s\n' "$ROOT_DIR/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
-    return 0
-  fi
-
-  echo "ERROR: could not resolve DAPHNE IP repo root." >&2
-  exit 2
-}
-
 if ! command -v vivado >/dev/null 2>&1; then
   echo "ERROR: vivado is not installed or not on PATH." >&2
   exit 2
@@ -97,13 +77,18 @@ printf 'exit\n' >>"$shim_tcl"
 echo "INFO: Running packaging preflight for board=$BOARD eth_mode=$ETH_MODE."
 vivado -mode batch -source "$shim_tcl"
 
-ip_repo_root="$(resolve_ip_repo_root)"
+ip_repo_root="$(daphne_resolve_ip_repo_root "$ROOT_DIR")" || {
+  echo "ERROR: could not resolve DAPHNE IP repo root." >&2
+  exit 2
+}
 component_xml="$ip_repo_root/component.xml"
 eth_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
+bram_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci"
 cell_bind_root="${DAPHNE_IP_CELL_BIND_ROOT:-selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst}"
 eth_binding="CELL_NAME_${cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe"
 bram_binding="CELL_NAME_${cell_bind_root}/ipb_ctrl/ipbus_transport_axil/axi_bram_ctrl"
 eth_xci_ref='src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci'
+bram_xci_ref='src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci'
 
 if [ ! -f "$component_xml" ]; then
   echo "ERROR: Expected packaged component.xml at $component_xml" >&2
@@ -115,8 +100,18 @@ if [ ! -f "$eth_xci" ]; then
   exit 2
 fi
 
+if [ ! -f "$bram_xci" ]; then
+  echo "ERROR: Expected AXI BRAM XCI at $bram_xci" >&2
+  exit 2
+fi
+
 if ! grep -Fq "$eth_xci_ref" "$component_xml"; then
   echo "ERROR: component.xml is missing Ethernet XCI reference: $eth_xci_ref" >&2
+  exit 2
+fi
+
+if ! grep -Fq "$bram_xci_ref" "$component_xml"; then
+  echo "ERROR: component.xml is missing AXI BRAM XCI reference: $bram_xci_ref" >&2
   exit 2
 fi
 

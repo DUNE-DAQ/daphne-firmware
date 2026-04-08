@@ -122,6 +122,11 @@ filesets:
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_gt_gthe4_common_wrapper_125.v
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_reset_wrapper.v
     file_type: verilogSource
+  generated_ip:
+    files:
+      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci
+      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci
+    file_type: xci
   vivado_tcl:
     files:
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/wib_top.tcl
@@ -133,6 +138,7 @@ targets:
       - rtl_vhdl_93
       - rtl_vhdl_2008
       - rtl_verilog
+      - generated_ip
   vivado_src:
     <<: *default_target
     filesets_append:

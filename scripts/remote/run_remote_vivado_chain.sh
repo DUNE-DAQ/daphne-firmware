@@ -134,6 +134,7 @@ run_stage() {
 
 if [ "$PREFLIGHT_REQUIRED" = "1" ]; then
   run_stage preflight "$RUN_DIR/preflight.log" ./scripts/fusesoc/preflight_vivado_build.sh
+  export DAPHNE_PACKAGED_IP_PREFLIGHT_DONE=1
 else
   printf 'INFO: Skipping packaged-IP preflight for platform_core=%s.\n' "$PLATFORM_CORE" | tee "$RUN_DIR/preflight.log"
 fi

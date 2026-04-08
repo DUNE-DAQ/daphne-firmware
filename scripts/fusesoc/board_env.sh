@@ -20,6 +20,35 @@ daphne_legacy_support_manifest_path() {
   printf '%s/xilinx/legacy_flow_support_sources.txt' "$root_dir"
 }
 
+daphne_resolve_ip_repo_root() {
+  root_dir="$1"
+
+  if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -d "${DAPHNE_IP_REPO_ROOT}" ]; then
+    printf '%s\n' "$DAPHNE_IP_REPO_ROOT"
+    return 0
+  fi
+
+  if [ -d "$root_dir/ip_repo/daphne_ip" ]; then
+    printf '%s\n' "$root_dir/ip_repo/daphne_ip"
+    return 0
+  fi
+
+  if [ -d "$root_dir/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip" ]; then
+    printf '%s\n' "$root_dir/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
+    return 0
+  fi
+
+  return 1
+}
+
+daphne_generated_hermes_ip_ready() {
+  root_dir="$1"
+  ip_repo_root="$(daphne_resolve_ip_repo_root "$root_dir")" || return 1
+
+  [ -f "$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" ] &&
+  [ -f "$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" ]
+}
+
 daphne_expand_legacy_support_entry() {
   resolved_path="$1"
 
@@ -217,8 +246,20 @@ daphne_platform_requires_packaged_ip_preflight() {
   platform_core="${3:-$(daphne_default_platform_core "$root_dir" "$board_name")}"
   platform_target="${4:-$(daphne_default_platform_target "$root_dir" "$board_name" "$platform_core")}"
 
-  if daphne_platform_exports_flow_bundle "$root_dir" "$board_name" "$platform_core" "$platform_target"; then
+  if [ "${DAPHNE_PACKAGED_IP_PREFLIGHT_DONE:-0}" = "1" ]; then
     return 1
+  fi
+
+  if daphne_platform_exports_flow_bundle "$root_dir" "$board_name" "$platform_core" "$platform_target"; then
+    if [ "${DAPHNE_FORCE_PACKAGED_IP_PREFLIGHT:-0}" = "1" ]; then
+      return 0
+    fi
+
+    if daphne_generated_hermes_ip_ready "$root_dir"; then
+      return 1
+    fi
+
+    return 0
   fi
 
   case "$platform_target" in

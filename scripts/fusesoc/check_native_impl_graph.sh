@@ -33,6 +33,12 @@ trap cleanup EXIT INT TERM HUP
 echo "INFO: Auditing native impl graph for $PLATFORM_CORE target=$TARGET board=$BOARD"
 
 cd "$ROOT_DIR"
+if daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE" "$TARGET"; then
+  echo "INFO: Running packaged-IP preflight before native impl graph audit."
+  "$ROOT_DIR/scripts/fusesoc/preflight_vivado_build.sh"
+  export DAPHNE_PACKAGED_IP_PREFLIGHT_DONE=1
+fi
+
 sh "$ROOT_DIR/scripts/fusesoc/check_board_shell_planes.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_analog_control_plane_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_board_timing_path_contract.sh" >/dev/null
