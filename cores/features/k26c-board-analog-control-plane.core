@@ -13,7 +13,7 @@ filesets:
       - dune-daq:daphne:dac-interface:0.1.0
     files:
       - rtl/isolated/subsystems/analog/k26c_board_analog_control_plane.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

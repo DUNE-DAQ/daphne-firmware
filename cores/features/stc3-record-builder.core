@@ -12,7 +12,7 @@ filesets:
       - dune-daq:daphne:daphne-subsystem-primitives:0.1.0
     files:
       - rtl/isolated/subsystems/trigger/stc3_record_builder.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

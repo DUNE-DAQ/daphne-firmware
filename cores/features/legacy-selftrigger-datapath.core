@@ -12,7 +12,7 @@ filesets:
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
     files:
       - rtl/isolated/subsystems/trigger/legacy_selftrigger_datapath.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

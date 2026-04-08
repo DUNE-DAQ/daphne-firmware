@@ -13,11 +13,11 @@ filesets:
     files:
       - ip_repo/daphne_ip/rtl/config/fanmon.vhd
       - ip_repo/daphne_ip/rtl/config/stuff.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   tb_axi_smoke:
     files:
       - tests/logic/stuff_axi_smoke_tb.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default: &default_target

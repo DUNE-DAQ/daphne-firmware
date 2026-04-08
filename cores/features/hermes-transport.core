@@ -22,7 +22,7 @@ filesets:
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/transactor_cfg.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/transactor_if.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/transactor_sm.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   rtl_vhdl_2008:
     files:
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lib/axi4_conversion_pkg.vhd

@@ -13,7 +13,7 @@ filesets:
       - dune-daq:daphne:afe-selftrigger-island:0.1.0
     files:
       - rtl/isolated/subsystems/afe/afe_subsystem_island.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

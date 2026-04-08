@@ -11,7 +11,7 @@ filesets:
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
     files:
       - rtl/isolated/subsystems/analog/analog_control_boundary.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   formal:
     files:
       - ../../formal/sby/analog_control_boundary_contract.sby

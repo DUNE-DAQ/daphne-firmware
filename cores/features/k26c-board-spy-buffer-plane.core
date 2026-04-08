@@ -14,7 +14,7 @@ filesets:
       - dune-daq:daphne:spy-buffer:0.1.0
     files:
       - rtl/isolated/subsystems/spy/k26c_board_spy_buffer_plane.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
 
 targets:
   default:

@@ -15,11 +15,11 @@ filesets:
       - dune-daq:daphne:selftrigger-fabric:0.1.0
     files:
       - rtl/isolated/subsystems/control/legacy_acquisition_plane_bridge.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   tb_smoke:
     files:
       - tests/logic/legacy_acquisition_plane_bridge_smoke_tb.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   sim_support:
     depend:
       - dune-daq:daphne:selftrigger-xcorr-validate-stubs:0.1.0

@@ -9,7 +9,7 @@ filesets:
   rtl:
     files:
       - rtl/isolated/subsystems/timing/timing_endpoint_contract.vhd
-    file_type: vhdlSource
+    file_type: vhdlSource-2008
   formal:
     files:
       - ../../formal/sby/timing_endpoint_contract.sby
