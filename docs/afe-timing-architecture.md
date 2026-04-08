@@ -83,6 +83,10 @@ The timing side is still weaker than it should be:
   `trig_axi` crossings explicit two-stage synchronizers with `ASYNC_REG`
   marking, which is a better timing/CDC baseline than the earlier single-flop
   resync.
+- `xilinx/frontend_control_cdc.xdc` now separates the explicit synchronizer
+  boundary nets (`idelayctrl_reset`, `idelay_load`, `trig_axi`) from the
+  remaining async IDELAY/ISERDES control nets, so the synced `idelay_load`
+  copies are no longer swept into the same wildcard false-path cut.
 - Some frontend ownership is split between the legacy `front_end` and the newer
   isolated/frontend helper blocks, which makes it harder to reason about what
   changed in a given implementation.
@@ -125,11 +129,13 @@ The timing side is still weaker than it should be:
    Static constraints should not try to encode away the need for IDELAY/bitslip
    training.
 
-5. Narrow the frontend CDC exceptions once the new synchronizer boundaries have
-   been exercised in build reports.
-   - `xilinx/frontend_control_cdc.xdc` should eventually stop relying on the
-     broad wildcard `set_false_path -through` list and instead match the
-     explicit synchronizer structure.
+5. Continue tightening the frontend CDC exceptions.
+   - the first cleanup step is now in: `xilinx/frontend_control_cdc.xdc`
+     treats the explicit synchronizer-boundary nets separately from the async
+     IDELAY/ISERDES control nets instead of wildcard-cutting `idelay_load*`
+   - the next cleanup should narrow the remaining async-control cuts further,
+     ideally to the exact boundary objects Vivado reports after synthesis
+     rather than broad hierarchical wildcards
 
 6. Once the composable frontend shell becomes the real synth path, move timing
    ownership alongside it so `frontend_common` becomes the natural home for the

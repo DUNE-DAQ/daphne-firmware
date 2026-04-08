@@ -9,8 +9,9 @@
 # - idelay_load crosses into clk125 via explicit two-stage sync in
 #   frontend_common
 # - trig_axi crosses into clock via explicit two-stage sync in frontend_common
-# - idelay_tap/idelay_en_vtc/iserdes_reset/iserdes_bitslip drive IDELAY/ISERDES
-#   control pins or fabric alignment state outside the AXI clock domain
+# - idelay_tap/idelay_en_vtc/iserdes_reset/iserdes_bitslip still drive
+#   IDELAY/ISERDES control pins or fabric alignment state outside the AXI
+#   clock domain
 
 proc daphne_collect_optional_hier_nets {patterns} {
     set matches {}
@@ -22,16 +23,23 @@ proc daphne_collect_optional_hier_nets {patterns} {
     return [lsort -unique $matches]
 }
 
-set frontend_control_cdc_nets [daphne_collect_optional_hier_nets {
+set frontend_sync_boundary_nets [daphne_collect_optional_hier_nets {
     *frontend_island_inst/idelayctrl_reset
-    *frontend_island_inst/idelay_load*
+    *frontend_island_inst/idelay_load
+    *frontend_island_inst/trig_axi
+}]
+
+if {[llength $frontend_sync_boundary_nets] > 0} {
+    set_false_path -through $frontend_sync_boundary_nets
+}
+
+set frontend_async_control_nets [daphne_collect_optional_hier_nets {
     *frontend_island_inst/idelay_tap*
     *frontend_island_inst/idelay_en_vtc
     *frontend_island_inst/iserdes_reset
     *frontend_island_inst/iserdes_bitslip*
-    *frontend_island_inst/trig_axi
 }]
 
-if {[llength $frontend_control_cdc_nets] > 0} {
-    set_false_path -through $frontend_control_cdc_nets
+if {[llength $frontend_async_control_nets] > 0} {
+    set_false_path -through $frontend_async_control_nets
 }
