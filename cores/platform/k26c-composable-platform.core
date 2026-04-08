@@ -6,7 +6,7 @@ provider:
   name: local
 
 filesets:
-  platform:
+  native_platform:
     depend:
       - dune-daq:daphne:k26c-board-shell:0.1.0
       - dune-daq:daphne:daphne-composable-top:0.1.0
@@ -20,10 +20,15 @@ filesets:
       - xilinx/daphne_selftrigger_pin_map.xdc
       - xilinx/afe_capture_timing.xdc
       - xilinx/frontend_control_cdc.xdc
-      - xilinx/daphne_dtbo_gen.tcl
+    file_type: user
+  legacy_flow_support:
+    files:
       - xilinx/daphne_vivado_flow.tcl
-      - xilinx/daphne_board_env.tcl
       - xilinx/vivado_impl_entry.tcl
+    file_type: user
+  export_support:
+    files:
+      - xilinx/daphne_dtbo_gen.tcl
       - xilinx/scripts/axi_quad_spi_dtbo_patch.sed
     file_type: user
   hooks:
@@ -113,9 +118,14 @@ scripts:
 
 targets:
   default:
-    description: Platform manifest for the composable K26C subsystem graph and top shells
+    description: Native platform manifest for the composable K26C board-shell implementation path
     filesets:
-      - platform
+      - native_platform
+  compat_support:
+    description: Legacy/export support collateral retained while the native board-shell path replaces older delivery flows
+    filesets:
+      - legacy_flow_support
+      - export_support
   impl:
     description: Default composable platform implementation target, now backed by the native board-shell Flow API path
     flow: vivado

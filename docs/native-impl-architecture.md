@@ -73,6 +73,10 @@ flowchart TD
 This is the important current milestone:
 
 - the active `impl` graph is board-plane owned
+- the default `k26c-composable-platform` manifest now carries only the native
+  board-shell platform collateral; legacy Tcl/export files are explicitly
+  segregated as compatibility support instead of part of the main platform
+  contract
 - `k26c_board_analog_control_plane` still instantiates only the imported
   AFE/DAC/control endpoints
 - `k26c_board_shell` instantiates only explicit board-plane entities
