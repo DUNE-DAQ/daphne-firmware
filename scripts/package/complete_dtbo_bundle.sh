@@ -228,6 +228,21 @@ fi
 sed -i.bak -f "$AXI_SPI_PATCH" "$pl_dtsi_path"
 rm -f "${pl_dtsi_path}.bak"
 
+if ! grep -Eq '(axi_intc|interrupt-controller)@9c010000' "$pl_dtsi_path"; then
+  echo "ERROR: expected AXI interrupt controller node at 0x9C010000 was not found in $pl_dtsi_path" >&2
+  exit 2
+fi
+
+if ! grep -q 'interrupt-controller;' "$pl_dtsi_path"; then
+  echo "ERROR: generated pl.dtsi is missing AXI interrupt-controller provider flag after patching" >&2
+  exit 2
+fi
+
+if ! grep -q '#interrupt-cells = <2>;' "$pl_dtsi_path"; then
+  echo "ERROR: generated pl.dtsi is missing '#interrupt-cells = <2>;' for the AXI interrupt controller" >&2
+  exit 2
+fi
+
 dtc -@ -O dtb -o "$dtbo_file" "$pl_dtsi_path"
 
 mkdir -p "$overlay_dir"

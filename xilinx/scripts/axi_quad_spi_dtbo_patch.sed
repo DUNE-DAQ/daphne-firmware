@@ -1,3 +1,9 @@
+/@9c010000 {/,/};/{
+    /};/i\
+                #interrupt-cells = <2>;\
+                interrupt-controller;
+}
+
 /axi_quad_spi@9c020000 {/,/};/{
     /};/i\
                 #address-cells = <1>;\
