@@ -281,6 +281,21 @@ begin
         assert idelayctrl_reset = '0'
           report "idelayctrl_reset must reset low"
           severity failure;
+        assert trig = '0'
+          report "trigger output must reset low"
+          severity failure;
+        assert idelay_load = "00000"
+          report "IDELAY load outputs must reset low"
+          severity failure;
+
+        for i in 0 to 4 loop
+          assert idelay_tap(i) = (idelay_tap(i)'range => '0')
+            report "IDELAY tap registers must reset low"
+            severity failure;
+          assert iserdes_bitslip(i) = (iserdes_bitslip(i)'range => '0')
+            report "ISERDES bitslip registers must reset low"
+            severity failure;
+        end loop;
       end if;
 
       case step is
