@@ -53,11 +53,26 @@ What these proofs are and are not:
 - They assume a toolchain with `yosys`, `ghdl-yosys-plugin`, and
   `symbiyosys`.
 - `./scripts/formal/run_formal.sh` auto-discovers every checked-in `.sby` job
-  under `formal/sby/`, supports `--list`, and auto-sources
+  under `formal/sby/`, supports `--list`, `--list-suites`, and named suites
+  via `--suite`, and auto-sources
   `$HOME/tools/oss-cad-suite/environment` when present so the local OSS CAD
   Suite can provide `sby`, `yosys`, and the GHDL standard libraries. Pass a
   full path, a local `.sby` filename, or a basename like `fe_axi_axi_lite` to
-  run one proof entry point directly.
+  run one proof entry point directly. With no arguments it still runs the full
+  checked-in inventory, and when multiple jobs are requested it continues
+  across failures and prints a summary at the end instead of stopping at the
+  first failing proof.
+
+Current suite layout:
+
+- `default` for the fast expected-green baseline: `fe_axi_axi_lite`,
+  `thresholds_axi_lite`, `frontend_register_slice_contract`, and
+  `control_plane_boundary_contract`.
+- `leaf-fast` for the current leaf/boundary proof set, including the AXI-Lite
+  wrappers, delay primitives, readiness gates, and isolated adapter
+  contracts.
+- `composable` for the three composable top-level contracts.
+- `all-local` for every checked-in `.sby` job under `formal/sby/`.
 
 Properties currently checked:
 
