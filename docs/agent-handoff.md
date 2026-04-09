@@ -5,6 +5,7 @@
 - Branch: `marroyav/fusesoc-backports`
 - Native impl checkpoint: see `docs/native-impl-architecture.md`
 - Latest WSL handoff should also consult `docs/wsl-agent-summary.md`
+- Synthesis-specific timing review: see `docs/synthesis-timing-review.md`
 
 ## What is already done
 
