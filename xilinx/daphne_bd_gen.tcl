@@ -191,8 +191,8 @@ source -notrace [file join $script_dir "daphne_ip_gen.tcl"]
 set_property IP_REPO_PATHS $daphne_user_ip_repo_parent [current_project]
 update_ip_catalog
 
-# set design name here
-variable designName
+# designName is already initialized above from the board/build environment.
+# Keep using that resolved value when this Tcl is sourced from a proc context.
 
 # set variables to control errors
 set errMsg ""
