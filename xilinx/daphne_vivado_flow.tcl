@@ -47,7 +47,12 @@ proc daphne_dump_post_synth_debug {cfg_name} {
     daphne_run_nonfatal "endpoint pin inventory debug dump" \
         [list daphne_write_matching_objects [file join $debug_dir "endpoint_pins_pre_constraints.txt"] pin [list \
             "*timing_bridge_inst/endpoint_inst/*mmcm0_inst/CLKOUT0" \
+            "*timing_bridge_inst/endpoint_inst/*mmcm0_inst/CLKOUT2" \
+            "*timing_bridge_inst/endpoint_inst/*mmcm0_inst/CLKFBOUT" \
             "*timing_bridge_inst/endpoint_inst/*mmcm1_inst/CLKOUT0" \
+            "*timing_bridge_inst/endpoint_inst/*mmcm1_inst/CLKOUT1" \
+            "*timing_bridge_inst/endpoint_inst/*mmcm1_inst/CLKFBOUT" \
+            "*timing_bridge_inst/endpoint_inst/*mmcm1_clk1_inst/O" \
             "*timing_bridge_inst/endpoint_inst/*mmcm1_clk2_inst/O" \
             "*timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/mmcm/CLKOUT0" \
             "*timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/mmcm/CLKOUT1" \
@@ -114,7 +119,7 @@ proc daphne_resolve_config {script_dir} {
     set board_required_constraint_files_raw [expr {[dict exists $board_profile required_constraint_files] ? [dict get $board_profile required_constraint_files] : ""}]
     set cfg(constraint_files) [daphne_resolve_repo_relative_paths $cfg(repo_root) [daphne_get_env_or_default DAPHNE_CONSTRAINT_FILES $board_constraint_files_raw]]
     if {[llength $cfg(constraint_files)] == 0} {
-        error "ERROR: board profile did not resolve any XDC files."
+        error "ERROR: board profile did not resolve any constraint files."
     }
     daphne_require_resolved_paths "Board constraint files" $cfg(repo_root) $board_required_constraint_files_raw $cfg(constraint_files)
     set cfg(pinmap_xdc) [lindex $cfg(constraint_files) 0]
@@ -197,7 +202,7 @@ proc daphne_create_block_design {cfg_name} {
     set cfg(post_synth_constraint_files) {}
     foreach constraint_file $cfg(constraint_files) {
         set constraint_basename [file tail $constraint_file]
-        if {$constraint_basename in {"afe_capture_timing.xdc" "frontend_control_cdc.xdc"}} {
+        if {$constraint_basename in {"afe_capture_timing.tcl" "frontend_control_cdc.tcl"}} {
             lappend cfg(post_synth_constraint_files) $constraint_file
         } else {
             read_xdc -verbose $constraint_file
@@ -223,8 +228,8 @@ proc daphne_run_synth {cfg_name} {
         daphne_dump_post_synth_debug cfg
     }
     foreach constraint_file $cfg(post_synth_constraint_files) {
-        puts "INFO: Sourcing post-synth Tcl-backed constraint script $constraint_file"
-        source -notrace $constraint_file
+        puts "INFO: Loading post-synth unmanaged Tcl-backed constraint script $constraint_file"
+        read_xdc -unmanaged $constraint_file
     }
     if {$cfg(skip_post_synth_reports) eq "1"} {
         puts "INFO: Skipping post-synth reports by request."

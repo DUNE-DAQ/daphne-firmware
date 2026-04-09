@@ -76,14 +76,14 @@ The timing side is still weaker than it should be:
 - The legacy async clock-group section now uses guarded `get_clocks -quiet`
   lookups so stale names stop producing avoidable warnings, but that is only a
   containment step, not the final receive-path timing model.
-- The active AFE receive-clock model now lives in `xilinx/afe_capture_timing.xdc`,
+- The active AFE receive-clock model now lives in `xilinx/afe_capture_timing.tcl`,
   but the board-owned input-delay model is still disabled until measured
   min/max timing numbers are available.
 - `frontend_common.vhd` now makes the `idelayctrl_reset`, `idelay_load`, and
   `trig_axi` crossings explicit two-stage synchronizers with `ASYNC_REG`
   marking, which is a better timing/CDC baseline than the earlier single-flop
   resync.
-- `xilinx/frontend_control_cdc.xdc` now separates the explicit synchronizer
+- `xilinx/frontend_control_cdc.tcl` now separates the explicit synchronizer
   boundary nets (`idelayctrl_reset`, `idelay_load`, `trig_axi`) from the
   remaining async IDELAY/ISERDES control nets, so the synced `idelay_load`
   copies are no longer swept into the same wildcard false-path cut.
@@ -97,28 +97,29 @@ The timing side is still weaker than it should be:
    Do not rewrite `febit3` or the legacy `front_end` path just to clean up
    naming.
 
-2. Keep the AFE capture timing intent in a dedicated XDC file.
+2. Keep the AFE capture timing intent in a dedicated Tcl-backed constraint
+   file.
    The content should cover:
    - receive/generated clocks for the frontend path
    - source-synchronous relationships around `clock`, `clk500`, and `clk125`
    - the real async boundaries only
    - the repo now carries `xilinx/afe_capture_timing_scaffold.xdc` as the
-     design note and `xilinx/afe_capture_timing.xdc` as the active, required
+     design note and `xilinx/afe_capture_timing.tcl` as the active, required
      split constraint file wired through the board manifest
-   - the repo now carries `xilinx/frontend_control_cdc.xdc` as the active,
+   - the repo now carries `xilinx/frontend_control_cdc.tcl` as the active,
      required control-CDC companion file for AXI-originated frontend control
      strobes/state (`idelayctrl_reset`, `idelay_load`, `idelay_tap`,
      `idelay_en_vtc`, `iserdes_reset`, `iserdes_bitslip`, `trig_axi`)
-- active hierarchy roots such as the timing endpoint path should come from
-  the board manifest/build defaults instead of being hardcoded inside the
-  XDC
-  - the active board profile now carries semicolon-separated candidate roots
-    for both the native board-shell path and the packaged-IP/BD path, and
-    `xilinx/afe_capture_timing.xdc` resolves exactly one matching net/pin from
-    those candidates
+   - active hierarchy roots such as the timing endpoint path should come from
+     the board manifest/build defaults instead of being hardcoded inside the
+     timing Tcl
+   - the active board profile now carries semicolon-separated candidate roots
+     for both the native board-shell path and the packaged-IP/BD path, and
+     `xilinx/afe_capture_timing.tcl` resolves exactly one matching net/pin from
+     those candidates
    - board manifests should own the optional AFE input-delay model too
      (`afe_capture_input_delay_enable`, launch-clock period, min/max bounds),
-     so the live XDC can remain generic and board-family-specific values stay
+     so the live timing Tcl can remain generic and board-family-specific values stay
      out of the Tcl flow
 
 3. Remove or quarantine stale/generated-clock lines that no longer match the
@@ -130,7 +131,7 @@ The timing side is still weaker than it should be:
    training.
 
 5. Continue tightening the frontend CDC exceptions.
-   - the first cleanup step is now in: `xilinx/frontend_control_cdc.xdc`
+   - the first cleanup step is now in: `xilinx/frontend_control_cdc.tcl`
      treats the explicit synchronizer-boundary nets separately from the async
      IDELAY/ISERDES control nets instead of wildcard-cutting `idelay_load*`
    - the next cleanup should narrow the remaining async-control cuts further,

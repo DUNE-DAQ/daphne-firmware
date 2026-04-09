@@ -13,7 +13,7 @@
 create_clock -period 10.000 -name sysclk [ get_ports sysclk_p]
 
 # The active AFE receive-clock timing model now lives only in
-# xilinx/afe_capture_timing.xdc, which is required through the board manifest.
+# xilinx/afe_capture_timing.tcl, which is required through the board manifest.
 
 #set_clock_groups -name async_groups -asynchronous -group {sysclk100 clk100 mmcm0_clkfbout} -group {sb_axi_clk fe_axi_clk ep_axi_clk} -group local_clk62p5 -group {clk500_0 clock_0 clk125_0 mmcm1_clkfbout0} -group {clk500_1 clock_1 clk125_1 mmcm1_clkfbout1} -group {ep_clk62p5 ep_clk4x ep_clk2x ep_clkfbout} -group rx_tmg_clk
 

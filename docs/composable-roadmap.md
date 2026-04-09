@@ -100,8 +100,8 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
    - Treat direct leaf ownership creeping back into `k26c_board_shell` as a
      regression; it should stay a board-plane composition shell.
    - Keep the required constraint set present:
-     `daphne_selftrigger_pin_map.xdc`, `afe_capture_timing.xdc`,
-     `frontend_control_cdc.xdc`.
+     `daphne_selftrigger_pin_map.xdc`, `afe_capture_timing.tcl`,
+     `frontend_control_cdc.tcl`.
 
 2. Prove the native board-shell path on hardware.
    - Use the current default `build_platform.sh` / `run_vivado_batch.sh`

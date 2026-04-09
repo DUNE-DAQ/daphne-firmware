@@ -7,14 +7,9 @@
 # The primary sysclk definition remains in xilinx/daphne_selftrigger_pin_map.xdc.
 
 if {![info exists ::env(DAPHNE_TIMING_ENDPOINT_PATH)] || [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)] eq ""} {
-    error "ERROR: DAPHNE_TIMING_ENDPOINT_PATH must be set for afe_capture_timing.xdc"
+    error "ERROR: DAPHNE_TIMING_ENDPOINT_PATH must be set for afe_capture_timing.tcl"
 }
 set endpoint_path [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)]
-
-if {![info exists ::env(DAPHNE_TIMING_PLANE_PATH)] || [string trim $::env(DAPHNE_TIMING_PLANE_PATH)] eq ""} {
-    error "ERROR: DAPHNE_TIMING_PLANE_PATH must be set for afe_capture_timing.xdc"
-}
-set timing_plane_path [string trim $::env(DAPHNE_TIMING_PLANE_PATH)]
 
 proc daphne_require_single_object {object_kind root_candidates relative_path purpose} {
     set resolved_objects {}
@@ -128,9 +123,9 @@ set endpoint_clku_net [daphne_require_single_object net $endpoint_path "pdts_end
 create_generated_clock -name frontend_word_clk_ep     -source $rx_tmg_port -divide_by 1 $frontend_word_clk_ep_pin
 create_generated_clock -name frontend_word_clk_local  -source $sysclk_port -multiply_by 5 -divide_by 8 $frontend_word_clk_local_pin
 create_generated_clock -name frontend_bit_clk_ep         -source $frontend_word_clk_ep_pin        -multiply_by 8 $frontend_bit_clk_pin
-create_generated_clock -add -name frontend_bit_clk_local -source $frontend_word_clk_local_pin     -multiply_by 8 $frontend_bit_clk_pin
+create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_bit_clk_local -source $frontend_word_clk_local_pin -multiply_by 8 $frontend_bit_clk_pin
 create_generated_clock -name frontend_byte_clk_ep        -source $frontend_word_clk_ep_pin        -multiply_by 2 $frontend_byte_clk_pin
-create_generated_clock -add -name frontend_byte_clk_local -source $frontend_word_clk_local_pin    -multiply_by 2 $frontend_byte_clk_pin
+create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_byte_clk_local -source $frontend_word_clk_local_pin -multiply_by 2 $frontend_byte_clk_pin
 
 set_clock_groups -physically_exclusive \
   -group {frontend_word_clk_ep frontend_bit_clk_ep frontend_byte_clk_ep} \

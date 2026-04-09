@@ -99,8 +99,8 @@ This is the important current milestone:
   hierarchy and the packaged-IP/BD hierarchy
 - the required frontend timing constraints remain present:
   - `xilinx/daphne_selftrigger_pin_map.xdc`
-  - `xilinx/afe_capture_timing.xdc`
-  - `xilinx/frontend_control_cdc.xdc`
+  - `xilinx/afe_capture_timing.tcl`
+  - `xilinx/frontend_control_cdc.tcl`
 
 ## Regression Guard
 
@@ -148,7 +148,7 @@ That script:
 - checks that `k26c_board_timing_plane.vhd` instantiates only `endpoint`
 - checks that the board timing-path defaults still name both the native
   board-shell hierarchy roots and the packaged-IP/BD hierarchy roots consumed
-  by `xilinx/afe_capture_timing.xdc`
+  by `xilinx/afe_capture_timing.tcl`
 - stages `k26c-composable-platform:impl`
 - locates the generated `*.eda.yml`
 - fails if any `legacy-*` core names re-enter the active graph
