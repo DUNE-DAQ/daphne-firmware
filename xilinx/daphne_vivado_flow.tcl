@@ -135,11 +135,11 @@ proc daphne_create_block_design {cfg_name} {
     }
     make_wrapper -top -files $bd_file_obj
     read_vhdl $cfg(bd_wrapper_vhd)
+    set cfg(post_synth_constraint_files) {}
     foreach constraint_file $cfg(constraint_files) {
         set constraint_basename [file tail $constraint_file]
         if {$constraint_basename in {"afe_capture_timing.xdc" "frontend_control_cdc.xdc"}} {
-            puts "INFO: Sourcing Tcl-backed constraint script $constraint_file"
-            source -notrace $constraint_file
+            lappend cfg(post_synth_constraint_files) $constraint_file
         } else {
             read_xdc -verbose $constraint_file
         }
@@ -159,6 +159,10 @@ proc daphne_run_synth {cfg_name} {
     upvar 1 $cfg_name cfg
 
     synth_design -top $cfg(bd_wrapper_name) -directive $cfg(synth_directive)
+    foreach constraint_file $cfg(post_synth_constraint_files) {
+        puts "INFO: Sourcing post-synth Tcl-backed constraint script $constraint_file"
+        source -notrace $constraint_file
+    }
     if {$cfg(skip_post_synth_reports) eq "1"} {
         puts "INFO: Skipping post-synth reports by request."
     } else {
