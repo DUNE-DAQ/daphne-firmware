@@ -136,7 +136,13 @@ proc daphne_create_block_design {cfg_name} {
     make_wrapper -top -files $bd_file_obj
     read_vhdl $cfg(bd_wrapper_vhd)
     foreach constraint_file $cfg(constraint_files) {
-        read_xdc -verbose $constraint_file
+        set constraint_basename [file tail $constraint_file]
+        if {$constraint_basename in {"afe_capture_timing.xdc" "frontend_control_cdc.xdc"}} {
+            puts "INFO: Sourcing Tcl-backed constraint script $constraint_file"
+            source -notrace $constraint_file
+        } else {
+            read_xdc -verbose $constraint_file
+        }
     }
     set_property synth_checkpoint_mode None $bd_file_obj
     generate_target all $bd_file_obj
