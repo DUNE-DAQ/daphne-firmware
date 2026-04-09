@@ -99,6 +99,9 @@ proc daphne_resolve_config {script_dir} {
     set cfg(post_place_physopt_directive) [daphne_get_env_or_default DAPHNE_POST_PLACE_PHYSOPT_DIRECTIVE "AggressiveFanoutOpt"]
     set cfg(route_directive) [daphne_get_env_or_default DAPHNE_ROUTE_DIRECTIVE "AlternateCLBRouting"]
     set cfg(post_route_physopt_directive) [daphne_get_env_or_default DAPHNE_POST_ROUTE_PHYSOPT_DIRECTIVE "AggressiveExplore"]
+    set cfg(pre_place_power_opt) [daphne_get_env_or_default DAPHNE_PRE_PLACE_POWER_OPT "0"]
+    set cfg(post_place_power_opt) [daphne_get_env_or_default DAPHNE_POST_PLACE_POWER_OPT "0"]
+    set cfg(skip_post_place_checkpoint) [daphne_get_env_or_default DAPHNE_SKIP_POST_PLACE_CHECKPOINT "0"]
     set cfg(skip_post_synth_reports) [daphne_get_env_or_default DAPHNE_SKIP_POST_SYNTH_REPORTS "0"]
     set cfg(skip_post_synth_checkpoint) [daphne_get_env_or_default DAPHNE_SKIP_POST_SYNTH_CHECKPOINT "0"]
     set cfg(stop_after_synth) [daphne_get_env_or_default DAPHNE_STOP_AFTER_SYNTH "0"]
@@ -181,7 +184,9 @@ proc daphne_prepare_project {cfg_name} {
 
     puts "INFO: Running Vivado batch for part <$cfg(fpga_part)> board_part <$cfg(board_part)> pfm <$cfg(pfm_name)>."
     puts "INFO: Threads=$cfg(max_threads) synth=$cfg(synth_directive) opt=$cfg(opt_directive) place=$cfg(place_directive) route=$cfg(route_directive)."
+    puts "INFO: Pre-place power opt=$cfg(pre_place_power_opt) post-place power opt=$cfg(post_place_power_opt)."
     puts "INFO: Post-synth reports skipped=$cfg(skip_post_synth_reports) checkpoint skipped=$cfg(skip_post_synth_checkpoint)."
+    puts "INFO: Post-place checkpoint skipped=$cfg(skip_post_place_checkpoint)."
     puts "INFO: Stop after synth=$cfg(stop_after_synth)."
     puts "INFO: Dump post-synth debug=$cfg(dump_post_synth_debug)."
     puts "INFO: passing git commit number $cfg(v_git_sha) to top level generic"
@@ -250,10 +255,23 @@ proc daphne_run_impl {cfg_name} {
     upvar 1 $cfg_name cfg
 
     opt_design -directive $cfg(opt_directive)
+    if {[string tolower $cfg(pre_place_power_opt)] in {"1" "true" "yes" "on"}} {
+        power_opt_design
+    }
     place_design -directive $cfg(place_directive)
+    if {[string tolower $cfg(post_place_power_opt)] in {"1" "true" "yes" "on"}} {
+        power_opt_design
+    }
     phys_opt_design -directive $cfg(post_place_physopt_directive)
+    if {$cfg(skip_post_place_checkpoint) eq "1"} {
+        puts "INFO: Skipping post-place checkpoint by request."
+    } else {
+        write_checkpoint -force [file join $cfg(output_dir) "${cfg(bd_name)}_post_place.dcp"]
+    }
     report_timing_summary -file [file join $cfg(output_dir) "post_place_timing_summary.rpt"]
     report_timing -sort_by group -max_paths 100 -path_type summary -file [file join $cfg(output_dir) "post_place_timing.rpt"]
+    report_clock_utilization -file [file join $cfg(output_dir) "post_place_clock_util.rpt"]
+    daphne_run_nonfatal "post-place report_power" [list report_power -file [file join $cfg(output_dir) "post_place_power.rpt"]]
 
     route_design -directive $cfg(route_directive)
     phys_opt_design -directive $cfg(post_route_physopt_directive)
