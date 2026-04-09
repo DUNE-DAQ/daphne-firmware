@@ -42,7 +42,7 @@ suites:
 ./scripts/formal/run_formal.sh --list-suites
 ```
 
-Current local inventory: 22 `.sby` jobs under `formal/sby/`.
+Current local inventory: 23 `.sby` jobs under `formal/sby/`.
 
 Current suite layout:
 
@@ -50,7 +50,8 @@ Current suite layout:
 - `leaf-fast`: 14 leaf and boundary proofs
 - `cover-fast`: 2 bounded reachability cover jobs for the AXI-Lite wrappers
 - `composable`: 3 composable-top contracts
-- `all-local`: the full 22-job local inventory
+- `composable-cover`: 1 bounded top-level composable cover job
+- `all-local`: the full 23-job local inventory
 
 The `fe_axi` proof entry can now be invoked directly by basename:
 
@@ -104,6 +105,16 @@ This currently produces traces for:
 - `thresholds_axi_lite_cover`: threshold write propagation and both readback
   paths
 
+The first composable cover entry point now also passes locally:
+
+```bash
+./scripts/formal/run_formal.sh --suite composable-cover
+```
+
+This emits a bounded trace from `daphne_composable_top_cover` showing a live
+public trigger plus a concrete frontend lane image propagated through the
+validate-stub public top path.
+
 Full local formal sweep now passes:
 
 ```bash
@@ -121,6 +132,7 @@ Current passing local inventory:
 - `daphne_composable_core_top_contract`
 - `daphne_composable_frontend_shell_contract`
 - `daphne_composable_top_contract`
+- `daphne_composable_top_cover`
 - `fe_axi_axi_lite`
 - `fixed_delay_line_contract`
 - `frontend_boundary_gate`
@@ -141,6 +153,7 @@ Current passing local inventory:
 - `./scripts/formal/run_formal.sh --suite leaf-fast`
 - `./scripts/formal/run_formal.sh --suite cover-fast`
 - `./scripts/formal/run_formal.sh --suite composable`
+- `./scripts/formal/run_formal.sh --suite composable-cover`
 - `./scripts/formal/run_formal.sh --suite all-local`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-control:0.1.0`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:selftrigger:0.1.0`
@@ -153,9 +166,28 @@ a pinned OSS CAD Suite toolchain, and executes:
 
 - `./scripts/formal/run_formal.sh --suite default`
 - `./scripts/formal/run_formal.sh --suite cover-fast`
+- `./scripts/formal/run_formal.sh --suite composable`
+- `./scripts/formal/run_formal.sh --suite composable-cover`
+
+The `cover-fast` leg also uploads the generated cover VCD traces from:
+
+- `formal/sby/fe_axi_axi_lite_cover/engine_0/trace*.vcd`
+- `formal/sby/thresholds_axi_lite_cover/engine_0/trace*.vcd`
+- `formal/sby/daphne_composable_top_cover/engine_0/trace*.vcd`
+
+The same workflow now also defines an `all-local` job gated to `schedule` and
+`workflow_dispatch`. That heavier lane runs:
+
+- `./scripts/formal/run_formal.sh --suite all-local`
+
+and uploads failure artifacts from `formal/sby/**`, including:
+
+- `logfile.txt`
+- `engine_0/trace*.vcd`
+- `model/design*.log`
 
 ## Next recommended step
 
-Extend CI from the fast baseline to a second lane for `composable` or
-`all-local`, and upload the cover VCD traces as artifacts on failure so the
-counterexample/reachability data is preserved directly from CI.
+Extend the composable cover approach to the frontend-shell or core-top contracts,
+or start adding progress-style properties to the boundary-gate proofs now that
+the fast CI baseline covers both safety and reachability at the public top.

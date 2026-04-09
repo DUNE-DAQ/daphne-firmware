@@ -77,19 +77,24 @@ daphne_composable_frontend_shell_contract
 daphne_composable_top_contract
 EOF
       ;;
+    composable-cover)
+      cat <<'EOF'
+daphne_composable_top_cover
+EOF
+      ;;
     all-local)
       discover_jobs
       ;;
     *)
       echo "ERROR: unknown formal suite '$1'" >&2
-      echo "Known suites: default, leaf-fast, cover-fast, composable, all-local" >&2
+      echo "Known suites: default, leaf-fast, cover-fast, composable, composable-cover, all-local" >&2
       exit 2
       ;;
   esac
 }
 
 print_suite_names() {
-  printf '%s\n' default leaf-fast cover-fast composable all-local
+  printf '%s\n' default leaf-fast cover-fast composable composable-cover all-local
 }
 
 if ! command -v sby >/dev/null 2>&1 || [[ -z "${GHDL_PREFIX:-}" ]]; then
