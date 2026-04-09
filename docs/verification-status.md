@@ -42,7 +42,7 @@ suites:
 ./scripts/formal/run_formal.sh --list-suites
 ```
 
-Current local inventory: 23 `.sby` jobs under `formal/sby/`.
+Current local inventory: 24 `.sby` jobs under `formal/sby/`.
 
 Current suite layout:
 
@@ -50,7 +50,7 @@ Current suite layout:
 - `leaf-fast`: 14 leaf and boundary proofs
 - `cover-fast`: 2 bounded reachability cover jobs for the AXI-Lite wrappers
 - `composable`: 3 composable-top contracts
-- `composable-cover`: 1 bounded top-level composable cover job
+- `composable-cover`: 2 bounded composable reachability cover jobs
 - `all-local`: the full 23-job local inventory
 
 The `fe_axi` proof entry can now be invoked directly by basename:
@@ -105,15 +105,19 @@ This currently produces traces for:
 - `thresholds_axi_lite_cover`: threshold write propagation and both readback
   paths
 
-The first composable cover entry point now also passes locally:
+The composable cover entry points now also pass locally:
 
 ```bash
 ./scripts/formal/run_formal.sh --suite composable-cover
 ```
 
-This emits a bounded trace from `daphne_composable_top_cover` showing a live
-public trigger plus a concrete frontend lane image propagated through the
-validate-stub public top path.
+This currently produces traces for:
+
+- `daphne_composable_frontend_shell_cover`: a live forwarded public trigger,
+  preserved frontend lane bits, and matching adapted trigger-sample images at
+  the frontend-shell seam
+- `daphne_composable_top_cover`: a live public trigger plus a concrete
+  frontend lane image propagated through the validate-stub public top path
 
 Full local formal sweep now passes:
 
@@ -131,6 +135,7 @@ Current passing local inventory:
 - `control_plane_boundary_contract`
 - `daphne_composable_core_top_contract`
 - `daphne_composable_frontend_shell_contract`
+- `daphne_composable_frontend_shell_cover`
 - `daphne_composable_top_contract`
 - `daphne_composable_top_cover`
 - `fe_axi_axi_lite`
@@ -173,6 +178,7 @@ The `cover-fast` leg also uploads the generated cover VCD traces from:
 
 - `formal/sby/fe_axi_axi_lite_cover/engine_0/trace*.vcd`
 - `formal/sby/thresholds_axi_lite_cover/engine_0/trace*.vcd`
+- `formal/sby/daphne_composable_frontend_shell_cover/engine_0/trace*.vcd`
 - `formal/sby/daphne_composable_top_cover/engine_0/trace*.vcd`
 
 The same workflow now also defines an `all-local` job gated to `schedule` and

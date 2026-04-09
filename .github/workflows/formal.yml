@@ -41,6 +41,7 @@ jobs:
           path: |
             formal/sby/fe_axi_axi_lite_cover/engine_0/trace*.vcd
             formal/sby/thresholds_axi_lite_cover/engine_0/trace*.vcd
+            formal/sby/daphne_composable_frontend_shell_cover/engine_0/trace*.vcd
             formal/sby/daphne_composable_top_cover/engine_0/trace*.vcd
           if-no-files-found: warn
           retention-days: 14
