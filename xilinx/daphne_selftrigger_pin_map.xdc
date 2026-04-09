@@ -128,8 +128,9 @@ set_property PACKAGE_PIN L7       [get_ports sysclk_p]
 set_property PACKAGE_PIN L6       [get_ports sysclk_n]
 set_property IOSTANDARD LVDS [get_ports sysclk_p]
 set_property IOSTANDARD LVDS [get_ports sysclk_n]
-set_property DIFF_TERM true [get_ports sysclk_p]
-set_property DIFF_TERM true [get_ports sysclk_n]
+# UltraScale uses DIFF_TERM_ADV rather than the older DIFF_TERM property.
+set_property DIFF_TERM_ADV TERM_100 [get_ports sysclk_p]
+set_property DIFF_TERM_ADV TERM_100 [get_ports sysclk_n]
 
 set_property PACKAGE_PIN AE5 [get_ports afe_clk_p];
 set_property PACKAGE_PIN AF5 [get_ports afe_clk_n];
