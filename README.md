@@ -68,6 +68,9 @@ To run a single smoke test instead of the default suite:
 
 ```bash
 ./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-test:0.1.0
+./scripts/fusesoc/run_logic_test.sh --list-suites
+./scripts/fusesoc/run_logic_test.sh --suite composable
+./scripts/fusesoc/run_logic_test.sh --suite all-local
 ```
 
 Run the checked-in formal scaffolds:
