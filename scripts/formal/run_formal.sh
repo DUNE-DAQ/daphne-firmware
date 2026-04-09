@@ -64,6 +64,12 @@ thresholds_axi_lite
 trigger_pipeline_boundary_gate
 EOF
       ;;
+    cover-fast)
+      cat <<'EOF'
+fe_axi_axi_lite_cover
+thresholds_axi_lite_cover
+EOF
+      ;;
     composable)
       cat <<'EOF'
 daphne_composable_core_top_contract
@@ -76,14 +82,14 @@ EOF
       ;;
     *)
       echo "ERROR: unknown formal suite '$1'" >&2
-      echo "Known suites: default, leaf-fast, composable, all-local" >&2
+      echo "Known suites: default, leaf-fast, cover-fast, composable, all-local" >&2
       exit 2
       ;;
   esac
 }
 
 print_suite_names() {
-  printf '%s\n' default leaf-fast composable all-local
+  printf '%s\n' default leaf-fast cover-fast composable all-local
 }
 
 if ! command -v sby >/dev/null 2>&1 || [[ -z "${GHDL_PREFIX:-}" ]]; then
