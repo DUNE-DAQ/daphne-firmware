@@ -30,13 +30,28 @@ proc daphne_require_single_object {object_kind root_candidates relative_path pur
             set object_path "${trimmed_root}/${relative_path}"
         }
 
+        set query_patterns [list $object_path]
+        if {![string match "*${object_path}" $object_path]} {
+            lappend query_patterns "*${object_path}"
+        }
+
         if {$object_kind eq "net"} {
-            foreach resolved_net [get_nets -quiet $object_path] {
-                lappend resolved_objects $resolved_net
+            foreach query_pattern $query_patterns {
+                foreach resolved_net [get_nets -quiet $query_pattern] {
+                    lappend resolved_objects $resolved_net
+                }
+                foreach resolved_net [get_nets -hier -quiet -filter "NAME =~ $query_pattern"] {
+                    lappend resolved_objects $resolved_net
+                }
             }
         } elseif {$object_kind eq "pin"} {
-            foreach resolved_pin [get_pins -quiet $object_path] {
-                lappend resolved_objects $resolved_pin
+            foreach query_pattern $query_patterns {
+                foreach resolved_pin [get_pins -quiet $query_pattern] {
+                    lappend resolved_objects $resolved_pin
+                }
+                foreach resolved_pin [get_pins -hier -quiet -filter "NAME =~ $query_pattern"] {
+                    lappend resolved_objects $resolved_pin
+                }
             }
         } else {
             error "ERROR: unsupported object kind '$object_kind' for $purpose"
