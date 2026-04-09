@@ -34,13 +34,21 @@ default so one target does not reuse stale prepared sources from another.
 
 ## Formal verification
 
-The formal runner now lists all checked-in proof jobs:
+The formal runner now lists all checked-in proof jobs and named suites:
 
 ```bash
 ./scripts/formal/run_formal.sh --list
+./scripts/formal/run_formal.sh --list-suites
 ```
 
 Current local inventory: 20 `.sby` jobs under `formal/sby/`.
+
+Current suite layout:
+
+- `default`: 4 fast expected-green proofs
+- `leaf-fast`: 14 leaf and boundary proofs
+- `composable`: 3 composable-top contracts
+- `all-local`: the full 20-job local inventory
 
 The `fe_axi` proof entry can now be invoked directly by basename:
 
@@ -67,17 +75,52 @@ an extra reset cycle before traffic starts, and clamped threshold indices so
 the proof does not fail on out-of-range startup values unrelated to the AXI
 behavior under test.
 
-## Current local spot checks
+The runner now also uses Bash 3 compatible loops instead of `mapfile`, so the
+suite interface works from the local macOS host as well as the Linux/WSL
+environment.
 
-- `./scripts/formal/run_formal.sh fe_axi_axi_lite`
-- `./scripts/formal/run_formal.sh thresholds_axi_lite`
-- `./scripts/formal/run_formal.sh frontend_register_slice_contract`
+Full local formal sweep now passes:
+
+```bash
+./scripts/formal/run_formal.sh --suite all-local
+```
+
+Current passing local inventory:
+
+- `afe_capture_slice_boundary_contract`
+- `afe_capture_to_trigger_bank_contract`
+- `afe_config_slice_boundary_contract`
+- `analog_control_boundary_contract`
+- `configurable_delay_line_contract`
+- `control_plane_boundary_contract`
+- `daphne_composable_core_top_contract`
+- `daphne_composable_frontend_shell_contract`
+- `daphne_composable_top_contract`
+- `fe_axi_axi_lite`
+- `fixed_delay_line_contract`
+- `frontend_boundary_gate`
+- `frontend_register_slice_contract`
+- `frontend_to_selftrigger_adapter_contract`
+- `hermes_boundary_contract`
+- `spy_buffer_boundary_gate`
+- `thresholds_axi_lite`
+- `timing_endpoint_contract`
+- `timing_subsystem_boundary_contract`
+- `trigger_pipeline_boundary_gate`
+
+## Current local verification runs
+
+- `./scripts/formal/run_formal.sh --suite default`
+- `./scripts/formal/run_formal.sh --suite leaf-fast`
+- `./scripts/formal/run_formal.sh --suite composable`
+- `./scripts/formal/run_formal.sh --suite all-local`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-control:0.1.0`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:selftrigger:0.1.0`
 
 ## Next recommended step
 
-Apply the same wrapper pattern to any future AXI-Lite harness as it is added:
-sample the scenario once during reset, make the reset phase explicit, and
-compare readback against values captured on the accepted transaction rather
-than live symbolic inputs.
+Add non-vacuity `cover` goals and lightweight CI around the current green
+baseline. The next useful bar is not just "all 20 jobs pass locally", but "the
+default formal suite stays green automatically" and "the AXI-Lite wrappers
+prove that their key transactions are reachable, not only that safety
+properties hold under assumptions."
