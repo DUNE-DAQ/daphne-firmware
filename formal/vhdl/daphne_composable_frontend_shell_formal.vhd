@@ -60,7 +60,17 @@ architecture formal of daphne_composable_frontend_shell_formal is
   signal delayed_sample_o          : sample14_array_t(0 to 39);
   signal ready_o                   : std_logic_array_t(0 to 39);
   signal dout_o                    : slv72_array_t(0 to 39);
+  signal trigger_samples_probe     : sample14_array_t(0 to 39);
 begin
+  probe_adapter : entity work.frontend_to_selftrigger_adapter
+    generic map (
+      AFE_COUNT_G => 5
+    )
+    port map (
+      afe_dout_i        => frontend_dout_i,
+      trigger_samples_o => trigger_samples_probe
+    );
+
   dut : entity work.daphne_composable_frontend_shell
     generic map (
       AFE_COUNT_G          => 5,

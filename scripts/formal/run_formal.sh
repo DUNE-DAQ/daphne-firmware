@@ -79,6 +79,7 @@ EOF
       ;;
     composable-cover)
       cat <<'EOF'
+daphne_composable_frontend_shell_cover
 daphne_composable_top_cover
 EOF
       ;;
