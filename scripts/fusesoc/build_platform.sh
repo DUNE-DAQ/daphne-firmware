@@ -137,6 +137,9 @@ if daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFOR
 fi
 
 if daphne_platform_exports_flow_bundle "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE" "$BUILD_TARGET"; then
+  echo "INFO: Checking board timing-path defaults and AFE timing constraint contract."
+  "$ROOT_DIR/scripts/fusesoc/check_board_timing_path_contract.sh"
+  "$ROOT_DIR/scripts/fusesoc/check_afe_timing_constraint_contract.sh"
   echo "INFO: Running BD-backed Vivado batch implementation for the board-complete platform target."
   exec "$ROOT_DIR/scripts/fusesoc/vivado_batch_hook.sh"
 fi

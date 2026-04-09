@@ -9,6 +9,8 @@ FLOW_TCL="$ROOT_DIR/xilinx/daphne_vivado_flow.tcl"
 TIMING_TCL="$ROOT_DIR/xilinx/afe_capture_timing.tcl"
 CDC_TCL="$ROOT_DIR/xilinx/frontend_control_cdc.tcl"
 ENDPOINT_RTL="$ROOT_DIR/ip_repo/daphne_ip/rtl/timing/endpoint.vhd"
+BATCH_HOOK="$ROOT_DIR/scripts/fusesoc/vivado_batch_hook.sh"
+MANUAL_RUNNER="$ROOT_DIR/scripts/wsl/run_manual_vivado_pushd.sh"
 
 require_file() {
   file_path="$1"
@@ -59,6 +61,8 @@ require_file "$FLOW_TCL"
 require_file "$TIMING_TCL"
 require_file "$CDC_TCL"
 require_file "$ENDPOINT_RTL"
+require_file "$BATCH_HOOK"
+require_file "$MANUAL_RUNNER"
 
 require_fixed "constraint_files: xilinx/daphne_selftrigger_pin_map.xdc;xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl" "$BOARD_MANIFEST" \
   "board manifest does not stage the Tcl-backed AFE timing constraints."
@@ -69,6 +73,14 @@ require_fixed "if {\$constraint_basename in {\"afe_capture_timing.tcl\" \"fronte
   "Vivado flow no longer classifies the Tcl-backed AFE timing files for post-synth loading."
 require_fixed "read_xdc -unmanaged \$constraint_file" "$FLOW_TCL" \
   "Vivado flow no longer loads the Tcl-backed AFE timing files as unmanaged Tcl constraints."
+require_fixed "append_env_tcl DAPHNE_STOP_AFTER_SYNTH" "$BATCH_HOOK" \
+  "main Vivado batch hook no longer forwards DAPHNE_STOP_AFTER_SYNTH."
+require_fixed "append_env_tcl DAPHNE_DUMP_POST_SYNTH_DEBUG" "$BATCH_HOOK" \
+  "main Vivado batch hook no longer forwards DAPHNE_DUMP_POST_SYNTH_DEBUG."
+require_fixed "set ::env(DAPHNE_STOP_AFTER_SYNTH) \"\$STOP_AFTER_SYNTH_TCL\"" "$MANUAL_RUNNER" \
+  "manual WSL launcher no longer forwards DAPHNE_STOP_AFTER_SYNTH."
+require_fixed "set ::env(DAPHNE_DUMP_POST_SYNTH_DEBUG) \"\$DUMP_POST_SYNTH_DEBUG_TCL\"" "$MANUAL_RUNNER" \
+  "manual WSL launcher no longer forwards DAPHNE_DUMP_POST_SYNTH_DEBUG."
 
 require_fixed "set frontend_byte_clk_pin [daphne_require_single_object pin \$endpoint_path \"mmcm1_clk2_inst/O\" \"frontend byte-clock source\"]" "$TIMING_TCL" \
   "AFE timing Tcl is no longer bound to the live BUFGCE_DIV byte-clock output."

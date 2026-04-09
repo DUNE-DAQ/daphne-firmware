@@ -102,18 +102,17 @@ If you call `fusesoc run` directly, set `DAPHNE_GIT_SHA` first so the legacy
 artifact naming keeps the real commit instead of falling back to `0000000`.
 The board manifest now defaults the wrapper/build helpers to the composable
 platform core, so `run_vivado_batch.sh` and `build_platform.sh` resolve to the
-native board-shell `impl` target unless you override `DAPHNE_PLATFORM_CORE`
+BD-backed board-complete `impl` target unless you override `DAPHNE_PLATFORM_CORE`
 explicitly.
 
 The composable platform now also exposes `impl` as its default implementation
 target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
-target automatically. Today `impl` is the native board-shell Flow API
-path (`k26c_board_shell`). The native board-shell path now resolves
-through an explicit `k26c-board-shell` feature core instead of the generated
-`daphne-ip` manifest, so the board implementation is materially more
-FuseSoC-owned. `k26c_board_shell` now owns the live board implementation
-directly, while `legacy_public_top_bridge` has been reduced to a compatibility
-alias for older source-manifest consumers.
+target automatically. Today the supported default `impl` lane is the
+BD/PS-backed board-complete path with `daphne_selftrigger_bd_wrapper` at the
+top. The experimental native board-shell path remains available explicitly as
+`impl_board_shell_flow`; there `k26c_board_shell` owns the live board RTL
+implementation directly, while `legacy_public_top_bridge` has been reduced to a
+compatibility alias for older source-manifest consumers.
 The K26C board manifest also requires `xilinx/afe_capture_timing.tcl` and
 `xilinx/frontend_control_cdc.tcl`, so the split frontend timing/CDC model
 cannot silently drop out of the build.
