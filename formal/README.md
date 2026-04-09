@@ -22,7 +22,9 @@ Current proof entry points:
   behavior.
 - `formal/sby/daphne_composable_top_contract.sby` for the public composable top
   validate path through the stubbed frontend island, disabled optional
-  subsystems, and explicit equivalence to the standalone frontend shell seam.
+  subsystems, explicit equivalence to the standalone frontend shell seam, and
+  adapter-view mapping of the exposed frontend lane image into the trigger
+  sample path.
 - `formal/sby/configurable_delay_line_contract.sby` for the vendor-neutral
   configurable delay primitive that replaces imported `SRLC32E` delay chains.
 - `formal/sby/fe_axi_axi_lite.sby` for the frontend AXI-Lite control register
@@ -90,8 +92,9 @@ Two dedicated cover entry points now complement the AXI-Lite proofs:
   traces for threshold write propagation plus both readback paths.
 - `formal/sby/daphne_composable_top_cover.sby` binds
   `formal/vhdl/daphne_composable_top_cover.psl` to the top-level composable
-  harness and emits a bounded cover trace showing a live public trigger plus a
-  concrete propagated frontend lane image through the validate stub path.
+  harness and emits a bounded cover trace showing a live public trigger, a
+  concrete propagated frontend lane image, and matching adapted trigger-sample
+  bits through the validate stub path.
 - `formal/sby/daphne_composable_frontend_shell_cover.sby` binds
   `formal/vhdl/daphne_composable_frontend_shell_cover.psl` to the frontend
   shell harness and emits a bounded cover trace showing a live forwarded
@@ -128,6 +131,9 @@ Properties currently checked:
   contract: under the validate-stub frontend image, the public top must expose
   the same frontend, timing, Hermes, and disabled self-trigger outputs as the
   shell proof.
+- The public composable top also proves that the exposed frontend lane image
+  still maps into the flattened 40-channel trigger-sample view exactly as the
+  frontend-to-selftrigger adapter contract expects.
 - Neutral wrappers that are still stubs are proven to remain input-independent
   and to expose only null/zero-valued outputs.
 
