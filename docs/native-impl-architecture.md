@@ -1,27 +1,36 @@
 # Native Impl Architecture
 
-This note records the current active FuseSoC-owned implementation path for the
-K26C board.
+This note records the current FuseSoC-owned implementation lanes for the K26C
+board, with emphasis on the explicit native board-shell path and how it differs
+from the supported default BD-backed `impl` lane.
 
 ## Build Entry Point
 
 The board manifest now defaults `build_platform.sh` to the board-owned default
-platform core and its default native target:
+platform core and its default board-complete target:
 
 ```text
 ./scripts/fusesoc/build_platform.sh
 └─ dune-daq:daphne:k26c-composable-platform:0.1.0
    └─ target=impl
+      └─ toplevel=daphne_selftrigger_bd_wrapper
+```
+
+The explicit native board-shell audit lane remains available separately:
+
+```text
+./scripts/fusesoc/build_platform.sh --composable --target impl_board_shell_flow
+└─ dune-daq:daphne:k26c-composable-platform:0.1.0
+   └─ target=impl_board_shell_flow
       └─ toplevel=k26c_board_shell
 ```
 
-For the native composable `impl` target:
+For the supported default `impl` target:
 
 - `build_platform.sh` resolves to `k26c-composable-platform:impl`
 - `run_vivado_batch.sh` dispatches through the same target
 - remote/WSL wrapper chains now decide packaged-IP preflight from the resolved
-  platform core and target, so the default native `impl` path and the native
-  Flow-API synth targets skip it automatically
+  platform core and target
 - artifact export still lands in the legacy-style
   `daphne_selftrigger_<gitsha>.*` bundle for deployment compatibility
 
@@ -70,13 +79,13 @@ flowchart TD
   CC --> SRB[stuff-selftrigger-register-bank]
 ```
 
-This is the important current milestone:
+This is the important current milestone for the explicit native board-shell
+lane:
 
-- the active `impl` graph is board-plane owned
-- the default `k26c-composable-platform` manifest now carries only the native
-  board-shell platform collateral; legacy Tcl/export files are explicitly
-  segregated as compatibility support instead of part of the main platform
-  contract
+- the explicit `impl_board_shell_flow` graph is board-plane owned
+- the default `k26c-composable-platform` manifest now carries only the current
+  platform collateral; legacy Tcl/export files are explicitly segregated as
+  compatibility support instead of part of the main platform contract
 - the board manifest now keeps only native board defaults in `boards/k26c/board.yml`,
   while the packaged-IP/BD compatibility identity lives in
   `boards/k26c/legacy-flow.yml`
@@ -104,7 +113,8 @@ This is the important current milestone:
 
 ## Regression Guard
 
-Use this before or after refactors that touch the active board-shell path:
+Use this before or after refactors that touch the explicit native board-shell
+path:
 
 ```bash
 ./scripts/fusesoc/check_native_impl_graph.sh
@@ -149,15 +159,15 @@ That script:
 - checks that the board timing-path defaults still name both the native
   board-shell hierarchy roots and the packaged-IP/BD hierarchy roots consumed
   by `xilinx/afe_capture_timing.tcl`
-- stages `k26c-composable-platform:impl`
+- stages `k26c-composable-platform:impl_board_shell_flow`
 - locates the generated `*.eda.yml`
 - fails if any `legacy-*` core names re-enter the active graph
 - fails if the required frontend timing constraints disappear
 
 ## What Is Still Not Native
 
-The active board implementation path is native, but the repo still carries
-legacy collateral for compatibility:
+The supported default board implementation path is still BD-backed, and the
+repo also carries legacy collateral for compatibility:
 
 - packaged-IP generation and export flows
 - explicit `legacy_*` board-manifest identity keys for the packaged-IP/BD lane,
@@ -167,6 +177,6 @@ legacy collateral for compatibility:
 - legacy compatibility cores kept for older manifests, simulation, or staged
   migration support
 
-So the native `impl` path is now the default build direction, but the repo is
-still deliberately dual-lane until hardware validation on the new path is
-routine.
+So the repo is still deliberately dual-lane: the supported default `impl` lane
+is BD-backed, while `impl_board_shell_flow` remains the explicit native
+board-shell audit path until hardware validation on that lane is routine.

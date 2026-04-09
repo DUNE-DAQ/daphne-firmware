@@ -3,9 +3,11 @@
 # This file is documentation plus a future constraint split point.
 # It is intentionally NOT sourced by the current build.
 #
-# The live build still uses xilinx/daphne_selftrigger_pin_map.xdc. Promote only
-# reviewed pieces from this scaffold once they have been checked against the
-# synthesized hierarchy and, for input delays, real device/board timing data.
+# The live build now uses xilinx/daphne_selftrigger_pin_map.xdc together with
+# xilinx/afe_capture_timing.tcl and xilinx/frontend_control_cdc.tcl. Promote
+# only reviewed pieces from this scaffold once they have been checked against
+# the synthesized hierarchy and, for input delays, real device/board timing
+# data.
 
 #
 # Current timing intent
