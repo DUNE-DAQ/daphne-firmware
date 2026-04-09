@@ -29,6 +29,74 @@ fi
 
 : "${DAPHNE_OUTPUT_DIR:=./output-$DAPHNE_GIT_SHA}"
 
+running_under_wsl() {
+  [ -n "${WSL_DISTRO_NAME-}" ] || [ -n "${WSL_INTEROP-}" ]
+}
+
+is_windows_style_path() {
+  case "$1" in
+    [A-Za-z]:/*|[A-Za-z]:\\*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+resolve_platform_path() {
+  raw_path="$1"
+  case "$raw_path" in
+    "")
+      return 0
+      ;;
+    /*)
+      printf '%s\n' "$raw_path"
+      ;;
+    [A-Za-z]:/*|[A-Za-z]:\\*)
+      printf '%s\n' "$raw_path"
+      ;;
+    *)
+      printf '%s\n' "$PLATFORM_ROOT/$raw_path"
+      ;;
+  esac
+}
+
+convert_host_path() {
+  raw_path="$1"
+  [ -n "$raw_path" ] || return 0
+
+  if running_under_wsl && command -v wslpath >/dev/null 2>&1; then
+    case "$raw_path" in
+      /*)
+        if converted_path=$(wslpath -w "$raw_path" 2>/dev/null); then
+          printf '%s\n' "$converted_path"
+          return 0
+        fi
+        ;;
+    esac
+  fi
+
+  printf '%s\n' "$raw_path"
+}
+
+resolve_host_path() {
+  resolved_path="$(resolve_platform_path "$1")"
+  convert_host_path "$resolved_path"
+}
+
+convert_semicolon_path_list() {
+  raw_list="$1"
+  converted_list=""
+  old_ifs="$IFS"
+  IFS=';'
+  set -- $raw_list
+  IFS="$old_ifs"
+  for path_item in "$@"; do
+    trimmed_item="$(printf '%s' "$path_item" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+    [ -n "$trimmed_item" ] || continue
+    converted_item="$(resolve_host_path "$trimmed_item")"
+    converted_list="$(append_unique_path "$converted_list" "$converted_item")"
+  done
+  printf '%s\n' "$converted_list"
+}
+
 resolve_work_output_dir() {
   case "$DAPHNE_OUTPUT_DIR" in
     /*)
@@ -152,6 +220,26 @@ if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
   fi
 fi
 
+if [ -n "${DAPHNE_IP_TOP_HDL_FILE-}" ]; then
+  DAPHNE_IP_TOP_HDL_FILE="$(resolve_host_path "$DAPHNE_IP_TOP_HDL_FILE")"
+fi
+
+if [ -n "${DAPHNE_PUBLIC_TOP_HDL_FILE-}" ]; then
+  DAPHNE_PUBLIC_TOP_HDL_FILE="$(resolve_host_path "$DAPHNE_PUBLIC_TOP_HDL_FILE")"
+fi
+
+if [ -n "${DAPHNE_IP_REPO_ROOT-}" ]; then
+  DAPHNE_IP_REPO_ROOT="$(resolve_host_path "$DAPHNE_IP_REPO_ROOT")"
+fi
+
+if [ -n "${DAPHNE_USER_IP_REPO_PARENT-}" ]; then
+  DAPHNE_USER_IP_REPO_PARENT="$(resolve_host_path "$DAPHNE_USER_IP_REPO_PARENT")"
+fi
+
+if [ -n "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
+  DAPHNE_IP_EXTRA_SOURCE_ROOTS="$(convert_semicolon_path_list "$DAPHNE_IP_EXTRA_SOURCE_ROOTS")"
+fi
+
 export DAPHNE_BOARD="$BOARD"
 export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_FPGA_PART
@@ -208,6 +296,8 @@ append_env_tcl DAPHNE_IP_DISPLAY_NAME
 append_env_tcl DAPHNE_IP_XGUI_FILE
 append_env_tcl DAPHNE_IP_CELL_BIND_ROOT
 append_env_tcl DAPHNE_TIMING_ENDPOINT_PATH
+append_env_tcl DAPHNE_PUBLIC_TOP_HDL_FILE
+append_env_tcl DAPHNE_PUBLIC_TOP_MODULE
 append_env_tcl DAPHNE_IP_EXTRA_SOURCE_ROOTS
 append_env_tcl DAPHNE_IP_REPO_ROOT
 append_env_tcl DAPHNE_USER_IP_REPO_PARENT
