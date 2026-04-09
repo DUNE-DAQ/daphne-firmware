@@ -33,6 +33,7 @@ append_env_tcl DAPHNE_BOARD_PART
 append_env_tcl DAPHNE_CONSTRAINT_FILE
 append_env_tcl DAPHNE_CONSTRAINT_FILES
 append_env_tcl DAPHNE_TIMING_ENDPOINT_PATH
+append_env_tcl DAPHNE_TIMING_PLANE_PATH
 append_env_tcl DAPHNE_PUBLIC_TOP_HDL_FILE
 append_env_tcl DAPHNE_PUBLIC_TOP_MODULE
 append_env_tcl DAPHNE_IP_TOP_HDL_FILE

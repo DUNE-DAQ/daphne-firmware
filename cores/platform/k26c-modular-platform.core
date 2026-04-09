@@ -16,7 +16,7 @@ filesets:
       - petalinux/daphne-server-deps.lock.cmake
       - petalinux/toolchains/aarch64-petalinux.cmake
       - xilinx/daphne_selftrigger_pin_map.xdc
-      - xilinx/afe_capture_timing.xdc
+      - xilinx/afe_capture_timing.tcl
       - xilinx/daphne_bd_gen.tcl
       - xilinx/daphne_dtbo_gen.tcl
       - xilinx/daphne_ip_gen.tcl

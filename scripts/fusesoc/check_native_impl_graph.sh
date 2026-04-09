@@ -41,6 +41,7 @@ fi
 
 sh "$ROOT_DIR/scripts/fusesoc/check_board_shell_planes.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_analog_control_plane_contract.sh" >/dev/null
+sh "$ROOT_DIR/scripts/fusesoc/check_afe_timing_constraint_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_board_timing_path_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_frontend_plane_contract.sh" >/dev/null
 sh "$ROOT_DIR/scripts/fusesoc/check_selftrigger_plane_contract.sh" >/dev/null
@@ -96,6 +97,7 @@ done
 echo "INFO: Native impl graph is board-shell-owned, legacy-free, and carries the required AFE timing constraints."
 echo "INFO: Board shell remains limited to explicit board-plane dependencies."
 echo "INFO: Analog-control plane remains limited to imported AFE/DAC/control endpoints."
+echo "INFO: AFE timing Tcl remains aligned with the live endpoint clocking and Vivado 2024.1 unmanaged-constraint flow."
 echo "INFO: Board timing-path defaults still cover both native and packaged-IP hierarchy roots."
 echo "INFO: Frontend plane remains limited to a single frontend-island boundary."
 echo "INFO: Self-trigger plane remains limited to explicit datapath and transport subplanes."

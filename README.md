@@ -114,8 +114,9 @@ through an explicit `k26c-board-shell` feature core instead of the generated
 FuseSoC-owned. `k26c_board_shell` now owns the live board implementation
 directly, while `legacy_public_top_bridge` has been reduced to a compatibility
 alias for older source-manifest consumers.
-The K26C board manifest also requires `xilinx/afe_capture_timing.xdc`, so the
-split AFE receive-clock timing model cannot silently drop out of the build.
+The K26C board manifest also requires `xilinx/afe_capture_timing.tcl` and
+`xilinx/frontend_control_cdc.tcl`, so the split frontend timing/CDC model
+cannot silently drop out of the build.
 
 The IP packaging Tcl also now accepts top-identity overrides
 (`DAPHNE_IP_TOP_HDL_FILE`, `DAPHNE_IP_TOP_MODULE`,

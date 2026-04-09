@@ -1,7 +1,7 @@
-# Frontend control CDC constraints
+# Frontend control CDC constraints Tcl
 #
 # Keep AXI-originated frontend control/state crossings separate from the
-# source-synchronous AFE capture clock family in afe_capture_timing.xdc.
+# source-synchronous AFE capture clock family in afe_capture_timing.tcl.
 #
 # These nets are intentionally not timed as synchronous data paths:
 # - idelayctrl_reset crosses into clk500 via explicit two-stage sync in

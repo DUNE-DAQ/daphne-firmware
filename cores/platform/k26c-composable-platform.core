@@ -18,8 +18,8 @@ filesets:
       - petalinux/daphne-server-deps.lock.cmake
       - petalinux/toolchains/aarch64-petalinux.cmake
       - xilinx/daphne_selftrigger_pin_map.xdc
-      - xilinx/afe_capture_timing.xdc
-      - xilinx/frontend_control_cdc.xdc
+      - xilinx/afe_capture_timing.tcl
+      - xilinx/frontend_control_cdc.tcl
     file_type: user
   platform_impl:
     depend:
@@ -33,8 +33,8 @@ filesets:
       - petalinux/daphne-server-deps.lock.cmake
       - petalinux/toolchains/aarch64-petalinux.cmake
       - xilinx/daphne_selftrigger_pin_map.xdc
-      - xilinx/afe_capture_timing.xdc
-      - xilinx/frontend_control_cdc.xdc
+      - xilinx/afe_capture_timing.tcl
+      - xilinx/frontend_control_cdc.tcl
       - xilinx/daphne_bd_gen.tcl
       - xilinx/daphne_dtbo_gen.tcl
       - xilinx/daphne_ip_gen.tcl
@@ -100,8 +100,8 @@ filesets:
     files:
       - boards/k26c/board.yml
       - xilinx/daphne_selftrigger_pin_map.xdc
-      - xilinx/afe_capture_timing.xdc
-      - xilinx/frontend_control_cdc.xdc
+      - xilinx/afe_capture_timing.tcl
+      - xilinx/frontend_control_cdc.tcl
     file_type: user
   validate_rtl:
     depend:
