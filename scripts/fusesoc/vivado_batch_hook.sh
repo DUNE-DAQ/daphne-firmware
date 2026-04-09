@@ -29,6 +29,55 @@ fi
 
 : "${DAPHNE_OUTPUT_DIR:=./output-$DAPHNE_GIT_SHA}"
 
+resolve_work_output_dir() {
+  case "$DAPHNE_OUTPUT_DIR" in
+    /*)
+      printf '%s\n' "$DAPHNE_OUTPUT_DIR"
+      ;;
+    ./*)
+      printf '%s\n' "$PLATFORM_ROOT/xilinx/${DAPHNE_OUTPUT_DIR#./}"
+      ;;
+    *)
+      printf '%s\n' "$PLATFORM_ROOT/xilinx/$DAPHNE_OUTPUT_DIR"
+      ;;
+  esac
+}
+
+resolve_edalize_project_base() {
+  run_tcl_path=$(find "$WORK_ROOT" -maxdepth 1 -type f -name '*_run.tcl' | sort | head -n 1)
+  if [ -n "$run_tcl_path" ]; then
+    basename "$run_tcl_path" _run.tcl
+    return 0
+  fi
+
+  project_tcl_path=$(find "$WORK_ROOT" -maxdepth 1 -type f -name '*.tcl' \
+    ! -name '*_run.tcl' ! -name '*_synth.tcl' ! -name '*_pgm.tcl' | sort | head -n 1)
+  if [ -n "$project_tcl_path" ]; then
+    basename "$project_tcl_path" .tcl
+    return 0
+  fi
+
+  return 1
+}
+
+stage_edalize_compat_outputs() {
+  project_base="$(resolve_edalize_project_base)" || return 0
+  output_dir_path="$(resolve_work_output_dir)"
+  build_name_prefix="${DAPHNE_BUILD_NAME_PREFIX:-daphne_selftrigger}"
+  build_name="${build_name_prefix}_${DAPHNE_GIT_SHA}"
+  bit_path="$output_dir_path/${build_name}.bit"
+
+  if [ ! -f "$bit_path" ]; then
+    echo "ERROR: expected batch bitstream at $bit_path" >&2
+    exit 2
+  fi
+
+  # The deprecated Vivado backend still expects a project-local .xpr/.bit pair
+  # even though the real build was completed by the batch hook above.
+  : >"$WORK_ROOT/${project_base}.xpr"
+  cp -f "$bit_path" "$WORK_ROOT/${project_base}.bit"
+}
+
 append_unique_path() {
   current="$1"
   candidate="$2"
@@ -174,4 +223,5 @@ append_env_tcl XILINX_VITIS
 printf 'set script_dir [file dirname [file normalize [info script]]]\n' >>"$shim_tcl"
 printf 'source -notrace [file join $script_dir "vivado_impl_entry.tcl"]\n' >>"$shim_tcl"
 
-exec vivado -mode batch -source "$shim_tcl"
+vivado -mode batch -source "$shim_tcl"
+stage_edalize_compat_outputs

@@ -136,6 +136,11 @@ if daphne_platform_requires_packaged_ip_preflight "$ROOT_DIR" "$BOARD" "$PLATFOR
   export DAPHNE_PACKAGED_IP_PREFLIGHT_DONE=1
 fi
 
+if daphne_platform_exports_flow_bundle "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE" "$BUILD_TARGET"; then
+  echo "INFO: Running BD-backed Vivado batch implementation for the board-complete platform target."
+  exec "$ROOT_DIR/scripts/fusesoc/vivado_batch_hook.sh"
+fi
+
 if [ "$PLATFORM_CORE" = "$DEFAULT_PLATFORM_CORE" ] && \
    [ "$BUILD_TARGET" = "impl_board_shell_flow" ] && \
    [ "$AUDIT_NATIVE_IMPL_GRAPH" != "0" ]; then
