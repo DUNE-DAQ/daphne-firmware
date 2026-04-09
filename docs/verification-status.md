@@ -62,14 +62,22 @@ which are required because `fe_axi.vhd` instantiates `frontend_register_bank`.
 These changes keep the proof focused on `fe_axi` integration behavior instead
 of unconstrained startup artifacts.
 
+`thresholds_axi_lite` now follows the same pattern: a stable sampled scenario,
+an extra reset cycle before traffic starts, and clamped threshold indices so
+the proof does not fail on out-of-range startup values unrelated to the AXI
+behavior under test.
+
 ## Current local spot checks
 
 - `./scripts/formal/run_formal.sh fe_axi_axi_lite`
+- `./scripts/formal/run_formal.sh thresholds_axi_lite`
 - `./scripts/formal/run_formal.sh frontend_register_slice_contract`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-control:0.1.0`
+- `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:selftrigger:0.1.0`
 
 ## Next recommended step
 
-Extend the same "stable scenario plus sampled expected value" pattern to any
-other AXI-Lite harness that still compares readback against unconstrained
-cycle-to-cycle formal inputs.
+Apply the same wrapper pattern to any future AXI-Lite harness as it is added:
+sample the scenario once during reset, make the reset phase explicit, and
+compare readback against values captured on the accepted transaction rather
+than live symbolic inputs.
