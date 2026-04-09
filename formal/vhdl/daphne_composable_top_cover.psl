@@ -7,6 +7,8 @@ vunit daphne_composable_top_cover (daphne_composable_top_formal(formal))
     frontend_dout_o(0)(0)(15) = '1' and
     frontend_dout_o(0)(0)(8) = '1' and
     frontend_dout_o(0)(0)(1) = '1' and
-    frontend_dout_o(0)(0)(0) = '0'
+    frontend_dout_o(0)(0)(0) = '0' and
+    trigger_samples_probe(0)(13) = '1' and
+    trigger_samples_probe(0)(6) = '1'
   };
 }

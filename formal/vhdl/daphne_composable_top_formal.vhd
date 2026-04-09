@@ -90,6 +90,7 @@ architecture formal of daphne_composable_top_formal is
   signal shell_delayed_sample_o  : sample14_array_t(0 to 39);
   signal shell_ready_o           : std_logic_array_t(0 to 39);
   signal shell_dout_o            : slv72_array_t(0 to 39);
+  signal trigger_samples_probe   : sample14_array_t(0 to 39);
   signal frontend_trig_ref_i     : std_logic;
   signal frontend_dout_ref_i     : array_5x9x16_type;
 begin
@@ -102,6 +103,15 @@ begin
       frontend_dout_ref_i(afe)(lane)(0)            <= afe_n_i(afe)(lane);
     end generate gen_reference_lane;
   end generate gen_reference_afe;
+
+  probe_adapter : entity work.frontend_to_selftrigger_adapter
+    generic map (
+      AFE_COUNT_G => 5
+    )
+    port map (
+      afe_dout_i        => frontend_dout_o,
+      trigger_samples_o => trigger_samples_probe
+    );
 
   -- Keep the public-top proof tied to the standalone shell seam contract.
   reference_shell : entity work.daphne_composable_frontend_shell
@@ -361,6 +371,32 @@ begin
         severity failure;
     end generate gen_lane;
   end generate gen_afe;
+
+  gen_adapter_afe : for afe in 0 to 4 generate
+    gen_adapter_channel : for ch in 0 to 7 generate
+    begin
+      assert trigger_samples_probe((afe * 8) + ch) =
+             frontend_dout_o(afe)(ch)(15 downto 2)
+        report "public composable top must expose a frontend lane image that the adapter maps into the trigger path without reordering"
+        severity failure;
+    end generate gen_adapter_channel;
+  end generate gen_adapter_afe;
+
+  assert trigger_samples_probe(0) = frontend_dout_o(0)(0)(15 downto 2)
+    report "public composable top channel 0 must adapt from AFE0 channel 0"
+    severity failure;
+
+  assert trigger_samples_probe(16) = frontend_dout_o(2)(0)(15 downto 2)
+    report "public composable top must keep the flattened trigger-sample order contiguous across AFEs"
+    severity failure;
+
+  assert trigger_samples_probe(23) = frontend_dout_o(2)(7)(15 downto 2)
+    report "public composable top must stop at the eighth data channel for each AFE before flattening"
+    severity failure;
+
+  assert trigger_samples_probe(39) = frontend_dout_o(4)(7)(15 downto 2)
+    report "public composable top channel 39 must adapt from AFE4 channel 7"
+    severity failure;
 
   gen_channel : for idx in 0 to 39 generate
   begin
