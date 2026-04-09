@@ -1,0 +1,16 @@
+vunit frontend_boundary_cover (frontend_boundary_formal(formal))
+{
+  default clock is rising_edge(clk_axi);
+
+  cover {
+    resetn_axi = '1' and
+    prereq.config_ready = '1' and
+    prereq.timing_ready = '1' and
+    align_ctrl.idelayctrl_reset = '0' and
+    align_ctrl.iserdes_reset = '0' and
+    align_stat_o.idelayctrl_ready = '1' and
+    align_stat_o.format_ok = '1' and
+    align_stat_o.training_ok = '1' and
+    align_stat_o.alignment_valid = '1'
+  };
+}

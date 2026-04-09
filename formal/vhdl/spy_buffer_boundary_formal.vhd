@@ -45,4 +45,14 @@ begin
   assert (readiness.alignment_ready = '1') or (spy_enable = '0')
     report "spy_enable_o must stay low until alignment is ready"
     severity failure;
+
+  assert (
+    (reset = '1') or
+    (readiness.config_ready = '0') or
+    (readiness.timing_ready = '0') or
+    (readiness.alignment_ready = '0') or
+    (spy_enable = '1')
+  )
+    report "spy_enable_o must rise once every documented readiness qualifier is satisfied"
+    severity failure;
 end architecture formal;

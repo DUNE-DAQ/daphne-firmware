@@ -1,0 +1,12 @@
+vunit spy_buffer_boundary_cover (spy_buffer_boundary_formal(formal))
+{
+  default clock is rising_edge(clk);
+
+  cover {
+    reset = '0' and
+    readiness.config_ready = '1' and
+    readiness.timing_ready = '1' and
+    readiness.alignment_ready = '1' and
+    spy_enable = '1'
+  };
+}
