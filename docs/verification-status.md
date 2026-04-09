@@ -153,9 +153,15 @@ a pinned OSS CAD Suite toolchain, and executes:
 
 - `./scripts/formal/run_formal.sh --suite default`
 - `./scripts/formal/run_formal.sh --suite cover-fast`
+- `./scripts/formal/run_formal.sh --suite composable`
+
+The `cover-fast` leg also uploads the generated cover VCD traces from:
+
+- `formal/sby/fe_axi_axi_lite_cover/engine_0/trace*.vcd`
+- `formal/sby/thresholds_axi_lite_cover/engine_0/trace*.vcd`
 
 ## Next recommended step
 
-Extend CI from the fast baseline to a second lane for `composable` or
-`all-local`, and upload the cover VCD traces as artifacts on failure so the
-counterexample/reachability data is preserved directly from CI.
+Add a heavier scheduled lane for `all-local` or at least for the non-fast leaf
+contracts, so the current CI protects not only the default baseline and the
+composable top contracts but the wider 22-job inventory as well.
