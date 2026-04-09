@@ -8,6 +8,61 @@ proc daphne_run_nonfatal {label command} {
     }
 }
 
+proc daphne_write_matching_objects {output_file object_kind patterns} {
+    set fh [open $output_file "w"]
+    foreach pattern $patterns {
+        puts $fh "=== $pattern ==="
+        if {$object_kind eq "pin"} {
+            set objects [lsort -unique [get_pins -hier -quiet $pattern]]
+        } elseif {$object_kind eq "net"} {
+            set objects [lsort -unique [get_nets -hier -quiet $pattern]]
+        } elseif {$object_kind eq "clock"} {
+            set objects [lsort -unique [get_clocks -quiet $pattern]]
+        } else {
+            close $fh
+            error "ERROR: unsupported object kind '$object_kind' for debug dump"
+        }
+
+        if {[llength $objects] == 0} {
+            puts $fh "<none>"
+        } else {
+            foreach object_name $objects {
+                puts $fh $object_name
+            }
+        }
+        puts $fh ""
+    }
+    close $fh
+}
+
+proc daphne_dump_post_synth_debug {cfg_name} {
+    upvar 1 $cfg_name cfg
+
+    set debug_dir [file join $cfg(output_dir) "debug"]
+    file mkdir $debug_dir
+
+    daphne_run_nonfatal "post-synth report_clocks debug dump" \
+        [list report_clocks -file [file join $debug_dir "post_synth_clocks_pre_constraints.rpt"]]
+
+    daphne_run_nonfatal "endpoint pin inventory debug dump" \
+        [list daphne_write_matching_objects [file join $debug_dir "endpoint_pins_pre_constraints.txt"] pin [list \
+            "*timing_bridge_inst/endpoint_inst/*mmcm0_inst/CLKOUT0" \
+            "*timing_bridge_inst/endpoint_inst/*mmcm1_inst/CLKOUT0" \
+            "*timing_bridge_inst/endpoint_inst/*mmcm1_clk2_inst/O" \
+            "*timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/mmcm/CLKOUT0" \
+            "*timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/mmcm/CLKOUT1" \
+            "*timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/mmcm/CLKFBOUT" \
+        ]]
+
+    daphne_run_nonfatal "endpoint net inventory debug dump" \
+        [list daphne_write_matching_objects [file join $debug_dir "endpoint_nets_pre_constraints.txt"] net [list \
+            "*timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/bclk*" \
+            "*timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/clku*" \
+            "*timing_bridge_inst/endpoint_inst/*clk125*" \
+            "*timing_bridge_inst/endpoint_inst/*clk500*" \
+        ]]
+}
+
 proc daphne_resolve_repo_relative_paths {repo_root raw_paths} {
     set resolved_paths {}
     foreach path_value [split $raw_paths ";"] {
@@ -42,6 +97,7 @@ proc daphne_resolve_config {script_dir} {
     set cfg(skip_post_synth_reports) [daphne_get_env_or_default DAPHNE_SKIP_POST_SYNTH_REPORTS "0"]
     set cfg(skip_post_synth_checkpoint) [daphne_get_env_or_default DAPHNE_SKIP_POST_SYNTH_CHECKPOINT "0"]
     set cfg(stop_after_synth) [daphne_get_env_or_default DAPHNE_STOP_AFTER_SYNTH "0"]
+    set cfg(dump_post_synth_debug) [daphne_get_env_or_default DAPHNE_DUMP_POST_SYNTH_DEBUG $cfg(stop_after_synth)]
     set cfg(output_dir) [daphne_get_env_or_default DAPHNE_OUTPUT_DIR "./output"]
 
     if {[file pathtype $cfg(output_dir)] ne "absolute"} {
@@ -122,6 +178,7 @@ proc daphne_prepare_project {cfg_name} {
     puts "INFO: Threads=$cfg(max_threads) synth=$cfg(synth_directive) opt=$cfg(opt_directive) place=$cfg(place_directive) route=$cfg(route_directive)."
     puts "INFO: Post-synth reports skipped=$cfg(skip_post_synth_reports) checkpoint skipped=$cfg(skip_post_synth_checkpoint)."
     puts "INFO: Stop after synth=$cfg(stop_after_synth)."
+    puts "INFO: Dump post-synth debug=$cfg(dump_post_synth_debug)."
     puts "INFO: passing git commit number $cfg(v_git_sha) to top level generic"
 }
 
@@ -161,6 +218,10 @@ proc daphne_run_synth {cfg_name} {
     upvar 1 $cfg_name cfg
 
     synth_design -top $cfg(bd_wrapper_name) -directive $cfg(synth_directive)
+    if {[string tolower $cfg(dump_post_synth_debug)] in {"1" "true" "yes" "on"}} {
+        puts "INFO: Dumping post-synth clock/object debug reports before Tcl-backed timing constraints."
+        daphne_dump_post_synth_debug cfg
+    }
     foreach constraint_file $cfg(post_synth_constraint_files) {
         puts "INFO: Sourcing post-synth Tcl-backed constraint script $constraint_file"
         source -notrace $constraint_file
