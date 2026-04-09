@@ -1,0 +1,8 @@
+vunit thresholds_axi_cover (thresholds_axi_formal(formal))
+{
+  default clock is rising_edge(clk);
+
+  cover {step = 5 and dout(threshold_index(write_index_s)) = write_data_s};
+  cover {step = 11 and axi_out.RVALID = '1' and axi_out.RDATA = pack_threshold_data(write_data_s)};
+  cover {step = 14 and axi_out.RVALID = '1' and axi_out.RDATA = pack_threshold_data(expected_threshold(threshold_index(probe_index_s), threshold_index(write_index_s), write_data_s))};
+}

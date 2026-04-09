@@ -1,0 +1,21 @@
+[options]
+mode cover
+depth 45
+
+[engines]
+smtbmc z3
+
+[script]
+# Cover the scripted AXI-Lite transaction sequence so the control readback,
+# IDELAY load pulse, and trigger pulse are shown reachable in one bounded run.
+plugin -i ghdl
+ghdl --std=08 daphne_package.vhd frontend_register_slice.vhd frontend_register_bank.vhd fe_axi.vhd fe_axi_axi_formal.vhd fe_axi_axi_cover.psl -e fe_axi_axi_formal
+prep -top fe_axi_axi_formal
+
+[files]
+../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../rtl/isolated/subsystems/frontend/frontend_register_slice.vhd
+../../rtl/isolated/subsystems/frontend/frontend_register_bank.vhd
+../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
+../vhdl/fe_axi_axi_formal.vhd
+../vhdl/fe_axi_axi_cover.psl
