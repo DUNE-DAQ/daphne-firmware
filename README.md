@@ -54,6 +54,10 @@ snapshot.
 ### Logic smoke test with FuseSoC
 
 Requires `fusesoc`, `edalize`, and `ghdl`.
+The smoke runner uses isolated per-core build roots under
+`build/fusesoc-logic/` by default so one target cannot reuse stale prepared
+sources from another target. Override the root with
+`DAPHNE_FUSESOC_BUILD_ROOT=/path/to/build-root` if needed.
 
 ```bash
 ./scripts/fusesoc/fusesoc.sh list-cores
@@ -64,13 +68,27 @@ To run a single smoke test instead of the default suite:
 
 ```bash
 ./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-test:0.1.0
+./scripts/fusesoc/run_logic_test.sh --list-suites
+./scripts/fusesoc/run_logic_test.sh --suite composable
+./scripts/fusesoc/run_logic_test.sh --suite all-local
 ```
 
 Run the checked-in formal scaffolds:
 
 ```bash
 ./scripts/formal/run_formal.sh
+./scripts/formal/run_formal.sh fe_axi_axi_lite
 ```
+
+List the checked-in formal jobs without running them:
+
+```bash
+./scripts/formal/run_formal.sh --list
+```
+
+The formal runner auto-sources `$HOME/tools/oss-cad-suite/environment` when it
+exists so the bundled `sby` / `yosys` toolchain can find the GHDL standard
+libraries.
 
 Refresh the generated legacy source manifest after editing the imported
 RTL/Tcl flow:

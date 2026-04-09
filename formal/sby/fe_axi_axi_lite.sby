@@ -10,10 +10,12 @@ smtbmc z3
 # rejection, IDELAY load pulse stretching, and trigger self-clear behavior for
 # the frontend AXI-Lite register block.
 plugin -i ghdl
-ghdl --std=08 daphne_package.vhd fe_axi.vhd fe_axi_axi_formal.vhd -e fe_axi_axi_formal
+ghdl --std=08 daphne_package.vhd frontend_register_slice.vhd frontend_register_bank.vhd fe_axi.vhd fe_axi_axi_formal.vhd -e fe_axi_axi_formal
 prep -top fe_axi_axi_formal
 
 [files]
 ../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../rtl/isolated/subsystems/frontend/frontend_register_slice.vhd
+../../rtl/isolated/subsystems/frontend/frontend_register_bank.vhd
 ../../ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd
 ../vhdl/fe_axi_axi_formal.vhd
