@@ -16,6 +16,31 @@ discover_jobs() {
   find "$FORMAL_DIR" -maxdepth 1 -type f -name '*.sby' | LC_ALL=C sort
 }
 
+resolve_job() {
+  local job="$1"
+
+  case "$job" in
+    /*)
+      printf '%s\n' "$job"
+      ;;
+    *.sby)
+      if [[ -f "$job" ]]; then
+        printf '%s\n' "$job"
+      else
+        printf '%s\n' "$FORMAL_DIR/${job##*/}"
+      fi
+      ;;
+    *)
+      printf '%s\n' "$FORMAL_DIR/$job.sby"
+      ;;
+  esac
+}
+
+if [[ "${1:-}" == "--list" ]]; then
+  discover_jobs
+  exit 0
+fi
+
 if ! command -v sby >/dev/null 2>&1 || [[ -z "${GHDL_PREFIX:-}" ]]; then
   activate_oss_cad_suite
 fi
@@ -26,15 +51,18 @@ if ! command -v sby >/dev/null 2>&1; then
   exit 2
 fi
 
-if [[ "${1:-}" == "--list" ]]; then
-  discover_jobs
-  exit 0
-fi
-
 if [[ "$#" -eq 0 ]]; then
   mapfile -t jobs < <(discover_jobs)
 else
-  jobs=("$@")
+  jobs=()
+  for job in "$@"; do
+    job_path=$(resolve_job "$job")
+    if [[ ! -f "$job_path" ]]; then
+      echo "ERROR: formal job not found: $job" >&2
+      exit 2
+    fi
+    jobs+=("$job_path")
+  done
 fi
 
 for job in "${jobs[@]}"; do

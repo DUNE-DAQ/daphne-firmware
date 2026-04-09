@@ -55,7 +55,9 @@ What these proofs are and are not:
 - `./scripts/formal/run_formal.sh` auto-discovers every checked-in `.sby` job
   under `formal/sby/`, supports `--list`, and auto-sources
   `$HOME/tools/oss-cad-suite/environment` when present so the local OSS CAD
-  Suite can provide `sby`, `yosys`, and the GHDL standard libraries.
+  Suite can provide `sby`, `yosys`, and the GHDL standard libraries. Pass a
+  full path, a local `.sby` filename, or a basename like `fe_axi_axi_lite` to
+  run one proof entry point directly.
 
 Properties currently checked:
 

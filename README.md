@@ -77,6 +77,7 @@ Run the checked-in formal scaffolds:
 
 ```bash
 ./scripts/formal/run_formal.sh
+./scripts/formal/run_formal.sh fe_axi_axi_lite
 ```
 
 List the checked-in formal jobs without running them:
