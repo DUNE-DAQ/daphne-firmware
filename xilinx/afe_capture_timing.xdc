@@ -105,6 +105,19 @@ proc daphne_require_env_value {name purpose} {
     return $value
 }
 
+set sysclk_port [get_ports -quiet sysclk_p]
+if {[llength $sysclk_port] != 1} {
+    error "ERROR: expected exactly one sysclk_p port, found [llength $sysclk_port]"
+}
+
+set rx_tmg_port [get_ports -quiet rx0_tmg_p]
+if {[llength $rx_tmg_port] != 1} {
+    error "ERROR: expected exactly one rx0_tmg_p port, found [llength $rx_tmg_port]"
+}
+if {[llength [get_clocks -quiet rx_tmg_clk]] == 0} {
+    create_clock -name rx_tmg_clk -period 16.000 $rx_tmg_port
+}
+
 set frontend_word_clk_ep_pin [daphne_require_single_object pin $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT0" "frontend endpoint word-clock source"]
 set frontend_word_clk_local_pin [daphne_require_single_object pin $endpoint_path "mmcm0_inst/CLKOUT0" "frontend local word-clock source"]
 set frontend_bit_clk_pin [daphne_require_single_object pin $endpoint_path "mmcm1_inst/CLKOUT0" "frontend bit-clock source"]
@@ -112,8 +125,8 @@ set frontend_byte_clk_pin [daphne_require_single_object pin $endpoint_path "mmcm
 set endpoint_bclk_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk" "timing endpoint recovered bit clock"]
 set endpoint_clku_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku" "timing endpoint recovered user clock"]
 
-create_generated_clock -name frontend_word_clk_ep     $frontend_word_clk_ep_pin
-create_generated_clock -name frontend_word_clk_local  $frontend_word_clk_local_pin
+create_generated_clock -name frontend_word_clk_ep     -source $rx_tmg_port -master_clock rx_tmg_clk -divide_by 1 $frontend_word_clk_ep_pin
+create_generated_clock -name frontend_word_clk_local  -source $sysclk_port -master_clock sysclk -multiply_by 5 -divide_by 8 $frontend_word_clk_local_pin
 create_generated_clock -name frontend_bit_clk_ep         -source $frontend_word_clk_ep_pin        -multiply_by 8 $frontend_bit_clk_pin
 create_generated_clock -add -name frontend_bit_clk_local -source $frontend_word_clk_local_pin     -multiply_by 8 $frontend_bit_clk_pin
 create_generated_clock -name frontend_byte_clk_ep        -source $frontend_bit_clk_pin            -master_clock frontend_bit_clk_ep      -divide_by 4 $frontend_byte_clk_pin
