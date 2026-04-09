@@ -95,6 +95,7 @@ set frontend_word_clk_local_net [daphne_require_single_object net $endpoint_path
 set frontend_bit_clk_pin [daphne_require_single_object pin $timing_plane_path "clk500_o" "frontend bit-clock board seam"]
 set frontend_byte_clk_pin [daphne_require_single_object pin $timing_plane_path "clk125_o" "frontend byte-clock board seam"]
 set endpoint_bclk_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk" "timing endpoint recovered bit clock"]
+set endpoint_clku_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku" "timing endpoint recovered user clock"]
 
 create_generated_clock -name frontend_word_clk_ep     $frontend_word_clk_ep_net
 create_generated_clock -name frontend_word_clk_local  $frontend_word_clk_local_net
@@ -108,6 +109,7 @@ set_clock_groups -physically_exclusive \
   -group {frontend_word_clk_local frontend_bit_clk_local frontend_byte_clk_local}
 
 set_property CLOCK_DEDICATED_ROUTE BACKBONE $endpoint_bclk_net
+set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN $endpoint_clku_net
 
 set frontend_clock_family {
     frontend_word_clk_ep
