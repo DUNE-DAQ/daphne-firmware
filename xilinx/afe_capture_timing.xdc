@@ -107,17 +107,17 @@ proc daphne_require_env_value {name purpose} {
 
 set frontend_word_clk_ep_pin [daphne_require_single_object pin $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT0" "frontend endpoint word-clock source"]
 set frontend_word_clk_local_pin [daphne_require_single_object pin $endpoint_path "mmcm0_inst/CLKOUT0" "frontend local word-clock source"]
-set frontend_bit_clk_net [daphne_require_single_object net $endpoint_path "clk500" "frontend bit-clock source"]
-set frontend_byte_clk_net [daphne_require_single_object net $endpoint_path "clk125" "frontend byte-clock source"]
+set frontend_bit_clk_pin [daphne_require_single_object pin $endpoint_path "mmcm1_inst/CLKOUT0" "frontend bit-clock source"]
+set frontend_byte_clk_pin [daphne_require_single_object pin $endpoint_path "mmcm1_inst/CLKOUT2" "frontend byte-clock source"]
 set endpoint_bclk_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk" "timing endpoint recovered bit clock"]
 set endpoint_clku_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku" "timing endpoint recovered user clock"]
 
 create_generated_clock -name frontend_word_clk_ep     $frontend_word_clk_ep_pin
 create_generated_clock -name frontend_word_clk_local  $frontend_word_clk_local_pin
-create_generated_clock -name frontend_bit_clk_ep           -master_clock frontend_word_clk_ep       $frontend_bit_clk_net
-create_generated_clock -name frontend_byte_clk_ep          -master_clock frontend_word_clk_ep       $frontend_byte_clk_net
-create_generated_clock -add -name frontend_bit_clk_local   -master_clock frontend_word_clk_local    $frontend_bit_clk_net
-create_generated_clock -add -name frontend_byte_clk_local  -master_clock frontend_word_clk_local    $frontend_byte_clk_net
+create_generated_clock -name frontend_bit_clk_ep           -master_clock frontend_word_clk_ep       $frontend_bit_clk_pin
+create_generated_clock -name frontend_byte_clk_ep          -master_clock frontend_word_clk_ep       $frontend_byte_clk_pin
+create_generated_clock -add -name frontend_bit_clk_local   -master_clock frontend_word_clk_local    $frontend_bit_clk_pin
+create_generated_clock -add -name frontend_byte_clk_local  -master_clock frontend_word_clk_local    $frontend_byte_clk_pin
 
 set_clock_groups -physically_exclusive \
   -group {frontend_word_clk_ep frontend_bit_clk_ep frontend_byte_clk_ep} \

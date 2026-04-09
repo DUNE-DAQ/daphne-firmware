@@ -41,6 +41,7 @@ proc daphne_resolve_config {script_dir} {
     set cfg(post_route_physopt_directive) [daphne_get_env_or_default DAPHNE_POST_ROUTE_PHYSOPT_DIRECTIVE "AggressiveExplore"]
     set cfg(skip_post_synth_reports) [daphne_get_env_or_default DAPHNE_SKIP_POST_SYNTH_REPORTS "0"]
     set cfg(skip_post_synth_checkpoint) [daphne_get_env_or_default DAPHNE_SKIP_POST_SYNTH_CHECKPOINT "0"]
+    set cfg(stop_after_synth) [daphne_get_env_or_default DAPHNE_STOP_AFTER_SYNTH "0"]
     set cfg(output_dir) [daphne_get_env_or_default DAPHNE_OUTPUT_DIR "./output"]
 
     if {[file pathtype $cfg(output_dir)] ne "absolute"} {
@@ -120,6 +121,7 @@ proc daphne_prepare_project {cfg_name} {
     puts "INFO: Running Vivado batch for part <$cfg(fpga_part)> board_part <$cfg(board_part)> pfm <$cfg(pfm_name)>."
     puts "INFO: Threads=$cfg(max_threads) synth=$cfg(synth_directive) opt=$cfg(opt_directive) place=$cfg(place_directive) route=$cfg(route_directive)."
     puts "INFO: Post-synth reports skipped=$cfg(skip_post_synth_reports) checkpoint skipped=$cfg(skip_post_synth_checkpoint)."
+    puts "INFO: Stop after synth=$cfg(stop_after_synth)."
     puts "INFO: passing git commit number $cfg(v_git_sha) to top level generic"
 }
 
@@ -301,6 +303,10 @@ proc daphne_run_full_build {script_dir} {
     daphne_prepare_project cfg
     daphne_create_block_design cfg
     daphne_run_synth cfg
+    if {[string tolower $cfg(stop_after_synth)] in {"1" "true" "yes" "on"}} {
+        puts "INFO: Stopping after synthesis and post-synth constraint application by request."
+        exit
+    }
     daphne_run_impl cfg
     daphne_write_bitstream_and_xsa cfg
     daphne_run_post_build cfg
