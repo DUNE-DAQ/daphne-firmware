@@ -69,8 +69,17 @@ which are required because `fe_axi.vhd` instantiates `frontend_register_bank`.
 - snapshot the live `idelayctrl_ready` status bit on read acceptance before
   checking the returned `RDATA`
 
-These changes keep the proof focused on `fe_axi` integration behavior instead
-of unconstrained startup artifacts.
+The proof still checks the documented reset image for:
+
+- AXI handshake and response signals
+- the three control outputs
+- `trig`
+- `idelay_load`
+- every `idelay_tap` register
+- every `iserdes_bitslip` register
+
+So the harness stabilization did not reduce the reset contract; it only made
+the scripted transaction phase deterministic.
 
 `thresholds_axi_lite` now follows the same pattern: a stable sampled scenario,
 an extra reset cycle before traffic starts, and clamped threshold indices so
