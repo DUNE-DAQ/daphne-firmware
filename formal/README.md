@@ -71,8 +71,19 @@ Current suite layout:
 - `leaf-fast` for the current leaf/boundary proof set, including the AXI-Lite
   wrappers, delay primitives, readiness gates, and isolated adapter
   contracts.
+- `cover-fast` for the bounded reachability checks on the AXI-Lite wrappers.
 - `composable` for the three composable top-level contracts.
 - `all-local` for every checked-in `.sby` job under `formal/sby/`.
+
+Two dedicated cover entry points now complement the AXI-Lite proofs:
+
+- `formal/sby/fe_axi_axi_lite_cover.sby` binds
+  `formal/vhdl/fe_axi_axi_cover.psl` to the harness and emits bounded cover
+  traces for control readback, IDELAY load pulse assertion, and trigger pulse
+  reachability.
+- `formal/sby/thresholds_axi_lite_cover.sby` binds
+  `formal/vhdl/thresholds_axi_cover.psl` to the harness and emits bounded cover
+  traces for threshold write propagation plus both readback paths.
 
 Properties currently checked:
 
