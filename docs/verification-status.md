@@ -160,8 +160,18 @@ The `cover-fast` leg also uploads the generated cover VCD traces from:
 - `formal/sby/fe_axi_axi_lite_cover/engine_0/trace*.vcd`
 - `formal/sby/thresholds_axi_lite_cover/engine_0/trace*.vcd`
 
+The same workflow now also defines an `all-local` job gated to `schedule` and
+`workflow_dispatch`. That heavier lane runs:
+
+- `./scripts/formal/run_formal.sh --suite all-local`
+
+and uploads failure artifacts from `formal/sby/**`, including:
+
+- `logfile.txt`
+- `engine_0/trace*.vcd`
+- `model/design*.log`
+
 ## Next recommended step
 
-Add a heavier scheduled lane for `all-local` or at least for the non-fast leaf
-contracts, so the current CI protects not only the default baseline and the
-composable top contracts but the wider 22-job inventory as well.
+Add the first composable cover job so the top-level CI lane checks at least one
+reachable end-to-end scenario in addition to safety properties.
