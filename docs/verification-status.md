@@ -1,7 +1,7 @@
 # Verification Status
 
-This document records the local verification work landed on branch
-`marroyav/formal-infra`.
+This document records the local verification work for the formal/smoke
+infrastructure update in this change set.
 
 ## Build impact
 
@@ -54,11 +54,11 @@ which are required because `fe_axi.vhd` instantiates `frontend_register_bank`.
 ## Current known failure
 
 `fe_axi_axi_lite` now runs to a real counterexample instead of failing in
-setup. The current failing assertions are in
-`formal/vhdl/fe_axi_axi_formal.vhd`:
+setup. The current failing assertions are the reset-low checks in
+`formal/vhdl/fe_axi_axi_formal.vhd` for:
 
-- line 258: `trigger output must reset low`
-- line 265: `all IDELAY tap registers must reset low`
+- `trigger output must reset low`
+- `all IDELAY tap registers must reset low`
 
 The counterexample is generated at:
 
