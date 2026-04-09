@@ -54,6 +54,10 @@ snapshot.
 ### Logic smoke test with FuseSoC
 
 Requires `fusesoc`, `edalize`, and `ghdl`.
+The smoke runner uses isolated per-core build roots under
+`build/fusesoc-logic/` by default so one target cannot reuse stale prepared
+sources from another target. Override the root with
+`DAPHNE_FUSESOC_BUILD_ROOT=/path/to/build-root` if needed.
 
 ```bash
 ./scripts/fusesoc/fusesoc.sh list-cores
