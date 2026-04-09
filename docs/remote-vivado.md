@@ -42,8 +42,8 @@ export DAPHNE_BOARD=k26c
 This runs:
 
 1. `./scripts/fusesoc/preflight_vivado_build.sh`
-   - automatically skipped for the default native `impl` path and the native
-     Flow-API synth targets
+   - automatically skipped only when the selected platform/target does not
+     require packaged-IP preflight
 2. `./scripts/fusesoc/run_vivado_batch.sh`
 
 and stores logs under `build/remote-vivado/<timestamp>/`.
@@ -55,8 +55,9 @@ core and its default target. If you need to force it explicitly, set:
 export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
-before calling `run_remote_vivado_chain.sh`. That drives the native board-shell
-default target. After the build, the repo exports a compatibility
+before calling `run_remote_vivado_chain.sh`. That drives the supported default
+BD/PS-backed `impl` lane unless `DAPHNE_PLATFORM_TARGET` overrides it. After
+the build, the repo exports a compatibility
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/`, so downstream DTBO packaging can keep using the same
 artifact contract.
@@ -68,9 +69,8 @@ run:
 ./scripts/fusesoc/check_native_impl_graph.sh
 ```
 
-That audit also confirms that the staged `impl` target still resolves
-`k26c_board_shell` and that the board shell remains constrained to the
-explicit board-plane contract.
+That audit checks the explicit native board-shell experiment lane
+(`impl_board_shell_flow`), not the supported default BD-backed `impl` lane.
 
 If you want the remote wrapper to attempt DTBO packaging too, also set:
 
@@ -88,7 +88,7 @@ export DAPHNE_REMOTE_PACKAGE_DTBO=1
 
 ## Expected outputs
 
-The native board-shell path should populate `xilinx/output-<gitsha>/` with
+The supported default `impl` lane should populate `xilinx/output-<gitsha>/` with
 artifacts such as:
 
 - `.bit`

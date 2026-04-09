@@ -137,22 +137,23 @@ compatibility layers still exist.
 
 ### Earlier milestone: native impl target
 
-The repo already has a real `impl` target on
-`k26c-composable-platform`, which builds `k26c_board_shell`
-directly through the Vivado Flow API and exports the same
-`daphne_selftrigger_<gitsha>` artifact contract. This is the current
-default composable build entrypoint.
+The repo now has a supported default `impl` target on
+`k26c-composable-platform`, but that path is BD/PS-backed and builds
+`daphne_selftrigger_bd_wrapper` as the board-complete top. The explicit native
+board-shell Flow-API lane still exists separately as
+`impl_board_shell_flow`, and both lanes export the same
+`daphne_selftrigger_<gitsha>` artifact contract.
 
 ### Earlier milestone: explicit board-shell ownership
 
-The native board-shell synth/impl path now resolves through an
+The explicit native board-shell synth/impl path now resolves through an
 explicit `k26c-board-shell` feature core and the extracted bridge graph
 rather than the generated `daphne-ip` source manifest. The generated
 packaged-IP manifest still exists for the legacy export/build lane, but
-the default native `impl` target is now meaningfully closer to a full
-FuseSoC-owned source graph. `k26c_board_shell` now owns the live
-implementation directly, with `legacy_public_top_bridge` retained only as
-a compatibility alias for older manifest consumers.
+the explicit board-shell experiment lane is now meaningfully closer to a full
+FuseSoC-owned source graph. `k26c_board_shell` owns that experimental
+implementation directly, with `legacy_public_top_bridge` retained only as a
+compatibility alias for older manifest consumers.
 
 ### Earlier milestone: public-top and board-shell synth checkpoints
    - The shared Vivado flow now accepts `DAPHNE_BD_NAME` /
@@ -173,10 +174,9 @@ a compatibility alias for older manifest consumers.
      `DAPHNE_IP_XGUI_FILE`) plus semicolon-separated
      `DAPHNE_IP_EXTRA_SOURCE_ROOTS` so the next migration step can swap package
      identity without rewriting the script and can pull auxiliary HDL from
-     composable trees outside `ip_repo/daphne_ip/rtl`. The active board `impl`
-     path is now the native board-shell flow; these overrides remain
-     compatibility scaffolding for packaged-IP/export lanes, not the primary
-     implementation path.
+     composable trees outside `ip_repo/daphne_ip/rtl`. These overrides remain
+     compatibility scaffolding for packaged-IP/export lanes, not the supported
+     default board implementation path.
    - The repo now also has `synth_public_top_ooc` on
      `k26c-composable-platform`, which stages the real `daphne_composable_top`
      source graph through FuseSoC and runs Vivado out-of-context synthesis.
@@ -211,6 +211,10 @@ matches the current timing-friendly ownership in `stc3`.
   out-of-tree files.
 - Add machine-readable register-map and overlay validation so generated DT/AXI
   contracts are checked before hardware deployment.
+- Either fix or explicitly demote `k26c-modular-platform`.
+  Today `./scripts/fusesoc/fusesoc.sh run --setup --target impl dune-daq:daphne:k26c-modular-platform:0.1.0`
+  still fails from a clean tree because it expects generated Hermes packaged-IP
+  `.xci` collateral to exist already.
 
 ## Verification priorities
 

@@ -33,11 +33,14 @@ handoff step before DTBO packaging:
 ./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
-For the native board-shell `impl` path, the post-build export hook already
-emits the legacy-style `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` contract
-into `xilinx/output-$DAPHNE_GIT_SHA/`, so only the DTBO bundler is required.
-If you need to re-export a Flow API implementation handoff from the work
-directory, use:
+For the supported default `impl` lane on
+`dune-daq:daphne:k26c-composable-platform:0.1.0`, and for the explicit
+`impl_board_shell_flow` experiment on the same platform core, the post-build
+export hook already emits the legacy-style
+`daphne_selftrigger_<gitsha>.bit/.bin/.xsa` contract into
+`xilinx/output-$DAPHNE_GIT_SHA/`, so only the DTBO bundler is required. If you
+need to re-export a Flow API implementation handoff from the work directory,
+use:
 
 ```bash
 ./scripts/package/export_impl_bundle.sh
@@ -61,7 +64,7 @@ run:
 ```
 
 If `DAPHNE_GIT_SHA` is set, that now defaults to
-`./xilinx/output-$DAPHNE_GIT_SHA/` so the native Flow-API export path can be
+`./xilinx/output-$DAPHNE_GIT_SHA/` so the supported Flow-API export path can be
 packaged without an extra argument.
 
 or explicitly:
