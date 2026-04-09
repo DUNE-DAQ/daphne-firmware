@@ -133,7 +133,8 @@ This currently produces traces for:
   preserved frontend lane bits, and matching adapted trigger-sample images at
   the frontend-shell seam
 - `daphne_composable_top_cover`: a live public trigger plus a concrete
-  frontend lane image propagated through the validate-stub public top path
+  frontend lane image plus matching adapted trigger-sample bits propagated
+  through the validate-stub public top path
 
 The public composable top contract is now also tied directly to the standalone
 frontend-shell contract. The top harness instantiates a reference
@@ -147,6 +148,14 @@ state of the two instances to start identically once reset is already
 deasserted. That still prevents the top-level and shell-level contracts from
 drifting independently on the public seam that the validate path is meant to
 protect.
+
+The same top harness now also instantiates a probe
+`frontend_to_selftrigger_adapter` on the public `frontend_dout_o` image and
+checks the 40-channel flattening/truncation contract directly at the public top
+seam. That means the validate-stub top proof now covers both halves of the
+composable story: the lane image exposed to software stays tied to the
+standalone frontend shell, and that same lane image still maps into the
+trigger-sample view exactly as the isolated adapter contract expects.
 
 Full local formal sweep now passes:
 
@@ -187,6 +196,7 @@ Current passing local inventory:
 ## Current local verification runs
 
 - `./scripts/formal/run_formal.sh daphne_composable_top_contract`
+- `./scripts/formal/run_formal.sh daphne_composable_top_cover`
 - `./scripts/formal/run_formal.sh --suite default`
 - `./scripts/formal/run_formal.sh --suite leaf-fast`
 - `./scripts/formal/run_formal.sh --suite cover-fast`
@@ -232,6 +242,7 @@ and uploads failure artifacts from `formal/sby/**`, including:
 
 ## Next recommended step
 
-Extend the same cross-harness invariant pattern to the adapter-focused
-contracts, or add one deeper composable invariant that ties the validated
-frontend lane image to the adapted trigger-sample image seen by the core.
+Constrain the private analog-control state so the public composable top can be
+proven equal to the standalone frontend shell on the AFE control outputs as
+well, or add one enabled-boundary composable contract for a live timing or
+Hermes path.
