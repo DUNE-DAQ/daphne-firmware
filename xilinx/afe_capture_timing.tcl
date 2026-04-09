@@ -115,6 +115,7 @@ if {[llength [get_clocks -quiet rx_tmg_clk]] == 0} {
 
 set frontend_word_clk_ep_pin [daphne_require_single_object pin $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT0" "frontend endpoint word-clock source"]
 set frontend_word_clk_local_pin [daphne_require_single_object pin $endpoint_path "mmcm0_inst/CLKOUT0" "frontend local word-clock source"]
+set frontend_clock_pin [daphne_require_single_object pin $endpoint_path "mmcm1_clk1_inst/O" "frontend live master-clock source"]
 set frontend_bit_clk_pin [daphne_require_single_object pin $endpoint_path "mmcm1_inst/CLKOUT0" "frontend bit-clock source"]
 set frontend_byte_clk_pin [daphne_require_single_object pin $endpoint_path "mmcm1_clk2_inst/O" "frontend byte-clock source"]
 set endpoint_bclk_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk" "timing endpoint recovered bit clock"]
@@ -122,23 +123,27 @@ set endpoint_clku_net [daphne_require_single_object net $endpoint_path "pdts_end
 
 create_generated_clock -name frontend_word_clk_ep     -source $rx_tmg_port -divide_by 1 $frontend_word_clk_ep_pin
 create_generated_clock -name frontend_word_clk_local  -source $sysclk_port -multiply_by 5 -divide_by 8 $frontend_word_clk_local_pin
+create_generated_clock -name frontend_clock_ep        -source $frontend_word_clk_ep_pin        -divide_by 1 $frontend_clock_pin
+create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_clock_local -source $frontend_word_clk_local_pin -divide_by 1 $frontend_clock_pin
 create_generated_clock -name frontend_bit_clk_ep         -source $frontend_word_clk_ep_pin        -multiply_by 8 $frontend_bit_clk_pin
 create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_bit_clk_local -source $frontend_word_clk_local_pin -multiply_by 8 $frontend_bit_clk_pin
 create_generated_clock -name frontend_byte_clk_ep        -source $frontend_word_clk_ep_pin        -multiply_by 2 $frontend_byte_clk_pin
 create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_byte_clk_local -source $frontend_word_clk_local_pin -multiply_by 2 $frontend_byte_clk_pin
 
 set_clock_groups -physically_exclusive \
-  -group {frontend_word_clk_ep frontend_bit_clk_ep frontend_byte_clk_ep} \
-  -group {frontend_word_clk_local frontend_bit_clk_local frontend_byte_clk_local}
+  -group {frontend_word_clk_ep frontend_clock_ep frontend_bit_clk_ep frontend_byte_clk_ep} \
+  -group {frontend_word_clk_local frontend_clock_local frontend_bit_clk_local frontend_byte_clk_local}
 
 set_property CLOCK_DEDICATED_ROUTE BACKBONE $endpoint_bclk_net
 set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN $endpoint_clku_net
 
 set frontend_clock_family {
     frontend_word_clk_ep
+    frontend_clock_ep
     frontend_bit_clk_ep
     frontend_byte_clk_ep
     frontend_word_clk_local
+    frontend_clock_local
     frontend_bit_clk_local
     frontend_byte_clk_local
 }

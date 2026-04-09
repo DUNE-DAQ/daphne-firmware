@@ -29,6 +29,12 @@ The lane depends on three aligned clocks:
 - `clk500` at the serial bit rate
 - `clk125` as the divided byte clock
 
+In the live endpoint RTL, those clocks are owned by the MMCM1 fanout:
+
+- `clock` from `mmcm1_clk1_inst/O`
+- `clk500` from `mmcm1_inst/CLKOUT0`
+- `clk125` from `mmcm1_clk2_inst/O` (`BUFGCE_DIV` from the `500 MHz` path)
+
 `frontend_common.vhd` now captures the shared clocking/control ownership that
 was previously buried inside the legacy frontend:
 
@@ -48,6 +54,7 @@ path is well constrained and that Vivado is not making unsafe assumptions.
 This means:
 
 - correct generated clocks
+- generated clocks on the live frontend outputs, not only on upstream source pins
 - correct source relationships for the AFE receive clocks
 - clear async groups only where domains are truly unrelated
 - no stale clock references in the XDC
