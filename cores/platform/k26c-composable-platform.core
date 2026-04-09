@@ -26,6 +26,8 @@ filesets:
       - dune-daq:daphne:daphne-ip-export:0.1.0
     files:
       - boards/k26c/board.yml
+      - boards/k26c/legacy-flow.yml
+      - boards/k26c/bd_shell.tcl
       - Memory_Map.md
       - petalinux/README.md
       - petalinux/daphne-server-deps.lock.cmake
