@@ -1,0 +1,19 @@
+[options]
+mode cover
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+# Cover the scripted AXI-Lite threshold write and both readback paths so the
+# bounded scenario is shown reachable, not only safe under proof.
+plugin -i ghdl
+ghdl --std=08 daphne_package.vhd thresholds.vhd thresholds_axi_formal.vhd thresholds_axi_cover.psl -e thresholds_axi_formal
+prep -top thresholds_axi_formal
+
+[files]
+../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../ip_repo/daphne_ip/rtl/selftrig/thresholds.vhd
+../vhdl/thresholds_axi_formal.vhd
+../vhdl/thresholds_axi_cover.psl

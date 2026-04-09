@@ -1,0 +1,8 @@
+vunit fe_axi_axi_cover (fe_axi_axi_formal(formal))
+{
+  default clock is rising_edge(clk);
+
+  cover {step = 11 and rvalid = '1' and rdata = ctrl_write_data_s};
+  cover {step = 18 and idelay_load(afe_index(tap_index_s)) = '1'};
+  cover {step = 33 and trig = '1'};
+}
