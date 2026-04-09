@@ -409,10 +409,12 @@ set vhdlFiles [ignore_files $vhdlFiles_aux [list $daphne_ip_top_basename "auto_a
 set verilogFiles [get_files_recursive $rtlDir "*.v"]
 
 foreach extraRoot $daphne_ip_extra_source_roots {
-    set extraVhdlFiles [filter_packaged_extra_vhdl [get_files_recursive $extraRoot "*.vhd"]]
+    # The isolated VHDL support closure is already staged explicitly in
+    # generated_support above. Re-adding those VHDL files from the extra source
+    # roots causes duplicate primary/secondary units during packaging. Keep the
+    # extra roots only for any future non-VHDL sources.
     set extraVerilogFiles [get_files_recursive $extraRoot "*.v"]
     set extraSystemVerilogFiles [get_files_recursive $extraRoot "*.sv"]
-    set vhdlFiles [concat $vhdlFiles [ignore_files $extraVhdlFiles [concat [list $daphne_ip_top_basename] $daphne_packaged_support_names]]]
     set verilogFiles [concat $verilogFiles $extraVerilogFiles $extraSystemVerilogFiles]
 }
 set vhdlFiles [lsort -unique $vhdlFiles]
