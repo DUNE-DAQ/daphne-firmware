@@ -72,6 +72,8 @@ Current suite layout:
   wrappers, delay primitives, readiness gates, and isolated adapter
   contracts.
 - `cover-fast` for the bounded reachability checks on the AXI-Lite wrappers.
+- `boundary-cover` for the bounded reachability checks on the frontend,
+  trigger-pipeline, and spy-buffer gates.
 - `composable` for the three composable top-level contracts.
 - `composable-cover` for the bounded public composable reachability checks at
   the frontend shell seam and the top-level validate path.
@@ -95,6 +97,11 @@ Two dedicated cover entry points now complement the AXI-Lite proofs:
   shell harness and emits a bounded cover trace showing a live forwarded
   trigger, preserved public lane bits, and matching adapted trigger-sample
   images at the shell seam.
+- `formal/sby/frontend_boundary_gate_cover.sby`,
+  `formal/sby/trigger_pipeline_boundary_gate_cover.sby`, and
+  `formal/sby/spy_buffer_boundary_gate_cover.sby` bind matching PSL cover
+  files to the three gate harnesses and emit bounded traces showing each gate
+  can actually assert when its documented qualifiers are satisfied.
 
 Properties currently checked:
 
@@ -108,6 +115,8 @@ Properties currently checked:
   documented stretch intervals.
 - Boundary enable outputs are exactly the conjunction of the documented
   readiness and reset qualifiers.
+- Boundary enable outputs also have explicit progress checks: once every
+  documented qualifier is satisfied, the gate must rise.
 - Per-AFE slice boundaries stay invalid/unsafe while taps are loading or while
   local configuration transactions are busy.
 - The frontend-to-selftrigger adapter preserves per-AFE channel ordering,

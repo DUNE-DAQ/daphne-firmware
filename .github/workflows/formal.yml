@@ -19,6 +19,7 @@ jobs:
         suite:
           - default
           - cover-fast
+          - boundary-cover
           - composable
           - composable-cover
 
@@ -34,13 +35,16 @@ jobs:
         run: ./scripts/formal/run_formal.sh --suite "${{ matrix.suite }}"
 
       - name: Upload cover traces
-        if: always() && (matrix.suite == 'cover-fast' || matrix.suite == 'composable-cover')
+        if: always() && (matrix.suite == 'cover-fast' || matrix.suite == 'boundary-cover' || matrix.suite == 'composable-cover')
         uses: actions/upload-artifact@v4
         with:
           name: formal-cover-traces-${{ matrix.suite }}
           path: |
             formal/sby/fe_axi_axi_lite_cover/engine_0/trace*.vcd
             formal/sby/thresholds_axi_lite_cover/engine_0/trace*.vcd
+            formal/sby/frontend_boundary_gate_cover/engine_0/trace*.vcd
+            formal/sby/trigger_pipeline_boundary_gate_cover/engine_0/trace*.vcd
+            formal/sby/spy_buffer_boundary_gate_cover/engine_0/trace*.vcd
             formal/sby/daphne_composable_frontend_shell_cover/engine_0/trace*.vcd
             formal/sby/daphne_composable_top_cover/engine_0/trace*.vcd
           if-no-files-found: warn

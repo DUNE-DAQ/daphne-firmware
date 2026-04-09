@@ -42,16 +42,17 @@ suites:
 ./scripts/formal/run_formal.sh --list-suites
 ```
 
-Current local inventory: 24 `.sby` jobs under `formal/sby/`.
+Current local inventory: 27 `.sby` jobs under `formal/sby/`.
 
 Current suite layout:
 
 - `default`: 4 fast expected-green proofs
 - `leaf-fast`: 14 leaf and boundary proofs
 - `cover-fast`: 2 bounded reachability cover jobs for the AXI-Lite wrappers
+- `boundary-cover`: 3 bounded reachability cover jobs for the boundary gates
 - `composable`: 3 composable-top contracts
 - `composable-cover`: 2 bounded composable reachability cover jobs
-- `all-local`: the full 23-job local inventory
+- `all-local`: the full 27-job local inventory
 
 The `fe_axi` proof entry can now be invoked directly by basename:
 
@@ -105,6 +106,21 @@ This currently produces traces for:
 - `thresholds_axi_lite_cover`: threshold write propagation and both readback
   paths
 
+The boundary-gate covers now also pass locally:
+
+```bash
+./scripts/formal/run_formal.sh --suite boundary-cover
+```
+
+This currently produces traces for:
+
+- `frontend_boundary_gate_cover`: frontend alignment validity rising once all
+  documented readiness and reset-release qualifiers are satisfied
+- `trigger_pipeline_boundary_gate_cover`: trigger enable rising once the shared
+  readiness contract is fully satisfied
+- `spy_buffer_boundary_gate_cover`: spy capture enable rising once the shared
+  readiness contract is fully satisfied
+
 The composable cover entry points now also pass locally:
 
 ```bash
@@ -140,16 +156,19 @@ Current passing local inventory:
 - `daphne_composable_top_cover`
 - `fe_axi_axi_lite`
 - `fixed_delay_line_contract`
+- `frontend_boundary_gate_cover`
 - `frontend_boundary_gate`
 - `frontend_register_slice_contract`
 - `frontend_to_selftrigger_adapter_contract`
 - `hermes_boundary_contract`
+- `spy_buffer_boundary_gate_cover`
 - `spy_buffer_boundary_gate`
 - `fe_axi_axi_lite_cover`
 - `thresholds_axi_lite`
 - `thresholds_axi_lite_cover`
 - `timing_endpoint_contract`
 - `timing_subsystem_boundary_contract`
+- `trigger_pipeline_boundary_gate_cover`
 - `trigger_pipeline_boundary_gate`
 
 ## Current local verification runs
@@ -157,6 +176,7 @@ Current passing local inventory:
 - `./scripts/formal/run_formal.sh --suite default`
 - `./scripts/formal/run_formal.sh --suite leaf-fast`
 - `./scripts/formal/run_formal.sh --suite cover-fast`
+- `./scripts/formal/run_formal.sh --suite boundary-cover`
 - `./scripts/formal/run_formal.sh --suite composable`
 - `./scripts/formal/run_formal.sh --suite composable-cover`
 - `./scripts/formal/run_formal.sh --suite all-local`
@@ -171,13 +191,17 @@ a pinned OSS CAD Suite toolchain, and executes:
 
 - `./scripts/formal/run_formal.sh --suite default`
 - `./scripts/formal/run_formal.sh --suite cover-fast`
+- `./scripts/formal/run_formal.sh --suite boundary-cover`
 - `./scripts/formal/run_formal.sh --suite composable`
 - `./scripts/formal/run_formal.sh --suite composable-cover`
 
-The `cover-fast` leg also uploads the generated cover VCD traces from:
+The cover legs also upload the generated cover VCD traces from:
 
 - `formal/sby/fe_axi_axi_lite_cover/engine_0/trace*.vcd`
 - `formal/sby/thresholds_axi_lite_cover/engine_0/trace*.vcd`
+- `formal/sby/frontend_boundary_gate_cover/engine_0/trace*.vcd`
+- `formal/sby/trigger_pipeline_boundary_gate_cover/engine_0/trace*.vcd`
+- `formal/sby/spy_buffer_boundary_gate_cover/engine_0/trace*.vcd`
 - `formal/sby/daphne_composable_frontend_shell_cover/engine_0/trace*.vcd`
 - `formal/sby/daphne_composable_top_cover/engine_0/trace*.vcd`
 
@@ -194,6 +218,6 @@ and uploads failure artifacts from `formal/sby/**`, including:
 
 ## Next recommended step
 
-Extend the composable cover approach to the frontend-shell or core-top contracts,
-or start adding progress-style properties to the boundary-gate proofs now that
-the fast CI baseline covers both safety and reachability at the public top.
+Extend the same progress-plus-cover approach to deeper subsystem seams, or add
+cross-harness invariants so the composable shell and public-top proofs cannot
+drift independently.
