@@ -51,27 +51,25 @@ The `fe_axi` proof entry can now be invoked directly by basename:
 The harness now includes the isolated frontend register slice and bank files,
 which are required because `fe_axi.vhd` instantiates `frontend_register_bank`.
 
-## Current known failure
+`fe_axi_axi_lite` now passes locally. The wrapper was tightened to:
 
-`fe_axi_axi_lite` now runs to a real counterexample instead of failing in
-setup. The current failing assertions are the reset-low checks in
-`formal/vhdl/fe_axi_axi_formal.vhd` for:
+- hold reset low for an extra harness cycle before starting transactions
+- freeze the scripted AXI scenario inputs during reset so the proof uses one
+  consistent write/read sequence
+- snapshot the live `idelayctrl_ready` status bit on read acceptance before
+  checking the returned `RDATA`
 
-- `trigger output must reset low`
-- `all IDELAY tap registers must reset low`
+These changes keep the proof focused on `fe_axi` integration behavior instead
+of unconstrained startup artifacts.
 
-The counterexample is generated at:
+## Current local spot checks
 
-- `formal/sby/fe_axi_axi_lite/engine_0/trace.vcd`
+- `./scripts/formal/run_formal.sh fe_axi_axi_lite`
+- `./scripts/formal/run_formal.sh frontend_register_slice_contract`
+- `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-control:0.1.0`
 
 ## Next recommended step
 
-Inspect the reset/observation timing in `fe_axi_axi_formal.vhd` versus the
-registered reset behavior in:
-
-- `rtl/isolated/subsystems/frontend/frontend_register_slice.vhd`
-- `rtl/isolated/subsystems/frontend/frontend_register_bank.vhd`
-
-The current evidence suggests the proof is now reaching a real reset-timing
-question at the `fe_axi` to register-bank boundary, rather than failing due to
-an incomplete file list.
+Extend the same "stable scenario plus sampled expected value" pattern to any
+other AXI-Lite harness that still compares readback against unconstrained
+cycle-to-cycle formal inputs.
