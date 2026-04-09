@@ -21,8 +21,8 @@ Current proof entry points:
   composable frontend shell pass-through contract and disabled optional-boundary
   behavior.
 - `formal/sby/daphne_composable_top_contract.sby` for the public composable top
-  validate path through the stubbed frontend island and disabled optional
-  subsystems.
+  validate path through the stubbed frontend island, disabled optional
+  subsystems, and explicit equivalence to the standalone frontend shell seam.
 - `formal/sby/configurable_delay_line_contract.sby` for the vendor-neutral
   configurable delay primitive that replaces imported `SRLC32E` delay chains.
 - `formal/sby/fe_axi_axi_lite.sby` for the frontend AXI-Lite control register
@@ -124,6 +124,10 @@ Properties currently checked:
   trigger path exactly as the legacy self-trigger path expects.
 - The vendor-neutral delay primitives preserve the same bounded sample-history
   selection contract as the isolated self-trigger wrappers that consume them.
+- The public composable top is tied back to the standalone frontend shell
+  contract: under the validate-stub frontend image, the public top must expose
+  the same frontend, timing, Hermes, and disabled self-trigger outputs as the
+  shell proof.
 - Neutral wrappers that are still stubs are proven to remain input-independent
   and to expose only null/zero-valued outputs.
 

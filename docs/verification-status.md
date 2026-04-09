@@ -7,7 +7,7 @@ infrastructure update in this change set.
 
 These changes do not modify the Vivado implementation path, top-level RTL
 connectivity, or firmware-visible behavior. They only affect local verification
-entry points, helper scripts, and one formal harness dependency list.
+entry points, helper scripts, and formal harnesses.
 
 ## Local smoke verification
 
@@ -135,6 +135,19 @@ This currently produces traces for:
 - `daphne_composable_top_cover`: a live public trigger plus a concrete
   frontend lane image propagated through the validate-stub public top path
 
+The public composable top contract is now also tied directly to the standalone
+frontend-shell contract. The top harness instantiates a reference
+`daphne_composable_frontend_shell` fed with the validate-stub frontend image
+derived from `afe_p_i`/`afe_n_i`, and the proof checks that the public top
+matches that shell instance across the forwarded frontend outputs, timing and
+Hermes status, and the disabled self-trigger sideband outputs. The analog
+controller side is intentionally left out of this cross-instance equality check
+for now, because the proof does not currently constrain the private AFE control
+state of the two instances to start identically once reset is already
+deasserted. That still prevents the top-level and shell-level contracts from
+drifting independently on the public seam that the validate path is meant to
+protect.
+
 Full local formal sweep now passes:
 
 ```bash
@@ -173,6 +186,7 @@ Current passing local inventory:
 
 ## Current local verification runs
 
+- `./scripts/formal/run_formal.sh daphne_composable_top_contract`
 - `./scripts/formal/run_formal.sh --suite default`
 - `./scripts/formal/run_formal.sh --suite leaf-fast`
 - `./scripts/formal/run_formal.sh --suite cover-fast`
@@ -218,6 +232,6 @@ and uploads failure artifacts from `formal/sby/**`, including:
 
 ## Next recommended step
 
-Extend the same progress-plus-cover approach to deeper subsystem seams, or add
-cross-harness invariants so the composable shell and public-top proofs cannot
-drift independently.
+Extend the same cross-harness invariant pattern to the adapter-focused
+contracts, or add one deeper composable invariant that ties the validated
+frontend lane image to the adapted trigger-sample image seen by the core.
