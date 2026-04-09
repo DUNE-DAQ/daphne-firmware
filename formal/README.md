@@ -73,7 +73,8 @@ Current suite layout:
   contracts.
 - `cover-fast` for the bounded reachability checks on the AXI-Lite wrappers.
 - `composable` for the three composable top-level contracts.
-- `composable-cover` for the bounded public composable-top reachability check.
+- `composable-cover` for the bounded public composable reachability checks at
+  the frontend shell seam and the top-level validate path.
 - `all-local` for every checked-in `.sby` job under `formal/sby/`.
 
 Two dedicated cover entry points now complement the AXI-Lite proofs:
@@ -89,6 +90,11 @@ Two dedicated cover entry points now complement the AXI-Lite proofs:
   `formal/vhdl/daphne_composable_top_cover.psl` to the top-level composable
   harness and emits a bounded cover trace showing a live public trigger plus a
   concrete propagated frontend lane image through the validate stub path.
+- `formal/sby/daphne_composable_frontend_shell_cover.sby` binds
+  `formal/vhdl/daphne_composable_frontend_shell_cover.psl` to the frontend
+  shell harness and emits a bounded cover trace showing a live forwarded
+  trigger, preserved public lane bits, and matching adapted trigger-sample
+  images at the shell seam.
 
 Properties currently checked:
 
