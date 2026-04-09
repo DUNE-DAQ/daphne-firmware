@@ -81,4 +81,18 @@ begin
   assert (align_ctrl.iserdes_reset = '0') or (align_stat_o.alignment_valid = '0')
     report "alignment_valid must stay low while ISERDES reset is asserted"
     severity failure;
+
+  assert (
+    (resetn_axi = '0') or
+    (prereq.config_ready = '0') or
+    (prereq.timing_ready = '0') or
+    (align_stat_i.idelayctrl_ready = '0') or
+    (align_stat_i.format_ok = '0') or
+    (align_stat_i.training_ok = '0') or
+    (align_ctrl.idelayctrl_reset = '1') or
+    (align_ctrl.iserdes_reset = '1') or
+    (align_stat_o.alignment_valid = '1')
+  )
+    report "alignment_valid must rise once every documented prerequisite is satisfied"
+    severity failure;
 end architecture formal;

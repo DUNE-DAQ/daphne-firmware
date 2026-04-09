@@ -1,0 +1,13 @@
+vunit trigger_pipeline_boundary_cover (trigger_pipeline_boundary_formal(formal))
+{
+  default clock is rising_edge(clk);
+
+  cover {
+    reset = '0' and
+    readiness.config_ready = '1' and
+    readiness.timing_ready = '1' and
+    readiness.alignment_ready = '1' and
+    descriptor_rdy = '1' and
+    trigger_enable = '1'
+  };
+}

@@ -1,0 +1,19 @@
+[options]
+mode cover
+depth 1
+
+[engines]
+smtbmc z3
+
+[script]
+# Cover a concrete spy-enable scenario so the neutral capture boundary proves
+# the enable path is reachable, not only constrained low when unsafe.
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd spy_buffer_boundary.vhd spy_buffer_boundary_formal.vhd spy_buffer_boundary_cover.psl -e spy_buffer_boundary_formal
+prep -top spy_buffer_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/spy/spy_buffer_boundary.vhd
+../vhdl/spy_buffer_boundary_formal.vhd
+../vhdl/spy_buffer_boundary_cover.psl
