@@ -84,8 +84,12 @@ require_fixed "set ::env(DAPHNE_DUMP_POST_SYNTH_DEBUG) \"\$DUMP_POST_SYNTH_DEBUG
 
 require_fixed "set frontend_byte_clk_pin [daphne_require_single_object pin \$endpoint_path \"mmcm1_clk2_inst/O\" \"frontend byte-clock source\"]" "$TIMING_TCL" \
   "AFE timing Tcl is no longer bound to the live BUFGCE_DIV byte-clock output."
+require_fixed "set frontend_clock_pin [daphne_require_single_object pin \$endpoint_path \"mmcm1_clk1_inst/O\" \"frontend live master-clock source\"]" "$TIMING_TCL" \
+  "AFE timing Tcl is no longer bound to the live frontend master-clock output."
 forbid_fixed "mmcm1_inst/CLKOUT2" "$TIMING_TCL" \
   "AFE timing Tcl still points at the old unused MMCM1 CLKOUT2 byte-clock path."
+require_fixed "create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_clock_local -source \$frontend_word_clk_local_pin -divide_by 1 \$frontend_clock_pin" "$TIMING_TCL" \
+  "AFE timing Tcl no longer carries the live frontend local master-clock definition."
 require_fixed "create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_bit_clk_local -source \$frontend_word_clk_local_pin -multiply_by 8 \$frontend_bit_clk_pin" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries the Vivado 2024.1-compliant local bit-clock definition."
 require_fixed "create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_byte_clk_local -source \$frontend_word_clk_local_pin -multiply_by 2 \$frontend_byte_clk_pin" "$TIMING_TCL" \
@@ -97,5 +101,7 @@ require_regex "CLKOUT2[[:space:]]*=>[[:space:]]*open, -- was 125 MHz \\(now unus
   "endpoint.vhd no longer shows the MMCM1 CLKOUT2 path as unused."
 require_regex "port map \\( I => mmcm1_clkout0, O => clk125, CE => '1', CLR => '0'\\);" "$ENDPOINT_RTL" \
   "endpoint.vhd no longer feeds clk125 from the 500 MHz MMCM1 output."
+require_regex "mmcm1_clk1_inst:[[:space:]]*BUFG port map\\( I => mmcm1_clkout1, O => clock_i\\);" "$ENDPOINT_RTL" \
+  "endpoint.vhd no longer exposes the live frontend master clock through mmcm1_clk1_inst."
 
 echo "INFO: AFE timing constraint contract matches the live endpoint clocking and the Vivado 2024.1 unmanaged-Tcl flow."
