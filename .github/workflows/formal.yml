@@ -1,0 +1,29 @@
+name: Formal
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  default-formal:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - default
+          - cover-fast
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-04-08'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run formal suite
+        run: ./scripts/formal/run_formal.sh --suite "${{ matrix.suite }}"
