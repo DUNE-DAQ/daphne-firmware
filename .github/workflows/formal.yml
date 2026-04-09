@@ -20,6 +20,7 @@ jobs:
           - default
           - cover-fast
           - composable
+          - composable-cover
 
     steps:
       - uses: actions/checkout@v5
@@ -33,13 +34,14 @@ jobs:
         run: ./scripts/formal/run_formal.sh --suite "${{ matrix.suite }}"
 
       - name: Upload cover traces
-        if: always() && matrix.suite == 'cover-fast'
+        if: always() && (matrix.suite == 'cover-fast' || matrix.suite == 'composable-cover')
         uses: actions/upload-artifact@v4
         with:
           name: formal-cover-traces-${{ matrix.suite }}
           path: |
             formal/sby/fe_axi_axi_lite_cover/engine_0/trace*.vcd
             formal/sby/thresholds_axi_lite_cover/engine_0/trace*.vcd
+            formal/sby/daphne_composable_top_cover/engine_0/trace*.vcd
           if-no-files-found: warn
           retention-days: 14
 
