@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:k26c-modular-platform:0.1.0
-description: K26C platform collateral layered on the modular DAPHNE source graph
+description: Experimental K26C platform collateral layered on the modular DAPHNE source graph; clean-tree impl still depends on generated Hermes packaged-IP collateral
 provider:
   name: local
 
@@ -49,7 +49,7 @@ targets:
     filesets:
       - platform
   impl:
-    description: FuseSoC entry point for the modular K26C Vivado batch flow
+    description: Experimental FuseSoC entry point for the modular K26C Vivado batch flow; not yet qualified from a clean tree
     default_tool: vivado
     toplevel: daphne_selftrigger_bd_wrapper
     filesets:
