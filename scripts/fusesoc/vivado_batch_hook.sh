@@ -281,6 +281,8 @@ append_env_tcl DAPHNE_CONSTRAINT_FILES
 append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_ETH_MODE
 append_env_tcl DAPHNE_GIT_SHA
+append_env_tcl DAPHNE_VITIS_VERSION
+append_env_tcl DAPHNE_DTG_GIT_BRANCH
 append_env_tcl DAPHNE_MAX_THREADS
 append_env_tcl DAPHNE_OUTPUT_DIR
 append_env_tcl DAPHNE_BD_NAME
