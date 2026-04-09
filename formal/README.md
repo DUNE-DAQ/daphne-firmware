@@ -73,6 +73,7 @@ Current suite layout:
   contracts.
 - `cover-fast` for the bounded reachability checks on the AXI-Lite wrappers.
 - `composable` for the three composable top-level contracts.
+- `composable-cover` for the bounded public composable-top reachability check.
 - `all-local` for every checked-in `.sby` job under `formal/sby/`.
 
 Two dedicated cover entry points now complement the AXI-Lite proofs:
@@ -84,6 +85,10 @@ Two dedicated cover entry points now complement the AXI-Lite proofs:
 - `formal/sby/thresholds_axi_lite_cover.sby` binds
   `formal/vhdl/thresholds_axi_cover.psl` to the harness and emits bounded cover
   traces for threshold write propagation plus both readback paths.
+- `formal/sby/daphne_composable_top_cover.sby` binds
+  `formal/vhdl/daphne_composable_top_cover.psl` to the top-level composable
+  harness and emits a bounded cover trace showing a live public trigger plus a
+  concrete propagated frontend lane image through the validate stub path.
 
 Properties currently checked:
 
