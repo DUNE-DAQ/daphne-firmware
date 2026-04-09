@@ -182,6 +182,20 @@ proc get_files_recursive {dir type} {
     return $results
 }
 
+proc filter_packaged_extra_vhdl {file_list} {
+    set filtered {}
+    foreach file_path $file_list {
+        if {[string match "*/validate/*" $file_path]} {
+            continue
+        }
+        if {[string match "*_validate_stub.vhd" [file tail $file_path]]} {
+            continue
+        }
+        lappend filtered $file_path
+    }
+    return $filtered
+}
+
 # create a proc in order to eliminate specific files from the generated lists
 # this applies currently to full file name including extension, but not full path
 proc ignore_files {listToVerify itemsToIgnore} {
@@ -395,7 +409,7 @@ set vhdlFiles [ignore_files $vhdlFiles_aux [list $daphne_ip_top_basename "auto_a
 set verilogFiles [get_files_recursive $rtlDir "*.v"]
 
 foreach extraRoot $daphne_ip_extra_source_roots {
-    set extraVhdlFiles [get_files_recursive $extraRoot "*.vhd"]
+    set extraVhdlFiles [filter_packaged_extra_vhdl [get_files_recursive $extraRoot "*.vhd"]]
     set extraVerilogFiles [get_files_recursive $extraRoot "*.v"]
     set extraSystemVerilogFiles [get_files_recursive $extraRoot "*.sv"]
     set vhdlFiles [concat $vhdlFiles [ignore_files $extraVhdlFiles [concat [list $daphne_ip_top_basename] $daphne_packaged_support_names]]]
