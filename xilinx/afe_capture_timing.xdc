@@ -125,12 +125,12 @@ set frontend_byte_clk_pin [daphne_require_single_object pin $endpoint_path "mmcm
 set endpoint_bclk_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk" "timing endpoint recovered bit clock"]
 set endpoint_clku_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku" "timing endpoint recovered user clock"]
 
-create_generated_clock -name frontend_word_clk_ep     -source $rx_tmg_port -master_clock rx_tmg_clk -divide_by 1 $frontend_word_clk_ep_pin
-create_generated_clock -name frontend_word_clk_local  -source $sysclk_port -master_clock sysclk -multiply_by 5 -divide_by 8 $frontend_word_clk_local_pin
+create_generated_clock -name frontend_word_clk_ep     -source $rx_tmg_port -divide_by 1 $frontend_word_clk_ep_pin
+create_generated_clock -name frontend_word_clk_local  -source $sysclk_port -multiply_by 5 -divide_by 8 $frontend_word_clk_local_pin
 create_generated_clock -name frontend_bit_clk_ep         -source $frontend_word_clk_ep_pin        -multiply_by 8 $frontend_bit_clk_pin
 create_generated_clock -add -name frontend_bit_clk_local -source $frontend_word_clk_local_pin     -multiply_by 8 $frontend_bit_clk_pin
-create_generated_clock -name frontend_byte_clk_ep        -source $frontend_bit_clk_pin            -master_clock frontend_bit_clk_ep      -divide_by 4 $frontend_byte_clk_pin
-create_generated_clock -add -name frontend_byte_clk_local -source $frontend_bit_clk_pin           -master_clock frontend_bit_clk_local   -divide_by 4 $frontend_byte_clk_pin
+create_generated_clock -name frontend_byte_clk_ep        -source $frontend_word_clk_ep_pin        -multiply_by 2 $frontend_byte_clk_pin
+create_generated_clock -add -name frontend_byte_clk_local -source $frontend_word_clk_local_pin    -multiply_by 2 $frontend_byte_clk_pin
 
 set_clock_groups -physically_exclusive \
   -group {frontend_word_clk_ep frontend_bit_clk_ep frontend_byte_clk_ep} \
