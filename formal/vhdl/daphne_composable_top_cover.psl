@@ -1,0 +1,12 @@
+vunit daphne_composable_top_cover (daphne_composable_top_formal(formal))
+{
+  default clock is rising_edge(frontend_axi_aclk_i);
+
+  cover {
+    frontend_trig_o = '1' and
+    frontend_dout_o(0)(0)(15) = '1' and
+    frontend_dout_o(0)(0)(8) = '1' and
+    frontend_dout_o(0)(0)(1) = '1' and
+    frontend_dout_o(0)(0)(0) = '0'
+  };
+}

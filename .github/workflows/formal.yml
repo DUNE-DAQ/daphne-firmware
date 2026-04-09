@@ -3,6 +3,9 @@ name: Formal
 on:
   pull_request:
   push:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 3 * * *'
 
 permissions:
   contents: read
@@ -16,6 +19,8 @@ jobs:
         suite:
           - default
           - cover-fast
+          - composable
+          - composable-cover
 
     steps:
       - uses: actions/checkout@v5
@@ -27,3 +32,54 @@ jobs:
 
       - name: Run formal suite
         run: ./scripts/formal/run_formal.sh --suite "${{ matrix.suite }}"
+
+      - name: Upload cover traces
+        if: always() && (matrix.suite == 'cover-fast' || matrix.suite == 'composable-cover')
+        uses: actions/upload-artifact@v4
+        with:
+          name: formal-cover-traces-${{ matrix.suite }}
+          path: |
+            formal/sby/fe_axi_axi_lite_cover/engine_0/trace*.vcd
+            formal/sby/thresholds_axi_lite_cover/engine_0/trace*.vcd
+            formal/sby/daphne_composable_top_cover/engine_0/trace*.vcd
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload failed formal logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: formal-failure-logs-${{ matrix.suite }}
+          path: |
+            formal/sby/**/logfile.txt
+            formal/sby/**/engine_0/trace*.vcd
+            formal/sby/**/model/design*.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  all-local-formal:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-04-08'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run all local formal jobs
+        run: ./scripts/formal/run_formal.sh --suite all-local
+
+      - name: Upload failed all-local logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: formal-failure-logs-all-local
+          path: |
+            formal/sby/**/logfile.txt
+            formal/sby/**/engine_0/trace*.vcd
+            formal/sby/**/model/design*.log
+          if-no-files-found: warn
+          retention-days: 14
