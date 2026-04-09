@@ -90,15 +90,15 @@ proc daphne_require_env_value {name purpose} {
     return $value
 }
 
-set frontend_word_clk_ep_net [daphne_require_single_object net $endpoint_path "ep_clk62p5" "frontend endpoint word-clock source"]
-set frontend_word_clk_local_net [daphne_require_single_object net $endpoint_path "local_clk62p5" "frontend local word-clock source"]
+set frontend_word_clk_ep_pin [daphne_require_single_object pin $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT0" "frontend endpoint word-clock source"]
+set frontend_word_clk_local_pin [daphne_require_single_object pin $endpoint_path "mmcm0_inst/CLKOUT0" "frontend local word-clock source"]
 set frontend_bit_clk_pin [daphne_require_single_object pin $timing_plane_path "clk500_o" "frontend bit-clock board seam"]
 set frontend_byte_clk_pin [daphne_require_single_object pin $timing_plane_path "clk125_o" "frontend byte-clock board seam"]
 set endpoint_bclk_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk" "timing endpoint recovered bit clock"]
 set endpoint_clku_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku" "timing endpoint recovered user clock"]
 
-create_generated_clock -name frontend_word_clk_ep     $frontend_word_clk_ep_net
-create_generated_clock -name frontend_word_clk_local  $frontend_word_clk_local_net
+create_generated_clock -name frontend_word_clk_ep     $frontend_word_clk_ep_pin
+create_generated_clock -name frontend_word_clk_local  $frontend_word_clk_local_pin
 create_generated_clock -name frontend_bit_clk_ep           -master_clock frontend_word_clk_ep       $frontend_bit_clk_pin
 create_generated_clock -name frontend_byte_clk_ep          -master_clock frontend_word_clk_ep       $frontend_byte_clk_pin
 create_generated_clock -add -name frontend_bit_clk_local   -master_clock frontend_word_clk_local    $frontend_bit_clk_pin
