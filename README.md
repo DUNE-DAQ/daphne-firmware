@@ -76,6 +76,16 @@ Run the checked-in formal scaffolds:
 ./scripts/formal/run_formal.sh
 ```
 
+List the checked-in formal jobs without running them:
+
+```bash
+./scripts/formal/run_formal.sh --list
+```
+
+The formal runner auto-sources `$HOME/tools/oss-cad-suite/environment` when it
+exists so the bundled `sby` / `yosys` toolchain can find the GHDL standard
+libraries.
+
 Refresh the generated legacy source manifest after editing the imported
 RTL/Tcl flow:
 
