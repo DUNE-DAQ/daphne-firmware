@@ -76,7 +76,6 @@ daphne_expand_legacy_support_entry() {
     find "$resolved_path" -type f -name '*.vhd' \
       ! -path '*/validate/*' \
       ! -name '*_validate_stub.vhd' \
-      ! -name 'legacy_public_top_bridge.vhd' \
       -print
   elif [ -f "$resolved_path" ]; then
     printf '%s\n' "$resolved_path"
