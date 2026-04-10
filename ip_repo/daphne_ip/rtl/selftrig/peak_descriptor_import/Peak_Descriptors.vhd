@@ -1,10 +1,10 @@
 ----------------------------------------------------------------------------------
--- Company: CIEMAT
+-- Company: Imported source
 -- Engineer: Ignacio L�pez de Rego Benedi
 -- 
 -- Create Date: 15.04.2024 11:04:11
 -- Design Name: 
--- Module Name: LocalPrimitives_CIEMAT - Behavioral
+-- Module Name: Peak_Descriptors - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -33,15 +33,15 @@ use ieee.numeric_std.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity LocalPrimitives_CIEMAT is
+entity Peak_Descriptors is
 port(
     clock:                          in  std_logic;                                              -- AFE clock
     reset:                          in  std_logic;                                              -- Reset signal. ACTIVE HIGH
     Self_trigger:                   in  std_logic;                                              -- Self-Trigger signal comming from the Self-Trigger block
     din:                            in  std_logic_vector(13 downto 0);                          -- Data coming from the Filter Block / Raw data from AFEs
-    Interface_LOCAL_Primitves_IN:   in  std_logic_vector(23 downto 0);                          -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
-    Interface_LOCAL_Primitves_OUT:  out std_logic_vector(23 downto 0);                          -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
-    Data_Available:                 out std_logic;                                              -- ACTIVE HIGH when LOCAL primitives are calculated
+    Interface_PEAK_DESCRIPTORS_IN:   in  std_logic_vector(23 downto 0);                          -- Interface with the peak descriptor calculation block
+    Interface_PEAK_DESCRIPTORS_OUT:  out std_logic_vector(23 downto 0);                          -- Interface with the peak descriptor calculation block
+    Data_Available:                 out std_logic;                                              -- ACTIVE HIGH when peak descriptors are calculated
     Time_Peak:                      out std_logic_vector(8 downto 0);                           -- Time in Samples to achieve de Max peak
     Time_Over_Baseline:             out std_logic_vector(8 downto 0);                           -- Time in Samples of the light pulse signal is OVER BASELINE (without undershoot)
     ADC_Peak:                       out std_logic_vector(13 downto 0);                          -- Amplitude in ADC counts od the peak
@@ -50,27 +50,27 @@ port(
     Baseline:                       in std_logic_vector(13 downto 0);                            -- TO BE REMOVED AFTER DEBUGGING
     Amplitude:                      out std_logic_vector(14 downto 0);                            -- TO BE REMOVED AFTER DEBUGGING
     High_Freq_Noise:                out std_logic                                                 -- ACTIVE HIGH when high freq noise is detected 
---    Trailer_Word_0:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_1:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_2:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_3:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_4:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_5:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_6:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_7:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_8:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_9:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_10:                out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
---    Trailer_Word_11:                out std_logic_vector(31 downto 0)                           -- TRAILER WORD with metada (Local Trigger Primitives)
+--    Trailer_Word_0:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_1:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_2:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_3:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_4:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_5:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_6:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_7:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_8:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_9:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_10:                out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+--    Trailer_Word_11:                out std_logic_vector(31 downto 0)                           -- TRAILER WORD with metadata (peak descriptor metadata)
 );
-end LocalPrimitives_CIEMAT;
+end Peak_Descriptors;
 
-architecture Behavioral of LocalPrimitives_CIEMAT is
+architecture Behavioral of Peak_Descriptors is
 
 -- HOLA CARACOLA (PRUEBA)! 
 
 -- INTERFACE with SELF-TRIGGER BLOCK signals
-signal Interface_LOCAL_Primitves_IN_reg: std_logic_vector(23 downto 0);
+signal Interface_PEAK_DESCRIPTORS_IN_reg: std_logic_vector(23 downto 0);
 signal Peak_Current: std_logic:='0'; -- ACTIVE HIGH When a Peak is detected.
 signal Peak_Current_delay1: std_logic:='0'; -- ACTIVE HIGH When a Peak is detected. 
 signal Peak_Current_delay2: std_logic:='0'; -- ACTIVE HIGH When a Peak is detected. 
@@ -108,7 +108,7 @@ signal Amplitude_Aux: std_logic_vector(14 downto 0):= (others=>'0');
 signal Amplitude_current, Amplitude_current_reg1, Amplitude_current_reg2: std_logic_vector(14 downto 0):= (others=>'0'); 
 signal Amplitude_current_reg3, Amplitude_current_reg4: std_logic_vector(14 downto 0):= (others=>'0'); 
 
--- LOCAL TRIGGER PRIMITIVES CALCULATION signals
+-- PEAK DESCRIPTOR CALCULATION signals
 signal Time_Peak_Current:   std_logic_vector(8 downto 0):= (others=>'0');       -- Time in Samples to achieve de Max peak
 signal Time_Over_Baseline_Current: std_logic_vector(8 downto 0):= (others=>'0');     -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
 signal ADC_Peak_Current:   std_logic_vector(14 downto 0):= (others=>'0');       -- Amplitude in ADC counts od the peak
@@ -241,13 +241,13 @@ begin
     end if;
 end process Baseline_Amplitude;
 
------------------------ LOCAL PRIMITIVES CALCULATION    -----------------------
+----------------------- PEAK DESCRIPTOR CALCULATION    -----------------------
 
 
 -- FSM DETECTION: This Finite Sate Machine determines if there is a light detection or not.
 --      * No Detection --> Continous Baseline Calculation 
---      * Detection    --> Baseline is constant, Primitives calculation (Max _Amplitude, Time to max, Charge, Width_UB, number of pekas UB)
---      * Data --> Shows data of primitives calculated in previous stage  
+--      * Detection    --> Baseline is constant, peak descriptor calculation (Max_Amplitude, Time to max, Charge, Width_UB, number of peaks UB)
+--      * Data         --> Shows the peak descriptors calculated in the previous stage
 Next_State_Detection: process(CurrentState_Detection, Self_Trigger, Amplitude_Current, Slope_Current, Time_Over_Baseline_Current, Detection_Time, Peak_Current, Peak_Current_delay1, Peak_Current_delay2, Peak_Current_delay3, Peak_Current_delay4, Peak_Current_delay5, Peak_Current_delay6, Peak_Current_delay7, Peak_Current_delay8, Peak_Current_delay9)
 begin
     case CurrentState_Detection is
@@ -279,7 +279,7 @@ FFs_Detection: process(clock, reset, Amplitude_Current, Peak_Current)--, High_Fr
 begin
     --if ((reset='1') or (High_Freq_Noise_aux='1'))  then
     if (reset='1')  then
-        CurrentState_Detection      <= No_Detection;                 -- Primitives calculation available. Active HIGH
+        CurrentState_Detection      <= No_Detection;                 -- Peak descriptor calculation available. Active HIGH
         Time_Peak_Current           <= (others=>'0');       -- Time in Samples to achieve de Max peak
         Time_Over_Baseline_Current  <= (others=>'0');       -- Time in Samples of the light pulse (without undershoot)
         ADC_Peak_Current            <= (others=>'0');       -- Amplitude in ADC counts od the peak
@@ -289,7 +289,7 @@ begin
 
     elsif(clock'event and clock='1') then
         CurrentState_Detection <= NextState_Detection;
-        if (CurrentState_Detection=No_Detection) then               -- Primitives calculation available. Active HIGH
+        if (CurrentState_Detection=No_Detection) then               -- Peak descriptor calculation available. Active HIGH
             Time_Peak_Current           <= (others=>'0');       -- Time in Samples to achieve de Max peak
             Time_Over_Baseline_Current  <= "000000001";       -- Time in Samples of the light pulse (without undershoot)
             ADC_Peak_Current            <= (others=>'0');       -- Amplitude in ADC counts od the peak
@@ -324,7 +324,7 @@ begin
     case CurrentState_Detection is
         when No_Detection => 
             Peak_Detection <= '0';
-            Data_Available <= '0';                  -- Primitives calculation available. Active HIGH
+            Data_Available <= '0';                  -- Peak descriptor calculation available. Active HIGH
             Time_Peak <= (others=>'0');                                                -- Time in Samples to achieve de Max peak
             Time_Over_Baseline<= (others=>'0');                          -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
             ADC_Peak<= (others=>'0');                          -- Amplitude in ADC counts od the peak
@@ -332,7 +332,7 @@ begin
             Number_Peaks<= (others=>'0');                           -- Number of peaks detected when signal is UNDER BASELINE (without undershoot).  
         when Detection =>        
             Peak_Detection <= '1'; 
-            Data_Available <= '0';                  -- Primitives calculation available. Active HIGH
+            Data_Available <= '0';                  -- Peak descriptor calculation available. Active HIGH
             Time_Peak <= (others=>'0');                                                -- Time in Samples to achieve de Max peak
             Time_Over_Baseline<= (others=>'0');                          -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
             ADC_Peak<= (others=>'0');                          -- Amplitude in ADC counts od the peak
@@ -340,7 +340,7 @@ begin
             Number_Peaks<= (others=>'0');                           -- Number of peaks detected when signal is UNDER BASELINE (without undershoot).      
        when Data => 
             Peak_Detection <= '0';
-            Data_Available <= '1';                  -- Primitives calculation available. Active HIGH
+            Data_Available <= '1';                  -- Peak descriptor calculation available. Active HIGH
             Time_Peak <= Time_Peak_Current;                                                -- Time in Samples to achieve de Max peak
 --            Time_Over_Baseline <= std_logic_vector(unsigned(Time_Over_Baseline_Current) - to_unsigned(6,9));
             Time_Over_Baseline <= std_logic_vector(unsigned(Time_Over_Baseline_Current));                            -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
@@ -392,21 +392,21 @@ end process Noise_Check;
 
 High_Freq_Noise <= High_Freq_Noise_aux;
 
------------------------ INTERFACE WITH LOCAL PRIMITIVES CALCULATION BLOCK    -----------------------
+----------------------- INTERFACE WITH PEAK DESCRIPTOR CALCULATION BLOCK    -----------------------
 
 -- Data coming from SELF_TRIGGER Block
 Get_Interface_Params: process(clock)
 begin
     if (clock'event and clock='1') then
-        Interface_LOCAL_Primitves_IN_reg <= Interface_LOCAL_Primitves_IN;
+        Interface_PEAK_DESCRIPTORS_IN_reg <= Interface_PEAK_DESCRIPTORS_IN;
     end if;
 end process Get_Interface_Params;
 
-Peak_Current <= Interface_LOCAL_Primitves_IN(0);
-Slope_Current <= Interface_LOCAL_Primitves_IN(14 downto 1);
+Peak_Current <= Interface_PEAK_DESCRIPTORS_IN(0);
+Slope_Current <= Interface_PEAK_DESCRIPTORS_IN(14 downto 1);
 
 
--- Data being sent to LOCAL PRIMITVE Calculation Block
-Interface_LOCAL_Primitves_OUT(0)<= Peak_Detection;
-Interface_LOCAL_Primitves_OUT(23 downto 1)<= (others=>'0');
+-- Data being sent to the peak descriptor calculation block
+Interface_PEAK_DESCRIPTORS_OUT(0)<= Peak_Detection;
+Interface_PEAK_DESCRIPTORS_OUT(23 downto 1)<= (others=>'0');
 end Behavioral;

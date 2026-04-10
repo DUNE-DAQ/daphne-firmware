@@ -1,10 +1,10 @@
 ----------------------------------------------------------------------------------
--- Company: CIEMAT
+-- Company: Imported source
 -- Engineer: Ignacio L�pez de Rego
 -- 
 -- Create Date: 25.04.2024 14:10:45
 -- Design Name: 
--- Module Name: Self_Trigger_Primitive_Calculation - Behavioral
+-- Module Name: Peak_Descriptor_Calculation - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -33,7 +33,7 @@ use ieee.numeric_std.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity Self_Trigger_Primitive_Calculation is
+entity Peak_Descriptor_Calculation is
 port(
     clock:                          in  std_logic;                                              -- AFE clock
     reset:                          in  std_logic;                                              -- Reset signal. ACTIVE HIGH
@@ -42,7 +42,7 @@ port(
     Ext_Self_Trigger:               in  std_logic;                                              -- External Self-Trigger coming from another block
     Match_with_Frame:               in  std_logic;                                              -- External signal that allows being matched with the frame construction.
     Self_trigger:                   out std_logic;                                              -- Self-Trigger signal comming from the Self-Trigger block
-    Data_Available:                 out std_logic;                                              -- ACTIVE HIGH when LOCAL primitives are calculated
+    Data_Available:                 out std_logic;                                              -- ACTIVE HIGH when peak descriptors are calculated
     Time_Peak:                      out std_logic_vector(8 downto 0);                           -- Time in Samples to achieve de Max peak
     Time_Over_Baseline:             out std_logic_vector(8 downto 0);                           -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
     Time_Start:                     out std_logic_vector(9 downto 0);                           -- Time in Samples of the light pulse signal is OVER BASELINE (undershoot)
@@ -59,24 +59,24 @@ port(
     Sending:                        out std_logic;                                              -- ACTIVE HIGH when colecting data for self-trigger frame
     Info_Previous:                  out std_logic;                                              -- ACTIVE HIGH when self-trigger is produced by a waveform between two frames 
     Data_Available_Trailer:         out std_logic;                                              -- ACTIVE HIGH when metadata is ready
-    Trailer_Word_0:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_1:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_2:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_3:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_4:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_5:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_6:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_7:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_8:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_9:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_10:                out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_11:                out std_logic_vector(31 downto 0)                           -- TRAILER WORD with metada (Local Trigger Primitives)
+    Trailer_Word_0:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_1:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_2:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_3:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_4:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_5:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_6:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_7:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_8:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_9:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_10:                out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metadata (peak descriptor metadata)
+    Trailer_Word_11:                out std_logic_vector(31 downto 0)                           -- TRAILER WORD with metadata (peak descriptor metadata)
 );
-end Self_Trigger_Primitive_Calculation;
+end Peak_Descriptor_Calculation;
 
-architecture Behavioral of Self_Trigger_Primitive_Calculation is
+architecture Behavioral of Peak_Descriptor_Calculation is
 
---COMPONENT Filter_CIEMAT IS 
+--COMPONENT Descriptor_Filter IS
 --  PORT (  
 --    clock:          in  std_logic;                          -- AFE clock
 --    reset:          in  std_logic;                          -- Reset signal. ACTIVE HIGH 
@@ -87,7 +87,7 @@ architecture Behavioral of Self_Trigger_Primitive_Calculation is
 --    filtered_dout:  out  std_logic_vector(13 downto 0));    -- Raw AFE data
 --  END component;
     
- COMPONENT PeakDetector_SelfTrigger_CIEMAT IS 
+ COMPONENT PeakDetector_SelfTrigger IS
   PORT (  
     clock:                          in  std_logic;                      -- AFE clock
     reset:                          in  std_logic;                      -- Reset signal. ACTIVE HIGH 
@@ -98,20 +98,20 @@ architecture Behavioral of Self_Trigger_Primitive_Calculation is
                                                                         --                 --> '1' = ALLOWED Self-Trigger with light pulse between 2 data adquisition frames
                                                                         -- Config_Param[2] --> '0' = Slope calculation with 2 consecutive samples --> x(n) - x(n-1)  / '1' = Slope calculation with 3 consecutive samples --> [x(n) - x(n-2)] / 2 
                                                                         -- Config_Param[9 downto 3] --> Slope_Threshold (signed) 1(sign) + 6 bits, must be negative.
-    Interface_LOCAL_Primitves_IN:   in  std_logic_vector(23 downto 0);   -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
-    Interface_LOCAL_Primitves_OUT:  out std_logic_vector(23 downto 0);   -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
+    Interface_PEAK_DESCRIPTORS_IN:   in  std_logic_vector(23 downto 0);   -- Interface with the peak descriptor calculation block
+    Interface_PEAK_DESCRIPTORS_OUT:  out std_logic_vector(23 downto 0);   -- Interface with the peak descriptor calculation block
     Self_trigger:                   out std_logic);                       -- ACTIVE HIGH when a Self-trigger events occurs
 END component;
 
-COMPONENT LocalPrimitives_CIEMAT IS 
+COMPONENT Peak_Descriptors IS
   PORT (  
     clock:                          in  std_logic;                                              -- AFE clock
     reset:                          in  std_logic;                                              -- Reset signal. ACTIVE HIGH
     Self_trigger:                   in  std_logic;                                              -- Self-Trigger signal comming from the Self-Trigger block
     din:                            in  std_logic_vector(13 downto 0);                          -- Data coming from the Filter Block / Raw data from AFEs
-    Interface_LOCAL_Primitves_IN:   in  std_logic_vector(23 downto 0);                          -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
-    Interface_LOCAL_Primitves_OUT:  out std_logic_vector(23 downto 0);                          -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
-    Data_Available:                 out std_logic;                                              -- ACTIVE HIGH when LOCAL primitives are calculated
+    Interface_PEAK_DESCRIPTORS_IN:   in  std_logic_vector(23 downto 0);                          -- Interface with the peak descriptor calculation block
+    Interface_PEAK_DESCRIPTORS_OUT:  out std_logic_vector(23 downto 0);                          -- Interface with the peak descriptor calculation block
+    Data_Available:                 out std_logic;                                              -- ACTIVE HIGH when peak descriptors are calculated
     Time_Peak:                      out std_logic_vector(8 downto 0);                           -- Time in Samples to achieve de Max peak
     Time_Over_Baseline:             out std_logic_vector(8 downto 0);                           -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
     ADC_Peak:                       out std_logic_vector(13 downto 0);                          -- Amplitude in ADC counts od the peak
@@ -136,8 +136,8 @@ SIGNAL filtered_dout_aux_delay_Extra : std_logic_vector(13 downto 0);
 -- SELF TRIGGER SIGNALS
 SIGNAL Config_Param_SELF_aux: std_logic_vector(9 downto 0);
 --SIGNAL Sending_Data_aux : std_logic;
-SIGNAL Interface_LOCAL_Primitves_IN_aux: std_logic_vector(23 downto 0);
-SIGNAL Interface_LOCAL_Primitves_OUT_aux: std_logic_vector(23 downto 0);
+SIGNAL Interface_PEAK_DESCRIPTORS_IN_aux: std_logic_vector(23 downto 0);
+SIGNAL Interface_PEAK_DESCRIPTORS_OUT_aux: std_logic_vector(23 downto 0);
 SIGNAL Self_trigger_aux: std_logic;
 SIGNAL Self_trigger_out_aux: std_logic;
 SIGNAL triggered_dly32_i: std_logic;
@@ -145,9 +145,9 @@ SIGNAL Noise_aux: std_logic;
 SIGNAL Trigger_dly53: bit_vector(53 downto 0):=(others=>'0');
 signal Noise_OR: bit:='0';
 
--- LOCAL TRIGGER SIGNALS
-SIGNAL Ext_Self_Trigger_Match:             std_logic;                                              -- ACTIVE HIGH when ext_self_trigger and allowed to calculate TPs 
-SIGNAL Data_Available_aux:                 std_logic;                                              -- ACTIVE HIGH when LOCAL primitives are calculated
+-- PEAK DESCRIPTOR SIGNALS
+SIGNAL Ext_Self_Trigger_Match:             std_logic;                                              -- ACTIVE HIGH when ext_self_trigger is allowed to calculate descriptors
+SIGNAL Data_Available_aux:                 std_logic;                                              -- ACTIVE HIGH when peak descriptors are calculated
 SIGNAL Time_Peak_aux:                      std_logic_vector(8 downto 0);                           -- Time in Samples to achieve de Max peak
 SIGNAL Time_Over_Baseline_aux:             std_logic_vector(8 downto 0);                           -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
 SIGNAL ADC_Peak_aux:                       std_logic_vector(13 downto 0);                          -- Amplitude in ADC counts od the peak
@@ -157,8 +157,8 @@ SIGNAL Baseline_aux:                       std_logic_vector(14 downto 0);       
 SIGNAL Amplitude_aux:                      std_logic_vector(14 downto 0);                            -- TO BE REMOVED AFTER DEBUGGING
 SIGNAL Time_Start_aux:                     std_logic_vector(9 downto 0);                           -- Time from TIME STAMP where the hit starts
 
--- LOCAL TRIGGER SIGNALS registers
-SIGNAL Data_Available_reg:                 std_logic;                                              -- ACTIVE HIGH when LOCAL primitives are calculated
+-- PEAK DESCRIPTOR SIGNALS registers
+SIGNAL Data_Available_reg:                 std_logic;                                              -- ACTIVE HIGH when peak descriptors are calculated
 SIGNAL Time_Peak_reg:                      std_logic_vector(8 downto 0);                           -- Time in Samples to achieve de Max peak
 SIGNAL Time_Over_Baseline_reg:             std_logic_vector(8 downto 0);                           -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
 SIGNAL ADC_Peak_reg:                       std_logic_vector(13 downto 0);                          -- Amplitude in ADC counts od the peak
@@ -204,7 +204,7 @@ SIGNAL Trigger_Delay: std_logic_vector(4 downto 0):=(others=>'0');
 
 begin
 
---UUT1 : Filter_CIEMAT 
+--UUT1 : Descriptor_Filter
 --      PORT MAP (
 --      clock         => clock_aux,
 --      reset         => reset_aux,      
@@ -212,28 +212,28 @@ begin
 --      Config_Param  => Config_Param_FILTER_aux, 
 --      filtered_dout => filtered_dout_aux);
       
-UUT2 : PeakDetector_SelfTrigger_CIEMAT 
+UUT2 : PeakDetector_SelfTrigger
       PORT MAP (
       clock         => clock_aux,
       reset         => reset_aux,      
       din           => din_aux,
       Sending_Data  => Sending_Data_aux, 
       Config_Param  => Config_Param_SELF_aux, 
-      Interface_LOCAL_Primitves_IN => Interface_LOCAL_Primitves_IN_aux,
-      Interface_LOCAL_Primitves_OUT => Interface_LOCAL_Primitves_OUT_aux,
+      Interface_PEAK_DESCRIPTORS_IN => Interface_PEAK_DESCRIPTORS_IN_aux,
+      Interface_PEAK_DESCRIPTORS_OUT => Interface_PEAK_DESCRIPTORS_OUT_aux,
       Self_trigger => open);
 
 Ext_Self_Trigger_Match <= Ext_Self_Trigger and (Match_with_Frame or Sending_Data_aux); 
       
-UUT3 : LocalPrimitives_CIEMAT
+UUT3 : Peak_Descriptors
     PORT MAP ( 
     clock =>  clock_aux,                                                -- AFE clock
     reset=>  reset_aux,                                                 -- Reset signal. ACTIVE HIGH
     Self_trigger=> Ext_Self_Trigger_Match,                                    -- Self-Trigger signal comming from the Self-Trigger block
     din=>  filtered_dout_aux_delay_Extra,                               -- Data coming from the Filter Block / Raw data from AFEs
-    Interface_LOCAL_Primitves_IN=>  Interface_LOCAL_Primitves_OUT_aux,   -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
-    Interface_LOCAL_Primitves_OUT=>  Interface_LOCAL_Primitves_IN_aux, -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
-    Data_Available=>  Data_Available_aux,                               -- ACTIVE HIGH when LOCAL primitives are calculated
+    Interface_PEAK_DESCRIPTORS_IN=>  Interface_PEAK_DESCRIPTORS_OUT_aux,   -- Interface with the peak descriptor calculation block
+    Interface_PEAK_DESCRIPTORS_OUT=>  Interface_PEAK_DESCRIPTORS_IN_aux, -- Interface with the peak descriptor calculation block
+    Data_Available=>  Data_Available_aux,                               -- ACTIVE HIGH when peak descriptors are calculated
     Time_Peak=>  Time_Peak_aux,                                         -- Time in Samples to achieve de Max peak
     Time_Over_Baseline=>  Time_Over_Baseline_aux,                                 -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
     ADC_Peak=>  ADC_Peak_aux,                                           -- Amplitude in ADC counts od the peak
@@ -266,7 +266,7 @@ Config_Param_SELF_aux               <= Config_Param_Reg(13 downto 4);
 
 ---------------------- REGISTER THE VALUES OF A WAVEFORM TO FILL THE TRAILER WORDS     -----------------------
 
-Get_Local_Primitives_Params: process(clock_aux, reset_aux, Data_Available_aux)
+Get_Peak_Descriptor_Params: process(clock_aux, reset_aux, Data_Available_aux)
 begin
     if (clock_aux'event and clock_aux='1') then
         if (reset_aux='1') then
@@ -283,7 +283,7 @@ begin
             Number_Peaks_reg <= Number_Peaks_aux;
         end if; 
     end if;
-end process Get_Local_Primitives_Params;
+end process Get_Peak_Descriptor_Params;
 
 ---------------------- ACTIVATING OF PREVIOUS INFO BIT (Indicates that a waveform is between 2 self-trigger frames     -----------------------
 Previous_Bit: process(Allow_Previous_Info, Sending_Data_aux,Detection_aux, reset_aux, clock_aux)
@@ -300,10 +300,10 @@ end process Previous_Bit;
 Info_Previous <= Info_Previous_reg;
 
 ------------ VARIABLES WITH IMPORTANT INFO ------------------------
-Peak_Current_aux    <= Interface_LOCAL_Primitves_OUT_aux(0);
-Slope_Current_aux   <= Interface_LOCAL_Primitves_OUT_aux(14 downto 1);
+Peak_Current_aux    <= Interface_PEAK_DESCRIPTORS_OUT_aux(0);
+Slope_Current_aux   <= Interface_PEAK_DESCRIPTORS_OUT_aux(14 downto 1);
 Slope_Threshold_aux <= Config_Param_SELF_aux(9 downto 3);
-Detection_aux       <= Interface_LOCAL_Primitves_IN_aux(0);
+Detection_aux       <= Interface_PEAK_DESCRIPTORS_IN_aux(0);
 Allow_Previous_Info <= Config_Param_SELF_aux(1);
 
 ----------------------- DATA SENDING CONTROL    -----------------------

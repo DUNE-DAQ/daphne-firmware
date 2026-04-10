@@ -38,7 +38,7 @@ port(
     ch_id: std_logic_vector(7 downto 0);
     version: std_logic_vector(3 downto 0);
     -- threshold: std_logic_vector(9 downto 0); -- counts relative calculated avg baseline
-    st_config: in std_logic_vector(13 downto 0); -- Config param for Self-Trigger and Local Primitive Calculation, CIEMAT (Nacho)
+    st_config: in std_logic_vector(13 downto 0); -- Config param for self-trigger and peak descriptor calculation
     signal_delay: in std_logic_vector(4 downto 0);
     threshold_xc: in std_logic_vector(27 downto 0); -- cross correlation trigger threshold 
     filter_output_selector: in std_logic_vector(1 downto 0); --Esteban
@@ -80,26 +80,25 @@ signal clean_forcetrig: std_logic := '0';
 signal forcetrig_reg: std_logic_vector(1 downto 0) := "00";
 signal enable: std_logic;
 
-signal triggered_bicocca: std_logic := '0';
 signal afe_dat_filtered: std_logic_vector(13 downto 0);
 signal afe_dat_filtered_TP: std_logic_vector(13 downto 0);
 signal trigCount: std_logic_vector(63 downto 0) := (others => '0');
 signal packCount: std_logic_vector(63 downto 0) := (others => '0');
 
-signal Match_TP_With_FRAME: std_logic; -- ACTIVE HIGH when LOCAL primitives are calculated
+signal match_descriptor_with_frame_s: std_logic; -- ACTIVE HIGH when peak descriptors are calculated
 signal Data_Available_Trailer_aux: std_logic; -- ACTIVE HIGH when metadata is ready
-signal Trailer_Word_0_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_1_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_2_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_3_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_4_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_5_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_6_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_7_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_8_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_9_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_10_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
-signal Trailer_Word_11_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with metada (Local Trigger Primitives)
+signal Trailer_Word_0_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_1_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_2_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_3_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_4_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_5_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_6_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_7_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_8_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_9_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_10_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
+signal Trailer_Word_11_aux: std_logic_vector(31 downto 0); -- TRAILER WORD with peak descriptor metadata
 signal xcorr_control_s: trigger_xcorr_control_t := TRIGGER_XCORR_CONTROL_NULL;
 signal trigger_builder_s: trigger_xcorr_result_t := TRIGGER_XCORR_RESULT_NULL;
 signal descriptor_control_s: peak_descriptor_control_t := PEAK_DESCRIPTOR_CONTROL_NULL;
@@ -148,14 +147,14 @@ port(
     ts: in std_logic_vector(63 downto 0); -- timestamp
     baseline: out std_logic_vector(13 downto 0); -- baseline 300mHz LPF output
     dout1: out std_logic_vector(13 downto 0); -- Filtered AFE data: selected data. To see filter process
-    dout2: out std_logic_vector(13 downto 0); -- Filtered AFE data: movmean data. To use with Nacho's module 
+    dout2: out std_logic_vector(13 downto 0); -- Filtered AFE data: movmean data for the descriptor path
     trig_sample_dat: out std_logic_vector(13 downto 0); -- the sample that caused the trigger
     trig_sample_ts:  out std_logic_vector(63 downto 0); -- the timestamp of the sample that caused the trigger
     trig: out std_logic -- trigger pulse (after latency delay)
 );
 end component;
 
-component Self_Trigger_Primitive_Calculation is
+component Peak_Descriptor_Calculation is
 port(
     clock:                          in  std_logic;                                              -- AFE clock
     reset:                          in  std_logic;                                              -- Reset signal. ACTIVE HIGH
@@ -164,7 +163,7 @@ port(
     Ext_Self_Trigger:               in  std_logic;                                              -- External Self-Trigger coming from another block
     Match_with_Frame:               in  std_logic;                                              -- External signal that allows being matched with the frame construction.
     Self_trigger:                   out std_logic;                                              -- Self-Trigger signal comming from the Self-Trigger block
-    Data_Available:                 out std_logic;                                              -- ACTIVE HIGH when LOCAL primitives are calculated
+    Data_Available:                 out std_logic;                                              -- ACTIVE HIGH when peak descriptors are calculated
     Time_Peak:                      out std_logic_vector(8 downto 0);                           -- Time in Samples to achieve de Max peak
     Time_Over_Baseline:             out std_logic_vector(8 downto 0);                           -- Time in Samples of the light pulse signal is UNDER BASELINE (without undershoot)
     Time_Start:                     out std_logic_vector(9 downto 0);                           -- Time in Samples of the light pulse signal is OVER BASELINE (undershoot)
@@ -180,18 +179,18 @@ port(
     Sending:                        out std_logic;                                              -- ACTIVE HIGH when colecting data for self-trigger frame
     Info_Previous:                  out std_logic;                                              -- ACTIVE HIGH when self-trigger is produced by a waveform between two frames 
     Data_Available_Trailer:         out std_logic;                                              -- ACTIVE HIGH when metadata is ready
-    Trailer_Word_0:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_1:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_2:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_3:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_4:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_5:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_6:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_7:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_8:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_9:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_10:                out std_logic_vector(31 downto 0);                          -- TRAILER WORD with metada (Local Trigger Primitives)
-    Trailer_Word_11:                out std_logic_vector(31 downto 0)                           -- TRAILER WORD with metada (Local Trigger Primitives)
+    Trailer_Word_0:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_1:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_2:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_3:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_4:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_5:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_6:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_7:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_8:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_9:                 out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_10:                out std_logic_vector(31 downto 0);                          -- TRAILER WORD with peak descriptor metadata
+    Trailer_Word_11:                out std_logic_vector(31 downto 0)                           -- TRAILER WORD with peak descriptor metadata
 );
 end component;
 
@@ -258,7 +257,7 @@ trig_sample_ts <= trigger_builder_s.trigger_timestamp;
 
 descriptor_control_s <= (
     config      => st_config,
-    frame_match => Match_TP_With_FRAME
+    frame_match => match_descriptor_with_frame_s
 );
 
 descriptor_channel_inst: entity work.peak_descriptor_channel
@@ -273,7 +272,7 @@ port map(
 
 Data_Available_Trailer_aux <= descriptor_result_s.trailer_available;
 
-Match_TP_With_FRAME <= frame_match_s;
+match_descriptor_with_frame_s <= frame_match_s;
 
 record_builder_inst: entity work.stc3_record_builder
 port map(

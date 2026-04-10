@@ -5,7 +5,7 @@
 Neutral boundary for:
 
 - threshold register banks
-- filter and trigger primitives
+- filter and trigger stages
 - trigger descriptor generation
 - descriptor handoff toward frame assembly and transport
 

@@ -10,7 +10,7 @@ private STC3 core.
   which instantiates the legacy `trig_xc`.
 - The legacy peak-descriptor algorithm is still imported through
   [peak_descriptor_channel.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd),
-  which instantiates the legacy `Self_Trigger_Primitive_Calculation`.
+  which instantiates the legacy `Peak_Descriptor_Calculation`.
 - The old STC3 packer/FIFO behavior from
   `/Users/marroyav/repo/Daphne_MEZZ/ip_repo/daphne3_ip/rtl/selftrig/stc3.vhd`
   was not discarded. It was split into the current

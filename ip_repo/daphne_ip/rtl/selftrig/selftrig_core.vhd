@@ -21,7 +21,7 @@ port(
     filter_output_selector: in std_logic_vector(1 downto 0); --Esteban
     afe_comp_enable: in std_logic_vector(39 downto 0);
     invert_enable: in std_logic_vector(39 downto 0);
-    st_config: in std_logic_vector(13 downto 0); -- Config param for Self-Trigger and Local Primitive Calculation, CIEMAT (Nacho)
+    st_config: in std_logic_vector(13 downto 0); -- Config param for self-trigger and peak descriptor calculation
     signal_delay: in std_logic_vector(4 downto 0);
     timestamp: in std_logic_vector(63 downto 0);
     forcetrig: in std_logic;

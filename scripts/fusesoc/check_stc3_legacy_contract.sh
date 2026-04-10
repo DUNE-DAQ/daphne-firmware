@@ -71,7 +71,7 @@ require_pattern "marker & R0(7 downto 0) & R1 & R2 & R3 & R4                    
 require_pattern "marker & R0 & R1 & R2 & R3 & R4(13 downto 6)                   when (state=d27) else" "$LEGACY_STC3" "legacy dense pack last word"
 
 require_pattern "trig_xc_inst : trig_xc" "$CURRENT_XCORR_WRAPPER" "current trigger algorithm import"
-require_pattern "descriptor_inst : Self_Trigger_Primitive_Calculation" "$CURRENT_DESCRIPTOR_WRAPPER" "current descriptor algorithm import"
+require_pattern "descriptor_calc_inst : Peak_Descriptor_Calculation" "$CURRENT_DESCRIPTOR_WRAPPER" "current descriptor algorithm import"
 require_pattern "record_builder_inst: entity work.stc3_record_builder" "$CURRENT_STC3" "current STC3 record-builder split"
 require_pattern "fixed_delay_inst : entity work.fixed_delay_line" "$CURRENT_RECORD_BUILDER" "current fixed delay line"
 require_pattern "DELAY_G => 288" "$CURRENT_RECORD_BUILDER" "current fixed delay length"

@@ -6,7 +6,7 @@
 // Create Date: July 22, 2022, 1:50:22 PM
 // Design Name: filtering_and_selftrigger
 // Module Name: IIRFilter_afe_integrator_optimized.v
-// Project Name: selftrigger@bicocca
+// Project Name: selftrigger
 // Target Devices: DAPHNE V2
 //
 //////////////////////////////////////////////////////////////////////////////////

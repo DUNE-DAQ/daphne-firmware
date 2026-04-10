@@ -1,10 +1,10 @@
 ----------------------------------------------------------------------------------
--- Company: CIEMAT
+-- Company: Imported source
 -- Engineer: Ignacio L�pez de Rego Benedi
 -- 
 -- Create Date: 11.04.2024 14:08:05
 -- Design Name: 
--- Module Name: PeakDetector_SelfTrigger_CIEMAT - Behavioral
+-- Module Name: PeakDetector_SelfTrigger - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -39,10 +39,10 @@ use ieee.numeric_std.all;
 --      + The detection is done with a CONFIGURABLE threshold over the slope signal:  x(n) - x(n-1) or   [x(n) - x(n-2)] / 2 depending on the configuration.
 --      + Activate SELF_TRIGGER: Each detected peak / Only main (first) peaks (not those present in the undershoot)
 --      + Posibility to activate Self-trigger to capture a waveforme that is not fully recorded in a data adquisition frame. 
---      + This block tends to be independent, so there is interface with PRIMITIVE CALCULATION Block
+--      + This block tends to be independent, so there is interface with peak-descriptor calculation Block
 
 
-entity PeakDetector_SelfTrigger_CIEMAT is
+entity PeakDetector_SelfTrigger is
 port(
     clock:                          in  std_logic;                      -- AFE clock
     reset:                          in  std_logic;                      -- Reset signal. ACTIVE HIGH 
@@ -53,13 +53,13 @@ port(
                                                                         --                 --> '1' = ALLOWED Self-Trigger with light pulse between 2 data adquisition frames
                                                                         -- Config_Param[2] --> '0' = Slope calculation with 2 consecutive samples --> x(n) - x(n-1)  / '1' = Slope calculation with 3 consecutive samples --> [x(n) - x(n-2)] / 2 
                                                                         -- Config_Param[9 downto 3] --> Slope_Threshold (signed) 1(sign) + 6 bits, must be negative.
-    Interface_LOCAL_Primitves_IN:   in  std_logic_vector(23 downto 0);   -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
-    Interface_LOCAL_Primitves_OUT:  out std_logic_vector(23 downto 0);   -- Interface with Local Primitives calculation BLOCK --> DEPENDS ON SELF-TRIGGER ALGORITHM 
+    Interface_PEAK_DESCRIPTORS_IN:   in  std_logic_vector(23 downto 0);   -- Interface with the peak descriptor calculation block
+    Interface_PEAK_DESCRIPTORS_OUT:  out std_logic_vector(23 downto 0);   -- Interface with the peak descriptor calculation block
     Self_trigger:                   out std_logic                       -- ACTIVE HIGH when a Self-trigger events occurs
 );
-end PeakDetector_SelfTrigger_CIEMAT;
+end PeakDetector_SelfTrigger;
 
-architecture Behavioral of PeakDetector_SelfTrigger_CIEMAT is
+architecture Behavioral of PeakDetector_SelfTrigger is
 
 -- CONFIGURATION signals 
 signal Config_Param_Reg : std_logic_vector(9 downto 0);
@@ -67,9 +67,9 @@ signal Main_Peak_Self_Trigger: std_logic ; -- '0' = All detected peaks ACTIVATE 
 signal Allow_PartialWavefrom_Self_Trigger: std_logic ; --> '0' = NOT ALLOWED  Self-Trigger with light pulse between 2 data adquisition frames / '1' = ALLOWED Self-Trigger with light pulse between 2 data adquisition frames    
 signal Slope_Config_Calculation: std_logic ;-- '0' = Slope calculation with 2 consecutive samples --> x(n) - x(n-1)  / '1' = Slope calculation with 3 consecutive samples --> [x(n) - x(n-2)] / 2 
 signal Slope_Threshold: std_logic_vector(6 downto 0); -- Slope_Threshold (signed) 1(sign) + 6 bits, must be negative. 
--- INTERFACE with LOCAL TRIGGER PRIMITVE calculation block signals 
-signal Interface_LOCAL_Primitves_IN_reg: std_logic_vector(23 downto 0);
-signal Detection: std_logic; -- ACTIVE HIGH During detection and Local primitives calculation 
+-- INTERFACE with peak descriptor calculation block signals
+signal Interface_PEAK_DESCRIPTORS_IN_reg: std_logic_vector(23 downto 0);
+signal Detection: std_logic; -- ACTIVE HIGH during detection and peak descriptor calculation
 -- PEAK DETECTION signals
 signal din_delay1, din_delay2, din_delay3, din_delay4, din_delay5, din_delay6, din_delay7, din_delay8, din_delay9, din_delay10: std_logic_vector (13 downto 0); -- Delayed values of the incomming signal
 signal din_delay11, din_delay12, din_delay13, din_delay14, din_delay15, din_delay16, din_delay17, din_delay18, din_delay19, din_delay20: std_logic_vector (13 downto 0); -- Delayed values of the incomming signal
@@ -246,24 +246,24 @@ end process Output_Allow;
 Self_trigger <=(((Peak_Current) and (not(Main_Peak_Self_Trigger))) or ((Main_Peak_Self_Trigger) and (Peak_Current) and (not(Detection))) or ((Allow_PartialWavefrom_Self_Trigger) and (Detection) and (not(Sending_Data))))and (not(Not_allow_Trigger));
 
 
------------------------ INTERFACE WITH LOCAL PRIMITIVES CALCULATION BLOCK    -----------------------
+----------------------- INTERFACE WITH PEAK DESCRIPTOR CALCULATION BLOCK    -----------------------
 
--- Data coming from LOCAL PRIMITVE Calculation Block
+-- Data coming from the peak descriptor calculation block
 Get_Interface_Params: process(clock)
 begin
     if (clock'event and clock='1') then
-        Interface_LOCAL_Primitves_IN_reg <= Interface_LOCAL_Primitves_IN;
+        Interface_PEAK_DESCRIPTORS_IN_reg <= Interface_PEAK_DESCRIPTORS_IN;
     end if;
 end process Get_Interface_Params;
--- Interface_LOCAL_Primitves_IN[0] --> 1 = ENABLE filtering / 0 = DISABLE filtering 
--- Interface_LOCAL_Primitves_IN[3 downto 1] --> TBD
-Detection <= Interface_LOCAL_Primitves_IN_reg(0);
--- Data being sent to LOCAL PRIMITVE Calculation Block
-Interface_LOCAL_Primitves_OUT(0) <= Peak_Current;
---Interface_LOCAL_Primitves_OUT(1) <= Sending;
---Interface_LOCAL_Primitves_OUT(2) <= Previous_Frame;
-Interface_LOCAL_Primitves_OUT(14 downto 1) <= Slope_Current;
-Interface_LOCAL_Primitves_OUT(23 downto 15) <= (others=>'0');
+-- Interface_PEAK_DESCRIPTORS_IN[0] --> 1 = ENABLE filtering / 0 = DISABLE filtering
+-- Interface_PEAK_DESCRIPTORS_IN[3 downto 1] --> TBD
+Detection <= Interface_PEAK_DESCRIPTORS_IN_reg(0);
+-- Data being sent to the peak descriptor calculation block
+Interface_PEAK_DESCRIPTORS_OUT(0) <= Peak_Current;
+--Interface_PEAK_DESCRIPTORS_OUT(1) <= Sending;
+--Interface_PEAK_DESCRIPTORS_OUT(2) <= Previous_Frame;
+Interface_PEAK_DESCRIPTORS_OUT(14 downto 1) <= Slope_Current;
+Interface_PEAK_DESCRIPTORS_OUT(23 downto 15) <= (others=>'0');
 
 ----------------------- TIMER AFTER RESET       -----------------------
 
