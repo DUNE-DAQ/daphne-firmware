@@ -272,6 +272,7 @@ proc daphne_run_impl {cfg_name} {
     } else {
         write_checkpoint -force [file join $cfg(output_dir) "${cfg(bd_name)}_post_place.dcp"]
     }
+    daphne_run_nonfatal "post-place report_methodology" [list report_methodology -file [file join $cfg(output_dir) "post_place_methodology.rpt"]]
     report_timing_summary -file [file join $cfg(output_dir) "post_place_timing_summary.rpt"]
     report_timing -sort_by group -max_paths 100 -path_type summary -file [file join $cfg(output_dir) "post_place_timing.rpt"]
     report_clock_utilization -file [file join $cfg(output_dir) "post_place_clock_util.rpt"]
@@ -281,6 +282,7 @@ proc daphne_run_impl {cfg_name} {
     phys_opt_design -directive $cfg(post_route_physopt_directive)
     write_checkpoint -force [file join $cfg(output_dir) "${cfg(bd_name)}_post_route.dcp"]
 
+    daphne_run_nonfatal "post-route report_methodology" [list report_methodology -file [file join $cfg(output_dir) "post_route_methodology.rpt"]]
     report_timing_summary -file [file join $cfg(output_dir) "post_route_timing_summary.rpt"]
     report_timing -sort_by group -max_paths 100 -path_type summary -file [file join $cfg(output_dir) "post_route_timing.rpt"]
     report_clock_utilization -file [file join $cfg(output_dir) "clock_util.rpt"]
