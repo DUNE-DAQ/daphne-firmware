@@ -91,6 +91,12 @@ The timing side is still weaker than it should be:
   `set_case_analysis`, because Vivado 2024.1 does not accept the earlier
   "physically exclusive dual-family clocks on the same live sinks" model at
   the `febit3` ISERDESE3 `CLKDIV` path.
+- The remaining endpoint timing debt is CDC-specific, not frontend-clock-model
+  ambiguity: `xilinx/timing_endpoint_cdc.tcl` now owns the explicit
+  `pdts_synchro`/`pdts_synchro_pulse` false-path cuts plus the raw
+  `rx0_tmg_p -> rxcdr/sm/iff/D` sampling exception, and `pdts_ep_core.vhd`
+  now re-synchronises the endpoint status bus before it feeds the frontend
+  control/register path.
 - `frontend_common.vhd` now makes the `idelayctrl_reset`, `idelay_load`, and
   `trig_axi` crossings explicit two-stage synchronizers with `ASYNC_REG`
   marking, which is a better timing/CDC baseline than the earlier single-flop
