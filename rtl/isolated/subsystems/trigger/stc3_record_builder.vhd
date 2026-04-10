@@ -33,6 +33,7 @@ entity stc3_record_builder is
 end entity stc3_record_builder;
 
 architecture rtl of stc3_record_builder is
+  constant LIVE_COUNTER_WIDTH_C : positive := 16;
   type array_10x14_type is array(9 downto 0) of std_logic_vector(13 downto 0);
   type state_type is (
     rst, wait4trig, w0, w1, w2, w3, h0, h1, h2, h3, h4, h5, h6, h7, h8,
@@ -55,13 +56,16 @@ architecture rtl of stc3_record_builder is
   signal prog_empty_s         : std_logic;
   signal prog_full_s          : std_logic;
   signal fifo_word_count_s    : std_logic_vector(12 downto 0);
-  signal record_count_s       : std_logic_vector(63 downto 0) := (others => '0');
-  signal busydrop_count_s     : std_logic_vector(63 downto 0) := (others => '0');
-  signal fulldrop_count_s     : std_logic_vector(63 downto 0) := (others => '0');
+  -- Keep the hot-path monitoring counters narrow so their carry chains do not
+  -- sit on the critical trigger/data path. The external 64-bit contract stays
+  -- unchanged for now by zero-extending these live values.
+  signal record_count_s       : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal busydrop_count_s     : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal fulldrop_count_s     : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal busydrop_seen_s      : std_logic := '0';
   signal fsm_busy_s           : std_logic;
-  signal trig_count_s         : unsigned(63 downto 0) := (others => '0');
-  signal pack_count_s         : unsigned(63 downto 0) := (others => '0');
+  signal trig_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal pack_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal trailer_reg_s        : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
   signal event_pulse_s        : std_logic;
 begin
@@ -140,7 +144,7 @@ begin
       if enable_i = '0' then
         fulldrop_count_s <= (others => '0');
       elsif (event_pulse_s = '1' and prog_full_s = '1' and state_s = wait4trig) then
-        fulldrop_count_s <= std_logic_vector(unsigned(fulldrop_count_s) + 1);
+        fulldrop_count_s <= fulldrop_count_s + 1;
       end if;
     end if;
   end process fulldrop_proc;
@@ -151,7 +155,7 @@ begin
       if enable_i = '0' then
         busydrop_count_s <= (others => '0');
       elsif (event_pulse_s = '1' and fsm_busy_s = '1' and busydrop_seen_s = '0') then
-        busydrop_count_s <= std_logic_vector(unsigned(busydrop_count_s) + 1);
+        busydrop_count_s <= busydrop_count_s + 1;
         busydrop_seen_s  <= '1';
       end if;
 
@@ -241,7 +245,7 @@ begin
       if enable_i = '0' then
         record_count_s <= (others => '0');
       elsif state_s = h0 then
-        record_count_s <= std_logic_vector(unsigned(record_count_s) + 1);
+        record_count_s <= record_count_s + 1;
       end if;
     end if;
   end process record_count_proc;
@@ -302,11 +306,11 @@ begin
     );
 
   frame_match_o    <= '1' when state_s = wait4trig else '0';
-  record_count_o   <= record_count_s;
-  full_count_o     <= fulldrop_count_s;
-  busy_count_o     <= busydrop_count_s;
-  trigger_count_o  <= std_logic_vector(trig_count_s);
-  packet_count_o   <= std_logic_vector(pack_count_s);
+  record_count_o   <= std_logic_vector(resize(record_count_s, record_count_o'length));
+  full_count_o     <= std_logic_vector(resize(fulldrop_count_s, full_count_o'length));
+  busy_count_o     <= std_logic_vector(resize(busydrop_count_s, busy_count_o'length));
+  trigger_count_o  <= std_logic_vector(resize(trig_count_s, trigger_count_o'length));
+  packet_count_o   <= std_logic_vector(resize(pack_count_s, packet_count_o'length));
   delayed_sample_o <= din_delay(9);
   ready_o          <= not prog_empty_s;
 end architecture rtl;
