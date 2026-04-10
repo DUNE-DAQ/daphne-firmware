@@ -15,7 +15,7 @@ entity peak_descriptor_channel is
 end entity peak_descriptor_channel;
 
 architecture rtl of peak_descriptor_channel is
-  component Self_Trigger_Primitive_Calculation is
+  component Peak_Descriptor_Calculation is
     port (
       clock                  : in  std_logic;
       reset                  : in  std_logic;
@@ -73,7 +73,7 @@ architecture rtl of peak_descriptor_channel is
   signal info_previous_s     : std_logic;
   signal trailer_words_s     : peak_descriptor_trailer_t;
 begin
-  descriptor_inst : Self_Trigger_Primitive_Calculation
+  descriptor_calc_inst : Peak_Descriptor_Calculation
     port map (
       clock                  => clock_i,
       reset                  => reset_i,

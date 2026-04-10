@@ -26,7 +26,7 @@ port(
     filter_output_selector: in std_logic_vector(1 downto 0); --Esteban
     afe_comp_enable: in std_logic_vector(19 downto 0);
     invert_enable: in std_logic_vector(19 downto 0);
-    st_config: in std_logic_vector(13 downto 0); -- Config param for Self-Trigger and Local Primitive Calculation, CIEMAT (Nacho)
+    st_config: in std_logic_vector(13 downto 0); -- Config param for self-trigger and peak descriptor calculation
     signal_delay: in std_logic_vector(4 downto 0);
 
     clock: in std_logic; -- main clock 62.5 MHz
@@ -72,7 +72,7 @@ architecture st20_top_arch of st20_top is
         ch_id: std_logic_vector(7 downto 0);
         version: std_logic_vector(3 downto 0);    
         -- threshold: std_logic_vector(9 downto 0);
-        st_config: in std_logic_vector(13 downto 0); -- Config param for Self-Trigger and Local Primitive Calculation, CIEMAT (Nacho)
+        st_config: in std_logic_vector(13 downto 0); -- Config param for self-trigger and peak descriptor calculation
         signal_delay: in std_logic_vector(4 downto 0);
         threshold_xc: in std_logic_vector(27 downto 0); -- cross correlation trigger threshold 
         filter_output_selector: in std_logic_vector(1 downto 0); --Esteban
@@ -116,7 +116,7 @@ begin
                 ch_id => std_logic_vector( to_unsigned(i+start_channel_number, 8) ),
                 version => version,
                 threshold_xc => thresholds_xc(i),
-                st_config => st_config, -- Config param for Self-Trigger and Local Primitive Calculation, CIEMAT (Nacho)
+                st_config => st_config, -- Config param for self-trigger and peak descriptor calculation
                 signal_delay => signal_delay,
                 filter_output_selector => filter_output_selector, --Esteban
                 afe_comp_enable => afe_comp_enable(i),

@@ -87,18 +87,18 @@ filesets:
       - ip_repo/daphne_ip/rtl/frontend/febit3.vhd
       - ip_repo/daphne_ip/rtl/frontend/front_end.vhd
       - ip_repo/daphne_ip/rtl/misc/outspybuff.vhd
-      - ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/hpf_pedestal_recovery_filter_trigger.vhd
-      - ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/Configurable_CFD.vhd
-      - ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/LocalPrimitives_CIEMAT.vhd
-      - ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/PeakDetector_SelfTrigger_CIEMAT.vhd
-      - ip_repo/daphne_ip/rtl/selftrig/ciemat_selftrig/Self_Trigger_Primitive_Calculation.vhd
       - ip_repo/daphne_ip/rtl/selftrig/core.vhd
       - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/dsp_xc.vhd
       - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/st_xc.vhd
+      - ip_repo/daphne_ip/rtl/selftrig/peak_descriptor_import/Configurable_CFD.vhd
+      - ip_repo/daphne_ip/rtl/selftrig/peak_descriptor_import/PeakDetector_SelfTrigger.vhd
+      - ip_repo/daphne_ip/rtl/selftrig/peak_descriptor_import/Peak_Descriptor_Calculation.vhd
+      - ip_repo/daphne_ip/rtl/selftrig/peak_descriptor_import/Peak_Descriptors.vhd
       - ip_repo/daphne_ip/rtl/selftrig/selftrig_core.vhd
       - ip_repo/daphne_ip/rtl/selftrig/st20_top.vhd
       - ip_repo/daphne_ip/rtl/selftrig/stc3.vhd
       - ip_repo/daphne_ip/rtl/selftrig/trig_xc.vhd
+      - ip_repo/daphne_ip/rtl/selftrig/xcorr_import/hpf_pedestal_recovery_filter_trigger.vhd
       - ip_repo/daphne_ip/rtl/spy/spybuff.vhd
       - ip_repo/daphne_ip/rtl/spy/spybuffers.vhd
       - ip_repo/daphne_ip/rtl/spy/spyram.vhd
@@ -140,8 +140,8 @@ filesets:
     file_type: user
   rtl_verilog_export:
     files:
-      - ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/IIRFilter_afe_integrator_optimized.v
-      - ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/k_low_pass_filter.v
+      - ip_repo/daphne_ip/rtl/selftrig/xcorr_import/IIRFilter_afe_integrator_optimized.v
+      - ip_repo/daphne_ip/rtl/selftrig/xcorr_import/k_low_pass_filter.v
     file_type: user
   rtl_top_export:
     files:

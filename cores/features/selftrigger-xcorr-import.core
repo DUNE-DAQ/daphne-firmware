@@ -10,15 +10,15 @@ filesets:
     depend:
       - dune-daq:daphne:selftrigger-import-common:0.1.0
     files:
-      - ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/hpf_pedestal_recovery_filter_trigger.vhd
+      - ip_repo/daphne_ip/rtl/selftrig/xcorr_import/hpf_pedestal_recovery_filter_trigger.vhd
       - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/dsp_xc.vhd
       - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/st_xc.vhd
       - ip_repo/daphne_ip/rtl/selftrig/trig_xc.vhd
     file_type: vhdlSource-2008
   rtl_verilog:
     files:
-      - ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/IIRFilter_afe_integrator_optimized.v
-      - ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/k_low_pass_filter.v
+      - ip_repo/daphne_ip/rtl/selftrig/xcorr_import/IIRFilter_afe_integrator_optimized.v
+      - ip_repo/daphne_ip/rtl/selftrig/xcorr_import/k_low_pass_filter.v
     file_type: verilogSource
 
 targets:

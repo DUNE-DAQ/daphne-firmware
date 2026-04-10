@@ -18,7 +18,7 @@ port(
     ts: in std_logic_vector(63 downto 0); -- timestamp
     baseline: out std_logic_vector(13 downto 0); -- baseline 300mHz LPF output
     dout1: out std_logic_vector(13 downto 0); -- Filtered AFE data: selected data. To see filter process
-    dout2: out std_logic_vector(13 downto 0); -- Filtered AFE data: movmean data. To use with Nacho's module 
+    dout2: out std_logic_vector(13 downto 0); -- Filtered AFE data: movmean data for the descriptor path
     trig_sample_dat: out std_logic_vector(13 downto 0); -- the sample that caused the trigger
     trig_sample_ts:  out std_logic_vector(63 downto 0); -- the timestamp of the sample that caused the trigger
     trig: out std_logic -- trigger pulse (after latency delay)
@@ -62,7 +62,7 @@ begin
     end process trig_pipeline_proc;
 
     -- filtering stages and self trigger module
-    bicocca_filter_eia_trigger_inst: hpf_pedestal_recovery_filter_trigger
+    xcorr_filter_trigger_inst: hpf_pedestal_recovery_filter_trigger
     port map (
         clk => clock,
         reset => reset,

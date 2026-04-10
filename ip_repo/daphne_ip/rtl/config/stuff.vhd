@@ -17,7 +17,7 @@
 -- base+32: self triggered mode channel enable ch31..ch00 (31..0) R/W 
 -- base+36: self triggered mode channel enable ch39..ch32 (7..0) R/W 
 -- base+40: adhoc trigger configuration command, 8 bits, R/W
--- base+44: self triggered trigger primitives calculator configuration, 14 bits, R/W
+-- base+44: self triggered peak descriptor calculator configuration, 14 bits, R/W
 -- base+48: self triggered signal delay configuration, 5 bits, R/W
 -- base+52: self triggered filter output configuration, 2 bits, R/W
 -- base+56: self triggered counter flags reset, 1 bit, R/W
@@ -54,7 +54,7 @@ port(
     filter_output_selector: out std_logic_vector(1 downto 0); -- filter configuration (Esteban)
     afe_comp_enable: out std_logic_vector(39 downto 0); -- enable digital afe compensator
     invert_enable: out std_logic_vector(39 downto 0); -- invert signal polarity
-    st_config: out std_logic_vector(13 downto 0); -- Config param for Self-Trigger and Local Primitive Calculation, CIEMAT (Nacho)
+    st_config: out std_logic_vector(13 downto 0); -- Config param for self-trigger and peak descriptor calculation
     signal_delay: out std_logic_vector(4 downto 0); -- amount of delays to set for Self Trigger Latency (8 x signal_delay, signal delay is from 0 to 31 tics)
     reset_st_counters: out std_logic; -- reset for self trigger counter flags
 

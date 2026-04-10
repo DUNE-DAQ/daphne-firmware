@@ -39,8 +39,8 @@ without reintroducing project-mode generated files into version control.
 ## Major deltas observed in the newer source tree
 
 - timing endpoint sources under `rtl/timing/`
-- extra self-trigger implementations under `bicocca_selftrig`,
-  `ciemat_selftrig`, and `eia_selftrig`
+- extra self-trigger implementations under `xcorr_import`,
+  `peak_descriptor_import`, and `eia_selftrig`
 - additional misc/output buffer support modules
 - C++ self-trigger simulation helper sources under `sim/selftrig_xc_cpp`
 - Hermes/Deimos Ethernet source integration

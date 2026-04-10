@@ -6,7 +6,7 @@
 // Create Date: July 1, 2022, 5:51:46 PM
 // Design Name: filtering_and_selftrigger
 // Module Name: k_low_pass_filter.v
-// Project Name: selftrigger@bicocca
+// Project Name: selftrigger
 // Target Devices: DAPHNE V2
 //
 //////////////////////////////////////////////////////////////////////////////////
