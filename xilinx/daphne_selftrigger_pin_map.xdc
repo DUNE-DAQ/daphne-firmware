@@ -187,6 +187,8 @@ set_property IOSTANDARD LVDS [get_ports tx0_tmg_p];
 set_property IOSTANDARD LVDS [get_ports tx0_tmg_n];
 set_property IOSTANDARD LVDS [get_ports rx0_tmg_p];
 set_property IOSTANDARD LVDS [get_ports rx0_tmg_n];
+set_property DIFF_TERM_ADV TERM_100 [get_ports rx0_tmg_p]
+set_property DIFF_TERM_ADV TERM_100 [get_ports rx0_tmg_n]
 #set_property DIFF_TERM false [get_ports tx0_tmg_p]
 #set_property DIFF_TERM false [get_ports tx0_tmg_n]
 #set_property DIFF_TERM false [get_ports rx0_tmg_p
