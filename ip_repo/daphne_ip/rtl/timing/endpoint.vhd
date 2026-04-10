@@ -251,8 +251,10 @@ mmcm_clk2_inst:  BUFG port map( I => mmcm0_clkout2, O => clk100_i);  -- system c
 -- On DAPHNE V3 the timing system recevied clock comes directly 
 -- from the optical SFP receiver; there is no exernal CDR chip at all
 
+-- On UltraScale the board XDC owns the differential termination with
+-- DIFF_TERM_ADV, so keep the primitive generic disabled here.
 timing_rxclk_inst: IBUFDS
-generic map( DIFF_TERM => TRUE, IBUF_LOW_PWR => FALSE )
+generic map( DIFF_TERM => FALSE, IBUF_LOW_PWR => FALSE )
 port map( I => rx0_tmg_p, IB => rx0_tmg_n, O  => rx0_tmg );
 
 -- timing endpoint 2.0 logic from UK Bristol developers
