@@ -76,21 +76,10 @@ core and its default target. If you need to force it explicitly, set:
 export DAPHNE_PLATFORM_CORE=dune-daq:daphne:k26c-composable-platform:0.1.0
 ```
 
-before calling `run_wsl_vivado_chain.sh`. That drives the native board-shell
-default target. The repo still exports a compatibility
+before calling `run_wsl_vivado_chain.sh`. That drives the supported default
+BD-backed `impl` target. The repo still exports a compatibility
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` bundle back into
 `xilinx/output-<gitsha>/` before running the usual DTBO packaging step.
-
-If you want to audit the staged native Flow-API graph before invoking Vivado,
-run:
-
-```bash
-./scripts/fusesoc/check_native_impl_graph.sh
-```
-
-That audit also confirms that the staged `impl` target still resolves
-`k26c_board_shell` and that the board shell remains constrained to the
-explicit board-plane contract.
 
 ## Output directory rule
 

@@ -40,14 +40,11 @@ The repo has now crossed the main structural integration threshold:
 
 - `boards/k26c/board.yml` defaults to
   `dune-daq:daphne:k26c-composable-platform:0.1.0`
-- `./scripts/fusesoc/build_platform.sh` defaults to the native `impl` target
+- `./scripts/fusesoc/build_platform.sh` defaults to the supported `impl` target
   for that platform
-- the active `impl` target builds `k26c_board_shell` through the Vivado Flow
-  API
-- the active `impl` graph is board-plane owned
-- `scripts/fusesoc/check_native_impl_graph.sh` now audits that staged graph for
-  `legacy-*` regressions, required frontend timing constraints, and board-shell
-  plane ownership regressions
+- the active `impl` target builds the BD-backed board-complete design through
+  the Vivado Flow API
+- the active `impl` graph is board-plane owned under the BD wrapper
 - the board self-trigger plane is now internally split into explicit datapath
   and transport subplanes
 - the analog-control and spy-capture board planes now have explicit contract
@@ -55,14 +52,14 @@ The repo has now crossed the main structural integration threshold:
   spy-buffer endpoints
 - the frontend and timing board planes now have explicit contract audits too,
   so they stay thin wrappers around `frontend_island` and `endpoint`
-- the board timing-path defaults now explicitly cover both native board-shell
-  and packaged-IP/BD hierarchy roots, so the active AFE timing XDC no longer
+- the board timing-path defaults now explicitly cover both board-shell and
+  packaged-IP/BD hierarchy roots, so the active AFE timing XDC no longer
   depends on one stale hierarchy assumption
 - the board transport plane is now split into explicit Hermes and outbuffer
   subplanes, so the self-trigger/readout path is no longer carrying that
   compatibility bundle as one block
-- the board manifest now separates legacy packaged-IP identity from the native
-  board-shell defaults through explicit `legacy_*` keys, so future native
+- the board manifest now separates legacy packaged-IP identity from the current
+  board defaults through explicit `legacy_*` keys, so future cleanup
   cleanup no longer needs to keep those names implicit
 - the `k26c-composable-platform` default manifest is now native-only, while the
   remaining legacy Tcl/export collateral is grouped under explicit compatibility
@@ -81,8 +78,8 @@ The repo has now crossed the main structural integration threshold:
   now goes through the explicit board-plane split instead
 
 That means the remaining work is no longer “make a real composable impl
-possible”; it is “prove, harden, and simplify the native path until the legacy
-lane is only a compatibility fallback”.
+possible”; it is “prove, harden, and simplify the supported path until the
+legacy lane is only a compatibility fallback”.
 
 The vendor-neutral primitive seam is now in place for the isolated
 self-trigger path. The main portability blocker has moved up to the frontend
@@ -92,40 +89,35 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
 
 ## Immediate next steps
 
-1. Keep the native `impl` graph auditable and stable.
-   - `scripts/fusesoc/check_native_impl_graph.sh` should stay green after every
-     board-plane or build-wrapper refactor.
-   - Treat reintroduction of `legacy-*` core names into the active
-     `k26c-composable-platform:impl` graph as a regression.
+1. Keep the supported `impl` graph stable.
    - Treat direct leaf ownership creeping back into `k26c_board_shell` as a
      regression; it should stay a board-plane composition shell.
    - Keep the required constraint set present:
      `daphne_selftrigger_pin_map.xdc`, `afe_capture_timing.tcl`,
      `frontend_control_cdc.tcl`.
 
-2. Prove the native board-shell path on hardware.
+2. Prove the supported board-complete path on hardware.
    - Use the current default `build_platform.sh` / `run_vivado_batch.sh`
      entrypoint and compare it directly against the known-good build lane.
    - Keep timing/AFE readout qualification ahead of further wide refactors.
-   - Preserve full build trees and reports from known-good native runs.
+   - Preserve full build trees and reports from known-good runs.
 
 3. Reduce the dual-lane delivery burden.
    - Keep the legacy Tcl/IP/export path available, but treat it as a
      compatibility lane rather than the architectural source of truth.
    - Keep packaged-IP preflight decisions tied to the resolved platform core
      and target, not to historical composable-only special cases.
-   - Keep deployment artifact naming stable while the native path is being
+   - Keep deployment artifact naming stable while the supported path is being
      qualified.
 
 4. Keep the public/composable documentation aligned with reality.
-   - `modular-architecture.md`, `native-impl-architecture.md`, and the remote
-     runbooks should describe the actual default build path, not the historical
-     one.
+   - `modular-architecture.md` and the remote runbooks should describe the
+     actual default build path, not the historical one.
    - Record board-shell and board-plane ownership explicitly so future work is
      easier to review.
 
 5. Decide when the legacy lane can be demoted further.
-   - The key question is no longer whether a native `impl` exists.
+   - The key question is no longer whether a supported `impl` exists.
    - The key question is when hardware confidence is high enough that routine
      development stops depending on the legacy delivery path.
 
@@ -135,25 +127,14 @@ The sections below summarize the major steps that made the current baseline
 possible. They remain useful context when debugging why certain wrappers or
 compatibility layers still exist.
 
-### Earlier milestone: native impl target
-
-The repo now has a supported default `impl` target on
-`k26c-composable-platform`, but that path is BD/PS-backed and builds
-`daphne_selftrigger_bd_wrapper` as the board-complete top. The explicit native
-board-shell Flow-API lane still exists separately as
-`impl_board_shell_flow`, and both lanes export the same
-`daphne_selftrigger_<gitsha>` artifact contract.
-
 ### Earlier milestone: explicit board-shell ownership
 
-The explicit native board-shell synth/impl path now resolves through an
-explicit `k26c-board-shell` feature core and the extracted bridge graph
-rather than the generated `daphne-ip` source manifest. The generated
+The supported board-complete path now resolves through an explicit
+`k26c-board-shell` feature core and the extracted bridge graph
+rather than a generated monolithic source manifest. The generated
 packaged-IP manifest still exists for the legacy export/build lane, but
-the explicit board-shell experiment lane is now meaningfully closer to a full
-FuseSoC-owned source graph. `k26c_board_shell` owns that experimental
-implementation directly, with `legacy_public_top_bridge` retained only as a
-compatibility alias for older manifest consumers.
+`k26c_board_shell` is now the clear board-owned RTL aggregation point under
+the BD-backed implementation wrapper.
 
 ### Earlier milestone: public-top and board-shell synth checkpoints
    - The shared Vivado flow now accepts `DAPHNE_BD_NAME` /
@@ -220,7 +201,7 @@ matches the current timing-friendly ownership in `stc3`.
 
 1. Keep proving boundary contracts with SymbiYosys as slices are added.
 2. Keep small GHDL smoke benches on slice-level control blocks.
-3. Keep the native `k26c-composable-platform` `impl` target resolving cleanly
+3. Keep the supported `k26c-composable-platform` `impl` target resolving cleanly
    through the Vivado Flow API, and focus the next validation effort on
    hardware-qualified implementation/timing closure rather than more legacy
    entrypoint scaffolding.
@@ -232,6 +213,3 @@ matches the current timing-friendly ownership in `stc3`.
 6. Keep the new `validate_public_top` target passing so the public composable
    top stays locally testable even while the real frontend island remains
    vendor-specific.
-7. Keep `scripts/fusesoc/check_native_impl_graph.sh` passing so the staged
-   native `impl` graph remains free of `legacy-*` core names and keeps the
-   required AFE timing constraints wired in.

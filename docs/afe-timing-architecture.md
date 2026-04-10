@@ -115,9 +115,8 @@ The timing side is still weaker than it should be:
    - receive/generated clocks for the frontend path
    - source-synchronous relationships around `clock`, `clk500`, and `clk125`
    - the real async boundaries only
-   - the repo now carries `xilinx/afe_capture_timing_scaffold.xdc` as the
-     design note and `xilinx/afe_capture_timing.tcl` as the active, required
-     split constraint file wired through the board manifest
+   - the repo now carries `xilinx/afe_capture_timing.tcl` as the active,
+     required split constraint file wired through the board manifest
    - the repo now carries `xilinx/frontend_control_cdc.tcl` as the active,
      required control-CDC companion file for AXI-originated frontend control
      strobes/state (`idelayctrl_reset`, `idelay_load`, `idelay_tap`,
@@ -126,7 +125,7 @@ The timing side is still weaker than it should be:
      the board manifest/build defaults instead of being hardcoded inside the
      timing Tcl
    - the active board profile now carries semicolon-separated candidate roots
-     for both the native board-shell path and the packaged-IP/BD path, and
+     for both direct board-shell hierarchy and the packaged-IP/BD path, and
      `xilinx/afe_capture_timing.tcl` resolves exactly one matching net/pin from
      those candidates
    - board manifests should own the optional AFE input-delay model too

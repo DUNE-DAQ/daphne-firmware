@@ -3,7 +3,7 @@
 ## Intent
 
 The repository now carries two parallel packaging views of the same imported
-firmware, plus one board-owned native implementation path:
+firmware, plus one supported board-owned implementation path:
 
 - `daphne-ip.core` is the compatibility manifest generated
   from the existing Vivado Tcl flow. This is the safe path for the currently
@@ -16,8 +16,8 @@ firmware, plus one board-owned native implementation path:
   FuseSoC-native decomposition used for incremental refactoring, simulation, and
   eventual top-level platform packaging.
 - `cores/platform/k26c-composable-platform.core` now exposes a real Flow-API
-  `impl` target whose toplevel is `k26c_board_shell`. That path is now the
-  board-manifest default for `./scripts/fusesoc/build_platform.sh`.
+  `impl` target whose toplevel is `daphne_selftrigger_bd_wrapper`. That path is
+  now the board-manifest default for `./scripts/fusesoc/build_platform.sh`.
 
 This split is deliberate. The modular graph should evolve quickly, while the
 legacy generated manifest protects the current K26C delivery path from churn.
@@ -67,8 +67,8 @@ legacy generated manifest protects the current K26C delivery path from churn.
 - `k26c-modular-platform` remains transitional and should not be the destination
   for new work.
 - `k26c-composable-platform` is now the primary board-manifest default. Its
-  `impl` target is Flow-API owned and builds `k26c_board_shell` directly from
-  the extracted board-plane graph.
+  `impl` target is Flow-API owned and builds the BD-backed board-complete
+  design while still sourcing the extracted board-plane graph underneath it.
 
 ## Verification split
 
@@ -79,12 +79,6 @@ legacy generated manifest protects the current K26C delivery path from churn.
 - Formal now covers the AXI-Lite leaf blocks plus the isolated subsystem
   boundary wrappers where reset and readiness contracts are explicit enough to
   prove cheaply during the migration.
-- `scripts/fusesoc/check_native_impl_graph.sh` stages the active
-  `k26c-composable-platform` `impl` graph and fails if `legacy-*` core names
-  reappear, if the required frontend timing constraint set drops out of the
-  native path, or if `k26c_board_shell` stops being a strict board-plane
-  composition layer.
-
 ## What this does not do yet
 
 - It does not remove the legacy Tcl/IP packaging path from the repository.
@@ -96,22 +90,20 @@ legacy generated manifest protects the current K26C delivery path from churn.
 - It does not provide a deployable Petalinux bundle, boot image recipe, or
   `daphne-server` installation pipeline.
 
-## Active Native Impl Shape
+## Active Impl Shape
 
 The active `k26c-composable-platform` `impl` graph is now:
 
 ```text
 k26c-composable-platform (impl)
-└─ k26c-board-shell
-   ├─ k26c-board-frontend-plane
-   │  └─ frontend-island
-   ├─ k26c-board-timing-plane
-   ├─ k26c-board-analog-control-plane
-   ├─ k26c-board-selftrigger-plane
-   │  ├─ k26c-selftrigger-datapath-plane
-   │  └─ k26c-board-transport-plane
-   └─ k26c-board-spy-capture-plane
+└─ daphne_selftrigger_bd_wrapper
+   └─ k26c-board-shell
+      ├─ k26c-board-frontend-plane
+      │  └─ frontend-island
+      ├─ k26c-board-timing-plane
+      ├─ k26c-board-analog-control-plane
+      ├─ k26c-board-selftrigger-plane
+      │  ├─ k26c-selftrigger-datapath-plane
+      │  └─ k26c-board-transport-plane
+      └─ k26c-board-spy-capture-plane
 ```
-
-That staged graph is now audited to stay free of `legacy-*` core names and to
-keep `k26c_board_shell` constrained to explicit board-plane ownership.
