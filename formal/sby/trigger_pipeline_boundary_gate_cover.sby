@@ -1,0 +1,19 @@
+[options]
+mode cover
+depth 1
+
+[engines]
+smtbmc z3
+
+[script]
+# Cover a concrete trigger-enable scenario so the neutral boundary contract
+# proves the enable path is reachable, not only safe.
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd trigger_pipeline_boundary.vhd trigger_pipeline_boundary_formal.vhd trigger_pipeline_boundary_cover.psl -e trigger_pipeline_boundary_formal
+prep -top trigger_pipeline_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/trigger/trigger_pipeline_boundary.vhd
+../vhdl/trigger_pipeline_boundary_formal.vhd
+../vhdl/trigger_pipeline_boundary_cover.psl

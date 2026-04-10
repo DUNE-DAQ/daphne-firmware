@@ -1,0 +1,20 @@
+[options]
+mode cover
+depth 1
+
+[engines]
+smtbmc z3
+
+[script]
+# Cover a concrete frontend alignment-ready scenario so the boundary proof
+# shows alignment_valid can rise when every prerequisite and deasserted reset
+# qualifier is satisfied.
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd frontend_boundary.vhd frontend_boundary_formal.vhd frontend_boundary_cover.psl -e frontend_boundary_formal
+prep -top frontend_boundary_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/frontend/frontend_boundary.vhd
+../vhdl/frontend_boundary_formal.vhd
+../vhdl/frontend_boundary_cover.psl

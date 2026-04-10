@@ -1,0 +1,19 @@
+vunit daphne_composable_frontend_shell_cover (daphne_composable_frontend_shell_formal(formal))
+{
+  default clock is rising_edge(clock_i);
+
+  cover {
+    frontend_trig_o = '1' and
+    frontend_dout_o(0)(0)(15) = '1' and
+    frontend_dout_o(0)(0)(2) = '1' and
+    frontend_dout_o(0)(0)(1) = '1' and
+    frontend_dout_o(0)(0)(0) = '0' and
+    trigger_samples_probe(0)(13) = '1' and
+    trigger_samples_probe(0)(0) = '1' and
+    frontend_dout_o(4)(7)(14) = '1' and
+    frontend_dout_o(4)(7)(3) = '1' and
+    frontend_dout_o(4)(7)(0) = '1' and
+    trigger_samples_probe(39)(12) = '1' and
+    trigger_samples_probe(39)(1) = '1'
+  };
+}

@@ -88,7 +88,7 @@ begin
       AFE_COUNT_G          => AFE_COUNT_C,
       ENABLE_SELFTRIGGER_G => false,
       ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false,
+      ENABLE_HERMES_G      => true,
       ENABLE_SPYBUFFER_G   => false
     )
     port map (
@@ -175,6 +175,15 @@ begin
     afe_p_s(0)(1) <= '0';
     afe_n_s(0)(1) <= '1';
     trig_in_s <= '1';
+    timing_ctrl_s.use_endpoint_clock <= '1';
+    timing_ctrl_s.mmcm0_reset <= '0';
+    timing_ctrl_s.mmcm1_reset <= '0';
+    timing_ctrl_s.endpoint_reset <= '0';
+    timing_ctrl_s.endpoint_addr <= x"00A5";
+    hermes_descriptor_s.valid <= '1';
+    hermes_descriptor_s.channel_id <= x"31";
+    hermes_descriptor_s.version_id <= "0110";
+    hermes_descriptor_s.payload <= x"1122334455667788";
 
     wait for 4 * CLK_PERIOD_C;
     frontend_axi_aresetn_s <= '1';
@@ -191,14 +200,44 @@ begin
       report "Public top should pass the validate frontend trigger through unchanged"
       severity failure;
 
-    assert timing_stat_s = TIMING_STATUS_NULL
-      report "Disabled timing path should stay at the null status in the public top"
+    assert timing_stat_s.mmcm0_locked = '1'
+      report "Public top should expose mmcm0 lock once endpoint timing is selected and released"
       severity failure;
-    assert hermes_taken_s = '0'
-      report "Disabled Hermes path should ignore descriptors in the public top"
+    assert timing_stat_s.mmcm1_locked = '1'
+      report "Public top should expose mmcm1 lock once endpoint timing is selected and released"
       severity failure;
-    assert hermes_status_s = HERMES_BOUNDARY_STATUS_NULL
-      report "Disabled Hermes path should stay at the null status in the public top"
+    assert timing_stat_s.endpoint_ready = '1'
+      report "Public top should expose endpoint readiness once endpoint timing is released and locked"
+      severity failure;
+    assert timing_stat_s.endpoint_state = x"F"
+      report "Public top should expose the ready endpoint state once endpoint timing is fully released"
+      severity failure;
+    assert timing_stat_s.timestamp_valid = '1'
+      report "Public top should expose timestamp validity once endpoint timing is ready"
+      severity failure;
+    assert timing_timestamp_s = x"00A500A500A500A5"
+      report "Public top should expose the ready-gated endpoint timestamp image"
+      severity failure;
+    assert timing_sync_s = x"A5"
+      report "Public top should expose the ready-gated endpoint sync byte"
+      severity failure;
+    assert timing_sync_stb_s = '1'
+      report "Public top should expose the modeled endpoint sync strobe when the selected address enables it"
+      severity failure;
+    assert hermes_taken_s = '1'
+      report "Enabled Hermes public-top path should accept a descriptor when the modeled backpressure bit is clear"
+      severity failure;
+    assert hermes_status_s.link_up = '1'
+      report "Enabled Hermes public-top path should report link-up once reset is released"
+      severity failure;
+    assert hermes_status_s.ready = '1'
+      report "Enabled Hermes public-top path should report ready when the modeled backpressure bit is clear"
+      severity failure;
+    assert hermes_status_s.backpressure = '0'
+      report "Enabled Hermes public-top path should keep backpressure low when the modeled stall bit is clear"
+      severity failure;
+    assert hermes_status_s.transport_busy = '1'
+      report "Enabled Hermes public-top path should report transport busy while a live descriptor is present"
       severity failure;
     assert trigger_result_s(0) = TRIGGER_XCORR_RESULT_NULL
       report "Disabled self-trigger path should keep the first trigger result null in the public top"

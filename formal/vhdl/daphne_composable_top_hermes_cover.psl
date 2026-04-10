@@ -1,0 +1,16 @@
+vunit daphne_composable_top_hermes_cover (daphne_composable_top_formal(formal))
+{
+  default clock is rising_edge(clock_i);
+
+  cover {
+    frontend_resetn_i = '1' and
+    hermes_descriptor_i.valid = '1' and
+    hermes_descriptor_i.channel_id(1) = '1' and
+    hermes_descriptor_i.payload(0) = '0' and
+    hermes_descriptor_taken_o = '1' and
+    hermes_stat_o.link_up = '1' and
+    hermes_stat_o.ready = '1' and
+    hermes_stat_o.backpressure = '0' and
+    hermes_stat_o.transport_busy = '1'
+  };
+}

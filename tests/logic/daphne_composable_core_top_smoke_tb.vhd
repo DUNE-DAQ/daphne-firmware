@@ -115,29 +115,60 @@ begin
 
   stimulus : process
   begin
+    timing_ctrl_s.use_endpoint_clock <= '1';
+    timing_ctrl_s.mmcm0_reset <= '0';
+    timing_ctrl_s.mmcm1_reset <= '0';
+    timing_ctrl_s.endpoint_reset <= '0';
+    timing_ctrl_s.endpoint_addr <= x"00A5";
+    hermes_descriptor_s.valid <= '1';
+    hermes_descriptor_s.channel_id <= x"22";
+    hermes_descriptor_s.version_id <= "0101";
+    hermes_descriptor_s.payload <= x"AA55AA55AA55AA54";
+
     wait for 4 * CLK_PERIOD_C;
     reset_s <= '0';
     timing_resetn_s <= '1';
     wait for 6 * CLK_PERIOD_C;
 
-    assert timing_stat_s = TIMING_STATUS_NULL
-      report "Timing boundary status should stay at the documented null state in the composable core top"
+    assert timing_stat_s.mmcm0_locked = '1'
+      report "Composable core top should expose mmcm0 lock once endpoint timing is selected and released"
       severity failure;
-    assert timing_timestamp_s = (timing_timestamp_s'range => '0')
-      report "Timing boundary timestamp should stay zero in the composable core top"
+    assert timing_stat_s.mmcm1_locked = '1'
+      report "Composable core top should expose mmcm1 lock once endpoint timing is selected and released"
       severity failure;
-    assert timing_sync_s = (timing_sync_s'range => '0')
-      report "Timing boundary sync bus should stay zero in the composable core top"
+    assert timing_stat_s.endpoint_ready = '1'
+      report "Composable core top should expose endpoint readiness once endpoint timing is released and locked"
       severity failure;
-    assert timing_sync_stb_s = '0'
-      report "Timing boundary sync strobe should stay low in the composable core top"
+    assert timing_stat_s.endpoint_state = x"F"
+      report "Composable core top should expose the ready endpoint state once endpoint timing is fully released"
+      severity failure;
+    assert timing_stat_s.timestamp_valid = '1'
+      report "Composable core top should expose timestamp validity once endpoint timing is ready"
+      severity failure;
+    assert timing_timestamp_s = x"00A500A500A500A5"
+      report "Composable core top should expose the ready-gated endpoint timestamp image"
+      severity failure;
+    assert timing_sync_s = x"A5"
+      report "Composable core top should expose the ready-gated endpoint sync byte"
+      severity failure;
+    assert timing_sync_stb_s = '1'
+      report "Composable core top should expose the modeled endpoint sync strobe when the selected address enables it"
       severity failure;
 
-    assert hermes_taken_s = '0'
-      report "Hermes boundary should not consume descriptors in the neutral composable core top"
+    assert hermes_taken_s = '1'
+      report "Enabled Hermes core-top path should accept a descriptor when the modeled backpressure bit is clear"
       severity failure;
-    assert hermes_status_s = HERMES_BOUNDARY_STATUS_NULL
-      report "Hermes boundary should stay at the documented null state in the composable core top"
+    assert hermes_status_s.link_up = '1'
+      report "Enabled Hermes core-top path should report link-up once reset is released"
+      severity failure;
+    assert hermes_status_s.ready = '1'
+      report "Enabled Hermes core-top path should report ready when the modeled backpressure bit is clear"
+      severity failure;
+    assert hermes_status_s.backpressure = '0'
+      report "Enabled Hermes core-top path should keep backpressure low when the modeled stall bit is clear"
+      severity failure;
+    assert hermes_status_s.transport_busy = '1'
+      report "Enabled Hermes core-top path should report transport busy while a live descriptor is present"
       severity failure;
 
     assert trigger_result_s(0) = TRIGGER_XCORR_RESULT_NULL
