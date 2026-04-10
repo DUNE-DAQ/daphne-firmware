@@ -86,6 +86,11 @@ The timing side is still weaker than it should be:
 - The active AFE receive-clock model now lives in `xilinx/afe_capture_timing.tcl`,
   but the board-owned input-delay model is still disabled until measured
   min/max timing numbers are available.
+- The active timing Tcl now constrains one selected frontend timing mode per
+  run (`endpoint` by default for K26C) and drives `MMCM1/CLKINSEL` with
+  `set_case_analysis`, because Vivado 2024.1 does not accept the earlier
+  "physically exclusive dual-family clocks on the same live sinks" model at
+  the `febit3` ISERDESE3 `CLKDIV` path.
 - `frontend_common.vhd` now makes the `idelayctrl_reset`, `idelay_load`, and
   `trig_axi` crossings explicit two-stage synchronizers with `ASYNC_REG`
   marking, which is a better timing/CDC baseline than the earlier single-flop
