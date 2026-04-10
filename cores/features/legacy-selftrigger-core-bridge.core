@@ -1,0 +1,25 @@
+CAPI=2:
+
+name: dune-daq:daphne:legacy-selftrigger-core-bridge:0.1.0
+description: Legacy selftrigger-core compatibility bridge wrapping the composable core shell, direct adapters, mux, and AXI register ownership
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:daphne-composable-core-top:0.1.0
+      - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
+      - dune-daq:daphne:trigger-control-adapter:0.1.0
+      - dune-daq:daphne:two-lane-readout-mux:0.1.0
+      - dune-daq:daphne:selftrigger-register-bank:0.1.0
+    files:
+      - rtl/isolated/subsystems/readout/legacy_selftrigger_core_bridge.vhd
+    file_type: vhdlSource-2008
+
+targets:
+  default:
+    filesets:
+      - rtl

@@ -50,7 +50,11 @@ filesets:
       - rtl/isolated/subsystems/readout/k26c_board_selftrigger_plane.vhd
       - rtl/isolated/subsystems/readout/k26c_board_transport_plane.vhd
       - rtl/isolated/subsystems/readout/k26c_selftrigger_datapath_plane.vhd
+      - rtl/isolated/subsystems/readout/legacy_core_readout_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_deimos_readout_bridge.vhd
+      - rtl/isolated/subsystems/readout/legacy_selftrigger_core_bridge.vhd
+      - rtl/isolated/subsystems/readout/legacy_selftrigger_output_bridge.vhd
+      - rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd
       - rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd
       - rtl/isolated/subsystems/spy/k26c_board_spy_buffer_plane.vhd
       - rtl/isolated/subsystems/spy/k26c_board_spy_capture_plane.vhd
@@ -66,6 +70,7 @@ filesets:
       - rtl/isolated/subsystems/trigger/afe_selftrigger_island.vhd
       - rtl/isolated/subsystems/trigger/afe_trigger_bank.vhd
       - rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd
+      - rtl/isolated/subsystems/trigger/legacy_selftrigger_datapath.vhd
       - rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd
       - rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd
       - rtl/isolated/subsystems/trigger/selftrigger_fabric.vhd
