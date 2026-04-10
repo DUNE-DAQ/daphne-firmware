@@ -49,8 +49,9 @@ The composition changed.
   - [self_trigger_xcorr_channel.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd)
   - [peak_descriptor_channel.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd)
   - [stc3_record_builder.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/trigger/stc3_record_builder.vhd)
-- The old `selftrig_core` composition was also refactored behind
-  [legacy_selftrigger_core_bridge.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/readout/legacy_selftrigger_core_bridge.vhd)
+- The old `selftrig_core` composition was also refactored into the current
+  [selftrig_core.vhd](/Users/marroyav/repo/daphne-firmware/ip_repo/daphne_ip/rtl/selftrig/selftrig_core.vhd),
+  which now owns the former bridge logic directly
 
 So the correct claim is:
 

@@ -12,8 +12,6 @@ filesets:
       - dune-daq:daphne:daphne-subsystem-primitives:0.1.0
       - dune-daq:daphne:daphne-subsystem-types:0.1.0
       - dune-daq:daphne:legacy-deimos-readout-bridge:0.1.0
-      - dune-daq:daphne:legacy-selftrigger-core-bridge:0.1.0
-      - dune-daq:daphne:legacy-selftrigger-datapath:0.1.0
     files:
       - ip_repo/daphne_ip/rtl/selftrig/baseline.vhd
       - ip_repo/daphne_ip/rtl/selftrig/bicocca_selftrig/hpf_pedestal_recovery_filter_trigger.vhd
@@ -25,7 +23,6 @@ filesets:
       - ip_repo/daphne_ip/rtl/selftrig/dual_st20_top.vhd
       - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/dsp_xc.vhd
       - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/st_xc.vhd
-      - rtl/isolated/subsystems/trigger/legacy_selftrigger_datapath.vhd
       - ip_repo/daphne_ip/rtl/selftrig/selftrig_core.vhd
       - ip_repo/daphne_ip/rtl/selftrig/st20_top.vhd
       - ip_repo/daphne_ip/rtl/selftrig/st40_top.vhd
