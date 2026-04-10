@@ -48,11 +48,13 @@ architecture febit3_arch of febit3 is
     
 begin
 
-    -- LVDS input buffer with internal termination
+    -- LVDS input buffer. On UltraScale the board XDC owns the differential
+    -- termination with DIFF_TERM_ADV, so do not request the legacy DIFF_TERM
+    -- primitive generic here.
 
     IBUFDS_inst: IBUFDS
     generic map(
-        DIFF_TERM    => TRUE,
+        DIFF_TERM    => FALSE,
         IBUF_LOW_PWR => FALSE,
         IOSTANDARD   => "LVDS"
     )
