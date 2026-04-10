@@ -8,7 +8,9 @@ BOARD_MANIFEST="$ROOT_DIR/boards/$BOARD/board.yml"
 FLOW_TCL="$ROOT_DIR/xilinx/daphne_vivado_flow.tcl"
 TIMING_TCL="$ROOT_DIR/xilinx/afe_capture_timing.tcl"
 CDC_TCL="$ROOT_DIR/xilinx/frontend_control_cdc.tcl"
+ENDPOINT_CDC_TCL="$ROOT_DIR/xilinx/timing_endpoint_cdc.tcl"
 ENDPOINT_RTL="$ROOT_DIR/ip_repo/daphne_ip/rtl/timing/endpoint.vhd"
+ENDPOINT_CORE_RTL="$ROOT_DIR/ip_repo/daphne_ip/rtl/timing/pdts_ep_core.vhd"
 BATCH_HOOK="$ROOT_DIR/scripts/fusesoc/vivado_batch_hook.sh"
 MANUAL_RUNNER="$ROOT_DIR/scripts/wsl/run_manual_vivado_pushd.sh"
 
@@ -60,18 +62,20 @@ require_file "$BOARD_MANIFEST"
 require_file "$FLOW_TCL"
 require_file "$TIMING_TCL"
 require_file "$CDC_TCL"
+require_file "$ENDPOINT_CDC_TCL"
 require_file "$ENDPOINT_RTL"
+require_file "$ENDPOINT_CORE_RTL"
 require_file "$BATCH_HOOK"
 require_file "$MANUAL_RUNNER"
 
-require_fixed "constraint_files: xilinx/daphne_selftrigger_pin_map.xdc;xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl" "$BOARD_MANIFEST" \
+require_fixed "constraint_files: xilinx/daphne_selftrigger_pin_map.xdc;xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl" "$BOARD_MANIFEST" \
   "board manifest does not stage the Tcl-backed AFE timing constraints."
-require_fixed "required_constraint_files: xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl" "$BOARD_MANIFEST" \
+require_fixed "required_constraint_files: xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl" "$BOARD_MANIFEST" \
   "board manifest does not require the Tcl-backed AFE timing constraints."
 require_fixed "timing_clock_source: endpoint" "$BOARD_MANIFEST" \
   "board manifest does not select the endpoint clocking mode for AFE timing by default."
 
-require_fixed "if {\$constraint_basename in {\"afe_capture_timing.tcl\" \"frontend_control_cdc.tcl\"}} {" "$FLOW_TCL" \
+require_fixed "if {\$constraint_basename in {\"afe_capture_timing.tcl\" \"frontend_control_cdc.tcl\" \"timing_endpoint_cdc.tcl\"}} {" "$FLOW_TCL" \
   "Vivado flow no longer classifies the Tcl-backed AFE timing files for post-synth loading."
 require_fixed "read_xdc -unmanaged \$constraint_file" "$FLOW_TCL" \
   "Vivado flow no longer loads the Tcl-backed AFE timing files as unmanaged Tcl constraints."
@@ -110,6 +114,10 @@ require_fixed "    mmcm1_clkout0" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend bit clock in its async-group family."
 require_fixed "    clk125" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend byte clock in its async-group family."
+require_fixed "set_false_path -to \$endpoint_sync_stage1_pins" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer cuts the explicit PDTS synchronizer first-stage pins."
+require_fixed "set_false_path -from \$rx_tmg_port -to \$endpoint_raw_rx_sample_pins" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer cuts the raw recovered-clock sample path into the PDTS CDR sampler."
 
 require_regex "mmcm1_clk2_inst[[:space:]]*:[[:space:]]*BUFGCE_DIV" "$ENDPOINT_RTL" \
   "endpoint.vhd no longer generates clk125 from BUFGCE_DIV."
@@ -119,5 +127,9 @@ require_regex "port map \\( I => mmcm1_clkout0, O => clk125, CE => '1', CLR => '
   "endpoint.vhd no longer feeds clk125 from the 500 MHz MMCM1 output."
 require_regex "mmcm1_clk1_inst:[[:space:]]*BUFG port map\\( I => mmcm1_clkout1, O => clock_i\\);" "$ENDPOINT_RTL" \
   "endpoint.vhd no longer exposes the live frontend master clock through mmcm1_clk1_inst."
+require_regex "sync_stat:[[:space:]]*entity work\\.pdts_synchro" "$ENDPOINT_CORE_RTL" \
+  "pdts_ep_core.vhd no longer resynchronises endpoint status into the control/register domain."
+require_regex "stat[[:space:]]*=>[[:space:]]*stati_clk" "$ENDPOINT_CORE_RTL" \
+  "pdts_ep_core.vhd no longer feeds the register file with the synchronised status bus."
 
 echo "INFO: AFE timing constraint contract matches the live endpoint clocking and the Vivado 2024.1 unmanaged-Tcl flow."
