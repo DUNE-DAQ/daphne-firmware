@@ -89,6 +89,7 @@ EOF
       cat <<'EOF'
 daphne_composable_frontend_shell_cover
 daphne_composable_top_cover
+daphne_composable_top_hermes_cover
 daphne_composable_top_timing_cover
 EOF
       ;;

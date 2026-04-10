@@ -53,6 +53,10 @@ architecture formal of daphne_composable_core_top_formal is
   signal hermes_descriptor_taken_b : std_logic;
   signal hermes_stat_a             : hermes_boundary_status_t;
   signal hermes_stat_b             : hermes_boundary_status_t;
+  signal hermes_descriptor_taken_ref_a : std_logic;
+  signal hermes_descriptor_taken_ref_b : std_logic;
+  signal hermes_stat_ref_a             : hermes_boundary_status_t;
+  signal hermes_stat_ref_b             : hermes_boundary_status_t;
   signal config_status_a           : afe_config_status_bank_t(0 to 4);
   signal config_status_b           : afe_config_status_bank_t(0 to 4);
   signal afe_sclk_a                : std_logic_vector(4 downto 0);
@@ -103,7 +107,7 @@ begin
       AFE_COUNT_G          => 5,
       ENABLE_SELFTRIGGER_G => false,
       ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false
+      ENABLE_HERMES_G      => true
     )
     port map (
       clock_i                   => clock_i,
@@ -159,7 +163,7 @@ begin
       AFE_COUNT_G          => 5,
       ENABLE_SELFTRIGGER_G => false,
       ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false
+      ENABLE_HERMES_G      => true
     )
     port map (
       clock_i                   => clock_i,
@@ -232,6 +236,24 @@ begin
       sync_stb_o    => timing_sync_stb_ref_b
     );
 
+  hermes_ref_a : entity work.hermes_boundary
+    port map (
+      clk                => clock_i,
+      reset              => reset_i,
+      descriptor_i       => hermes_descriptor_a,
+      descriptor_taken_o => hermes_descriptor_taken_ref_a,
+      hermes_stat_o      => hermes_stat_ref_a
+    );
+
+  hermes_ref_b : entity work.hermes_boundary
+    port map (
+      clk                => clock_i,
+      reset              => reset_i,
+      descriptor_i       => hermes_descriptor_b,
+      descriptor_taken_o => hermes_descriptor_taken_ref_b,
+      hermes_stat_o      => hermes_stat_ref_b
+    );
+
   assert timing_stat_a = timing_stat_ref_a
     report "core top must expose the timing boundary status image directly, independent of ENABLE_TIMING_G"
     severity failure;
@@ -264,20 +286,20 @@ begin
     report "core top timing sync strobe must follow the boundary contract for arbitrary timing control payloads"
     severity failure;
 
-  assert hermes_descriptor_taken_a = '0'
-    report "core top must not consume descriptors when Hermes is disabled"
+  assert hermes_descriptor_taken_a = hermes_descriptor_taken_ref_a
+    report "core top must expose the live Hermes boundary accept-or-stall contract when Hermes is enabled"
     severity failure;
 
-  assert hermes_descriptor_taken_b = '0'
-    report "disabled Hermes path must ignore descriptor payloads"
+  assert hermes_descriptor_taken_b = hermes_descriptor_taken_ref_b
+    report "core top Hermes descriptor handoff must follow the same boundary contract for arbitrary descriptors"
     severity failure;
 
-  assert hermes_stat_a = HERMES_BOUNDARY_STATUS_NULL
-    report "core top must expose null Hermes status when Hermes is disabled"
+  assert hermes_stat_a = hermes_stat_ref_a
+    report "core top Hermes status must match the isolated Hermes boundary model when Hermes is enabled"
     severity failure;
 
-  assert hermes_stat_b = HERMES_BOUNDARY_STATUS_NULL
-    report "disabled Hermes path must remain descriptor-independent"
+  assert hermes_stat_b = hermes_stat_ref_b
+    report "core top Hermes status must follow the same isolated boundary model for arbitrary descriptors"
     severity failure;
 
   gen_channel : for idx in 0 to 39 generate

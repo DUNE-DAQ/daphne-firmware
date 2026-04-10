@@ -67,7 +67,7 @@ begin
       AFE_COUNT_G          => AFE_COUNT_C,
       ENABLE_SELFTRIGGER_G => false,
       ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false
+      ENABLE_HERMES_G      => true
     )
     port map (
       clock_i                   => clock_s,
@@ -176,10 +176,19 @@ begin
       report "Frontend shell should expose the modeled endpoint sync strobe when the selected address enables it"
       severity failure;
     assert hermes_taken_s = '0'
-      report "Disabled Hermes path should ignore descriptors"
+      report "Enabled Hermes shell path should stall descriptor handoff when the modeled backpressure bit is set"
       severity failure;
-    assert hermes_status_s = HERMES_BOUNDARY_STATUS_NULL
-      report "Disabled Hermes path should stay at the documented null boundary status"
+    assert hermes_status_s.link_up = '1'
+      report "Enabled Hermes shell path should report link-up once reset is released"
+      severity failure;
+    assert hermes_status_s.ready = '0'
+      report "Enabled Hermes shell path should drop ready when the modeled backpressure bit is set"
+      severity failure;
+    assert hermes_status_s.backpressure = '1'
+      report "Enabled Hermes shell path should report backpressure when the modeled stall bit is set"
+      severity failure;
+    assert hermes_status_s.transport_busy = '1'
+      report "Enabled Hermes shell path should report a live transport transaction while the descriptor is stalled"
       severity failure;
 
     assert trigger_result_s(0) = TRIGGER_XCORR_RESULT_NULL

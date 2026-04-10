@@ -47,6 +47,7 @@ jobs:
             formal/sby/spy_buffer_boundary_gate_cover/engine_0/trace*.vcd
             formal/sby/daphne_composable_frontend_shell_cover/engine_0/trace*.vcd
             formal/sby/daphne_composable_top_cover/engine_0/trace*.vcd
+            formal/sby/daphne_composable_top_hermes_cover/engine_0/trace*.vcd
             formal/sby/daphne_composable_top_timing_cover/engine_0/trace*.vcd
           if-no-files-found: warn
           retention-days: 14

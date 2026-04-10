@@ -120,6 +120,10 @@ begin
     timing_ctrl_s.mmcm1_reset <= '0';
     timing_ctrl_s.endpoint_reset <= '0';
     timing_ctrl_s.endpoint_addr <= x"00A5";
+    hermes_descriptor_s.valid <= '1';
+    hermes_descriptor_s.channel_id <= x"22";
+    hermes_descriptor_s.version_id <= "0101";
+    hermes_descriptor_s.payload <= x"AA55AA55AA55AA54";
 
     wait for 4 * CLK_PERIOD_C;
     reset_s <= '0';
@@ -151,11 +155,20 @@ begin
       report "Composable core top should expose the modeled endpoint sync strobe when the selected address enables it"
       severity failure;
 
-    assert hermes_taken_s = '0'
-      report "Hermes boundary should not consume descriptors in the neutral composable core top"
+    assert hermes_taken_s = '1'
+      report "Enabled Hermes core-top path should accept a descriptor when the modeled backpressure bit is clear"
       severity failure;
-    assert hermes_status_s = HERMES_BOUNDARY_STATUS_NULL
-      report "Hermes boundary should stay at the documented null state in the composable core top"
+    assert hermes_status_s.link_up = '1'
+      report "Enabled Hermes core-top path should report link-up once reset is released"
+      severity failure;
+    assert hermes_status_s.ready = '1'
+      report "Enabled Hermes core-top path should report ready when the modeled backpressure bit is clear"
+      severity failure;
+    assert hermes_status_s.backpressure = '0'
+      report "Enabled Hermes core-top path should keep backpressure low when the modeled stall bit is clear"
+      severity failure;
+    assert hermes_status_s.transport_busy = '1'
+      report "Enabled Hermes core-top path should report transport busy while a live descriptor is present"
       severity failure;
 
     assert trigger_result_s(0) = TRIGGER_XCORR_RESULT_NULL
