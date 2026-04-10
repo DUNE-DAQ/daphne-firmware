@@ -50,7 +50,7 @@ end pdts_ep_core;
 
 architecture rtl of pdts_ep_core is
 
-	signal stati: std_logic_vector(3 downto 0);
+	signal stati, stati_clk: std_logic_vector(3 downto 0);
 	signal resync, rx_en, rx_rdy, addr_done, deskew_done, tsrdy, reset, trst, reg_rst, rrst,f_ok: std_logic;
 	signal delay: std_logic_vector(3 downto 0);
 	signal addr: std_logic_vector(15 downto 0);
@@ -101,6 +101,20 @@ begin
 		);
 		
 	sys_stat <= stati;
+
+	-- The register file and control transport live in the endpoint base-clock
+	-- domain; resynchronise the state-machine status bits out of sys_clk before
+	-- they feed that path.
+	sync_stat: entity work.pdts_synchro
+		generic map(
+			N => 4
+		)
+		port map(
+			clk => sys_clk,
+			clks => clk,
+			d => stati,
+			q => stati_clk
+		);
 
 -- Receive
 
@@ -167,7 +181,7 @@ begin
 			ctrl_out => rctrl_r,
 			sys_addr => sys_addr,
 			addr => addr,
-			stat => stati,
+				stat => stati_clk,
 			phase => phase,
 			phase_done => phase_done,
 			delay => delay,

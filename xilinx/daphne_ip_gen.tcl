@@ -777,12 +777,13 @@ set daphne_clk_parameters {
 # }
 
 # daphne PL specific clock interfaces
+# Keep the GT reference clock ports as plain top-level ports. Treating them as
+# generic clock bus interfaces produces misleading IP packaging warnings because
+# they are not associated with an AXI-visible bus clock domain.
 set daphne_pl_clk_interfaces {
     afe_clk_n
     afe_clk_p
     clock_gen_debug
-    eth_clk_n
-    eth_clk_p
     out_buff_clk
 }
 
@@ -992,13 +993,7 @@ foreach plClkInterface $daphne_pl_clk_interfaces {
 
             # configure the clock domain name properly, which changes from other interfaces
             if {$plClkBusParam eq "CLK_DOMAIN"} {
-                if {[string match "eth_clk_n" $plClkInterface]} {
-                    set_property VALUE ${daphne_bd_name}_GTH0_REFCLK_N $plClk_param
-                } elseif {[string match "eth_clk_p" $plClkInterface]} {
-                    set_property VALUE ${daphne_bd_name}_GTH0_REFCLK_P $plClk_param
-                } else {
-                    set_property VALUE ${plClkBusParamVal}_${plClkInterface} $plClk_param
-                }
+                set_property VALUE ${plClkBusParamVal}_${plClkInterface} $plClk_param
             } else {
                 set_property VALUE $plClkBusParamVal $plClk_param
             }
