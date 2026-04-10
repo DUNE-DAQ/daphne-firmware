@@ -34,8 +34,14 @@ architecture formal of daphne_composable_frontend_shell_formal is
   signal timing_timestamp_o        : std_logic_vector(63 downto 0);
   signal timing_sync_o             : std_logic_vector(7 downto 0);
   signal timing_sync_stb_o         : std_logic;
+  signal timing_stat_ref_o         : timing_status_t;
+  signal timing_timestamp_ref_o    : std_logic_vector(63 downto 0);
+  signal timing_sync_ref_o         : std_logic_vector(7 downto 0);
+  signal timing_sync_stb_ref_o     : std_logic;
   signal hermes_descriptor_taken_o : std_logic;
   signal hermes_stat_o             : hermes_boundary_status_t;
+  signal hermes_descriptor_taken_ref_o : std_logic;
+  signal hermes_stat_ref_o             : hermes_boundary_status_t;
   signal config_status_o           : afe_config_status_bank_t(0 to 4);
   signal afe_sclk_o                : std_logic_vector(4 downto 0);
   signal afe_sen_o                 : std_logic_vector(4 downto 0);
@@ -60,13 +66,23 @@ architecture formal of daphne_composable_frontend_shell_formal is
   signal delayed_sample_o          : sample14_array_t(0 to 39);
   signal ready_o                   : std_logic_array_t(0 to 39);
   signal dout_o                    : slv72_array_t(0 to 39);
+  signal trigger_samples_probe     : sample14_array_t(0 to 39);
 begin
+  probe_adapter : entity work.frontend_to_selftrigger_adapter
+    generic map (
+      AFE_COUNT_G => 5
+    )
+    port map (
+      afe_dout_i        => frontend_dout_i,
+      trigger_samples_o => trigger_samples_probe
+    );
+
   dut : entity work.daphne_composable_frontend_shell
     generic map (
       AFE_COUNT_G          => 5,
       ENABLE_SELFTRIGGER_G => false,
       ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false,
+      ENABLE_HERMES_G      => true,
       ENABLE_SPYBUFFER_G   => false
     )
     port map (
@@ -121,6 +137,26 @@ begin
       dout_o                    => dout_o
     );
 
+  timing_ref : entity work.timing_subsystem_boundary
+    port map (
+      clk_axi       => timing_clk_axi_i,
+      resetn_axi    => timing_resetn_axi_i,
+      timing_ctrl_i => timing_ctrl_i,
+      timing_stat_o => timing_stat_ref_o,
+      timestamp_o   => timing_timestamp_ref_o,
+      sync_o        => timing_sync_ref_o,
+      sync_stb_o    => timing_sync_stb_ref_o
+    );
+
+  hermes_ref : entity work.hermes_boundary
+    port map (
+      clk                => clock_i,
+      reset              => not frontend_resetn_i,
+      descriptor_i       => hermes_descriptor_i,
+      descriptor_taken_o => hermes_descriptor_taken_ref_o,
+      hermes_stat_o      => hermes_stat_ref_o
+    );
+
   assert frontend_dout_o = frontend_dout_i
     report "frontend shell must preserve frontend_dout_o exactly"
     severity failure;
@@ -129,28 +165,28 @@ begin
     report "frontend shell must preserve frontend_trig_o exactly"
     severity failure;
 
-  assert timing_stat_o = TIMING_STATUS_NULL
-    report "frontend shell must expose null timing status when timing is disabled"
+  assert timing_stat_o = timing_stat_ref_o
+    report "frontend shell must expose the timing boundary status image directly, independent of ENABLE_TIMING_G"
     severity failure;
 
-  assert timing_timestamp_o = (timing_timestamp_o'range => '0')
-    report "frontend shell timing timestamp output must stay low when timing is disabled"
+  assert timing_timestamp_o = timing_timestamp_ref_o
+    report "frontend shell timing timestamp must follow the timing boundary contract"
     severity failure;
 
-  assert timing_sync_o = (timing_sync_o'range => '0')
-    report "frontend shell timing sync output must stay low when timing is disabled"
+  assert timing_sync_o = timing_sync_ref_o
+    report "frontend shell timing sync bus must follow the timing boundary contract"
     severity failure;
 
-  assert timing_sync_stb_o = '0'
-    report "frontend shell timing sync strobe must stay low when timing is disabled"
+  assert timing_sync_stb_o = timing_sync_stb_ref_o
+    report "frontend shell timing sync strobe must follow the timing boundary contract"
     severity failure;
 
-  assert hermes_descriptor_taken_o = '0'
-    report "frontend shell must not consume descriptors when Hermes is disabled"
+  assert hermes_descriptor_taken_o = hermes_descriptor_taken_ref_o
+    report "frontend shell must expose the live Hermes boundary accept-or-stall contract when Hermes is enabled"
     severity failure;
 
-  assert hermes_stat_o = HERMES_BOUNDARY_STATUS_NULL
-    report "frontend shell must expose null Hermes status when Hermes is disabled"
+  assert hermes_stat_o = hermes_stat_ref_o
+    report "frontend shell Hermes status must match the isolated Hermes boundary model when Hermes is enabled"
     severity failure;
 
   gen_channel : for idx in 0 to 39 generate

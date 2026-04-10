@@ -70,16 +70,27 @@ fe_axi_axi_lite_cover
 thresholds_axi_lite_cover
 EOF
       ;;
+    boundary-cover)
+      cat <<'EOF'
+frontend_boundary_gate_cover
+trigger_pipeline_boundary_gate_cover
+spy_buffer_boundary_gate_cover
+EOF
+      ;;
     composable)
       cat <<'EOF'
 daphne_composable_core_top_contract
 daphne_composable_frontend_shell_contract
+daphne_composable_top_analog_contract
 daphne_composable_top_contract
 EOF
       ;;
     composable-cover)
       cat <<'EOF'
+daphne_composable_frontend_shell_cover
 daphne_composable_top_cover
+daphne_composable_top_hermes_cover
+daphne_composable_top_timing_cover
 EOF
       ;;
     all-local)
@@ -87,14 +98,14 @@ EOF
       ;;
     *)
       echo "ERROR: unknown formal suite '$1'" >&2
-      echo "Known suites: default, leaf-fast, cover-fast, composable, composable-cover, all-local" >&2
+      echo "Known suites: default, leaf-fast, cover-fast, boundary-cover, composable, composable-cover, all-local" >&2
       exit 2
       ;;
   esac
 }
 
 print_suite_names() {
-  printf '%s\n' default leaf-fast cover-fast composable composable-cover all-local
+  printf '%s\n' default leaf-fast cover-fast boundary-cover composable composable-cover all-local
 }
 
 if ! command -v sby >/dev/null 2>&1 || [[ -z "${GHDL_PREFIX:-}" ]]; then

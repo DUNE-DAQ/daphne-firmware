@@ -1,0 +1,16 @@
+vunit daphne_composable_top_timing_cover (daphne_composable_top_formal(formal))
+{
+  default clock is rising_edge(frontend_axi_aclk_i);
+
+  cover {
+    frontend_trig_o = '1' and
+    timing_stat_o.mmcm0_locked = '1' and
+    timing_stat_o.mmcm1_locked = '1' and
+    timing_stat_o.endpoint_ready = '1' and
+    timing_stat_o.timestamp_valid = '1' and
+    timing_stat_o.endpoint_state = x"F" and
+    timing_sync_stb_o = '1' and
+    timing_sync_o = timing_timestamp_o(7 downto 0) and
+    timing_timestamp_o(63 downto 48) = timing_timestamp_o(15 downto 0)
+  };
+}

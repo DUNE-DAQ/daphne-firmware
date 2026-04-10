@@ -52,7 +52,7 @@ When endpoint timing is selected, the safe conceptual readiness condition is:
 When local timing is selected:
 
 - the design may still run from local clocks;
-- fake timestamp behavior is expected;
+- the current isolated model stays intentionally neutral;
 - downstream logic must not infer full endpoint readiness from local operation.
 
 ## Control-plane implication
@@ -72,5 +72,9 @@ This readiness concept is also the timing-side prerequisite for
 
 ## Verification posture
 
-- formal at the control boundary only
+- formal at the control boundary only:
+  the isolated timing boundary now proves a local-neutral / endpoint-selected
+  contract where `endpoint_addr` becomes the ready-gated timestamp image, the
+  low byte becomes the ready-gated sync byte, and the lock/reset controls drive
+  `mmcm*_locked`, `endpoint_ready`, and `endpoint_state`
 - simulation for endpoint integration and clocking behavior

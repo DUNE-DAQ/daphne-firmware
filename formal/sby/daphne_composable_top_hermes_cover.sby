@@ -1,0 +1,35 @@
+[options]
+mode cover
+depth 3
+
+[engines]
+smtbmc z3
+
+[script]
+# Cover a live public Hermes handoff at the composable top seam, including the
+# modeled link-up/ready/busy status image and a taken descriptor.
+plugin -i ghdl
+ghdl --std=08 daphne_package.vhd daphne_subsystem_pkg.vhd frontend_island_validate_stub.vhd afe_capture_to_trigger_bank.vhd frontend_to_selftrigger_adapter.vhd spim_afe1.vhd spim_dac2.vhd afe_config_slice.vhd afe_config_slice_boundary.vhd afe_analog_island.vhd afe_selftrigger_island_validate_stub.vhd afe_subsystem_island.vhd afe_subsystem_fabric.vhd timing_subsystem_boundary.vhd hermes_boundary.vhd daphne_composable_core_top.vhd daphne_composable_frontend_shell.vhd daphne_composable_top.vhd daphne_composable_top_formal.vhd daphne_composable_top_hermes_cover.psl -e daphne_composable_top_formal
+prep -top daphne_composable_top_formal
+
+[files]
+../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/frontend/frontend_island_validate_stub.vhd
+../../rtl/isolated/subsystems/trigger/afe_capture_to_trigger_bank.vhd
+../../rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd
+../../ip_repo/daphne_ip/rtl/afe/spim_afe1.vhd
+../../ip_repo/daphne_ip/rtl/afe/spim_dac2.vhd
+../../rtl/isolated/subsystems/analog/afe_config_slice.vhd
+../../rtl/isolated/subsystems/analog/afe_config_slice_boundary.vhd
+../../rtl/isolated/subsystems/analog/afe_analog_island.vhd
+../../rtl/isolated/subsystems/trigger/afe_selftrigger_island_validate_stub.vhd
+../../rtl/isolated/subsystems/afe/afe_subsystem_island.vhd
+../../rtl/isolated/subsystems/afe/afe_subsystem_fabric.vhd
+../../rtl/isolated/subsystems/timing/timing_subsystem_boundary.vhd
+../../rtl/isolated/subsystems/hermes/hermes_boundary.vhd
+../../rtl/isolated/tops/daphne_composable_core_top.vhd
+../../rtl/isolated/tops/daphne_composable_frontend_shell.vhd
+../../rtl/isolated/tops/daphne_composable_top.vhd
+../vhdl/daphne_composable_top_formal.vhd
+../vhdl/daphne_composable_top_hermes_cover.psl

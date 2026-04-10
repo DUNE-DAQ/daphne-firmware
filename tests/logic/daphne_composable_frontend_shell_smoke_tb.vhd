@@ -67,7 +67,7 @@ begin
       AFE_COUNT_G          => AFE_COUNT_C,
       ENABLE_SELFTRIGGER_G => false,
       ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false
+      ENABLE_HERMES_G      => true
     )
     port map (
       clock_i                   => clock_s,
@@ -126,8 +126,11 @@ begin
     frontend_dout_in_s(0)(0) <= x"1234";
     frontend_dout_in_s(0)(1) <= x"5678";
     frontend_trig_in_s <= '1';
-    timing_ctrl_s.endpoint_addr <= x"0020";
-    timing_ctrl_s.endpoint_reset <= '1';
+    timing_ctrl_s.use_endpoint_clock <= '1';
+    timing_ctrl_s.mmcm0_reset <= '0';
+    timing_ctrl_s.mmcm1_reset <= '0';
+    timing_ctrl_s.endpoint_reset <= '0';
+    timing_ctrl_s.endpoint_addr <= x"00A5";
     hermes_descriptor_s.valid <= '1';
     hermes_descriptor_s.channel_id <= x"22";
     hermes_descriptor_s.version_id <= "0101";
@@ -148,17 +151,44 @@ begin
       report "Frontend shell should pass the frontend trigger flag through unchanged"
       severity failure;
 
-    assert timing_stat_s = TIMING_STATUS_NULL
-      report "Disabled timing path should stay at the documented null boundary status"
+    assert timing_stat_s.mmcm0_locked = '1'
+      report "Frontend shell should expose mmcm0 lock once endpoint timing is selected and released"
       severity failure;
-    assert timing_timestamp_s = (timing_timestamp_s'range => '0')
-      report "Disabled timing path should keep the boundary timestamp at zero"
+    assert timing_stat_s.mmcm1_locked = '1'
+      report "Frontend shell should expose mmcm1 lock once endpoint timing is selected and released"
+      severity failure;
+    assert timing_stat_s.endpoint_ready = '1'
+      report "Frontend shell should expose endpoint readiness once endpoint timing is released and locked"
+      severity failure;
+    assert timing_stat_s.endpoint_state = x"F"
+      report "Frontend shell should expose the ready endpoint state once endpoint timing is fully released"
+      severity failure;
+    assert timing_stat_s.timestamp_valid = '1'
+      report "Frontend shell should expose timestamp validity once endpoint timing is ready"
+      severity failure;
+    assert timing_timestamp_s = x"00A500A500A500A5"
+      report "Frontend shell should expose the ready-gated endpoint timestamp image"
+      severity failure;
+    assert timing_sync_s = x"A5"
+      report "Frontend shell should expose the ready-gated endpoint sync byte"
+      severity failure;
+    assert timing_sync_stb_s = '1'
+      report "Frontend shell should expose the modeled endpoint sync strobe when the selected address enables it"
       severity failure;
     assert hermes_taken_s = '0'
-      report "Disabled Hermes path should ignore descriptors"
+      report "Enabled Hermes shell path should stall descriptor handoff when the modeled backpressure bit is set"
       severity failure;
-    assert hermes_status_s = HERMES_BOUNDARY_STATUS_NULL
-      report "Disabled Hermes path should stay at the documented null boundary status"
+    assert hermes_status_s.link_up = '1'
+      report "Enabled Hermes shell path should report link-up once reset is released"
+      severity failure;
+    assert hermes_status_s.ready = '0'
+      report "Enabled Hermes shell path should drop ready when the modeled backpressure bit is set"
+      severity failure;
+    assert hermes_status_s.backpressure = '1'
+      report "Enabled Hermes shell path should report backpressure when the modeled stall bit is set"
+      severity failure;
+    assert hermes_status_s.transport_busy = '1'
+      report "Enabled Hermes shell path should report a live transport transaction while the descriptor is stalled"
       severity failure;
 
     assert trigger_result_s(0) = TRIGGER_XCORR_RESULT_NULL
