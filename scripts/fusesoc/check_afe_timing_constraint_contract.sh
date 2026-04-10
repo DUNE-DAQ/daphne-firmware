@@ -118,6 +118,18 @@ require_fixed "set_false_path -to \$endpoint_sync_stage1_pins" "$ENDPOINT_CDC_TC
   "endpoint CDC Tcl no longer cuts the explicit PDTS synchronizer first-stage pins."
 require_fixed "set_false_path -from \$rx_tmg_port -to \$endpoint_raw_rx_sample_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the raw recovered-clock sample path into the PDTS CDR sampler."
+require_fixed "*/ep/regfile/adone_reg/Q" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer identifies the PDTS addr_done completion flag crossing."
+require_fixed "*/ep/regfile/ddone_reg/Q" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer identifies the PDTS deskew_done completion flag crossing."
+require_fixed "*/ep/sm/state_reg[*]/D" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer targets the PDTS state-machine destination pins for async completion flags."
+require_fixed "set_false_path -from \$endpoint_regfile_done_source_pins -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer cuts the PDTS regfile completion flags into the sys_clk state machine."
+require_fixed "post-place report_methodology" "$FLOW_TCL" \
+  "Vivado flow no longer emits a post-place methodology report."
+require_fixed "post_route_methodology.rpt" "$FLOW_TCL" \
+  "Vivado flow no longer emits a post-route methodology report."
 
 require_regex "mmcm1_clk2_inst[[:space:]]*:[[:space:]]*BUFGCE_DIV" "$ENDPOINT_RTL" \
   "endpoint.vhd no longer generates clk125 from BUFGCE_DIV."
