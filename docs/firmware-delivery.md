@@ -34,8 +34,7 @@ handoff step before DTBO packaging:
 ```
 
 For the supported default `impl` lane on
-`dune-daq:daphne:k26c-composable-platform:0.1.0`, and for the explicit
-`impl_board_shell_flow` experiment on the same platform core, the post-build
+`dune-daq:daphne:k26c-composable-platform:0.1.0`, the post-build
 export hook already emits the legacy-style
 `daphne_selftrigger_<gitsha>.bit/.bin/.xsa` contract into
 `xilinx/output-$DAPHNE_GIT_SHA/`, so only the DTBO bundler is required. If you
@@ -45,10 +44,6 @@ use:
 ```bash
 ./scripts/package/export_impl_bundle.sh
 ```
-
-The compatibility wrapper `./scripts/package/export_impl_legacy_flow_bundle.sh`
-remains available for older automation and now defaults
-`DAPHNE_PLATFORM_TARGET=impl` before delegating to the generic helper.
 
 ## Current repo-local packaging step
 

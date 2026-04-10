@@ -3,7 +3,6 @@
 ## Current branch
 
 - Branch: `marroyav/fusesoc-backports`
-- Native impl checkpoint: see `docs/native-impl-architecture.md`
 - Latest WSL handoff should also consult `docs/wsl-agent-summary.md`
 - Synthesis-specific timing review: see `docs/synthesis-timing-review.md`
 
@@ -51,7 +50,7 @@ This verifies the GHDL-backed smoke targets for:
 - `.bit` / `.xsa` / `.dtbo` production
 - Petalinux packaging
 - `daphne-server` deployment on target
-- formal execution, because `sby` is not installed on the local workstation
+- full system-level behavior on hardware
 
 ## Immediate next step on a remote Vivado host
 
@@ -84,7 +83,7 @@ For the WSL2 host that launches Windows-installed Vivado/Vitis:
 
 - The repo still carries compatibility/export helpers for legacy automation and
   deployment naming, even though the default board `impl` path is now the
-  native `k26c-composable-platform` Flow-API target.
+  supported `k26c-composable-platform` BD-backed target.
 - MAC/IP defaults are still anchored in imported PL-era defaults and are not
   yet migrated to a board/software-owned device-tree layer.
 

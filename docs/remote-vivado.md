@@ -62,16 +62,6 @@ the build, the repo exports a compatibility
 `xilinx/output-<gitsha>/`, so downstream DTBO packaging can keep using the same
 artifact contract.
 
-If you want to audit the staged native Flow-API graph before invoking Vivado,
-run:
-
-```bash
-./scripts/fusesoc/check_native_impl_graph.sh
-```
-
-That audit checks the explicit native board-shell experiment lane
-(`impl_board_shell_flow`), not the supported default BD-backed `impl` lane.
-
 If you want the remote wrapper to attempt DTBO packaging too, also set:
 
 ```bash

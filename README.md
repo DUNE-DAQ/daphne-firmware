@@ -127,10 +127,7 @@ The composable platform now also exposes `impl` as its default implementation
 target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
 target automatically. Today the supported default `impl` lane is the
 BD/PS-backed board-complete path with `daphne_selftrigger_bd_wrapper` at the
-top. The experimental native board-shell path remains available explicitly as
-`impl_board_shell_flow`; there `k26c_board_shell` owns the live board RTL
-implementation directly, while `legacy_public_top_bridge` has been reduced to a
-compatibility alias for older source-manifest consumers.
+top.
 The K26C board manifest also requires `xilinx/afe_capture_timing.tcl` and
 `xilinx/frontend_control_cdc.tcl`, so the split frontend timing/CDC model
 cannot silently drop out of the build.
@@ -367,16 +364,13 @@ recorded in `docs/source-audit.md`.
 - `cores/platform/k26c-composable-platform.core` is the composable platform
   wrapper for the finer-grained subsystem graph. It now exposes a GHDL-backed
   `validate` target so the isolated shell can be compiled and smoke-tested
-  without Vivado. It also now exposes `impl`, the native board-shell
-  Flow API implementation target, plus
-  `synth_public_top_flow`, the first Flow API Vivado synth target for the
+  without Vivado. Its supported implementation target is the BD-backed `impl`
+  lane, plus `synth_public_top_flow`, the first Flow API Vivado synth target for the
   public composable top.
 - `scripts/fusesoc/build_platform.sh --composable` now defaults to `impl` for
-  the composable platform. The older
-  `--composable --target impl_legacy_flow` spelling now resolves to the same
-  native `impl` path. Use `--composable --target synth_public_top_flow` when
-  you want the Flow-API Vivado synthesis checkpoint for the public composable
-  top.
+  the composable platform. Use `--composable --target synth_public_top_flow`
+  when you want the Flow-API Vivado synthesis checkpoint for the public
+  composable top.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache
   directories so the workflow does not depend on global user configuration.
 - `scripts/fusesoc/run_logic_test.sh` now exercises the module-level smoke
@@ -405,10 +399,6 @@ recorded in `docs/source-audit.md`.
 - `daphne-composable-top` now also exposes a GHDL smoke target behind a
   validate-only `frontend_island` stub, and `k26c-composable-platform`
   mirrors it as `validate_public_top`.
-- `scripts/fusesoc/check_native_impl_graph.sh` stages the native
-  `k26c-composable-platform` `impl` graph and fails if any `legacy-*` core
-  names or required AFE timing constraints disappear from the staged EDA
-  description.
 - The new trigger/descriptor wrappers are source-only preparation work around
   the imported `trig_xc` and legacy peak-descriptor calculator; they are not yet
   integrated as the top-level frame source.
@@ -420,7 +410,7 @@ recorded in `docs/source-audit.md`.
 This is not yet a complete multi-board deployment repo. The main remaining gaps
 are:
 
-- hardware-qualified use of the native `k26c-composable-platform` `impl`
+- hardware-qualified use of the supported `k26c-composable-platform` `impl`
   target as the routine board build path, together with retirement of the
   generated compatibility manifest as anything more than a fallback lane;
 - validated carrier support beyond the current K26C baseline;
