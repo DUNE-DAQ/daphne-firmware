@@ -42,7 +42,7 @@ suites:
 ./scripts/formal/run_formal.sh --list-suites
 ```
 
-Current local inventory: 27 `.sby` jobs under `formal/sby/`.
+Current local inventory: 28 `.sby` jobs under `formal/sby/`.
 
 Current suite layout:
 
@@ -50,7 +50,7 @@ Current suite layout:
 - `leaf-fast`: 14 leaf and boundary proofs
 - `cover-fast`: 2 bounded reachability cover jobs for the AXI-Lite wrappers
 - `boundary-cover`: 3 bounded reachability cover jobs for the boundary gates
-- `composable`: 3 composable-top contracts
+- `composable`: 4 composable-top contracts
 - `composable-cover`: 2 bounded composable reachability cover jobs
 - `all-local`: the full 27-job local inventory
 
@@ -157,6 +157,20 @@ composable story: the lane image exposed to software stays tied to the
 standalone frontend shell, and that same lane image still maps into the
 trigger-sample view exactly as the isolated adapter contract expects.
 
+The analog-control seam now has its own reset-qualified composable proof:
+
+```bash
+./scripts/formal/run_formal.sh daphne_composable_top_analog_contract
+```
+
+That harness scripts a short reset-release sequence for the public composable
+top, then proves the AFE serial pins, trim DAC pins, offset DAC pins, and the
+busy/ready portion of the analog status image all match a standalone
+`daphne_composable_frontend_shell` instance and settle to the documented idle
+state. The checked status image intentionally excludes `afe_readback`, because
+the imported `spim_afe1` block does not reset its private shift register and
+that field is not architecturally constrained by the null-command scenario.
+
 Full local formal sweep now passes:
 
 ```bash
@@ -173,6 +187,7 @@ Current passing local inventory:
 - `control_plane_boundary_contract`
 - `daphne_composable_core_top_contract`
 - `daphne_composable_frontend_shell_contract`
+- `daphne_composable_top_analog_contract`
 - `daphne_composable_frontend_shell_cover`
 - `daphne_composable_top_contract`
 - `daphne_composable_top_cover`
@@ -196,6 +211,7 @@ Current passing local inventory:
 ## Current local verification runs
 
 - `./scripts/formal/run_formal.sh daphne_composable_top_contract`
+- `./scripts/formal/run_formal.sh daphne_composable_top_analog_contract`
 - `./scripts/formal/run_formal.sh daphne_composable_top_cover`
 - `./scripts/formal/run_formal.sh --suite default`
 - `./scripts/formal/run_formal.sh --suite leaf-fast`
@@ -242,7 +258,7 @@ and uploads failure artifacts from `formal/sby/**`, including:
 
 ## Next recommended step
 
-Constrain the private analog-control state so the public composable top can be
-proven equal to the standalone frontend shell on the AFE control outputs as
-well, or add one enabled-boundary composable contract for a live timing or
-Hermes path.
+Add one enabled-boundary composable contract for a live timing or Hermes path,
+or extend the analog reset-release pattern down one level so
+`daphne_composable_frontend_shell` and `daphne_composable_core_top` also carry a
+documented analog idle-state proof on their own seams.
