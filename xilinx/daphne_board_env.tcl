@@ -138,7 +138,7 @@ proc daphne_resolve_board_profile {repo_root {board_name ""}} {
         dict set profile inherits $parent_board
     }
 
-    foreach field {fpga_part board_part pfm_name constraint_file constraint_files required_constraint_files platform_core modular_platform_core composable_platform_core default_platform_core default_platform_target user_ip_vlnv bd_name bd_wrapper_name bd_shell_tcl legacy_manifest build_name_prefix overlay_name_prefix ip_top_hdl_file ip_top_module ip_cell_name ip_component_identifier ip_display_name ip_xgui_file ip_cell_bind_root public_top_hdl_file public_top_module timing_endpoint_path timing_plane_path afe_capture_input_delay_enable afe_capture_virtual_launch_period_ns afe_capture_input_delay_min_ns afe_capture_input_delay_max_ns} {
+    foreach field {fpga_part board_part pfm_name constraint_file constraint_files required_constraint_files platform_core default_platform_target user_ip_vlnv bd_name bd_wrapper_name bd_shell_tcl legacy_manifest build_name_prefix overlay_name_prefix ip_top_hdl_file ip_top_module ip_cell_name ip_component_identifier ip_display_name ip_xgui_file ip_cell_bind_root public_top_hdl_file public_top_module timing_endpoint_path timing_plane_path timing_clock_source afe_capture_input_delay_enable afe_capture_virtual_launch_period_ns afe_capture_input_delay_min_ns afe_capture_input_delay_max_ns} {
         set value [daphne_read_board_manifest_value $manifest_path $field ""]
         if {$value ne ""} {
             dict set profile $field $value
@@ -147,23 +147,11 @@ proc daphne_resolve_board_profile {repo_root {board_name ""}} {
 
     set profile [daphne_merge_legacy_board_profile $repo_root $profile]
 
-    if {![dict exists $profile default_platform_core] || [string trim [dict get $profile default_platform_core]] eq ""} {
-        if {[dict exists $profile composable_platform_core] && [string trim [dict get $profile composable_platform_core]] ne ""} {
-            dict set profile default_platform_core [dict get $profile composable_platform_core]
-        } elseif {[dict exists $profile platform_core] && [string trim [dict get $profile platform_core]] ne ""} {
-            dict set profile default_platform_core [dict get $profile platform_core]
-        }
-    }
     if {![dict exists $profile default_platform_target] || [string trim [dict get $profile default_platform_target]] eq ""} {
-        set compat_target [daphne_read_board_manifest_value $manifest_path "composable_default_target" ""]
-        if {$compat_target ne ""} {
-            dict set profile default_platform_target $compat_target
-        } else {
-            dict set profile default_platform_target "impl"
-        }
+        dict set profile default_platform_target "impl"
     }
 
-    foreach field {fpga_part board_part pfm_name constraint_file} {
+    foreach field {fpga_part board_part pfm_name constraint_file platform_core} {
         if {![dict exists $profile $field] || [string trim [dict get $profile $field]] eq ""} {
             error "ERROR: board '$board_name' is missing '$field' in $manifest_path."
         }

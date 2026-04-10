@@ -62,13 +62,13 @@ legacy generated manifest protects the current K26C delivery path from churn.
 
 ## Platform packaging
 
-- `k26c-platform` still wraps the generated manifest and remains the legacy
-  compatibility build path.
-- `k26c-modular-platform` remains transitional and should not be the destination
-  for new work.
-- `k26c-composable-platform` is now the primary board-manifest default. Its
-  `impl` target is Flow-API owned and builds the BD-backed board-complete
-  design while still sourcing the extracted board-plane graph underneath it.
+- `k26c-composable-platform` is now the single supported board-manifest
+  entrypoint. Its `impl` target is Flow-API owned and builds the BD-backed
+  board-complete design while still sourcing the extracted board-plane graph
+  underneath it.
+- The remaining legacy compatibility identity now lives under
+  `boards/k26c/legacy-flow.yml` and the packaged-IP/export Tcl, not under
+  alternate platform-core wrappers.
 
 ## Verification split
 

@@ -169,12 +169,6 @@ daphne_board_legacy_manifest_value_with_fallback() {
 daphne_platform_core_build_slug() {
   platform_core="$1"
   case "$platform_core" in
-    dune-daq:daphne:k26c-platform:0.1.0)
-      printf '%s' "k26c_legacy"
-      ;;
-    dune-daq:daphne:k26c-modular-platform:0.1.0)
-      printf '%s' "k26c_mod"
-      ;;
     dune-daq:daphne:k26c-composable-platform:0.1.0)
       printf '%s' "k26c_comp"
       ;;
@@ -201,21 +195,9 @@ daphne_default_platform_core() {
   root_dir="$1"
   board_name="$2"
 
-  default_core="$(daphne_board_manifest_value "$root_dir" "$board_name" default_platform_core)"
-  if [ -n "$default_core" ]; then
-    printf '%s' "$default_core"
-    return 0
-  fi
-
-  composable_core="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_platform_core)"
-  if [ -n "$composable_core" ]; then
-    printf '%s' "$composable_core"
-    return 0
-  fi
-
-  legacy_core="$(daphne_board_manifest_value "$root_dir" "$board_name" platform_core)"
-  if [ -n "$legacy_core" ]; then
-    printf '%s' "$legacy_core"
+  platform_core="$(daphne_board_manifest_value "$root_dir" "$board_name" platform_core)"
+  if [ -n "$platform_core" ]; then
+    printf '%s' "$platform_core"
   fi
 }
 
@@ -225,25 +207,59 @@ daphne_default_platform_target() {
   platform_core="${3:-$(daphne_default_platform_core "$root_dir" "$board_name")}"
 
   default_core="$(daphne_default_platform_core "$root_dir" "$board_name")"
-  if [ -n "$default_core" ] && [ "$platform_core" = "$default_core" ]; then
-    default_target="$(daphne_board_manifest_value "$root_dir" "$board_name" default_platform_target)"
-    if [ -z "$default_target" ]; then
-      default_target="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_default_target)"
-    fi
-    : "${default_target:=impl}"
-    printf '%s' "$default_target"
+  if [ -n "$default_core" ] && [ "$platform_core" != "$default_core" ]; then
+    echo "ERROR: unsupported platform core '$platform_core' for board '$board_name'." >&2
+    return 2
+  fi
+
+  default_target="$(daphne_board_manifest_value "$root_dir" "$board_name" default_platform_target)"
+  : "${default_target:=impl}"
+  printf '%s' "$default_target"
+}
+
+daphne_require_supported_platform_core() {
+  root_dir="$1"
+  board_name="$2"
+  platform_core="$3"
+
+  default_core="$(daphne_default_platform_core "$root_dir" "$board_name")"
+  if [ -z "$default_core" ]; then
+    echo "ERROR: board '$board_name' does not declare a supported platform core." >&2
+    return 2
+  fi
+
+  if [ "$platform_core" != "$default_core" ]; then
+    echo "ERROR: unsupported platform core '$platform_core' for board '$board_name'." >&2
+    echo "INFO: supported platform core: $default_core" >&2
+    return 2
+  fi
+}
+
+daphne_require_supported_platform_target() {
+  root_dir="$1"
+  board_name="$2"
+  platform_core="$3"
+  platform_target="$4"
+
+  default_target="$(daphne_default_platform_target "$root_dir" "$board_name" "$platform_core")" || return $?
+  if [ -z "$platform_target" ]; then
     return 0
   fi
 
-  composable_core="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_platform_core)"
-  if [ -n "$composable_core" ] && [ "$platform_core" = "$composable_core" ]; then
-    composable_target="$(daphne_board_manifest_value "$root_dir" "$board_name" composable_default_target)"
-    : "${composable_target:=impl}"
-    printf '%s' "$composable_target"
+  if [ "$platform_target" = "$default_target" ]; then
     return 0
   fi
 
-  printf '%s' "impl"
+  case "$platform_target" in
+    synth_public_top_ooc|synth_public_top_flow|synth_board_shell_ooc|synth_board_shell_flow|validate|validate_optional_off|validate_frontend_shell|validate_public_top)
+      return 0
+      ;;
+  esac
+
+  echo "ERROR: unsupported platform target '$platform_target' for board '$board_name'." >&2
+  echo "INFO: supported implementation target: $default_target" >&2
+  echo "INFO: supported auxiliary targets: synth_public_top_ooc, synth_public_top_flow, synth_board_shell_ooc, synth_board_shell_flow, validate, validate_optional_off, validate_frontend_shell, validate_public_top" >&2
+  return 2
 }
 
 daphne_platform_exports_flow_bundle() {

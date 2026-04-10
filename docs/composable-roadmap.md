@@ -27,9 +27,9 @@ full composable gateware flow:
 - explicit optional-off smoke/validate targets for the vendor-neutral shell
 - first public-top offline validate path through a stubbed `frontend_island`
 
-The older `daphne-modular` / `k26c-modular-platform` path is now transitional.
-Keep it only as a compatibility stepping stone; new decomposition work should
-land in the composable graph.
+The older `daphne-modular` feature aggregation is still transitional. Keep it
+only as a compatibility stepping stone; new decomposition work should land in
+the composable graph.
 
 The next implementation steps should stay additive and avoid disturbing the
 currently qualified monolithic path until each replacement is proven.
@@ -78,8 +78,8 @@ The repo has now crossed the main structural integration threshold:
   now goes through the explicit board-plane split instead
 
 That means the remaining work is no longer “make a real composable impl
-possible”; it is “prove, harden, and simplify the supported path until the
-legacy lane is only a compatibility fallback”.
+possible”; it is “prove, harden, and simplify the single supported path until
+the remaining compatibility layer can be retired”.
 
 The vendor-neutral primitive seam is now in place for the isolated
 self-trigger path. The main portability blocker has moved up to the frontend
@@ -116,7 +116,7 @@ wrappers analyze locally without Vivado `unisim` / `xpm`, while
    - Record board-shell and board-plane ownership explicitly so future work is
      easier to review.
 
-5. Decide when the legacy lane can be demoted further.
+5. Decide when the remaining compatibility layer can be demoted further.
    - The key question is no longer whether a supported `impl` exists.
    - The key question is when hardware confidence is high enough that routine
      development stops depending on the legacy delivery path.
@@ -192,10 +192,9 @@ matches the current timing-friendly ownership in `stc3`.
   out-of-tree files.
 - Add machine-readable register-map and overlay validation so generated DT/AXI
   contracts are checked before hardware deployment.
-- Either fix or explicitly demote `k26c-modular-platform`.
-  Today `./scripts/fusesoc/fusesoc.sh run --setup --target impl dune-daq:daphne:k26c-modular-platform:0.1.0`
-  still fails from a clean tree because it expects generated Hermes packaged-IP
-  `.xci` collateral to exist already.
+- Remove the remaining compatibility indirection behind the single supported
+  K26C platform so the board build no longer depends on split legacy-manifest
+  identity or bridge-only ownership seams.
 
 ## Verification priorities
 

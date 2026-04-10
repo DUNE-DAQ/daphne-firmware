@@ -7,16 +7,10 @@ BOARD="${DAPHNE_BOARD:-k26c}"
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 
-DEFAULT_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" platform_core)"
-DEFAULT_MODULAR_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" modular_platform_core)"
-DEFAULT_COMPOSABLE_CORE="$(daphne_board_manifest_value "$ROOT_DIR" "$BOARD" composable_platform_core)"
 DEFAULT_PLATFORM_CORE="$(daphne_default_platform_core "$ROOT_DIR" "$BOARD")"
 DEFAULT_PLATFORM_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$DEFAULT_PLATFORM_CORE")"
 
-: "${DEFAULT_CORE:=dune-daq:daphne:k26c-platform:0.1.0}"
-: "${DEFAULT_MODULAR_CORE:=dune-daq:daphne:k26c-modular-platform:0.1.0}"
-: "${DEFAULT_COMPOSABLE_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
-: "${DEFAULT_PLATFORM_CORE:=$DEFAULT_COMPOSABLE_CORE}"
+: "${DEFAULT_PLATFORM_CORE:=dune-daq:daphne:k26c-composable-platform:0.1.0}"
 : "${DEFAULT_PLATFORM_TARGET:=impl}"
 
 DRY_RUN=0
@@ -30,9 +24,7 @@ Usage: $(basename "$0") [options]
 Build the DAPHNE firmware through the repo-local FuseSoC platform layer.
 
 Options:
-  --platform-core <VLNV>  Use an explicit platform core
-  --modular               Use $DEFAULT_MODULAR_CORE
-  --composable            Use $DEFAULT_COMPOSABLE_CORE
+  --platform-core <VLNV>  Override the supported platform core (must stay $DEFAULT_PLATFORM_CORE)
   --target <name>         Use an explicit FuseSoC target for the selected platform core
   --dry-run               Resolve the platform core and print what would run
   -h, --help              Show this help text
@@ -48,12 +40,6 @@ while [ "$#" -gt 0 ]; do
         exit 2
       }
       PLATFORM_CORE="$1"
-      ;;
-    --modular)
-      PLATFORM_CORE="$DEFAULT_MODULAR_CORE"
-      ;;
-    --composable)
-      PLATFORM_CORE="$DEFAULT_COMPOSABLE_CORE"
       ;;
     --target)
       shift
@@ -79,22 +65,13 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-case "$PLATFORM_CORE" in
-  "$DEFAULT_CORE"|"$DEFAULT_MODULAR_CORE"|"$DEFAULT_COMPOSABLE_CORE")
-    ;;
-  *)
-    echo "ERROR: unsupported platform core '$PLATFORM_CORE'." >&2
-    echo "Supported cores today are:" >&2
-    echo "  $DEFAULT_CORE" >&2
-    echo "  $DEFAULT_MODULAR_CORE" >&2
-    echo "  $DEFAULT_COMPOSABLE_CORE" >&2
-    exit 2
-    ;;
-esac
+daphne_require_supported_platform_core "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE"
 
 if [ -z "$BUILD_TARGET" ]; then
   BUILD_TARGET="$(daphne_default_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE")"
 fi
+
+daphne_require_supported_platform_target "$ROOT_DIR" "$BOARD" "$PLATFORM_CORE" "$BUILD_TARGET"
 
 cd "$ROOT_DIR"
 "$ROOT_DIR/scripts/fusesoc/refresh_cores.sh" >/dev/null
