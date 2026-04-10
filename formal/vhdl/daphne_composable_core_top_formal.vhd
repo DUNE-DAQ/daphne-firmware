@@ -41,6 +41,14 @@ architecture formal of daphne_composable_core_top_formal is
   signal timing_sync_b             : std_logic_vector(7 downto 0);
   signal timing_sync_stb_a         : std_logic;
   signal timing_sync_stb_b         : std_logic;
+  signal timing_stat_ref_a         : timing_status_t;
+  signal timing_stat_ref_b         : timing_status_t;
+  signal timing_timestamp_ref_a    : std_logic_vector(63 downto 0);
+  signal timing_timestamp_ref_b    : std_logic_vector(63 downto 0);
+  signal timing_sync_ref_a         : std_logic_vector(7 downto 0);
+  signal timing_sync_ref_b         : std_logic_vector(7 downto 0);
+  signal timing_sync_stb_ref_a     : std_logic;
+  signal timing_sync_stb_ref_b     : std_logic;
   signal hermes_descriptor_taken_a : std_logic;
   signal hermes_descriptor_taken_b : std_logic;
   signal hermes_stat_a             : hermes_boundary_status_t;
@@ -202,36 +210,58 @@ begin
       dout_o                    => dout_b
     );
 
-  assert timing_stat_a = TIMING_STATUS_NULL
-    report "core top must expose null timing status when timing is disabled"
+  timing_ref_a : entity work.timing_subsystem_boundary
+    port map (
+      clk_axi       => timing_clk_axi_i,
+      resetn_axi    => timing_resetn_axi_i,
+      timing_ctrl_i => timing_ctrl_a,
+      timing_stat_o => timing_stat_ref_a,
+      timestamp_o   => timing_timestamp_ref_a,
+      sync_o        => timing_sync_ref_a,
+      sync_stb_o    => timing_sync_stb_ref_a
+    );
+
+  timing_ref_b : entity work.timing_subsystem_boundary
+    port map (
+      clk_axi       => timing_clk_axi_i,
+      resetn_axi    => timing_resetn_axi_i,
+      timing_ctrl_i => timing_ctrl_b,
+      timing_stat_o => timing_stat_ref_b,
+      timestamp_o   => timing_timestamp_ref_b,
+      sync_o        => timing_sync_ref_b,
+      sync_stb_o    => timing_sync_stb_ref_b
+    );
+
+  assert timing_stat_a = timing_stat_ref_a
+    report "core top must expose the timing boundary status image directly, independent of ENABLE_TIMING_G"
     severity failure;
 
-  assert timing_stat_b = TIMING_STATUS_NULL
-    report "disabled timing path must ignore timing control payloads"
+  assert timing_stat_b = timing_stat_ref_b
+    report "core top timing status must follow the boundary contract for arbitrary timing control payloads"
     severity failure;
 
-  assert timing_timestamp_a = (timing_timestamp_a'range => '0')
-    report "timing timestamp output must stay low when timing is disabled"
+  assert timing_timestamp_a = timing_timestamp_ref_a
+    report "core top must expose the timing boundary timestamp image directly, independent of ENABLE_TIMING_G"
     severity failure;
 
-  assert timing_timestamp_b = (timing_timestamp_b'range => '0')
-    report "disabled timing path must ignore timestamp sources at the boundary"
+  assert timing_timestamp_b = timing_timestamp_ref_b
+    report "core top timing timestamp must follow the boundary contract for arbitrary timing control payloads"
     severity failure;
 
-  assert timing_sync_a = (timing_sync_a'range => '0')
-    report "timing sync output must stay low when timing is disabled"
+  assert timing_sync_a = timing_sync_ref_a
+    report "core top must expose the timing boundary sync bus directly, independent of ENABLE_TIMING_G"
     severity failure;
 
-  assert timing_sync_b = (timing_sync_b'range => '0')
-    report "disabled timing sync output must remain input-independent"
+  assert timing_sync_b = timing_sync_ref_b
+    report "core top timing sync bus must follow the boundary contract for arbitrary timing control payloads"
     severity failure;
 
-  assert timing_sync_stb_a = '0'
-    report "timing sync strobe must stay low when timing is disabled"
+  assert timing_sync_stb_a = timing_sync_stb_ref_a
+    report "core top must expose the timing boundary sync strobe directly, independent of ENABLE_TIMING_G"
     severity failure;
 
-  assert timing_sync_stb_b = '0'
-    report "disabled timing sync strobe must remain input-independent"
+  assert timing_sync_stb_b = timing_sync_stb_ref_b
+    report "core top timing sync strobe must follow the boundary contract for arbitrary timing control payloads"
     severity failure;
 
   assert hermes_descriptor_taken_a = '0'
