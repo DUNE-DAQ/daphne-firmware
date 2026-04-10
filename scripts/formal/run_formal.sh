@@ -81,6 +81,7 @@ EOF
       cat <<'EOF'
 daphne_composable_core_top_contract
 daphne_composable_frontend_shell_contract
+daphne_composable_top_analog_contract
 daphne_composable_top_contract
 EOF
       ;;
