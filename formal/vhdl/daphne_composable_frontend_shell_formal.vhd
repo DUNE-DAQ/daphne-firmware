@@ -34,6 +34,10 @@ architecture formal of daphne_composable_frontend_shell_formal is
   signal timing_timestamp_o        : std_logic_vector(63 downto 0);
   signal timing_sync_o             : std_logic_vector(7 downto 0);
   signal timing_sync_stb_o         : std_logic;
+  signal timing_stat_ref_o         : timing_status_t;
+  signal timing_timestamp_ref_o    : std_logic_vector(63 downto 0);
+  signal timing_sync_ref_o         : std_logic_vector(7 downto 0);
+  signal timing_sync_stb_ref_o     : std_logic;
   signal hermes_descriptor_taken_o : std_logic;
   signal hermes_stat_o             : hermes_boundary_status_t;
   signal config_status_o           : afe_config_status_bank_t(0 to 4);
@@ -131,6 +135,17 @@ begin
       dout_o                    => dout_o
     );
 
+  timing_ref : entity work.timing_subsystem_boundary
+    port map (
+      clk_axi       => timing_clk_axi_i,
+      resetn_axi    => timing_resetn_axi_i,
+      timing_ctrl_i => timing_ctrl_i,
+      timing_stat_o => timing_stat_ref_o,
+      timestamp_o   => timing_timestamp_ref_o,
+      sync_o        => timing_sync_ref_o,
+      sync_stb_o    => timing_sync_stb_ref_o
+    );
+
   assert frontend_dout_o = frontend_dout_i
     report "frontend shell must preserve frontend_dout_o exactly"
     severity failure;
@@ -139,20 +154,20 @@ begin
     report "frontend shell must preserve frontend_trig_o exactly"
     severity failure;
 
-  assert timing_stat_o = TIMING_STATUS_NULL
-    report "frontend shell must expose null timing status when timing is disabled"
+  assert timing_stat_o = timing_stat_ref_o
+    report "frontend shell must expose the timing boundary status image directly, independent of ENABLE_TIMING_G"
     severity failure;
 
-  assert timing_timestamp_o = (timing_timestamp_o'range => '0')
-    report "frontend shell timing timestamp output must stay low when timing is disabled"
+  assert timing_timestamp_o = timing_timestamp_ref_o
+    report "frontend shell timing timestamp must follow the timing boundary contract"
     severity failure;
 
-  assert timing_sync_o = (timing_sync_o'range => '0')
-    report "frontend shell timing sync output must stay low when timing is disabled"
+  assert timing_sync_o = timing_sync_ref_o
+    report "frontend shell timing sync bus must follow the timing boundary contract"
     severity failure;
 
-  assert timing_sync_stb_o = '0'
-    report "frontend shell timing sync strobe must stay low when timing is disabled"
+  assert timing_sync_stb_o = timing_sync_stb_ref_o
+    report "frontend shell timing sync strobe must follow the timing boundary contract"
     severity failure;
 
   assert hermes_descriptor_taken_o = '0'

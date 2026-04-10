@@ -132,17 +132,29 @@ begin
     timing_resetn_s <= '1';
     wait for 6 * CLK_PERIOD_C;
 
-    assert timing_stat_s = TIMING_STATUS_NULL
-      report "Disabled timing path should still expose the documented null boundary status"
+    assert timing_stat_s.mmcm0_locked = '0'
+      report "Composable core top should keep mmcm0 lock low while the selected endpoint timing path is held in reset"
+      severity failure;
+    assert timing_stat_s.mmcm1_locked = '0'
+      report "Composable core top should keep mmcm1 lock low while the selected endpoint timing path is held in reset"
+      severity failure;
+    assert timing_stat_s.endpoint_ready = '0'
+      report "Composable core top should keep endpoint readiness low while the selected endpoint timing path is held in reset"
+      severity failure;
+    assert timing_stat_s.endpoint_state = x"1"
+      report "Composable core top should expose the held-reset endpoint state for the selected timing path"
+      severity failure;
+    assert timing_stat_s.timestamp_valid = '0'
+      report "Composable core top should suppress timestamp validity while the selected endpoint timing path is held in reset"
       severity failure;
     assert timing_timestamp_s = (timing_timestamp_s'range => '0')
-      report "Disabled timing path should keep the boundary timestamp at zero"
+      report "Composable core top should keep the boundary timestamp at zero until the selected endpoint timing path is ready"
       severity failure;
     assert timing_sync_s = (timing_sync_s'range => '0')
-      report "Disabled timing path should keep the boundary sync bus at zero"
+      report "Composable core top should keep the boundary sync bus at zero while the selected endpoint timing path is held in reset"
       severity failure;
     assert timing_sync_stb_s = '0'
-      report "Disabled timing path should keep the boundary sync strobe low"
+      report "Composable core top should keep the boundary sync strobe low while the selected endpoint timing path is held in reset"
       severity failure;
 
     assert hermes_taken_s = '0'

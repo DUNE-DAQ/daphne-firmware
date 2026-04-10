@@ -76,6 +76,10 @@ architecture formal of daphne_composable_top_formal is
   signal shell_timing_timestamp_o : std_logic_vector(63 downto 0);
   signal shell_timing_sync_o     : std_logic_vector(7 downto 0);
   signal shell_timing_sync_stb_o : std_logic;
+  signal timing_stat_ref_o       : timing_status_t;
+  signal timing_timestamp_ref_o  : std_logic_vector(63 downto 0);
+  signal timing_sync_ref_o       : std_logic_vector(7 downto 0);
+  signal timing_sync_stb_ref_o   : std_logic;
   signal shell_hermes_descriptor_taken_o : std_logic;
   signal shell_hermes_stat_o     : hermes_boundary_status_t;
   signal shell_frontend_dout_o   : array_5x9x16_type;
@@ -172,6 +176,17 @@ begin
       delayed_sample_o          => shell_delayed_sample_o,
       ready_o                   => shell_ready_o,
       dout_o                    => shell_dout_o
+    );
+
+  timing_ref : entity work.timing_subsystem_boundary
+    port map (
+      clk_axi       => frontend_axi_aclk_i,
+      resetn_axi    => timing_resetn_axi_i,
+      timing_ctrl_i => timing_ctrl_i,
+      timing_stat_o => timing_stat_ref_o,
+      timestamp_o   => timing_timestamp_ref_o,
+      sync_o        => timing_sync_ref_o,
+      sync_stb_o    => timing_sync_stb_ref_o
     );
 
   dut : entity work.daphne_composable_top
@@ -311,32 +326,32 @@ begin
     report "validate frontend stub must keep AXI read response invalid"
     severity failure;
 
-  assert timing_stat_o = TIMING_STATUS_NULL
-    report "public composable top must expose null timing status when timing is disabled"
+  assert timing_stat_o = timing_stat_ref_o
+    report "public composable top timing status must follow the timing boundary contract"
     severity failure;
 
   assert timing_stat_o = shell_timing_stat_o
     report "public composable top timing status must match the standalone frontend shell contract"
     severity failure;
 
-  assert timing_timestamp_o = (timing_timestamp_o'range => '0')
-    report "public composable top timing timestamp must stay low when timing is disabled"
+  assert timing_timestamp_o = timing_timestamp_ref_o
+    report "public composable top timing timestamp must follow the timing boundary contract"
     severity failure;
 
   assert timing_timestamp_o = shell_timing_timestamp_o
     report "public composable top timing timestamp must match the standalone frontend shell contract"
     severity failure;
 
-  assert timing_sync_o = (timing_sync_o'range => '0')
-    report "public composable top timing sync must stay low when timing is disabled"
+  assert timing_sync_o = timing_sync_ref_o
+    report "public composable top timing sync bus must follow the timing boundary contract"
     severity failure;
 
   assert timing_sync_o = shell_timing_sync_o
     report "public composable top timing sync must match the standalone frontend shell contract"
     severity failure;
 
-  assert timing_sync_stb_o = '0'
-    report "public composable top timing sync strobe must stay low when timing is disabled"
+  assert timing_sync_stb_o = timing_sync_stb_ref_o
+    report "public composable top timing sync strobe must follow the timing boundary contract"
     severity failure;
 
   assert timing_sync_stb_o = shell_timing_sync_stb_o
