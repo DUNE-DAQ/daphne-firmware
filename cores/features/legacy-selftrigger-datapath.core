@@ -1,0 +1,20 @@
+CAPI=2:
+
+name: dune-daq:daphne:legacy-selftrigger-datapath:0.1.0
+description: Extracted live self-trigger datapath wrapper over the dual 20-channel legacy st20 banks
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - rtl/isolated/subsystems/trigger/legacy_selftrigger_datapath.vhd
+    file_type: vhdlSource-2008
+
+targets:
+  default:
+    filesets:
+      - rtl
