@@ -20,6 +20,10 @@ Current proof entry points:
 - `formal/sby/daphne_composable_frontend_shell_contract.sby` for the public
   composable frontend shell pass-through contract and disabled optional-boundary
   behavior.
+- `formal/sby/daphne_composable_top_analog_contract.sby` for the public
+  composable top analog-control seam after a reset-release sequence, including
+  equality to the standalone frontend shell on the AFE/DAC control pins and the
+  idle analog-busy status image.
 - `formal/sby/daphne_composable_top_contract.sby` for the public composable top
   validate path through the stubbed frontend island, disabled optional
   subsystems, explicit equivalence to the standalone frontend shell seam, and
@@ -76,7 +80,7 @@ Current suite layout:
 - `cover-fast` for the bounded reachability checks on the AXI-Lite wrappers.
 - `boundary-cover` for the bounded reachability checks on the frontend,
   trigger-pipeline, and spy-buffer gates.
-- `composable` for the three composable top-level contracts.
+- `composable` for the four composable top-level contracts.
 - `composable-cover` for the bounded public composable reachability checks at
   the frontend shell seam and the top-level validate path.
 - `all-local` for every checked-in `.sby` job under `formal/sby/`.
@@ -131,6 +135,10 @@ Properties currently checked:
   contract: under the validate-stub frontend image, the public top must expose
   the same frontend, timing, Hermes, and disabled self-trigger outputs as the
   shell proof.
+- A dedicated reset-release proof also ties the public composable top back to
+  the standalone frontend shell on the analog-control seam: after the scripted
+  reset sequence, the AFE/DAC control pins and busy/ready status image must
+  match the shell and return to their documented idle state.
 - The public composable top also proves that the exposed frontend lane image
   still maps into the flattened 40-channel trigger-sample view exactly as the
   frontend-to-selftrigger adapter contract expects.
