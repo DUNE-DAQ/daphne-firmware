@@ -51,3 +51,20 @@ set rx_tmg_port [get_ports -quiet rx0_tmg_p]
 if {[llength $rx_tmg_port] == 1 && [llength $endpoint_raw_rx_sample_pins] > 0} {
     set_false_path -from $rx_tmg_port -to $endpoint_raw_rx_sample_pins
 }
+
+# The PDTS register file raises addr_done/deskew_done in the recovered frontend
+# clock domain, while the endpoint state machine consumes them on sys_clk.
+# Treat these completion flags as asynchronous handoff signals rather than
+# synchronous timing requirements between frontend_word_clk and mmcm0_clkout2.
+set endpoint_regfile_done_source_pins [daphne_collect_optional_endpoint_pins $endpoint_path {
+    */ep/regfile/adone_reg/Q
+    */ep/regfile/ddone_reg/Q
+}]
+
+set endpoint_state_machine_pins [daphne_collect_optional_endpoint_pins $endpoint_path {
+    */ep/sm/state_reg[*]/D
+}]
+
+if {[llength $endpoint_regfile_done_source_pins] > 0 && [llength $endpoint_state_machine_pins] > 0} {
+    set_false_path -from $endpoint_regfile_done_source_pins -to $endpoint_state_machine_pins
+}
