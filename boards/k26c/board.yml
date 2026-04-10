@@ -30,6 +30,7 @@ public_top_hdl_file: rtl/isolated/tops/daphne_composable_top.vhd
 public_top_module: daphne_composable_top
 timing_endpoint_path: timing_bridge_inst/endpoint_inst;daphne_selftrigger_bd_i/*/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst
 timing_plane_path: timing_bridge_inst;daphne_selftrigger_bd_i/*/k26c_board_shell_inst/timing_bridge_inst
+timing_clock_source: endpoint
 # Board-owned AFE input-delay model defaults. Keep disabled until measured
 # serializer/board skew numbers are available for this hardware family.
 afe_capture_input_delay_enable: false

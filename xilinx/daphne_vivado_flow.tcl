@@ -139,6 +139,7 @@ proc daphne_resolve_config {script_dir} {
     foreach {env_name key} {
         DAPHNE_TIMING_ENDPOINT_PATH timing_endpoint_path
         DAPHNE_TIMING_PLANE_PATH timing_plane_path
+        DAPHNE_TIMING_CLOCK_SOURCE timing_clock_source
         DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE afe_capture_input_delay_enable
         DAPHNE_AFE_CAPTURE_VIRTUAL_LAUNCH_PERIOD_NS afe_capture_virtual_launch_period_ns
         DAPHNE_AFE_CAPTURE_INPUT_DELAY_MIN_NS afe_capture_input_delay_min_ns

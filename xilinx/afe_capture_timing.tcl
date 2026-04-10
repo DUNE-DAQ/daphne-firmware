@@ -100,6 +100,17 @@ proc daphne_require_env_value {name purpose} {
     return $value
 }
 
+proc daphne_require_allowed_value {name purpose allowed_values default_value} {
+    set value [string tolower [daphne_get_trimmed_env $name]]
+    if {$value eq ""} {
+        set value $default_value
+    }
+    if {$value ni $allowed_values} {
+        error "ERROR: $name must be one of [join $allowed_values {, }] for $purpose (got '$value')"
+    }
+    return $value
+}
+
 set sysclk_port [get_ports -quiet sysclk_p]
 if {[llength $sysclk_port] != 1} {
     error "ERROR: expected exactly one sysclk_p port, found [llength $sysclk_port]"
@@ -113,39 +124,43 @@ if {[llength [get_clocks -quiet rx_tmg_clk]] == 0} {
     create_clock -name rx_tmg_clk -period 16.000 $rx_tmg_port
 }
 
+set timing_clock_source [daphne_require_allowed_value DAPHNE_TIMING_CLOCK_SOURCE "AFE timing clock-source selection" {endpoint local} endpoint]
+
 set frontend_word_clk_ep_pin [daphne_require_single_object pin $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT0" "frontend endpoint word-clock source"]
 set frontend_word_clk_local_pin [daphne_require_single_object pin $endpoint_path "mmcm0_inst/CLKOUT0" "frontend local word-clock source"]
+set frontend_clock_select_pin [daphne_require_single_object pin $endpoint_path "mmcm1_inst/CLKINSEL" "frontend clock-source select pin"]
 set frontend_clock_pin [daphne_require_single_object pin $endpoint_path "mmcm1_clk1_inst/O" "frontend live master-clock source"]
 set frontend_bit_clk_pin [daphne_require_single_object pin $endpoint_path "mmcm1_inst/CLKOUT0" "frontend bit-clock source"]
 set frontend_byte_clk_pin [daphne_require_single_object pin $endpoint_path "mmcm1_clk2_inst/O" "frontend byte-clock source"]
 set endpoint_bclk_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk" "timing endpoint recovered bit clock"]
 set endpoint_clku_net [daphne_require_single_object net $endpoint_path "pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku" "timing endpoint recovered user clock"]
 
-create_generated_clock -name frontend_word_clk_ep     -source $rx_tmg_port -divide_by 1 $frontend_word_clk_ep_pin
-create_generated_clock -name frontend_word_clk_local  -source $sysclk_port -multiply_by 5 -divide_by 8 $frontend_word_clk_local_pin
-create_generated_clock -name frontend_clock_ep        -source $frontend_word_clk_ep_pin        -divide_by 1 $frontend_clock_pin
-create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_clock_local -source $frontend_word_clk_local_pin -divide_by 1 $frontend_clock_pin
-create_generated_clock -name frontend_bit_clk_ep         -source $frontend_word_clk_ep_pin        -multiply_by 8 $frontend_bit_clk_pin
-create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_bit_clk_local -source $frontend_word_clk_local_pin -multiply_by 8 $frontend_bit_clk_pin
-create_generated_clock -name frontend_byte_clk_ep        -source $frontend_word_clk_ep_pin        -multiply_by 2 $frontend_byte_clk_pin
-create_generated_clock -add -master_clock frontend_word_clk_local -name frontend_byte_clk_local -source $frontend_word_clk_local_pin -multiply_by 2 $frontend_byte_clk_pin
+if {$timing_clock_source eq "endpoint"} {
+    set frontend_clock_select_value 1
+    set frontend_word_clk_source_port $rx_tmg_port
+    set frontend_word_clk_source_pin $frontend_word_clk_ep_pin
+    create_generated_clock -name frontend_word_clk -source $frontend_word_clk_source_port -divide_by 1 $frontend_word_clk_source_pin
+} else {
+    set frontend_clock_select_value 0
+    set frontend_word_clk_source_port $sysclk_port
+    set frontend_word_clk_source_pin $frontend_word_clk_local_pin
+    create_generated_clock -name frontend_word_clk -source $frontend_word_clk_source_port -multiply_by 5 -divide_by 8 $frontend_word_clk_source_pin
+}
 
-set_clock_groups -physically_exclusive \
-  -group {frontend_word_clk_ep frontend_clock_ep frontend_bit_clk_ep frontend_byte_clk_ep} \
-  -group {frontend_word_clk_local frontend_clock_local frontend_bit_clk_local frontend_byte_clk_local}
+set_case_analysis $frontend_clock_select_value $frontend_clock_select_pin
+
+create_generated_clock -name frontend_clock -source $frontend_word_clk_source_pin -divide_by 1 $frontend_clock_pin
+create_generated_clock -name frontend_bit_clk -source $frontend_word_clk_source_pin -multiply_by 8 $frontend_bit_clk_pin
+create_generated_clock -name frontend_byte_clk -source $frontend_word_clk_source_pin -multiply_by 2 $frontend_byte_clk_pin
 
 set_property CLOCK_DEDICATED_ROUTE BACKBONE $endpoint_bclk_net
 set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN $endpoint_clku_net
 
 set frontend_clock_family {
-    frontend_word_clk_ep
-    frontend_clock_ep
-    frontend_bit_clk_ep
-    frontend_byte_clk_ep
-    frontend_word_clk_local
-    frontend_clock_local
-    frontend_bit_clk_local
-    frontend_byte_clk_local
+    frontend_word_clk
+    frontend_clock
+    frontend_bit_clk
+    frontend_byte_clk
 }
 
 daphne_set_async_clock_groups_if_present {clk_pl_0} $frontend_clock_family

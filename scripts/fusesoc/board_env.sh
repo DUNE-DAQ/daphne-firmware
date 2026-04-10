@@ -327,6 +327,7 @@ daphne_resolve_board_defaults() {
   public_top_module="$(daphne_board_manifest_value "$root_dir" "$board_name" public_top_module)"
   timing_endpoint_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_endpoint_path)"
   timing_plane_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_plane_path)"
+  timing_clock_source="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_clock_source)"
   afe_capture_input_delay_enable="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_input_delay_enable)"
   afe_capture_virtual_launch_period_ns="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_virtual_launch_period_ns)"
   afe_capture_input_delay_min_ns="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_input_delay_min_ns)"
@@ -441,6 +442,9 @@ daphne_resolve_board_defaults() {
   if [ -n "$timing_plane_path" ]; then
     : "${DAPHNE_TIMING_PLANE_PATH:=$timing_plane_path}"
   fi
+  if [ -n "$timing_clock_source" ]; then
+    : "${DAPHNE_TIMING_CLOCK_SOURCE:=$timing_clock_source}"
+  fi
   if [ -n "$afe_capture_input_delay_enable" ]; then
     : "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE:=$afe_capture_input_delay_enable}"
   fi
@@ -514,6 +518,9 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "${DAPHNE_TIMING_PLANE_PATH-}" ]; then
     export DAPHNE_TIMING_PLANE_PATH
+  fi
+  if [ -n "${DAPHNE_TIMING_CLOCK_SOURCE-}" ]; then
+    export DAPHNE_TIMING_CLOCK_SOURCE
   fi
   if [ -n "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE-}" ]; then
     export DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE
