@@ -15,11 +15,12 @@ Current proof entry points:
 - `formal/sby/control_plane_boundary_contract.sby` for the neutral control
   wrapper contract.
 - `formal/sby/daphne_composable_core_top_contract.sby` for the vendor-neutral
-  composable shell contract with explicit timing-boundary passthrough plus
-  disabled Hermes and self-triggering behavior.
+  composable shell contract with explicit timing-boundary passthrough, live
+  Hermes-boundary passthrough, and disabled self-triggering behavior.
 - `formal/sby/daphne_composable_frontend_shell_contract.sby` for the public
   composable frontend shell pass-through contract, explicit timing-boundary
-  passthrough, and disabled Hermes/self-trigger behavior.
+  passthrough, live Hermes-boundary passthrough, and disabled self-trigger
+  behavior.
 - `formal/sby/daphne_composable_top_analog_contract.sby` for the public
   composable top analog-control seam after a reset-release sequence, including
   equality to the standalone frontend shell on the AFE/DAC control pins and the
@@ -39,8 +40,8 @@ Current proof entry points:
   gate.
 - `formal/sby/frontend_to_selftrigger_adapter_contract.sby` for the frontend
   capture to self-trigger channel-map and truncation contract.
-- `formal/sby/hermes_boundary_contract.sby` for the neutral Hermes handoff
-  contract.
+- `formal/sby/hermes_boundary_contract.sby` for the deterministic local Hermes
+  handoff contract used by the composable verification model.
 - `formal/sby/thresholds_axi_lite.sby` for the self-trigger threshold register
   bank.
 - `formal/sby/timing_subsystem_boundary_contract.sby` for the local-neutral,
@@ -82,8 +83,8 @@ Current suite layout:
   trigger-pipeline, and spy-buffer gates.
 - `composable` for the four composable top-level contracts.
 - `composable-cover` for the bounded public composable reachability checks at
-  the frontend shell seam, the top-level validate path, and the live public
-  timing seam.
+  the frontend shell seam, the top-level validate path, the live public Hermes
+  seam, and the live public timing seam.
 - `all-local` for every checked-in `.sby` job under `formal/sby/`.
 
 Two dedicated cover entry points now complement the AXI-Lite proofs:
@@ -104,6 +105,10 @@ Two dedicated cover entry points now complement the AXI-Lite proofs:
   `formal/vhdl/daphne_composable_top_timing_cover.psl` to the same top-level
   harness and emits a bounded cover trace showing a ready endpoint timing
   image, a repeated public timestamp pattern, and a matching public sync byte.
+- `formal/sby/daphne_composable_top_hermes_cover.sby` binds
+  `formal/vhdl/daphne_composable_top_hermes_cover.psl` to the same top-level
+  harness and emits a bounded cover trace showing a live taken descriptor plus
+  the matching public Hermes link/ready/busy status image.
 - `formal/sby/daphne_composable_frontend_shell_cover.sby` binds
   `formal/vhdl/daphne_composable_frontend_shell_cover.psl` to the frontend
   shell harness and emits a bounded cover trace showing a live forwarded
@@ -140,6 +145,10 @@ Properties currently checked:
   timing is selected it exposes a deterministic lock/ready/state/timestamp/sync
   contract that the composable core, frontend shell, and public top now all
   prove they forward directly.
+- The Hermes boundary now exposes a deterministic local link/ready/
+  backpressure/descriptor-taken contract, and the composable core, frontend
+  shell, and public top all prove they forward that live Hermes model when
+  Hermes is enabled.
 - The public composable top is tied back to the standalone frontend shell
   contract: under the validate-stub frontend image, the public top must expose
   the same frontend, timing, Hermes, and disabled self-trigger outputs as the
