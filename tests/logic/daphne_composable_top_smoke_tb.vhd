@@ -88,7 +88,7 @@ begin
       AFE_COUNT_G          => AFE_COUNT_C,
       ENABLE_SELFTRIGGER_G => false,
       ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false,
+      ENABLE_HERMES_G      => true,
       ENABLE_SPYBUFFER_G   => false
     )
     port map (
@@ -180,6 +180,10 @@ begin
     timing_ctrl_s.mmcm1_reset <= '0';
     timing_ctrl_s.endpoint_reset <= '0';
     timing_ctrl_s.endpoint_addr <= x"00A5";
+    hermes_descriptor_s.valid <= '1';
+    hermes_descriptor_s.channel_id <= x"31";
+    hermes_descriptor_s.version_id <= "0110";
+    hermes_descriptor_s.payload <= x"1122334455667788";
 
     wait for 4 * CLK_PERIOD_C;
     frontend_axi_aresetn_s <= '1';
@@ -220,11 +224,20 @@ begin
     assert timing_sync_stb_s = '1'
       report "Public top should expose the modeled endpoint sync strobe when the selected address enables it"
       severity failure;
-    assert hermes_taken_s = '0'
-      report "Disabled Hermes path should ignore descriptors in the public top"
+    assert hermes_taken_s = '1'
+      report "Enabled Hermes public-top path should accept a descriptor when the modeled backpressure bit is clear"
       severity failure;
-    assert hermes_status_s = HERMES_BOUNDARY_STATUS_NULL
-      report "Disabled Hermes path should stay at the null status in the public top"
+    assert hermes_status_s.link_up = '1'
+      report "Enabled Hermes public-top path should report link-up once reset is released"
+      severity failure;
+    assert hermes_status_s.ready = '1'
+      report "Enabled Hermes public-top path should report ready when the modeled backpressure bit is clear"
+      severity failure;
+    assert hermes_status_s.backpressure = '0'
+      report "Enabled Hermes public-top path should keep backpressure low when the modeled stall bit is clear"
+      severity failure;
+    assert hermes_status_s.transport_busy = '1'
+      report "Enabled Hermes public-top path should report transport busy while a live descriptor is present"
       severity failure;
     assert trigger_result_s(0) = TRIGGER_XCORR_RESULT_NULL
       report "Disabled self-trigger path should keep the first trigger result null in the public top"

@@ -6,8 +6,9 @@ depth 2
 smtbmc z3
 
 [script]
-# Boundary-level proof: the neutral Hermes handoff wrapper does not consume
-# descriptors and exposes only the null status record.
+# Boundary-level proof: the isolated Hermes handoff wrapper exposes the
+# documented local link/ready/backpressure contract without importing the real
+# transport chain.
 plugin -i ghdl
 ghdl --std=08 daphne_subsystem_pkg.vhd hermes_boundary.vhd hermes_boundary_formal.vhd -e hermes_boundary_formal
 prep -top hermes_boundary_formal

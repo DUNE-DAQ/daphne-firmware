@@ -82,6 +82,8 @@ architecture formal of daphne_composable_top_formal is
   signal timing_sync_stb_ref_o   : std_logic;
   signal shell_hermes_descriptor_taken_o : std_logic;
   signal shell_hermes_stat_o     : hermes_boundary_status_t;
+  signal hermes_descriptor_taken_ref_o : std_logic;
+  signal hermes_stat_ref_o       : hermes_boundary_status_t;
   signal shell_frontend_dout_o   : array_5x9x16_type;
   signal shell_frontend_trig_o   : std_logic;
   signal shell_trigger_result_o  : trigger_xcorr_result_array_t(0 to 39);
@@ -123,7 +125,7 @@ begin
       AFE_COUNT_G          => 5,
       ENABLE_SELFTRIGGER_G => false,
       ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false,
+      ENABLE_HERMES_G      => true,
       ENABLE_SPYBUFFER_G   => false
     )
     port map (
@@ -189,12 +191,21 @@ begin
       sync_stb_o    => timing_sync_stb_ref_o
     );
 
+  hermes_ref : entity work.hermes_boundary
+    port map (
+      clk                => clock_i,
+      reset              => not frontend_resetn_i,
+      descriptor_i       => hermes_descriptor_i,
+      descriptor_taken_o => hermes_descriptor_taken_ref_o,
+      hermes_stat_o      => hermes_stat_ref_o
+    );
+
   dut : entity work.daphne_composable_top
     generic map (
       AFE_COUNT_G          => 5,
       ENABLE_SELFTRIGGER_G => false,
       ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false,
+      ENABLE_HERMES_G      => true,
       ENABLE_SPYBUFFER_G   => false
     )
     port map (
@@ -358,16 +369,16 @@ begin
     report "public composable top timing sync strobe must match the standalone frontend shell contract"
     severity failure;
 
-  assert hermes_descriptor_taken_o = '0'
-    report "public composable top must not consume descriptors when Hermes is disabled"
+  assert hermes_descriptor_taken_o = hermes_descriptor_taken_ref_o
+    report "public composable top Hermes descriptor handoff must follow the isolated Hermes boundary model"
     severity failure;
 
   assert hermes_descriptor_taken_o = shell_hermes_descriptor_taken_o
     report "public composable top descriptor handoff must match the standalone frontend shell contract"
     severity failure;
 
-  assert hermes_stat_o = HERMES_BOUNDARY_STATUS_NULL
-    report "public composable top must expose null Hermes status when Hermes is disabled"
+  assert hermes_stat_o = hermes_stat_ref_o
+    report "public composable top Hermes status must follow the isolated Hermes boundary model"
     severity failure;
 
   assert hermes_stat_o = shell_hermes_stat_o
