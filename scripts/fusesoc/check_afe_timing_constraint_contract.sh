@@ -90,8 +90,6 @@ require_fixed "set ::env(DAPHNE_STOP_AFTER_SYNTH) \"\$STOP_AFTER_SYNTH_TCL\"" "$
 require_fixed "set ::env(DAPHNE_DUMP_POST_SYNTH_DEBUG) \"\$DUMP_POST_SYNTH_DEBUG_TCL\"" "$MANUAL_RUNNER" \
   "manual WSL launcher no longer forwards DAPHNE_DUMP_POST_SYNTH_DEBUG."
 
-require_fixed "set frontend_byte_clk_pin [daphne_require_single_object pin \$endpoint_path \"mmcm1_clk2_inst/O\" \"frontend byte-clock source\"]" "$TIMING_TCL" \
-  "AFE timing Tcl is no longer bound to the live BUFGCE_DIV byte-clock output."
 require_fixed "set frontend_clock_pin [daphne_require_single_object pin \$endpoint_path \"mmcm1_clk1_inst/O\" \"frontend live master-clock source\"]" "$TIMING_TCL" \
   "AFE timing Tcl is no longer bound to the live frontend master-clock output."
 require_fixed "set frontend_clock_select_pin [daphne_require_single_object pin \$endpoint_path \"mmcm1_inst/CLKINSEL\" \"frontend clock-source select pin\"]" "$TIMING_TCL" \
@@ -104,10 +102,14 @@ forbid_fixed "set_clock_groups -physically_exclusive" "$TIMING_TCL" \
   "AFE timing Tcl still carries the stale dual-family physically exclusive frontend clock model."
 require_fixed "create_generated_clock -name frontend_clock -source \$frontend_word_clk_source_pin -divide_by 1 \$frontend_clock_pin" "$TIMING_TCL" \
   "AFE timing Tcl no longer defines a single selected frontend master clock."
-require_fixed "create_generated_clock -name frontend_bit_clk -source \$frontend_word_clk_source_pin -multiply_by 8 \$frontend_bit_clk_pin" "$TIMING_TCL" \
-  "AFE timing Tcl no longer defines a single selected frontend bit clock."
-require_fixed "create_generated_clock -name frontend_byte_clk -source \$frontend_word_clk_source_pin -multiply_by 2 \$frontend_byte_clk_pin" "$TIMING_TCL" \
-  "AFE timing Tcl no longer defines a single selected frontend byte clock."
+forbid_fixed "create_generated_clock -name frontend_bit_clk" "$TIMING_TCL" \
+  "AFE timing Tcl still overrides Vivado's auto-derived frontend bit clock."
+forbid_fixed "create_generated_clock -name frontend_byte_clk" "$TIMING_TCL" \
+  "AFE timing Tcl still overrides Vivado's auto-derived frontend byte clock."
+require_fixed "    mmcm1_clkout0" "$TIMING_TCL" \
+  "AFE timing Tcl no longer carries Vivado's auto-derived frontend bit clock in its async-group family."
+require_fixed "    clk125" "$TIMING_TCL" \
+  "AFE timing Tcl no longer carries Vivado's auto-derived frontend byte clock in its async-group family."
 
 require_regex "mmcm1_clk2_inst[[:space:]]*:[[:space:]]*BUFGCE_DIV" "$ENDPOINT_RTL" \
   "endpoint.vhd no longer generates clk125 from BUFGCE_DIV."
