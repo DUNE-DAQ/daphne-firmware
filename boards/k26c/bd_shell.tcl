@@ -10,7 +10,6 @@
 proc daphne_create_board_support_cells {} {
     set smartconnect_0 [create_bd_cell -vlnv xilinx.com:ip:smartconnect:1.0 -type IP smartconnect_0]
     set_property -dict [list \
-        CONFIG.ADVANCED_PROPERTIES {__experimental_features__ {disable_low_area_mode 1}} \
         CONFIG.NUM_CLKS {2} \
         CONFIG.NUM_MI {12} \
         CONFIG.NUM_SI {2} \
