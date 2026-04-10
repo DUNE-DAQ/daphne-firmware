@@ -55,7 +55,6 @@ filesets:
       - rtl/isolated/subsystems/readout/legacy_selftrigger_core_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_selftrigger_output_bridge.vhd
       - rtl/isolated/subsystems/readout/legacy_selftrigger_plane_bridge.vhd
-      - rtl/isolated/subsystems/readout/legacy_two_lane_readout_mux.vhd
       - rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd
       - rtl/isolated/subsystems/spy/k26c_board_spy_buffer_plane.vhd
       - rtl/isolated/subsystems/spy/k26c_board_spy_capture_plane.vhd
