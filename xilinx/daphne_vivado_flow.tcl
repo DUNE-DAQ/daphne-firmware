@@ -211,7 +211,7 @@ proc daphne_create_block_design {cfg_name} {
     set cfg(post_synth_constraint_files) {}
     foreach constraint_file $cfg(constraint_files) {
         set constraint_basename [file tail $constraint_file]
-        if {$constraint_basename in {"afe_capture_timing.tcl" "frontend_control_cdc.tcl"}} {
+        if {$constraint_basename in {"afe_capture_timing.tcl" "frontend_control_cdc.tcl" "timing_endpoint_cdc.tcl"}} {
             lappend cfg(post_synth_constraint_files) $constraint_file
         } else {
             read_xdc -verbose $constraint_file
