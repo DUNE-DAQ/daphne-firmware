@@ -118,16 +118,11 @@ This target still preserves the qualified `xilinx/vivado_batch.tcl` flow; the
 change is that FuseSoC now owns the top-level entry point and work root.
 If you call `fusesoc run` directly, set `DAPHNE_GIT_SHA` first so the legacy
 artifact naming keeps the real commit instead of falling back to `0000000`.
-The board manifest now defaults the wrapper/build helpers to the composable
+The board manifest now defaults the wrapper/build helpers to the supported
 platform core, so `run_vivado_batch.sh` and `build_platform.sh` resolve to the
 BD-backed board-complete `impl` target unless you override `DAPHNE_PLATFORM_CORE`
-explicitly.
-
-The composable platform now also exposes `impl` as its default implementation
-target, and `./scripts/fusesoc/build_platform.sh --composable` resolves to that
-target automatically. Today the supported default `impl` lane is the
-BD/PS-backed board-complete path with `daphne_selftrigger_bd_wrapper` at the
-top.
+explicitly. Today the supported default `impl` lane is the BD/PS-backed
+board-complete path with `daphne_selftrigger_bd_wrapper` at the top.
 The K26C board manifest also requires `xilinx/afe_capture_timing.tcl` and
 `xilinx/frontend_control_cdc.tcl`, so the split frontend timing/CDC model
 cannot silently drop out of the build.
@@ -145,7 +140,7 @@ There is now also a FuseSoC-owned composable synth checkpoint that does not go
 through the legacy block design:
 
 ```bash
-./scripts/fusesoc/build_platform.sh --composable --target synth_public_top_ooc
+./scripts/fusesoc/build_platform.sh --target synth_public_top_ooc
 ```
 
 That target stages the `daphne_composable_top` source graph through FuseSoC and
@@ -156,7 +151,7 @@ Vivado, but not yet a board-ready K26C bitstream.
 There is now also a first-class Flow API variant of that checkpoint:
 
 ```bash
-./scripts/fusesoc/build_platform.sh --composable --target synth_public_top_flow
+./scripts/fusesoc/build_platform.sh --target synth_public_top_flow
 ```
 
 That target resolves the same `daphne_composable_top` graph but uses Edalize's
@@ -169,7 +164,7 @@ board-facing shell through the explicit bridge graph without the generated
 `daphne-ip` core:
 
 ```bash
-./scripts/fusesoc/build_platform.sh --composable --target synth_board_shell_flow
+./scripts/fusesoc/build_platform.sh --target synth_board_shell_flow
 ```
 
 If Vivado runs on a remote server instead of the local workstation, use the
@@ -357,20 +352,15 @@ recorded in `docs/source-audit.md`.
 - `daphne-ip-export.core` is the export-only companion manifest generated from
   the same Tcl rules. It stages the legacy HDL/Tcl/XCI tree for board-level
   Flow API targets without loading that tree as active design source.
-- `cores/platform/k26c-platform.core` keeps the working legacy K26C path.
-- `cores/platform/k26c-modular-platform.core` is the source-only platform
-  wrapper for the older transitional modular graph and should not receive new
-  feature decomposition work.
-- `cores/platform/k26c-composable-platform.core` is the composable platform
-  wrapper for the finer-grained subsystem graph. It now exposes a GHDL-backed
-  `validate` target so the isolated shell can be compiled and smoke-tested
-  without Vivado. Its supported implementation target is the BD-backed `impl`
-  lane, plus `synth_public_top_flow`, the first Flow API Vivado synth target for the
-  public composable top.
-- `scripts/fusesoc/build_platform.sh --composable` now defaults to `impl` for
-  the composable platform. Use `--composable --target synth_public_top_flow`
-  when you want the Flow-API Vivado synthesis checkpoint for the public
-  composable top.
+- `cores/platform/k26c-composable-platform.core` is the single supported K26C
+  platform wrapper for the finer-grained subsystem graph. It now exposes a
+  GHDL-backed `validate` target so the isolated shell can be compiled and
+  smoke-tested without Vivado. Its supported implementation target is the
+  BD-backed `impl` lane, plus `synth_public_top_flow`, the first Flow API
+  Vivado synth target for the public composable top.
+- `scripts/fusesoc/build_platform.sh` now defaults to `impl` for the supported
+  K26C platform. Use `--target synth_public_top_flow` when you want the Flow
+  API Vivado synthesis checkpoint for the public composable top.
 - `scripts/fusesoc/fusesoc.sh` pins the repo-local FuseSoC config and cache
   directories so the workflow does not depend on global user configuration.
 - `scripts/fusesoc/run_logic_test.sh` now exercises the module-level smoke
