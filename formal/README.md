@@ -15,20 +15,20 @@ Current proof entry points:
 - `formal/sby/control_plane_boundary_contract.sby` for the neutral control
   wrapper contract.
 - `formal/sby/daphne_composable_core_top_contract.sby` for the vendor-neutral
-  composable shell contract when timing, Hermes, and self-triggering are
-  disabled.
+  composable shell contract with explicit timing-boundary passthrough plus
+  disabled Hermes and self-triggering behavior.
 - `formal/sby/daphne_composable_frontend_shell_contract.sby` for the public
-  composable frontend shell pass-through contract and disabled optional-boundary
-  behavior.
+  composable frontend shell pass-through contract, explicit timing-boundary
+  passthrough, and disabled Hermes/self-trigger behavior.
 - `formal/sby/daphne_composable_top_analog_contract.sby` for the public
   composable top analog-control seam after a reset-release sequence, including
   equality to the standalone frontend shell on the AFE/DAC control pins and the
   idle analog-busy status image.
 - `formal/sby/daphne_composable_top_contract.sby` for the public composable top
-  validate path through the stubbed frontend island, disabled optional
-  subsystems, explicit equivalence to the standalone frontend shell seam, and
-  adapter-view mapping of the exposed frontend lane image into the trigger
-  sample path.
+  validate path through the stubbed frontend island, explicit timing-boundary
+  passthrough, equivalence to the standalone frontend shell seam, and adapter-
+  view mapping of the exposed frontend lane image into the trigger sample
+  path.
 - `formal/sby/configurable_delay_line_contract.sby` for the vendor-neutral
   configurable delay primitive that replaces imported `SRLC32E` delay chains.
 - `formal/sby/fe_axi_axi_lite.sby` for the frontend AXI-Lite control register
@@ -43,8 +43,8 @@ Current proof entry points:
   contract.
 - `formal/sby/thresholds_axi_lite.sby` for the self-trigger threshold register
   bank.
-- `formal/sby/timing_subsystem_boundary_contract.sby` for the neutral timing
-  wrapper contract.
+- `formal/sby/timing_subsystem_boundary_contract.sby` for the local-neutral,
+  endpoint-selected timing wrapper contract.
 - `formal/sby/trigger_pipeline_boundary_gate.sby` for the trigger readiness
   gate.
 - `formal/sby/spy_buffer_boundary_gate.sby` for the spy-buffer readiness gate.
@@ -82,7 +82,8 @@ Current suite layout:
   trigger-pipeline, and spy-buffer gates.
 - `composable` for the four composable top-level contracts.
 - `composable-cover` for the bounded public composable reachability checks at
-  the frontend shell seam and the top-level validate path.
+  the frontend shell seam, the top-level validate path, and the live public
+  timing seam.
 - `all-local` for every checked-in `.sby` job under `formal/sby/`.
 
 Two dedicated cover entry points now complement the AXI-Lite proofs:
@@ -99,6 +100,10 @@ Two dedicated cover entry points now complement the AXI-Lite proofs:
   harness and emits a bounded cover trace showing a live public trigger, a
   concrete propagated frontend lane image, and matching adapted trigger-sample
   bits through the validate stub path.
+- `formal/sby/daphne_composable_top_timing_cover.sby` binds
+  `formal/vhdl/daphne_composable_top_timing_cover.psl` to the same top-level
+  harness and emits a bounded cover trace showing a ready endpoint timing
+  image, a repeated public timestamp pattern, and a matching public sync byte.
 - `formal/sby/daphne_composable_frontend_shell_cover.sby` binds
   `formal/vhdl/daphne_composable_frontend_shell_cover.psl` to the frontend
   shell harness and emits a bounded cover trace showing a live forwarded
@@ -131,6 +136,10 @@ Properties currently checked:
   trigger path exactly as the legacy self-trigger path expects.
 - The vendor-neutral delay primitives preserve the same bounded sample-history
   selection contract as the isolated self-trigger wrappers that consume them.
+- The timing subsystem boundary stays neutral in local mode, and when endpoint
+  timing is selected it exposes a deterministic lock/ready/state/timestamp/sync
+  contract that the composable core, frontend shell, and public top now all
+  prove they forward directly.
 - The public composable top is tied back to the standalone frontend shell
   contract: under the validate-stub frontend image, the public top must expose
   the same frontend, timing, Hermes, and disabled self-trigger outputs as the
@@ -142,8 +151,8 @@ Properties currently checked:
 - The public composable top also proves that the exposed frontend lane image
   still maps into the flattened 40-channel trigger-sample view exactly as the
   frontend-to-selftrigger adapter contract expects.
-- Neutral wrappers that are still stubs are proven to remain input-independent
-  and to expose only null/zero-valued outputs.
+- Remaining neutral wrappers that are still stubs are proven to remain input-
+  independent and to expose only null/zero-valued outputs.
 
 Modules intentionally left out for now:
 
