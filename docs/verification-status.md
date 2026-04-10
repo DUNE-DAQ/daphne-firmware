@@ -5,9 +5,10 @@ infrastructure update in this change set.
 
 ## Build impact
 
-These changes do not modify the Vivado implementation path, top-level RTL
-connectivity, or firmware-visible behavior. They only affect local verification
-entry points, helper scripts, and formal harnesses.
+These changes do not modify the Vivado implementation path, production top-
+level RTL connectivity, or firmware-visible behavior. They do update the
+isolated timing-boundary model used by the local composable smoke/formal entry
+points, along with the helper scripts and formal harnesses around it.
 
 ## Local smoke verification
 
@@ -21,6 +22,10 @@ Verified locally with GHDL through `./scripts/fusesoc/run_logic_test.sh`:
   - `dune-daq:daphne:daphne-composable-core-top:0.1.0`
   - `dune-daq:daphne:daphne-composable-frontend-shell:0.1.0`
   - `dune-daq:daphne:daphne-composable-top:0.1.0`
+
+Also verified locally with the explicit optional-off target:
+
+- `./scripts/fusesoc/fusesoc.sh run --clean --target sim_optional_off --tool ghdl --build-root build/fusesoc-logic/dune-daq__daphne__daphne-composable-core-top__0.1.0__sim_optional_off dune-daq:daphne:daphne-composable-core-top:0.1.0`
 
 The smoke runner now exposes:
 
@@ -42,7 +47,7 @@ suites:
 ./scripts/formal/run_formal.sh --list-suites
 ```
 
-Current local inventory: 28 `.sby` jobs under `formal/sby/`.
+Current local inventory: 29 `.sby` jobs under `formal/sby/`.
 
 Current suite layout:
 
@@ -51,8 +56,8 @@ Current suite layout:
 - `cover-fast`: 2 bounded reachability cover jobs for the AXI-Lite wrappers
 - `boundary-cover`: 3 bounded reachability cover jobs for the boundary gates
 - `composable`: 4 composable-top contracts
-- `composable-cover`: 2 bounded composable reachability cover jobs
-- `all-local`: the full 27-job local inventory
+- `composable-cover`: 3 bounded composable reachability cover jobs
+- `all-local`: the full 29-job local inventory
 
 The `fe_axi` proof entry can now be invoked directly by basename:
 
@@ -135,6 +140,26 @@ This currently produces traces for:
 - `daphne_composable_top_cover`: a live public trigger plus a concrete
   frontend lane image plus matching adapted trigger-sample bits propagated
   through the validate-stub public top path
+- `daphne_composable_top_timing_cover`: a live public timing scenario with a
+  ready endpoint state, a repeated timestamp image, and a matching public sync
+  byte propagated through the validate-stub public top path
+
+The timing boundary is no longer modeled as an all-zero stub. The isolated
+`timing_subsystem_boundary` now stays neutral when local timing is selected and
+switches to a deterministic endpoint-selected model once `use_endpoint_clock`
+is asserted: MMCM lock bits track the local reset controls, endpoint readiness
+requires both locks plus endpoint reset release, `endpoint_state` distinguishes
+held-reset, wait-lock, and ready cases, the ready timestamp is a repeated
+`endpoint_addr` image, and the ready sync byte comes from `endpoint_addr(7:0)`
+when the selected address enables the modeled sync strobe.
+
+The composable proofs and smoke benches were corrected to match the real
+topology here. `ENABLE_TIMING_G` only selects whether the self-trigger fabric
+consumes the timing timestamp internally; it does not gate the public timing
+status/timestamp/sync outputs. The composable core, frontend shell, and public
+top contracts now all prove that they forward the timing-boundary contract
+directly, and the corresponding smoke benches now exercise both a live
+endpoint-selected timing path and a held-reset endpoint-selected path.
 
 The public composable top contract is now also tied directly to the standalone
 frontend-shell contract. The top harness instantiates a reference
@@ -191,6 +216,7 @@ Current passing local inventory:
 - `daphne_composable_frontend_shell_cover`
 - `daphne_composable_top_contract`
 - `daphne_composable_top_cover`
+- `daphne_composable_top_timing_cover`
 - `fe_axi_axi_lite`
 - `fixed_delay_line_contract`
 - `frontend_boundary_gate_cover`
@@ -213,6 +239,7 @@ Current passing local inventory:
 - `./scripts/formal/run_formal.sh daphne_composable_top_contract`
 - `./scripts/formal/run_formal.sh daphne_composable_top_analog_contract`
 - `./scripts/formal/run_formal.sh daphne_composable_top_cover`
+- `./scripts/formal/run_formal.sh timing_subsystem_boundary_contract`
 - `./scripts/formal/run_formal.sh --suite default`
 - `./scripts/formal/run_formal.sh --suite leaf-fast`
 - `./scripts/formal/run_formal.sh --suite cover-fast`
@@ -244,6 +271,7 @@ The cover legs also upload the generated cover VCD traces from:
 - `formal/sby/spy_buffer_boundary_gate_cover/engine_0/trace*.vcd`
 - `formal/sby/daphne_composable_frontend_shell_cover/engine_0/trace*.vcd`
 - `formal/sby/daphne_composable_top_cover/engine_0/trace*.vcd`
+- `formal/sby/daphne_composable_top_timing_cover/engine_0/trace*.vcd`
 
 The same workflow now also defines an `all-local` job gated to `schedule` and
 `workflow_dispatch`. That heavier lane runs:
@@ -258,7 +286,7 @@ and uploads failure artifacts from `formal/sby/**`, including:
 
 ## Next recommended step
 
-Add one enabled-boundary composable contract for a live timing or Hermes path,
-or extend the analog reset-release pattern down one level so
-`daphne_composable_frontend_shell` and `daphne_composable_core_top` also carry a
-documented analog idle-state proof on their own seams.
+Add a live Hermes-path composable contract, or extend the analog reset-release
+pattern down one level so `daphne_composable_frontend_shell` and
+`daphne_composable_core_top` also carry a documented analog idle-state proof on
+their own seams.
