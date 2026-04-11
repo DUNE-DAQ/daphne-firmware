@@ -1,7 +1,7 @@
 # Synthesis Timing Review
 
 This note records the synthesis-side timing review for the current K26C
-build path on `marroyav/fusesoc-backports`.
+build path on `marroyav/merge-candidate`.
 
 ## Current flow
 

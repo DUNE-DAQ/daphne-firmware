@@ -28,20 +28,45 @@
 - Added formal scaffolds for:
   - `fe_axi`
   - `thresholds`
+- Merged the reviewed `formal-infra` work into the current integration branch.
+- Achieved one routed-clean remote baseline on the merge-branch ancestor
+  `a389fcd`, with generated `.bit`, `.bin`, `.xsa`, and `.dtbo`.
+- Added merge-branch follow-up changes that still need one fresh full remote
+  run on branch head:
+  - `46263cb` clock/methodology cleanup
+  - `a41909c` selftrigger slow-control CDC synchronization
+  - `e8414ed` extra QoR and CDC reporting
+  - `1b96907` QoR experiment note in the handoff docs
 
 ## What was verified locally
 
-The following command passes on a non-Vivado machine:
+The following commands pass on a non-Vivado machine:
 
 ```bash
 ./scripts/fusesoc/run_logic_test.sh
+./scripts/fusesoc/check_afe_timing_constraint_contract.sh
+./scripts/fusesoc/build_platform.sh --target impl --dry-run
 ```
 
-This verifies the GHDL-backed smoke targets for:
+This verifies:
 
 - `dune-daq:daphne:config-control:0.1.0`
 - `dune-daq:daphne:selftrigger:0.1.0`
 - `dune-daq:daphne:frontend-control:0.1.0`
+- the current unmanaged Tcl timing-constraint contract
+- the current `k26c-composable-platform` build entrypoint resolution
+
+## What is verified remotely
+
+- The last fully qualified remote implementation baseline is ancestor
+  `a389fcd`.
+- That run reached routed timing closure and produced:
+  - `.bit`
+  - `.bin`
+  - `.xsa`
+  - `.dtbo`
+- The current branch head is ahead of that baseline and has not yet been
+  rerun end-to-end on a Vivado host.
 
 ## What is not verified locally
 
@@ -54,10 +79,15 @@ This verifies the GHDL-backed smoke targets for:
 
 ## Immediate next step on a remote Vivado host
 
-Use the runbook in `docs/remote-vivado.md` and run:
+Use the runbook in `docs/remote-vivado.md`, but build the current branch head:
 
 ```bash
+cd ~/repo/daphne-firmware
+git fetch origin
+git checkout marroyav/merge-candidate
+git reset --hard 1b96907
 export DAPHNE_BOARD=k26c
+export DAPHNE_GIT_SHA=1b96907
 ./scripts/remote/run_remote_vivado_chain.sh
 ```
 
@@ -107,6 +137,10 @@ For the WSL2 host that launches Windows-installed Vivado/Vitis:
 - The repo still carries compatibility/export helpers for legacy automation and
   deployment naming, even though the default board `impl` path is now the
   supported `k26c-composable-platform` BD-backed target.
+- `docs/remote-vivado.md`, `docs/wsl-agent-summary.md`, and
+  `docs/synthesis-timing-review.md` must stay aligned with the current branch
+  name and validated baseline; do not assume older branch names in those docs
+  are still current.
 - MAC/IP defaults are still anchored in imported PL-era defaults and are not
   yet migrated to a board/software-owned device-tree layer.
 

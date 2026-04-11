@@ -12,7 +12,7 @@ This summary is for the next agent running inside WSL2 on the host where:
 ## What is already verified
 
 - Local FuseSoC/GHDL smoke tests pass on branch
-  `marroyav/fusesoc-backports`.
+  `marroyav/merge-candidate`.
 - Windows tools are reachable from WSL with direct commands:
 
 ```bash
