@@ -19,6 +19,7 @@ filesets:
       - ip_repo/daphne_ip/rtl/selftrig/peak_descriptor_import/Peak_Descriptors.vhd
       - ip_repo/daphne_ip/rtl/selftrig/peak_descriptor_import/PeakDetector_SelfTrigger.vhd
       - ip_repo/daphne_ip/rtl/selftrig/peak_descriptor_import/Peak_Descriptor_Calculation.vhd
+      - rtl/isolated/subsystems/control/trigger_control_sync.vhd
       - ip_repo/daphne_ip/rtl/selftrig/core.vhd
       - ip_repo/daphne_ip/rtl/selftrig/dual_st20_top.vhd
       - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/dsp_xc.vhd

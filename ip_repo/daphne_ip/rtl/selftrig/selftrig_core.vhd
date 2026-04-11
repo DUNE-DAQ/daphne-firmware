@@ -42,6 +42,7 @@ end selftrig_core;
 
 architecture selftrig_core_arch of selftrig_core is
   signal threshold_xc: slv28_array_t(0 to 39);
+  signal threshold_xc_sync: slv28_array_t(0 to 39);
   signal TCount: slv64_array_t(0 to 39);
   signal PCount: slv64_array_t(0 to 39);
   signal record_count: slv64_array_t(0 to 39);
@@ -50,6 +51,14 @@ architecture selftrig_core_arch of selftrig_core is
   signal trigger_samples: sample14_array_t(0 to 39);
   signal trigger_control: trigger_xcorr_control_array_t(0 to 39);
   signal trigger_result: trigger_xcorr_result_array_t(0 to 39);
+  signal core_chan_enable_sync: std_logic_vector(39 downto 0);
+  signal afe_comp_enable_sync: std_logic_vector(39 downto 0);
+  signal invert_enable_sync: std_logic_vector(39 downto 0);
+  signal adhoc_sync: std_logic_vector(7 downto 0);
+  signal filter_output_selector_sync: std_logic_vector(1 downto 0);
+  signal st_config_sync: std_logic_vector(13 downto 0);
+  signal signal_delay_sync: std_logic_vector(4 downto 0);
+  signal reset_st_counters_sync: std_logic;
   signal config_valid: std_logic_vector(4 downto 0) := (others => '0');
   signal config_cmd: afe_config_command_bank_t(0 to 4) := (others => AFE_CONFIG_COMMAND_NULL);
   signal config_status: afe_config_status_bank_t(0 to 4);
@@ -84,22 +93,51 @@ begin
       trigger_samples_o => trigger_samples
     );
 
-  control_adapter_inst : entity work.trigger_control_adapter
+  control_sync_inst : entity work.trigger_control_sync
     generic map (
       CHANNEL_COUNT_G => 40
     )
     port map (
+      src_clk_i                => AXI_IN.ACLK,
+      src_reset_i              => not AXI_IN.ARESETN,
+      dst_clk_i                => clock,
+      dst_reset_i              => reset,
       core_chan_enable_i       => enable,
       afe_comp_enable_i        => afe_comp_enable,
       invert_enable_i          => invert_enable,
       threshold_xc_i           => threshold_xc,
       adhoc_i                  => adhoc,
       filter_output_selector_i => filter_output_selector,
-      ti_trigger_i             => ti_trigger,
-      ti_trigger_stbr_i        => ti_trigger_stbr,
       descriptor_config_i      => st_config,
       signal_delay_i           => signal_delay,
       reset_st_counters_i      => reset_st_counters,
+      core_chan_enable_o       => core_chan_enable_sync,
+      afe_comp_enable_o        => afe_comp_enable_sync,
+      invert_enable_o          => invert_enable_sync,
+      threshold_xc_o           => threshold_xc_sync,
+      adhoc_o                  => adhoc_sync,
+      filter_output_selector_o => filter_output_selector_sync,
+      descriptor_config_o      => st_config_sync,
+      signal_delay_o           => signal_delay_sync,
+      reset_st_counters_o      => reset_st_counters_sync
+    );
+
+  control_adapter_inst : entity work.trigger_control_adapter
+    generic map (
+      CHANNEL_COUNT_G => 40
+    )
+    port map (
+      core_chan_enable_i       => core_chan_enable_sync,
+      afe_comp_enable_i        => afe_comp_enable_sync,
+      invert_enable_i          => invert_enable_sync,
+      threshold_xc_i           => threshold_xc_sync,
+      adhoc_i                  => adhoc_sync,
+      filter_output_selector_i => filter_output_selector_sync,
+      ti_trigger_i             => ti_trigger,
+      ti_trigger_stbr_i        => ti_trigger_stbr,
+      descriptor_config_i      => st_config_sync,
+      signal_delay_i           => signal_delay_sync,
+      reset_st_counters_i      => reset_st_counters_sync,
       trigger_control_o        => trigger_control,
       descriptor_config_o      => open,
       signal_delay_o           => open,
@@ -141,12 +179,12 @@ begin
       offset_mosi_o         => offset_mosi,
       offset_ldac_n_o       => offset_ldac_n,
       offset_sync_n_o       => offset_sync_n,
-      reset_st_counters_i   => reset_st_counters,
+      reset_st_counters_i   => reset_st_counters_sync,
       force_trigger_i       => forcetrig,
       timestamp_i           => timestamp,
       version_i             => version,
-      signal_delay_i        => signal_delay,
-      descriptor_config_i   => st_config,
+      signal_delay_i        => signal_delay_sync,
+      descriptor_config_i   => st_config_sync,
       din_i                 => trigger_samples,
       trigger_control_i     => trigger_control,
       rd_en_i               => rd_en,

@@ -34,6 +34,7 @@ filesets:
       - rtl/isolated/subsystems/control/legacy_trigger_control_adapter.vhd
       - rtl/isolated/subsystems/control/selftrigger_register_bank.vhd
       - rtl/isolated/subsystems/control/trigger_control_adapter.vhd
+      - rtl/isolated/subsystems/control/trigger_control_sync.vhd
       - rtl/isolated/subsystems/frontend/afe_capture_slice.vhd
       - rtl/isolated/subsystems/frontend/afe_capture_slice_boundary.vhd
       - rtl/isolated/subsystems/frontend/frontend_boundary.vhd
