@@ -106,11 +106,11 @@ forbid_fixed "mmcm1_inst/CLKOUT2" "$TIMING_TCL" \
   "AFE timing Tcl still points at the old unused MMCM1 CLKOUT2 byte-clock path."
 forbid_fixed "set_clock_groups -physically_exclusive" "$TIMING_TCL" \
   "AFE timing Tcl still carries the stale dual-family physically exclusive frontend clock model."
-require_fixed "create_generated_clock -name frontend_word_clk -master_clock rx_tmg_clk -source \$frontend_word_clk_source_port -divide_by 1 \$frontend_word_clk_source_pin" "$TIMING_TCL" \
-  "AFE timing Tcl no longer anchors the endpoint word clock to rx_tmg_clk explicitly."
-require_fixed "create_generated_clock -name frontend_word_clk -master_clock sysclk -source \$frontend_word_clk_source_port -multiply_by 5 -divide_by 8 \$frontend_word_clk_source_pin" "$TIMING_TCL" \
-  "AFE timing Tcl no longer anchors the local word clock to sysclk explicitly."
-require_fixed "create_generated_clock -name frontend_clock -master_clock frontend_word_clk -source \$frontend_word_clk_source_pin -divide_by 1 \$frontend_clock_pin" "$TIMING_TCL" \
+require_fixed "create_generated_clock -name frontend_word_clk -source \$frontend_word_clk_source_port -divide_by 1 \$frontend_word_clk_source_pin" "$TIMING_TCL" \
+  "AFE timing Tcl no longer defines the endpoint word clock from the recovered timing source port."
+require_fixed "create_generated_clock -name frontend_word_clk -source \$frontend_word_clk_source_port -multiply_by 5 -divide_by 8 \$frontend_word_clk_source_pin" "$TIMING_TCL" \
+  "AFE timing Tcl no longer defines the local word clock from sysclk."
+require_fixed "create_generated_clock -name frontend_clock -source \$frontend_word_clk_source_pin -divide_by 1 \$frontend_clock_pin" "$TIMING_TCL" \
   "AFE timing Tcl no longer defines a single selected frontend master clock."
 forbid_fixed "create_generated_clock -name frontend_bit_clk" "$TIMING_TCL" \
   "AFE timing Tcl still overrides Vivado's auto-derived frontend bit clock."
@@ -128,13 +128,13 @@ require_fixed "set_false_path -to \$endpoint_sync_stage1_pins" "$ENDPOINT_CDC_TC
   "endpoint CDC Tcl no longer cuts the explicit PDTS synchronizer first-stage pins."
 require_fixed "set_false_path -from \$rx_tmg_port -to \$endpoint_raw_rx_sample_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the raw recovered-clock sample path into the PDTS CDR sampler."
-require_fixed "*/ep/regfile/adone_reg/Q" "$ENDPOINT_CDC_TCL" \
+require_fixed "*/ep/regfile/adone_reg" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS addr_done completion flag crossing."
-require_fixed "*/ep/regfile/ddone_reg/Q" "$ENDPOINT_CDC_TCL" \
+require_fixed "*/ep/regfile/ddone_reg" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS deskew_done completion flag crossing."
 require_fixed "*/ep/sm/state_reg[*]/D" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer targets the PDTS state-machine destination pins for async completion flags."
-require_fixed "set_false_path -from \$endpoint_regfile_done_source_pins -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
+require_fixed "set_false_path -from \$endpoint_regfile_done_source_cells -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the PDTS regfile completion flags into the sys_clk state machine."
 require_fixed "*/ep/sm/addr_done" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS addr_done handoff net into the sys_clk state machine."

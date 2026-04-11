@@ -145,17 +145,17 @@ if {$timing_clock_source eq "endpoint"} {
     set frontend_clock_select_value 1
     set frontend_word_clk_source_port $rx_tmg_port
     set frontend_word_clk_source_pin $frontend_word_clk_ep_pin
-    create_generated_clock -name frontend_word_clk -master_clock rx_tmg_clk -source $frontend_word_clk_source_port -divide_by 1 $frontend_word_clk_source_pin
+    create_generated_clock -name frontend_word_clk -source $frontend_word_clk_source_port -divide_by 1 $frontend_word_clk_source_pin
 } else {
     set frontend_clock_select_value 0
     set frontend_word_clk_source_port $sysclk_port
     set frontend_word_clk_source_pin $frontend_word_clk_local_pin
-    create_generated_clock -name frontend_word_clk -master_clock sysclk -source $frontend_word_clk_source_port -multiply_by 5 -divide_by 8 $frontend_word_clk_source_pin
+    create_generated_clock -name frontend_word_clk -source $frontend_word_clk_source_port -multiply_by 5 -divide_by 8 $frontend_word_clk_source_pin
 }
 
 set_case_analysis $frontend_clock_select_value $frontend_clock_select_pin
 
-create_generated_clock -name frontend_clock -master_clock frontend_word_clk -source $frontend_word_clk_source_pin -divide_by 1 $frontend_clock_pin
+create_generated_clock -name frontend_clock -source $frontend_word_clk_source_pin -divide_by 1 $frontend_clock_pin
 
 set_property CLOCK_DEDICATED_ROUTE BACKBONE $endpoint_bclk_net
 set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN $endpoint_clku_net

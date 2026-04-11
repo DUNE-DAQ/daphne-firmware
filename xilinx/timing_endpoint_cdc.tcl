@@ -45,6 +45,26 @@ proc daphne_collect_optional_endpoint_nets {root_candidates relative_patterns} {
     return [lsort -unique $matches]
 }
 
+proc daphne_collect_optional_endpoint_cells {root_candidates relative_patterns} {
+    set matches {}
+    foreach root_candidate [split $root_candidates ";"] {
+        set trimmed_root [string trim $root_candidate]
+        if {$trimmed_root eq ""} {
+            continue
+        }
+        foreach relative_pattern $relative_patterns {
+            set query_pattern "${trimmed_root}/${relative_pattern}"
+            foreach resolved_cell [get_cells -hier -quiet -filter "NAME =~ $query_pattern"] {
+                lappend matches $resolved_cell
+            }
+            foreach resolved_cell [get_cells -quiet $query_pattern] {
+                lappend matches $resolved_cell
+            }
+        }
+    }
+    return [lsort -unique $matches]
+}
+
 if {![info exists ::env(DAPHNE_TIMING_ENDPOINT_PATH)] || [string trim $::env(DAPHNE_TIMING_ENDPOINT_PATH)] eq ""} {
     error "ERROR: DAPHNE_TIMING_ENDPOINT_PATH must be set for timing_endpoint_cdc.tcl"
 }
@@ -76,17 +96,17 @@ if {[llength $rx_tmg_port] == 1 && [llength $endpoint_raw_rx_sample_pins] > 0} {
 # clock domain, while the endpoint state machine consumes them on sys_clk.
 # Treat these completion flags as asynchronous handoff signals rather than
 # synchronous timing requirements between frontend_word_clk and mmcm0_clkout2.
-set endpoint_regfile_done_source_pins [daphne_collect_optional_endpoint_pins $endpoint_path {
-    */ep/regfile/adone_reg/Q
-    */ep/regfile/ddone_reg/Q
+set endpoint_regfile_done_source_cells [daphne_collect_optional_endpoint_cells $endpoint_path {
+    */ep/regfile/adone_reg
+    */ep/regfile/ddone_reg
 }]
 
 set endpoint_state_machine_pins [daphne_collect_optional_endpoint_pins $endpoint_path {
     */ep/sm/state_reg[*]/D
 }]
 
-if {[llength $endpoint_regfile_done_source_pins] > 0 && [llength $endpoint_state_machine_pins] > 0} {
-    set_false_path -from $endpoint_regfile_done_source_pins -to $endpoint_state_machine_pins
+if {[llength $endpoint_regfile_done_source_cells] > 0 && [llength $endpoint_state_machine_pins] > 0} {
+    set_false_path -from $endpoint_regfile_done_source_cells -to $endpoint_state_machine_pins
 }
 
 set endpoint_state_machine_async_handoff_nets [daphne_collect_optional_endpoint_nets $endpoint_path {
