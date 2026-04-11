@@ -183,6 +183,7 @@ proc daphne_prepare_project {cfg_name} {
     set_property BOARD_PART $cfg(board_part) [current_project]
     set_property TARGET_LANGUAGE VHDL [current_project]
     set_property DEFAULT_LIB work [current_project]
+    set_property XPM_LIBRARIES {XPM_CDC XPM_FIFO XPM_MEMORY} [current_project]
     set ::env(DAPHNE_PFM_NAME) $cfg(pfm_name)
 
     puts "INFO: Running Vivado batch for part <$cfg(fpga_part)> board_part <$cfg(board_part)> pfm <$cfg(pfm_name)>."
@@ -247,6 +248,8 @@ proc daphne_run_synth {cfg_name} {
         daphne_run_nonfatal "post-synth report_timing_summary" [list report_timing_summary -file [file join $cfg(output_dir) "post_synth_timing_summary.rpt"]]
         daphne_run_nonfatal "post-synth report_power" [list report_power -file [file join $cfg(output_dir) "post_synth_power.rpt"]]
         daphne_run_nonfatal "post-synth report_utilization" [list report_utilization -file [file join $cfg(output_dir) "post_synth_util.rpt"]]
+        daphne_run_nonfatal "post-synth hierarchical utilization" [list report_utilization -hierarchical -file [file join $cfg(output_dir) "post_synth_util_hier.rpt"]]
+        daphne_run_nonfatal "post-synth control sets" [list report_control_sets -verbose -file [file join $cfg(output_dir) "post_synth_control_sets.rpt"]]
     }
     if {$cfg(skip_post_synth_checkpoint) eq "1"} {
         puts "INFO: Skipping post-synth checkpoint by request."
@@ -277,6 +280,8 @@ proc daphne_run_impl {cfg_name} {
     report_timing -sort_by group -max_paths 100 -path_type summary -file [file join $cfg(output_dir) "post_place_timing.rpt"]
     report_clock_utilization -file [file join $cfg(output_dir) "post_place_clock_util.rpt"]
     daphne_run_nonfatal "post-place report_power" [list report_power -file [file join $cfg(output_dir) "post_place_power.rpt"]]
+    daphne_run_nonfatal "post-place hierarchical utilization" [list report_utilization -hierarchical -file [file join $cfg(output_dir) "post_place_util_hier.rpt"]]
+    daphne_run_nonfatal "post-place control sets" [list report_control_sets -verbose -file [file join $cfg(output_dir) "post_place_control_sets.rpt"]]
 
     route_design -directive $cfg(route_directive)
     phys_opt_design -directive $cfg(post_route_physopt_directive)
@@ -287,6 +292,9 @@ proc daphne_run_impl {cfg_name} {
     report_timing -sort_by group -max_paths 100 -path_type summary -file [file join $cfg(output_dir) "post_route_timing.rpt"]
     report_clock_utilization -file [file join $cfg(output_dir) "clock_util.rpt"]
     report_utilization -file [file join $cfg(output_dir) "post_route_util.rpt"]
+    daphne_run_nonfatal "post-route hierarchical utilization" [list report_utilization -hierarchical -file [file join $cfg(output_dir) "post_route_util_hier.rpt"]]
+    daphne_run_nonfatal "post-route control sets" [list report_control_sets -verbose -file [file join $cfg(output_dir) "post_route_control_sets.rpt"]]
+    daphne_run_nonfatal "post-route report_cdc" [list report_cdc -file [file join $cfg(output_dir) "post_route_cdc.rpt"]]
     report_power -file [file join $cfg(output_dir) "post_route_power.rpt"]
     report_drc -file [file join $cfg(output_dir) "post_imp_drc.rpt"]
     report_io -file [file join $cfg(output_dir) "io.rpt"]
