@@ -11,6 +11,7 @@
 # define primary clocks...
 
 create_clock -period 10.000 -name sysclk [ get_ports sysclk_p]
+create_clock -period 6.400 -name eth_clk [get_ports -quiet {GTH0_REFCLK_P eth_clk_p}]
 
 # The active AFE receive-clock timing model now lives only in
 # xilinx/afe_capture_timing.tcl, which is required through the board manifest.

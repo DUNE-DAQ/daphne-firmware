@@ -60,20 +60,28 @@ proc daphne_require_single_object {object_kind root_candidates relative_path pur
     return [lindex $resolved_objects 0]
 }
 
-proc daphne_set_async_clock_groups_if_present {group_a group_b} {
-    set clocks_a {}
-    set clocks_b {}
+proc daphne_collect_optional_clocks {clock_specs} {
+    set matches {}
+    foreach clock_spec $clock_specs {
+        set trimmed_spec [string trim $clock_spec]
+        if {$trimmed_spec eq ""} {
+            continue
+        }
 
-    foreach clock_name $group_a {
-        foreach resolved_clock [get_clocks -quiet $clock_name] {
-            lappend clocks_a $resolved_clock
+        foreach resolved_clock [get_clocks -quiet $trimmed_spec] {
+            lappend matches $resolved_clock
+        }
+        foreach resolved_clock [get_clocks -quiet -filter "NAME =~ $trimmed_spec"] {
+            lappend matches $resolved_clock
         }
     }
-    foreach clock_name $group_b {
-        foreach resolved_clock [get_clocks -quiet $clock_name] {
-            lappend clocks_b $resolved_clock
-        }
-    }
+
+    return [lsort -unique $matches]
+}
+
+proc daphne_set_async_clock_groups_if_present {group_a group_b} {
+    set clocks_a [daphne_collect_optional_clocks $group_a]
+    set clocks_b [daphne_collect_optional_clocks $group_b]
 
     if {[llength $clocks_a] > 0 && [llength $clocks_b] > 0} {
         set_clock_groups -asynchronous -group $clocks_a -group $clocks_b
@@ -137,17 +145,17 @@ if {$timing_clock_source eq "endpoint"} {
     set frontend_clock_select_value 1
     set frontend_word_clk_source_port $rx_tmg_port
     set frontend_word_clk_source_pin $frontend_word_clk_ep_pin
-    create_generated_clock -name frontend_word_clk -source $frontend_word_clk_source_port -divide_by 1 $frontend_word_clk_source_pin
+    create_generated_clock -name frontend_word_clk -master_clock rx_tmg_clk -source $frontend_word_clk_source_port -divide_by 1 $frontend_word_clk_source_pin
 } else {
     set frontend_clock_select_value 0
     set frontend_word_clk_source_port $sysclk_port
     set frontend_word_clk_source_pin $frontend_word_clk_local_pin
-    create_generated_clock -name frontend_word_clk -source $frontend_word_clk_source_port -multiply_by 5 -divide_by 8 $frontend_word_clk_source_pin
+    create_generated_clock -name frontend_word_clk -master_clock sysclk -source $frontend_word_clk_source_port -multiply_by 5 -divide_by 8 $frontend_word_clk_source_pin
 }
 
 set_case_analysis $frontend_clock_select_value $frontend_clock_select_pin
 
-create_generated_clock -name frontend_clock -source $frontend_word_clk_source_pin -divide_by 1 $frontend_clock_pin
+create_generated_clock -name frontend_clock -master_clock frontend_word_clk -source $frontend_word_clk_source_pin -divide_by 1 $frontend_clock_pin
 
 set_property CLOCK_DEDICATED_ROUTE BACKBONE $endpoint_bclk_net
 set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN $endpoint_clku_net
@@ -155,8 +163,9 @@ set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN $endpoint_clku_net
 set frontend_clock_family {
     frontend_word_clk
     frontend_clock
-    mmcm1_clkout0
-    clk125
+    mmcm1_clkout0*
+    clk125*
+    mmcm0_inst_n_*
 }
 
 daphne_set_async_clock_groups_if_present {clk_pl_0} $frontend_clock_family
