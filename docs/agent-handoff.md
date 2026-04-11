@@ -2,7 +2,7 @@
 
 ## Current branch
 
-- Branch: `marroyav/fusesoc-backports`
+- Branch: `marroyav/merge-candidate`
 - Latest WSL handoff should also consult `docs/wsl-agent-summary.md`
 - Synthesis-specific timing review: see `docs/synthesis-timing-review.md`
 
@@ -67,6 +67,29 @@ If the Xilinx environment is not already sourced:
 export XILINX_SETTINGS_SH=/path/to/Vivado/2024.1/settings64.sh
 export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2024.1/settings64.sh
 ```
+
+## Optional Vivado QoR Experiments
+
+If the current baseline meets flow correctness but still needs QoR work, keep
+these as explicit one-at-a-time experiments rather than new defaults:
+
+- `DAPHNE_OPT_DIRECTIVE=ExploreWithRemap`
+  - makes `opt_design` try more aggressive logic remapping before placement;
+  - useful when the issue looks like combinational reshaping or routability;
+  - can increase area and packing pressure, so compare utilization and control
+    sets against the baseline.
+- `DAPHNE_POST_PLACE_PHYSOPT_DIRECTIVE=AddRetime`
+  - makes `phys_opt_design` try register retiming after placement;
+  - useful when the issue looks like setup timing on deep datapaths;
+  - can complicate CDC/debug interpretation, so compare timing and methodology
+    reports against the non-retimed baseline.
+
+Do not enable both by default without a measured before/after comparison.
+Use the extra reports emitted by the current flow:
+
+- `post_*_util_hier.rpt`
+- `post_*_control_sets.rpt`
+- `post_route_cdc.rpt`
 
 ## WSL-specific status
 
