@@ -126,6 +126,12 @@ require_fixed "*/ep/sm/state_reg[*]/D" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer targets the PDTS state-machine destination pins for async completion flags."
 require_fixed "set_false_path -from \$endpoint_regfile_done_source_pins -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the PDTS regfile completion flags into the sys_clk state machine."
+require_fixed "*/ep/sm/addr_done" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer identifies the PDTS addr_done handoff net into the sys_clk state machine."
+require_fixed "*/ep/sm/deskew_done" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer identifies the PDTS deskew_done handoff net into the sys_clk state machine."
+require_fixed "set_false_path -through \$endpoint_state_machine_async_handoff_nets -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer cuts the explicit PDTS addr_done/deskew_done handoff nets into the sys_clk state machine."
 require_fixed "post-place report_methodology" "$FLOW_TCL" \
   "Vivado flow no longer emits a post-place methodology report."
 require_fixed "post_route_methodology.rpt" "$FLOW_TCL" \
