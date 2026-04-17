@@ -7,7 +7,7 @@
 # paths with backslashes, so canonicalize everything to forward-slash form.
 set script_dir [file dirname [file normalize [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
-source -notrace [file join $script_dir "daphne_board_env.tcl"]
+source [file join $script_dir "daphne_board_env.tcl"]
 set daphne_board_profile [daphne_resolve_board_profile $repo_root]
 set default_vitis_version [daphne_get_env_or_default DAPHNE_VITIS_VERSION "2024.1"]
 set dtg_git_branch [daphne_get_env_or_default DAPHNE_DTG_GIT_BRANCH "xlnx_rel_v${default_vitis_version}"]
@@ -44,10 +44,15 @@ if {$hw_xsa eq ""} {
     set hw_xsa [file join $out_dir ${artifact_prefix}_$git_sha.xsa]
 }
 
+if {![file exists $hw_xsa]} {
+    error "ERROR: expected hardware handoff at $hw_xsa"
+}
+
 # generate the device tree using the generated XSA
 if {$hw_arg ne "" && $hw_arg ne $hw_xsa} {
     puts "INFO: normalized HW path differs from argv; using canonical XSA path $hw_xsa"
 }
+hsi::open_hw_design $hw_xsa
 createdts -hw $hw_xsa -zocl -platform-name ${artifact_prefix}_$git_sha -git-branch $dtg_git_branch -overlay -out [file join $out_dir ${artifact_prefix}_$git_sha]
  
 # exit the process once done
