@@ -94,82 +94,82 @@ path = Path(sys.argv[1])
 lines = path.read_text().splitlines()
 out = []
 
-block = None
-block_depth = 0
-seen = {
-    "intc_interrupt_cells": False,
-    "intc_interrupt_controller": False,
-    "spi_address_cells": False,
-    "spi_size_cells": False,
-    "spi_spidev": False,
-}
-skip_nested = None
-skip_depth = 0
+def block_indent(block_lines, default):
+    for candidate in block_lines[1:]:
+        stripped = candidate.strip()
+        if stripped and stripped != "};":
+            return candidate[: len(candidate) - len(candidate.lstrip())]
+    return default
 
-for line in lines:
-    stripped = line.strip()
+def rewrite_intc_block(block_lines):
+    indent = block_indent(block_lines, "                ")
+    rewritten = []
+    for line in block_lines[:-1]:
+        stripped = line.strip()
+        if stripped.startswith("#interrupt-cells"):
+            continue
+        if stripped.startswith("interrupt-controller;"):
+            continue
+        rewritten.append(line)
+    rewritten.append(f"{indent}#interrupt-cells = <2>;")
+    rewritten.append(f"{indent}interrupt-controller;")
+    rewritten.append(block_lines[-1])
+    return rewritten
 
-    if skip_nested is not None:
-        skip_depth += line.count("{")
-        skip_depth -= line.count("}")
-        if skip_depth <= 0:
-            skip_nested = None
+def rewrite_spi_block(block_lines):
+    indent = block_indent(block_lines, "                ")
+    nested_indent = indent + "    "
+    spidev_indent = indent
+    rewritten = []
+    skip_depth = 0
+    for line in block_lines[:-1]:
+        stripped = line.strip()
+        if skip_depth > 0:
+            skip_depth += line.count("{")
+            skip_depth -= line.count("}")
+            continue
+        if stripped.startswith("#address-cells"):
+            continue
+        if stripped.startswith("#size-cells"):
+            continue
+        if stripped.startswith("spidev@0"):
+            skip_depth = line.count("{") - line.count("}")
+            continue
+        rewritten.append(line)
+
+    rewritten.extend([
+        f"{indent}#address-cells = <1>;",
+        f"{indent}#size-cells = <0>;",
+        f"{spidev_indent}spidev@0 {{",
+        f'{nested_indent}status = "okay";',
+        f'{nested_indent}compatible = "rohm,dh2228fv";',
+        f"{nested_indent}spi-max-frequency = <50000000>;",
+        f"{nested_indent}reg = <0>;",
+        f"{spidev_indent}}};",
+    ])
+    rewritten.append(block_lines[-1])
+    return rewritten
+
+i = 0
+while i < len(lines):
+    line = lines[i]
+    if "interrupt-controller@9c010000" in line or "axi_quad_spi@9c020000" in line:
+        block = [line]
+        depth = line.count("{") - line.count("}")
+        i += 1
+        while i < len(lines):
+            block.append(lines[i])
+            depth += lines[i].count("{") - lines[i].count("}")
+            i += 1
+            if depth <= 0:
+                break
+        if "interrupt-controller@9c010000" in block[0]:
+            out.extend(rewrite_intc_block(block))
+        else:
+            out.extend(rewrite_spi_block(block))
         continue
-
-    if block is None:
-        if "interrupt-controller@9c010000" in line:
-            block = "intc"
-            block_depth = line.count("{") - line.count("}")
-        elif "axi_quad_spi@9c020000" in line:
-            block = "spi"
-            block_depth = line.count("{") - line.count("}")
-        out.append(line)
-        continue
-
-    if block == "intc":
-        if stripped == "#interrupt-cells = <2>;":
-            if seen["intc_interrupt_cells"]:
-                block_depth += line.count("{") - line.count("}")
-                if block_depth <= 0:
-                    block = None
-                continue
-            seen["intc_interrupt_cells"] = True
-        elif stripped == "interrupt-controller;":
-            if seen["intc_interrupt_controller"]:
-                block_depth += line.count("{") - line.count("}")
-                if block_depth <= 0:
-                    block = None
-                continue
-            seen["intc_interrupt_controller"] = True
-    elif block == "spi":
-        if stripped == "#address-cells = <1>;":
-            if seen["spi_address_cells"]:
-                block_depth += line.count("{") - line.count("}")
-                if block_depth <= 0:
-                    block = None
-                continue
-            seen["spi_address_cells"] = True
-        elif stripped == "#size-cells = <0>;":
-            if seen["spi_size_cells"]:
-                block_depth += line.count("{") - line.count("}")
-                if block_depth <= 0:
-                    block = None
-                continue
-            seen["spi_size_cells"] = True
-        elif stripped.startswith("spidev@0"):
-            if seen["spi_spidev"]:
-                skip_nested = "spidev"
-                skip_depth = line.count("{") - line.count("}")
-                block_depth += line.count("{") - line.count("}")
-                if block_depth <= 0:
-                    block = None
-                continue
-            seen["spi_spidev"] = True
-
     out.append(line)
-    block_depth += line.count("{") - line.count("}")
-    if block_depth <= 0:
-        block = None
+    i += 1
 
 path.write_text("\n".join(out) + "\n")
 PY
@@ -327,14 +327,6 @@ if [[ -z "$pl_dtsi_path" ]]; then
 fi
 
 normalize_pl_dtsi "$pl_dtsi_path"
-
-if ! grep -q 'interrupt-controller;' "$pl_dtsi_path" \
-  || ! grep -q '#interrupt-cells = <2>;' "$pl_dtsi_path" \
-  || ! grep -q 'spidev@0' "$pl_dtsi_path"; then
-  sed -i.bak -f "$AXI_SPI_PATCH" "$pl_dtsi_path"
-  rm -f "${pl_dtsi_path}.bak"
-  normalize_pl_dtsi "$pl_dtsi_path"
-fi
 
 if ! grep -Eq '(axi_intc|interrupt-controller)@9c010000' "$pl_dtsi_path"; then
   echo "ERROR: expected AXI interrupt controller node at 0x9C010000 was not found in $pl_dtsi_path" >&2
