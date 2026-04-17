@@ -2,7 +2,7 @@
 -- DAPHNE core logic, top level, self triggered mode sender
 -- all 40 AFE channels -> one output link to DAQ
 -- 
--- Jamieson Olsen <jamieson@fnal.gov>
+-- Proto self-trigger foundation: Jamieson Olsen <jamieson@fnal.gov> - Jacques Ntahoturi (FNAL)
 
 library ieee;
 use ieee.std_logic_1164.all;

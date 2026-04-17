@@ -9,6 +9,16 @@ Neutral boundary for:
 - trigger descriptor generation
 - descriptor handoff toward frame assembly and transport
 
+## Subsystem provenance
+
+- Proto self-trigger foundation: Jamieson Olsen and Jacques Ntahoturi (FNAL)
+- Filters: Esteban Cristaldo (Bicocca)
+- Peak descriptors: Ignacio Lopez de Rego (IFIC) and Manuel Arroyave (FNAL)
+- XCorr self-trigger integration: Daniel Avila Gomez (EIA), Esteban Cristaldo
+  (Bicocca), and Manuel Arroyave (FNAL)
+
+The canonical cross-repo attribution list lives in `docs/developer-manifest.md`.
+
 ## Imported sources currently involved
 
 - `rtl/selftrig/`

@@ -1,3 +1,9 @@
+-- trig_xc.vhd
+-- Cross-correlation self-trigger path integrating the imported EIA/Bicocca
+-- algorithm sources with the current repo-owned trigger pipeline.
+-- Daniel Avila Gomez <daniel.avila@eia.edu.co> - Esteban Cristaldo (Bicocca) -
+-- Manuel Arroyave <manuel.arroyave@cern.ch>
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

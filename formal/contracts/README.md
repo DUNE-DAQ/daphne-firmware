@@ -2,6 +2,12 @@
 
 These files define proof scope before proof code exists.
 
+Ownership note:
+
+- the contract inventory and contract-integration workflow in this repo are
+  maintained by Manuel Arroyave (FNAL)
+- the broader subsystem attribution map lives in `docs/developer-manifest.md`
+
 Each module contract should capture:
 
 - clock and reset domains

@@ -4,6 +4,12 @@ Formal is realistic today only for small, leaf-level register/control blocks
 that are mostly synchronous RTL and do not depend on Vivado IP generation,
 block-design procedures, or Xilinx primitive-heavy datapaths.
 
+Ownership note:
+
+- the formal verification harnesses, proof entry points, and integration in
+  this repo are maintained by Manuel Arroyave (FNAL)
+- the matching subsystem attribution map lives in `docs/developer-manifest.md`
+
 Current proof entry points:
 
 - `formal/sby/afe_config_slice_boundary_contract.sby` for reset-qualified

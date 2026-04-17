@@ -1,3 +1,9 @@
+-- self_trigger_xcorr_channel.vhd
+-- Repo-owned typed wrapper for the xcorr self-trigger path.
+-- Algorithm provenance: Daniel Avila Gomez <daniel.avila@eia.edu.co>, EIA;
+-- Esteban Cristaldo (Bicocca).
+-- Wrapper and integration provenance: Manuel Arroyave <manuel.arroyave@cern.ch>, FNAL.
+
 library ieee;
 use ieee.std_logic_1164.all;
 
