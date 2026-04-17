@@ -108,7 +108,7 @@ def rewrite_intc_block(block_lines):
         stripped = line.strip()
         if stripped.startswith("#interrupt-cells"):
             continue
-        if stripped.startswith("interrupt-controller;"):
+        if stripped.startswith("interrupt-controller"):
             continue
         rewritten.append(line)
     rewritten.append(f"{indent}#interrupt-cells = <2>;")
