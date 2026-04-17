@@ -214,11 +214,19 @@ fi
 echo "INFO: xsa        = $latest_xsa"
 echo "INFO: bin        = $bin_input_file"
 
-xsct "$DTBO_GEN_TCL" "$latest_xsa" "$XSCT_OUTPUT_DIR" "$git_sha" "$artifact_prefix" "$overlay_prefix"
-
 pl_dtsi_path="$(
-  find "$XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}" -type f -name 'pl.dtsi' | sort | head -n 1
+  find "$XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}" -type f -name 'pl.dtsi' 2>/dev/null | sort | head -n 1
 )"
+
+if [[ -n "$pl_dtsi_path" ]]; then
+  echo "INFO: reusing existing pl.dtsi at $pl_dtsi_path"
+else
+  xsct "$DTBO_GEN_TCL" "$latest_xsa" "$XSCT_OUTPUT_DIR" "$git_sha" "$artifact_prefix" "$overlay_prefix"
+
+  pl_dtsi_path="$(
+    find "$XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}" -type f -name 'pl.dtsi' | sort | head -n 1
+  )"
+fi
 
 if [[ -z "$pl_dtsi_path" ]]; then
   echo "ERROR: XSCT completed but no pl.dtsi was generated under $XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}" >&2
