@@ -1,6 +1,7 @@
 -- stc3.vhd
 -- self triggered channel machine for ONE DAPHNE channel
--- Jamieson Olsen <jamieson@fnal.gov> - Daniel Avila Gomez <daniel.avila.gomez@cern.ch> - Esteban Cristaldo <> - Ignacio Lopez de Rego <>
+-- Proto self-trigger foundation: Jamieson Olsen <jamieson@fnal.gov> - Jacques Ntahoturi (FNAL)
+-- Trigger-path contributions in this imported lane: Daniel Avila Gomez <daniel.avila.gomez@cern.ch> - Esteban Cristaldo (Bicocca) - Ignacio Lopez de Rego (IFIC)
 --
 -- updated again: the backend FIFO returns! The merge logic has been removed from
 -- Adam's 10G sender and is now under control in the DAPHNE core logic.

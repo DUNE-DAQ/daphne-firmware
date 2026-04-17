@@ -1,3 +1,8 @@
+-- peak_descriptor_channel.vhd
+-- Repo-owned typed wrapper around the imported peak-descriptor calculator.
+-- Peak-descriptor algorithm provenance: Ignacio Lopez de Rego (IFIC).
+-- Wrapper and integration provenance: Manuel Arroyave <manuel.arroyave@cern.ch>, FNAL.
+
 library ieee;
 use ieee.std_logic_1164.all;
 

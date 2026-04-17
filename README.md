@@ -21,7 +21,10 @@ snapshot.
   can be analyzed locally without Vivado `unisim` / `xpm`.
 - Recorded the PS-side deployment contract needed by `daphne-server`.
 - Qualified a WSL2-driven Windows Vivado/Vitis K26C hardware build flow and
-  captured that baseline for follow-on isolation work.
+  captured a routed-clean hardware baseline at `a389fcd`.
+- Validated the repo-owned overlay load and board bring-up path through the
+  clock client, `daphne-server`, and oscilloscope-mode signal visibility on
+  hardware.
 - Started an additive `rtl/isolated/` scaffolding layer to prepare subsystem
   contracts and future formal harnesses without disturbing the imported blob.
 - Started a repo-owned `petalinux/meta-daphne/` scaffold so `system.dtb`,
@@ -50,6 +53,16 @@ snapshot.
   isolation/formal-prep phase.
 
 ## Quick start
+
+For the current clone-to-products manual, including which host/shell to use,
+path-length guidance, and where the final products land, see
+`docs/build-manual.md`.
+
+For the high-level project philosophy, module map, scope, stable baseline, and
+current TODO list, see `docs/project-overview.md`.
+
+For subsystem provenance and developer ownership across the imported and
+repo-owned lanes, see `docs/developer-manifest.md`.
 
 ### Logic smoke test with FuseSoC
 
@@ -98,6 +111,9 @@ RTL/Tcl flow:
 ```
 
 ### Vivado batch build
+
+The current end-to-end build manual lives in `docs/build-manual.md`. The
+commands below are the core qualified entry points.
 
 Current board-supported path:
 
@@ -397,15 +413,17 @@ recorded in `docs/source-audit.md`.
 
 ## What is still missing
 
-This is not yet a complete multi-board deployment repo. The main remaining gaps
-are:
+This is still not a complete multi-board deployment repo. The main remaining
+gaps are:
 
-- hardware-qualified use of the supported `k26c-composable-platform` `impl`
-  target as the routine board build path, together with retirement of the
-  generated compatibility manifest as anything more than a fallback lane;
-- validated carrier support beyond the current K26C baseline;
-- Petalinux recipes, `BOOT.BIN` assembly, and boot-image generation;
-- integrated build/deploy test of the generated firmware together with
-  `daphne-server`.
-- proof-carrying module contracts and real formal harnesses beyond the current
-  leaf-block scaffolds.
+- full repo-owned boot-image generation:
+  - `BOOT.BIN`
+  - kernel/rootfs bundle
+  - full `system.dtb`
+- automated PetaLinux handoff from the generated firmware outputs into a
+  reproducible board image
+- validated carrier support beyond the current K26C baseline
+- deeper proof-carrying module contracts and formal coverage beyond the current
+  leaf-block scaffolds
+- additional regression discipline around future cleanup/refactor work so new
+  changes are always measured against the routed-clean `a389fcd` baseline
