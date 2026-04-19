@@ -6,6 +6,10 @@ repository state.
 It is written so it can live both as a checked-in repo document and as the
 basis for a GitHub wiki page later.
 
+For the reusable generated figure set itself, see:
+
+- [architecture-reference.md](/Users/marroyav/repo/daphne-firmware/docs/architecture-reference.md)
+
 ## Philosophy
 
 The repo is intentionally split between:
@@ -136,6 +140,20 @@ Keep the path short and avoid spaces.
 
 ## Main Building Blocks
 
+### Architecture views
+
+#### Subsystem hierarchy
+
+![daphne-firmware subsystem hierarchy](figures/architecture/subsystem_hierarchy.svg)
+
+#### Runtime acquisition path
+
+![daphne-firmware runtime acquisition path](figures/architecture/runtime_dataflow.svg)
+
+#### Readiness contracts
+
+![daphne-firmware readiness contracts](figures/architecture/readiness_contracts.svg)
+
 ### 1. Imported compatibility layer
 
 These files preserve the currently qualified hardware path:
@@ -239,6 +257,10 @@ These are what make the firmware repo more than a raw HDL import.
 Use the end-to-end manual:
 
 - [build-manual.md](/Users/marroyav/repo/daphne-firmware/docs/build-manual.md)
+
+Build flow view:
+
+![daphne-firmware build flow](figures/architecture/build_flow.svg)
 
 Short version for the qualified WSL path:
 
