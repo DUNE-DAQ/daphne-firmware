@@ -64,6 +64,19 @@ current TODO list, see `docs/project-overview.md`.
 For subsystem provenance and developer ownership across the imported and
 repo-owned lanes, see `docs/developer-manifest.md`.
 
+For the reusable architecture figure set and short explanations of each view,
+see `docs/architecture-reference.md`.
+
+## Architecture at a glance
+
+### Subsystem hierarchy
+
+![daphne-firmware subsystem hierarchy](docs/figures/architecture/subsystem_hierarchy.svg)
+
+### Runtime acquisition path
+
+![daphne-firmware runtime acquisition path](docs/figures/architecture/runtime_dataflow.svg)
+
 ### Logic smoke test with FuseSoC
 
 Requires `fusesoc`, `edalize`, and `ghdl`.

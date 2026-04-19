@@ -5,6 +5,12 @@ products.
 
 All commands below run from the **repo root** unless a section says otherwise.
 
+The architectural build-flow view is maintained separately in:
+
+- [architecture-reference.md](/Users/marroyav/repo/daphne-firmware/docs/architecture-reference.md)
+
+![daphne-firmware build flow](figures/architecture/build_flow.svg)
+
 ## Scope
 
 The currently qualified hardware build path is:
