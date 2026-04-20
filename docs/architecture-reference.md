@@ -102,6 +102,28 @@ Interpretation:
   - `.dtbo`
   - overlay bundle and reports
 
+## 6. Descriptor Identity Path
+
+Question answered:
+
+- how is a peak descriptor identified downstream, and where is the
+  `sample_start` value produced?
+
+![daphne-firmware descriptor identity path](figures/architecture/descriptor_identity.svg)
+
+Interpretation:
+
+- the descriptor identity is channel-scoped:
+  - `geo_id`
+  - `channel_id`
+  - `frame_timestamp + sample_start`
+- `sample_start` is produced in the peak-descriptor calculator
+- `frame_timestamp` comes from the STC3 framing path
+- the fixed bug was a same-channel collision in `sample_start`, not a
+  cross-channel timestamp-sharing issue
+- the detailed failure analysis and fix live in
+  [peak-descriptor-id-uniqueness.md](/Users/marroyav/repo/daphne-firmware/docs/peak-descriptor-id-uniqueness.md)
+
 ## Notes
 
 - These figures are repo-local rendered copies for documentation use.

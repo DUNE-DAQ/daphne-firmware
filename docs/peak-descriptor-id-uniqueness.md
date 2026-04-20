@@ -10,6 +10,8 @@ The relevant failure mode is therefore not cross-channel reuse of a frame
 timestamp. The bug is a same-channel collision where two descriptors within the
 same frame export the same `sample_start`.
 
+![daphne-firmware descriptor identity path](figures/architecture/descriptor_identity.svg)
+
 ## RTL Failure Mechanism
 
 The peak-descriptor calculator stores the in-frame start sample in two stages:
