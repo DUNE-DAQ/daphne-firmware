@@ -1,0 +1,59 @@
+digraph deadtime_bottleneck_cascade {
+  graph [
+    bgcolor="white",
+    rankdir="LR",
+    nodesep="0.55",
+    ranksep="0.95",
+    pad="0.10",
+    splines="spline",
+    overlap="false",
+    fontname="Helvetica",
+    fontsize="16",
+    labelloc="t",
+    labeljust="l"
+  ];
+
+  node [
+    fontname="Helvetica",
+    fontsize="11.5",
+    shape="box",
+    style="rounded,filled",
+    color="#5A5A5A",
+    penwidth="1.7",
+    margin="0.16,0.10"
+  ];
+
+  edge [
+    fontname="Helvetica",
+    fontsize="10.0",
+    arrowsize="0.85",
+    color="#444444",
+    penwidth="1.7"
+  ];
+
+  trig [label="Trigger arrival\nper channel", fillcolor="#E8F4E2"];
+  accept [label="Accept only in\nwait4trig", fillcolor="#FBF7E7"];
+  builder [label="STC3 frame builder\nserialize one full frame", fillcolor="#F8DCDD", penwidth="2.2"];
+  fifo [label="Per-channel output FIFO\nXPM sync FIFO", fillcolor="#EDF5FD"];
+  mux [label="Two-lane mux\n20 channels / lane", fillcolor="#F3F3F3"];
+  tx [label="Hermes transport", fillcolor="#F3F3F3"];
+
+  busy [label="busy_count\n dominant today", shape="hexagon", fillcolor="#FFF1E4", color="#C17D11"];
+  full [label="full_count\n transport backpressure", shape="hexagon", fillcolor="#FFF1E4", color="#C17D11"];
+
+  bnote [label="Builder occupancy\n16.592 us\nmain dead-time term", shape="note", fillcolor="#FFF1E4", color="#C17D11"];
+  mnote [label="Nominal lane ceiling\n13.4 kHz/channel\nsecond-order limit here", shape="note", fillcolor="#FFF1E4", color="#C17D11"];
+
+  trig -> accept [label="event_pulse"];
+  accept -> builder [label="accepted trigger"];
+  accept -> busy [style="dashed", color="#C17D11", label="busy reject"];
+  builder -> fifo [label="232-word frame"];
+  fifo -> mux [label="ready / drain"];
+  fifo -> full [style="dashed", color="#C17D11", label="prog_full reject"];
+  mux -> tx [label="lane service"];
+
+  builder -> bnote [style="dashed", color="#C17D11"];
+  mux -> mnote [style="dashed", color="#C17D11"];
+
+  { rank=same; busy; full; }
+}
