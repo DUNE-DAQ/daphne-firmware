@@ -11,6 +11,7 @@ filesets:
       - rtl/isolated/common/daphne_subsystem_pkg.vhd
       - rtl/isolated/common/primitives/configurable_delay_line.vhd
       - rtl/isolated/common/primitives/fixed_delay_line.vhd
+      - rtl/isolated/common/primitives/sample_ring_buffer.vhd
       - rtl/isolated/common/primitives/sync_fifo_fwft.vhd
       - rtl/isolated/subsystems/afe/afe_subsystem_fabric.vhd
       - rtl/isolated/subsystems/afe/afe_subsystem_island.vhd

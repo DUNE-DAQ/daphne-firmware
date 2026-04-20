@@ -1,0 +1,18 @@
+# Ring Buffer 1k Experiment
+
+This branch is the 1k BRAM ring-buffer experiment on top of main.
+
+Current contract:
+- frame length: 512 samples
+- pretrigger: 64 samples
+- ring depth: 1024 samples
+- overlap: configurable through `signal_delay_i` in 16-sample steps
+
+Behavioral note:
+- waveform capture is the primary contract
+- peak-descriptor trailers are only fully trustworthy when overlap is zero
+- overlapping frames are allowed for experimentation, but the descriptor/trailer ownership policy is not yet redesigned for that case
+
+Scope:
+- builder waveform storage moves to BRAM-backed ring buffers
+- no BRAM delay-bank migration is included in this branch

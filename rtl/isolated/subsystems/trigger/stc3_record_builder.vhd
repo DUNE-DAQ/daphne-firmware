@@ -15,6 +15,7 @@ entity stc3_record_builder is
     reset_st_counters_i      : in  std_logic;
     enable_i                 : in  std_logic;
     force_trigger_i          : in  std_logic;
+    timestamp_i              : in  std_logic_vector(63 downto 0);
     din_i                    : in  std_logic_vector(13 downto 0);
     trigger_i                : in  trigger_xcorr_result_t;
     trailer_capture_i        : in  std_logic;
@@ -33,71 +34,254 @@ entity stc3_record_builder is
 end entity stc3_record_builder;
 
 architecture rtl of stc3_record_builder is
-  constant LIVE_COUNTER_WIDTH_C : positive := 16;
-  type array_10x14_type is array(9 downto 0) of std_logic_vector(13 downto 0);
-  type state_type is (
-    rst, wait4trig, w0, w1, w2, w3, h0, h1, h2, h3, h4, h5, h6, h7, h8,
-    d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15,
-    d16, d17, d18, d19, d20, d21, d22, d23, d24, d25, d26, d27, d28, d29, d30, d31
-  );
-  type trigger_counter_state_type is (rst_trggr, wait4trig_trggr, rising_triggered);
+  constant LIVE_COUNTER_WIDTH_C        : positive := 16;
+  constant PRETRIGGER_SAMPLES_C        : natural := 64;
+  constant FRAME_SAMPLE_COUNT_C        : natural := 512;
+  constant FRAME_BLOCK_COUNT_C         : natural := FRAME_SAMPLE_COUNT_C / 32;
+  constant FINAL_BLOCK_INDEX_C         : natural := FRAME_BLOCK_COUNT_C - 1;
+  constant BLOCK_SAMPLE_COUNT_C        : natural := 32;
+  constant WORDS_PER_BLOCK_C           : natural := 7;
+  constant HEADER_WORD_COUNT_C         : natural := 8;
+  constant RING_DEPTH_C                : positive := 1024;
+  constant RING_ADDR_WIDTH_C           : positive := 10;
+  constant FRAME_QUEUE_DEPTH_C         : positive := 4;
+  constant OVERLAP_GRANULARITY_C       : natural := 16;
 
-  signal din_delay            : array_10x14_type;
-  signal r0_s, r1_s, r2_s     : std_logic_vector(13 downto 0);
-  signal r3_s, r4_s, r5_s     : std_logic_vector(13 downto 0);
-  signal block_count_s        : integer range 0 to 31 := 0;
-  signal state_s              : state_type := rst;
-  signal trig_count_state_s   : trigger_counter_state_type := rst_trggr;
-  signal sample0_ts_s         : std_logic_vector(63 downto 0);
-  signal fifo_din_s           : std_logic_vector(71 downto 0) := (others => '0');
-  signal fifo_wr_en_s         : std_logic := '0';
-  signal fifo_sleep_s         : std_logic := '0';
-  signal marker_s             : std_logic_vector(7 downto 0) := X"00";
-  signal prog_empty_s         : std_logic;
-  signal prog_full_s          : std_logic;
-  signal fifo_word_count_s    : std_logic_vector(12 downto 0);
-  -- Keep the hot-path monitoring counters narrow so their carry chains do not
-  -- sit on the critical trigger/data path. The external 64-bit contract stays
-  -- unchanged for now by zero-extending these live values.
-  signal record_count_s       : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
-  signal busydrop_count_s     : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
-  signal fulldrop_count_s     : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
-  signal busydrop_seen_s      : std_logic := '0';
-  signal fsm_busy_s           : std_logic;
-  signal trig_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
-  signal pack_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
-  signal trailer_reg_s        : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
-  signal event_pulse_s        : std_logic;
+  subtype ring_addr_t is unsigned(RING_ADDR_WIDTH_C - 1 downto 0);
+
+  type trigger_counter_state_type is (rst_trggr, wait4trig_trggr, rising_triggered);
+  type serializer_state_t is (ser_idle, ser_header, ser_load, ser_emit);
+  type sample_block_t is array (0 to BLOCK_SAMPLE_COUNT_C - 1) of std_logic_vector(13 downto 0);
+
+  type frame_meta_t is record
+    start_ptr      : ring_addr_t;
+    sample0_ts     : std_logic_vector(63 downto 0);
+    baseline       : std_logic_vector(13 downto 0);
+    trigger_sample : std_logic_vector(13 downto 0);
+    threshold_lsb  : std_logic_vector(13 downto 0);
+  end record;
+
+  type frame_meta_array_t is array (0 to FRAME_QUEUE_DEPTH_C - 1) of frame_meta_t;
+
+  constant FRAME_META_NULL_C : frame_meta_t := (
+    start_ptr      => (others => '0'),
+    sample0_ts     => (others => '0'),
+    baseline       => (others => '0'),
+    trigger_sample => (others => '0'),
+    threshold_lsb  => (others => '0')
+  );
+
+  function wrap_add(addr : ring_addr_t; offset : natural) return ring_addr_t is
+  begin
+    return to_unsigned((to_integer(addr) + offset) mod RING_DEPTH_C, addr'length);
+  end function;
+
+  function wrap_sub(addr : ring_addr_t; offset : natural) return ring_addr_t is
+    variable base_v : integer;
+  begin
+    base_v := (to_integer(addr) - integer(offset)) mod RING_DEPTH_C;
+    if base_v < 0 then
+      base_v := base_v + RING_DEPTH_C;
+    end if;
+    return to_unsigned(base_v, addr'length);
+  end function;
+
+  function next_queue_idx(idx : integer) return integer is
+  begin
+    if idx = FRAME_QUEUE_DEPTH_C - 1 then
+      return 0;
+    end if;
+    return idx + 1;
+  end function;
+
+  function overlap_samples_cfg(signal_delay : std_logic_vector(4 downto 0)) return natural is
+    variable overlap_v : natural;
+  begin
+    overlap_v := to_integer(unsigned(signal_delay)) * OVERLAP_GRANULARITY_C;
+    if overlap_v > FRAME_SAMPLE_COUNT_C - 1 then
+      overlap_v := FRAME_SAMPLE_COUNT_C - 1;
+    end if;
+    return overlap_v;
+  end function;
+
+  function pack_block_word(samples : sample_block_t; word_idx : natural) return std_logic_vector is
+  begin
+    case word_idx is
+      when 0 =>
+        return samples(4)(7 downto 0) & samples(3) & samples(2) & samples(1) & samples(0);
+      when 1 =>
+        return samples(9)(1 downto 0) & samples(8) & samples(7) & samples(6) & samples(5) & samples(4)(13 downto 8);
+      when 2 =>
+        return samples(13)(9 downto 0) & samples(12) & samples(11) & samples(10) & samples(9)(13 downto 2);
+      when 3 =>
+        return samples(18)(3 downto 0) & samples(17) & samples(16) & samples(15) & samples(14) & samples(13)(13 downto 10);
+      when 4 =>
+        return samples(22)(11 downto 0) & samples(21) & samples(20) & samples(19) & samples(18)(13 downto 4);
+      when 5 =>
+        return samples(27)(5 downto 0) & samples(26) & samples(25) & samples(24) & samples(23) & samples(22)(13 downto 12);
+      when others =>
+        return samples(31) & samples(30) & samples(29) & samples(28) & samples(27)(13 downto 6);
+    end case;
+  end function;
+
+  signal serializer_state_s       : serializer_state_t := ser_idle;
+  signal trig_count_state_s       : trigger_counter_state_type := rst_trggr;
+  signal write_ptr_s              : ring_addr_t := (others => '0');
+  signal ring_rd_addr_s           : ring_addr_t := (others => '0');
+  signal ring_dout_s              : std_logic_vector(13 downto 0);
+  signal frame_queue_s            : frame_meta_array_t := (others => FRAME_META_NULL_C);
+  signal frame_queue_head_s       : integer range 0 to FRAME_QUEUE_DEPTH_C - 1 := 0;
+  signal frame_queue_tail_s       : integer range 0 to FRAME_QUEUE_DEPTH_C - 1 := 0;
+  signal frame_queue_count_s      : integer range 0 to FRAME_QUEUE_DEPTH_C := 0;
+  signal active_frame_s           : frame_meta_t := FRAME_META_NULL_C;
+  signal active_frame_valid_s     : std_logic := '0';
+  signal active_trailer_s         : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
+  signal block_samples_s          : sample_block_t := (others => (others => '0'));
+  signal header_index_s           : integer range 0 to HEADER_WORD_COUNT_C - 1 := 0;
+  signal block_index_s            : integer range 0 to FINAL_BLOCK_INDEX_C := 0;
+  signal load_issue_index_s       : integer range 0 to BLOCK_SAMPLE_COUNT_C := 0;
+  signal emit_index_s             : integer range 0 to WORDS_PER_BLOCK_C - 1 := 0;
+  signal fifo_din_s               : std_logic_vector(71 downto 0) := (others => '0');
+  signal fifo_wr_en_s             : std_logic := '0';
+  signal fifo_sleep_s             : std_logic := '1';
+  signal prog_empty_s             : std_logic;
+  signal prog_full_s              : std_logic;
+  signal fifo_word_count_s        : std_logic_vector(12 downto 0);
+  signal trailer_reg_s            : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
+  signal event_pulse_s            : std_logic;
+  signal overlap_samples_s        : natural range 0 to FRAME_SAMPLE_COUNT_C - 1 := 0;
+  signal min_trigger_spacing_s    : natural range 1 to FRAME_SAMPLE_COUNT_C := FRAME_SAMPLE_COUNT_C;
+  signal oldest_pending_valid_s   : std_logic;
+  signal oldest_pending_ts_s      : std_logic_vector(63 downto 0) := (others => '0');
+  signal queue_head_ready_s       : std_logic;
+  signal spacing_ok_s             : std_logic;
+  signal ring_safe_ok_s           : std_logic;
+  signal queue_space_ok_s         : std_logic;
+  signal can_accept_frame_s       : std_logic;
+  signal busy_reject_s            : std_logic;
+  signal full_reject_s            : std_logic;
+  signal last_trigger_ts_s        : unsigned(63 downto 0) := (others => '0');
+  signal last_trigger_valid_s     : std_logic := '0';
+  signal record_count_s           : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal busydrop_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal fulldrop_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal trig_count_s             : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal pack_count_s             : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
 begin
+  -- Ring-buffer builder experiment:
+  -- waveform capture is the primary contract.
+  -- overlap is configurable via signal_delay_i (16 samples per step).
+  -- peak descriptor trailers are only fully trustworthy when overlap = 0.
   event_pulse_s <= trigger_i.trigger_pulse or force_trigger_i;
 
-  din_delay(0) <= din_i;
+  overlap_samples_s     <= overlap_samples_cfg(signal_delay_i);
+  min_trigger_spacing_s <= FRAME_SAMPLE_COUNT_C - overlap_samples_s;
 
-  -- The legacy STC3 datapath currently delays the packed sample stream by a
-  -- fixed 288-cycle latency. Keep that behavior here so the isolated builder
-  -- remains compatible while removing direct vendor primitive dependencies.
-  fixed_delay_inst : entity work.fixed_delay_line
+  oldest_pending_valid_s <= active_frame_valid_s when active_frame_valid_s = '1' else
+                            '1' when frame_queue_count_s > 0 else
+                            '0';
+  oldest_pending_ts_s    <= active_frame_s.sample0_ts when active_frame_valid_s = '1' else
+                            frame_queue_s(frame_queue_head_s).sample0_ts when frame_queue_count_s > 0 else
+                            (others => '0');
+
+  queue_head_ready_s <= '1' when (
+    frame_queue_count_s > 0 and
+    unsigned(timestamp_i) >= unsigned(frame_queue_s(frame_queue_head_s).sample0_ts) +
+      to_unsigned(FRAME_SAMPLE_COUNT_C - 1, timestamp_i'length)
+  ) else
+    '0';
+
+  spacing_ok_s <= '1' when (
+    last_trigger_valid_s = '0' or
+    unsigned(trigger_i.trigger_timestamp) >= last_trigger_ts_s +
+      to_unsigned(min_trigger_spacing_s, trigger_i.trigger_timestamp'length)
+  ) else
+    '0';
+
+  queue_space_ok_s <= '1' when frame_queue_count_s < FRAME_QUEUE_DEPTH_C else '0';
+
+  ring_safe_ok_s <= '1' when (
+    oldest_pending_valid_s = '0' or
+    unsigned(timestamp_i) - unsigned(oldest_pending_ts_s) <=
+      to_unsigned(RING_DEPTH_C - FRAME_SAMPLE_COUNT_C, timestamp_i'length)
+  ) else
+    '0';
+
+  can_accept_frame_s <= '1' when (
+    enable_i = '1' and
+    spacing_ok_s = '1' and
+    queue_space_ok_s = '1' and
+    ring_safe_ok_s = '1' and
+    prog_full_s = '0'
+  ) else
+    '0';
+
+  full_reject_s <= '1' when (enable_i = '1' and prog_full_s = '1') else '0';
+  busy_reject_s <= '1' when (enable_i = '1' and can_accept_frame_s = '0' and full_reject_s = '0') else '0';
+
+  frame_match_o <= can_accept_frame_s;
+
+  ring_rd_addr_s <= wrap_add(active_frame_s.start_ptr, block_index_s * BLOCK_SAMPLE_COUNT_C + load_issue_index_s)
+    when serializer_state_s = ser_load and load_issue_index_s < BLOCK_SAMPLE_COUNT_C else
+    active_frame_s.start_ptr;
+
+  sample_ring_inst : entity work.sample_ring_buffer
     generic map (
-      WIDTH_G => 14,
-      DELAY_G => 288
+      DATA_WIDTH_G => 14,
+      DEPTH_G      => RING_DEPTH_C,
+      ADDR_WIDTH_G => RING_ADDR_WIDTH_C
     )
     port map (
-      clock_i => clock_i,
-      din_i   => din_i,
-      dout_o  => din_delay(9)
+      clock_i   => clock_i,
+      wr_en_i   => not reset_i,
+      wr_addr_i => write_ptr_s,
+      din_i     => din_i,
+      rd_addr_i => ring_rd_addr_s,
+      dout_o    => ring_dout_s
     );
 
-  pack_proc : process(clock_i)
-  begin
-    if rising_edge(clock_i) then
-      r0_s <= din_delay(9);
-      r1_s <= r0_s;
-      r2_s <= r1_s;
-      r3_s <= r2_s;
-      r4_s <= r3_s;
-      r5_s <= r4_s;
-    end if;
-  end process pack_proc;
+  output_fifo_inst : entity work.sync_fifo_fwft
+    generic map (
+      DATA_WIDTH_G        => 72,
+      DEPTH_G             => 4096,
+      COUNT_WIDTH_G       => 13,
+      PROG_EMPTY_THRESH_G => 220,
+      PROG_FULL_THRESH_G  => 200
+    )
+    port map (
+      clock_i         => clock_i,
+      reset_i         => reset_i,
+      sleep_i         => fifo_sleep_s,
+      wr_en_i         => fifo_wr_en_s,
+      din_i           => fifo_din_s,
+      rd_en_i         => rd_en_i,
+      dout_o          => dout_o,
+      prog_empty_o    => prog_empty_s,
+      prog_full_o     => prog_full_s,
+      wr_data_count_o => fifo_word_count_s
+    );
+
+  fifo_sleep_s <= '1' when serializer_state_s = ser_idle else '0';
+
+  fifo_wr_en_s <= '1' when (serializer_state_s = ser_header or serializer_state_s = ser_emit) else '0';
+
+  fifo_din_s <= X"BE" & active_frame_s.sample0_ts when (serializer_state_s = ser_header and header_index_s = 0) else
+                X"00" & ch_id_i(7 downto 0) & version_i(3 downto 0) & "000000" &
+                active_frame_s.baseline & "00" & active_frame_s.threshold_lsb &
+                "00" & active_frame_s.trigger_sample when (serializer_state_s = ser_header and header_index_s = 1) else
+                X"00" & active_trailer_s(1) & active_trailer_s(0) when (serializer_state_s = ser_header and header_index_s = 2) else
+                X"00" & active_trailer_s(3) & active_trailer_s(2) when (serializer_state_s = ser_header and header_index_s = 3) else
+                X"00" & active_trailer_s(5) & active_trailer_s(4) when (serializer_state_s = ser_header and header_index_s = 4) else
+                X"00" & active_trailer_s(7) & active_trailer_s(6) when (serializer_state_s = ser_header and header_index_s = 5) else
+                X"00" & active_trailer_s(9) & active_trailer_s(8) when (serializer_state_s = ser_header and header_index_s = 6) else
+                X"00" & active_trailer_s(11) & active_trailer_s(10) when (serializer_state_s = ser_header and header_index_s = 7) else
+                X"ED" & pack_block_word(block_samples_s, emit_index_s) when (
+                  serializer_state_s = ser_emit and
+                  block_index_s = FINAL_BLOCK_INDEX_C and
+                  emit_index_s = WORDS_PER_BLOCK_C - 1
+                ) else
+                X"00" & pack_block_word(block_samples_s, emit_index_s) when serializer_state_s = ser_emit else
+                (others => '0');
 
   trailer_capture_proc : process(clock_i)
   begin
@@ -136,181 +320,154 @@ begin
     end if;
   end process count_proc;
 
-  fsm_busy_s <= '0' when (state_s = rst or state_s = wait4trig) else '1';
-
-  fulldrop_proc : process(clock_i)
-  begin
-    if rising_edge(clock_i) then
-      if enable_i = '0' then
-        fulldrop_count_s <= (others => '0');
-      elsif (event_pulse_s = '1' and prog_full_s = '1' and state_s = wait4trig) then
-        fulldrop_count_s <= fulldrop_count_s + 1;
-      end if;
-    end if;
-  end process fulldrop_proc;
-
-  busydrop_proc : process(clock_i)
-  begin
-    if rising_edge(clock_i) then
-      if enable_i = '0' then
-        busydrop_count_s <= (others => '0');
-      elsif (event_pulse_s = '1' and fsm_busy_s = '1' and busydrop_seen_s = '0') then
-        busydrop_count_s <= busydrop_count_s + 1;
-        busydrop_seen_s  <= '1';
-      end if;
-
-      if (busydrop_seen_s = '1' and fsm_busy_s = '0') then
-        busydrop_seen_s <= '0';
-      end if;
-    end if;
-  end process busydrop_proc;
-
-  builder_fsm_proc : process(clock_i)
+  main_proc : process(clock_i)
+    variable queue_v        : frame_meta_array_t;
+    variable head_v         : integer range 0 to FRAME_QUEUE_DEPTH_C - 1;
+    variable tail_v         : integer range 0 to FRAME_QUEUE_DEPTH_C - 1;
+    variable count_v        : integer range 0 to FRAME_QUEUE_DEPTH_C;
+    variable active_v       : frame_meta_t;
+    variable active_valid_v : std_logic;
+    variable trigger_age_v  : natural;
+    variable sample0_ts_v   : unsigned(63 downto 0);
+    variable start_ptr_v    : ring_addr_t;
   begin
     if rising_edge(clock_i) then
       if (reset_i = '1' or reset_st_counters_i = '1') then
-        state_s      <= rst;
-        pack_count_s <= (others => '0');
+        serializer_state_s   <= ser_idle;
+        write_ptr_s          <= (others => '0');
+        frame_queue_s        <= (others => FRAME_META_NULL_C);
+        frame_queue_head_s   <= 0;
+        frame_queue_tail_s   <= 0;
+        frame_queue_count_s  <= 0;
+        active_frame_s       <= FRAME_META_NULL_C;
+        active_frame_valid_s <= '0';
+        active_trailer_s     <= PEAK_DESCRIPTOR_TRAILER_NULL;
+        block_samples_s      <= (others => (others => '0'));
+        header_index_s       <= 0;
+        block_index_s        <= 0;
+        load_issue_index_s   <= 0;
+        emit_index_s         <= 0;
+        record_count_s       <= (others => '0');
+        busydrop_count_s     <= (others => '0');
+        fulldrop_count_s     <= (others => '0');
+        pack_count_s         <= (others => '0');
+        last_trigger_ts_s    <= (others => '0');
+        last_trigger_valid_s <= '0';
       else
-        case state_s is
-          when rst =>
-            state_s <= wait4trig;
-          when wait4trig =>
-            if (event_pulse_s = '1' and enable_i = '1' and prog_full_s = '0') then
-              block_count_s <= 0;
-              pack_count_s  <= pack_count_s + 1;
-              state_s       <= w0;
+        queue_v        := frame_queue_s;
+        head_v         := frame_queue_head_s;
+        tail_v         := frame_queue_tail_s;
+        count_v        := frame_queue_count_s;
+        active_v       := active_frame_s;
+        active_valid_v := active_frame_valid_s;
+
+        write_ptr_s <= wrap_add(write_ptr_s, 1);
+
+        if enable_i = '0' then
+          record_count_s       <= (others => '0');
+          busydrop_count_s     <= (others => '0');
+          fulldrop_count_s     <= (others => '0');
+          pack_count_s         <= (others => '0');
+          last_trigger_ts_s    <= (others => '0');
+          last_trigger_valid_s <= '0';
+        else
+          if event_pulse_s = '1' then
+            if can_accept_frame_s = '1' then
+              trigger_age_v := to_integer(unsigned(timestamp_i(RING_ADDR_WIDTH_C - 1 downto 0)) -
+                                          unsigned(trigger_i.trigger_timestamp(RING_ADDR_WIDTH_C - 1 downto 0)));
+              sample0_ts_v  := unsigned(trigger_i.trigger_timestamp) - to_unsigned(PRETRIGGER_SAMPLES_C, trigger_i.trigger_timestamp'length);
+              start_ptr_v   := wrap_sub(write_ptr_s, trigger_age_v + PRETRIGGER_SAMPLES_C);
+
+              queue_v(tail_v).start_ptr      := start_ptr_v;
+              queue_v(tail_v).sample0_ts     := std_logic_vector(sample0_ts_v);
+              queue_v(tail_v).baseline       := trigger_i.baseline;
+              queue_v(tail_v).trigger_sample := trigger_i.trigger_sample;
+              queue_v(tail_v).threshold_lsb  := threshold_xc_i(13 downto 0);
+
+              tail_v := next_queue_idx(tail_v);
+              count_v := count_v + 1;
+
+              pack_count_s         <= pack_count_s + 1;
+              last_trigger_ts_s    <= unsigned(trigger_i.trigger_timestamp);
+              last_trigger_valid_s <= '1';
+            elsif full_reject_s = '1' then
+              fulldrop_count_s <= fulldrop_count_s + 1;
+            elsif busy_reject_s = '1' then
+              busydrop_count_s <= busydrop_count_s + 1;
             end if;
-          when w0 => state_s <= w1;
-          when w1 => state_s <= w2;
-          when w2 => state_s <= w3;
-          when w3 => state_s <= h0;
-          when h0 => state_s <= h1;
-          when h1 => state_s <= h2;
-          when h2 => state_s <= h3;
-          when h3 => state_s <= h4;
-          when h4 => state_s <= h5;
-          when h5 => state_s <= h6;
-          when h6 => state_s <= h7;
-          when h7 => state_s <= h8;
-          when h8 => state_s <= d0;
-          when d0 => state_s <= d1;
-          when d1 => state_s <= d2;
-          when d2 => state_s <= d3;
-          when d3 => state_s <= d4;
-          when d4 => state_s <= d5;
-          when d5 => state_s <= d6;
-          when d6 => state_s <= d7;
-          when d7 => state_s <= d8;
-          when d8 => state_s <= d9;
-          when d9 => state_s <= d10;
-          when d10 => state_s <= d11;
-          when d11 => state_s <= d12;
-          when d12 => state_s <= d13;
-          when d13 => state_s <= d14;
-          when d14 => state_s <= d15;
-          when d15 => state_s <= d16;
-          when d16 => state_s <= d17;
-          when d17 => state_s <= d18;
-          when d18 => state_s <= d19;
-          when d19 => state_s <= d20;
-          when d20 => state_s <= d21;
-          when d21 => state_s <= d22;
-          when d22 => state_s <= d23;
-          when d23 => state_s <= d24;
-          when d24 => state_s <= d25;
-          when d25 => state_s <= d26;
-          when d26 => state_s <= d27;
-          when d27 => state_s <= d28;
-          when d28 => state_s <= d29;
-          when d29 => state_s <= d30;
-          when d30 => state_s <= d31;
-          when d31 =>
-            if block_count_s = 31 then
-              state_s <= wait4trig;
-            else
-              block_count_s <= block_count_s + 1;
-              state_s       <= d0;
-            end if;
-          when others =>
-            state_s <= rst;
-        end case;
+          end if;
+
+          case serializer_state_s is
+            when ser_idle =>
+              if active_valid_v = '0' and queue_head_ready_s = '1' then
+                active_v           := queue_v(head_v);
+                active_valid_v     := '1';
+                active_trailer_s   <= trailer_reg_s;
+                header_index_s     <= 0;
+                block_index_s      <= 0;
+                load_issue_index_s <= 0;
+                emit_index_s       <= 0;
+                serializer_state_s <= ser_header;
+                record_count_s     <= record_count_s + 1;
+
+                head_v  := next_queue_idx(head_v);
+                count_v := count_v - 1;
+              end if;
+
+            when ser_header =>
+              if header_index_s = HEADER_WORD_COUNT_C - 1 then
+                header_index_s     <= 0;
+                block_index_s      <= 0;
+                load_issue_index_s <= 0;
+                serializer_state_s <= ser_load;
+              else
+                header_index_s <= header_index_s + 1;
+              end if;
+
+            when ser_load =>
+              if load_issue_index_s = 0 then
+                load_issue_index_s <= 1;
+              elsif load_issue_index_s < BLOCK_SAMPLE_COUNT_C then
+                block_samples_s(load_issue_index_s - 1) <= ring_dout_s;
+                load_issue_index_s                      <= load_issue_index_s + 1;
+              else
+                block_samples_s(BLOCK_SAMPLE_COUNT_C - 1) <= ring_dout_s;
+                emit_index_s                              <= 0;
+                serializer_state_s                        <= ser_emit;
+              end if;
+
+            when ser_emit =>
+              if emit_index_s = WORDS_PER_BLOCK_C - 1 then
+                if block_index_s = FINAL_BLOCK_INDEX_C then
+                  active_v           := FRAME_META_NULL_C;
+                  active_valid_v     := '0';
+                  serializer_state_s <= ser_idle;
+                else
+                  block_index_s      <= block_index_s + 1;
+                  load_issue_index_s <= 0;
+                  serializer_state_s <= ser_load;
+                end if;
+              else
+                emit_index_s <= emit_index_s + 1;
+              end if;
+          end case;
+        end if;
+
+        frame_queue_s        <= queue_v;
+        frame_queue_head_s   <= head_v;
+        frame_queue_tail_s   <= tail_v;
+        frame_queue_count_s  <= count_v;
+        active_frame_s       <= active_v;
+        active_frame_valid_s <= active_valid_v;
       end if;
     end if;
-  end process builder_fsm_proc;
+  end process main_proc;
 
-  record_count_proc : process(clock_i)
-  begin
-    if rising_edge(clock_i) then
-      if enable_i = '0' then
-        record_count_s <= (others => '0');
-      elsif state_s = h0 then
-        record_count_s <= record_count_s + 1;
-      end if;
-    end if;
-  end process record_count_proc;
-
-  sample0_ts_s <= std_logic_vector(unsigned(trigger_i.trigger_timestamp) - 64);
-
-  marker_s <= X"BE" when (state_s = h1) else
-              X"ED" when (state_s = d27 and block_count_s = 31) else
-              X"00";
-
-  fifo_din_s <= marker_s & sample0_ts_s when (state_s = h1) else
-                marker_s & ch_id_i(7 downto 0) & version_i(3 downto 0) & "000000" &
-                trigger_i.baseline(13 downto 0) & "00" & threshold_xc_i(13 downto 0) &
-                "00" & trigger_i.trigger_sample(13 downto 0) when (state_s = h2) else
-                marker_s & trailer_reg_s(1) & trailer_reg_s(0) when (state_s = h3) else
-                marker_s & trailer_reg_s(3) & trailer_reg_s(2) when (state_s = h4) else
-                marker_s & trailer_reg_s(5) & trailer_reg_s(4) when (state_s = h5) else
-                marker_s & trailer_reg_s(7) & trailer_reg_s(6) when (state_s = h6) else
-                marker_s & trailer_reg_s(9) & trailer_reg_s(8) when (state_s = h7) else
-                marker_s & trailer_reg_s(11) & trailer_reg_s(10) when (state_s = h8) else
-                marker_s & r0_s(7 downto 0) & r1_s & r2_s & r3_s & r4_s when (state_s = d0) else
-                marker_s & r0_s(1 downto 0) & r1_s & r2_s & r3_s & r4_s & r5_s(13 downto 8) when (state_s = d5) else
-                marker_s & r0_s(9 downto 0) & r1_s & r2_s & r3_s & r4_s(13 downto 2) when (state_s = d9) else
-                marker_s & r0_s(3 downto 0) & r1_s & r2_s & r3_s & r4_s & r5_s(13 downto 10) when (state_s = d14) else
-                marker_s & r0_s(11 downto 0) & r1_s & r2_s & r3_s & r4_s(13 downto 4) when (state_s = d18) else
-                marker_s & r0_s(5 downto 0) & r1_s & r2_s & r3_s & r4_s & r5_s(13 downto 12) when (state_s = d23) else
-                marker_s & r0_s & r1_s & r2_s & r3_s & r4_s(13 downto 6) when (state_s = d27) else
-                X"000000000000000000";
-
-  fifo_wr_en_s <= '1' when (state_s = h1 or state_s = h2 or state_s = h3 or state_s = h4 or
-                             state_s = h5 or state_s = h6 or state_s = h7 or state_s = h8 or
-                             state_s = d0 or state_s = d5 or state_s = d9 or state_s = d14 or
-                             state_s = d18 or state_s = d23 or state_s = d27) else
-                 '0';
-
-  fifo_sleep_s <= '1' when (state_s = rst or state_s = wait4trig) else
-                  '0';
-
-  output_fifo_inst : entity work.sync_fifo_fwft
-    generic map (
-      DATA_WIDTH_G        => 72,
-      DEPTH_G             => 4096,
-      COUNT_WIDTH_G       => 13,
-      PROG_EMPTY_THRESH_G => 220,
-      PROG_FULL_THRESH_G  => 200
-    )
-    port map (
-      clock_i         => clock_i,
-      reset_i         => reset_i,
-      sleep_i         => fifo_sleep_s,
-      wr_en_i         => fifo_wr_en_s,
-      din_i           => fifo_din_s,
-      rd_en_i         => rd_en_i,
-      dout_o          => dout_o,
-      prog_empty_o    => prog_empty_s,
-      prog_full_o     => prog_full_s,
-      wr_data_count_o => fifo_word_count_s
-    );
-
-  frame_match_o    <= '1' when state_s = wait4trig else '0';
   record_count_o   <= std_logic_vector(resize(record_count_s, record_count_o'length));
   full_count_o     <= std_logic_vector(resize(fulldrop_count_s, full_count_o'length));
   busy_count_o     <= std_logic_vector(resize(busydrop_count_s, busy_count_o'length));
   trigger_count_o  <= std_logic_vector(resize(trig_count_s, trigger_count_o'length));
   packet_count_o   <= std_logic_vector(resize(pack_count_s, packet_count_o'length));
-  delayed_sample_o <= din_delay(9);
+  delayed_sample_o <= din_i;
   ready_o          <= not prog_empty_s;
 end architecture rtl;
