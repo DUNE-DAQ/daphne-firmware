@@ -16,6 +16,14 @@ proc daphne_normalize_path {path_value} {
     return [file normalize [string map {\\ /} $path_value]]
 }
 
+proc daphne_createdts_hw_path {path_value} {
+    set normalized [daphne_normalize_path $path_value]
+    if {[regexp {^[A-Za-z]:/} $normalized]} {
+        return "/$normalized"
+    }
+    return $normalized
+}
+
 # define the hardware description files
 set hw_arg   [daphne_normalize_path [lindex $argv 0]]
 
@@ -39,21 +47,23 @@ if {$overlay_prefix eq ""} {
 # Prefer the explicit HW argument. createdts only treats paths starting with
 # "/" as absolute, so on WSL the converted //wsl.localhost/... form must be
 # preserved for -hw. Fall back to the output-dir-derived XSA only if needed.
-set hw_xsa $hw_arg
-if {$hw_xsa eq ""} {
-    set hw_xsa [file join $out_dir ${artifact_prefix}_$git_sha.xsa]
+set hw_xsa_open $hw_arg
+if {$hw_xsa_open eq ""} {
+    set hw_xsa_open [file join $out_dir ${artifact_prefix}_$git_sha.xsa]
 }
 
-if {![file exists $hw_xsa]} {
-    error "ERROR: expected hardware handoff at $hw_xsa"
+if {![file exists $hw_xsa_open]} {
+    error "ERROR: expected hardware handoff at $hw_xsa_open"
 }
+
+set hw_xsa_createdts [daphne_createdts_hw_path $hw_xsa_open]
 
 # generate the device tree using the generated XSA
-if {$hw_arg ne "" && $hw_arg ne $hw_xsa} {
-    puts "INFO: normalized HW path differs from argv; using canonical XSA path $hw_xsa"
+if {$hw_arg ne "" && $hw_arg ne $hw_xsa_open} {
+    puts "INFO: normalized HW path differs from argv; using canonical XSA path $hw_xsa_open"
 }
-hsi::open_hw_design $hw_xsa
-createdts -hw $hw_xsa -zocl -platform-name ${artifact_prefix}_$git_sha -git-branch $dtg_git_branch -overlay -out [file join $out_dir ${artifact_prefix}_$git_sha]
+hsi::open_hw_design $hw_xsa_open
+createdts -hw $hw_xsa_createdts -zocl -platform-name ${artifact_prefix}_$git_sha -git-branch $dtg_git_branch -overlay -out [file join $out_dir ${artifact_prefix}_$git_sha]
  
 # exit the process once done
 exit
