@@ -5,7 +5,16 @@ if [ "${_DAPHNE_WSL_WINDOWS_XILINX_SH-}" = "1" ]; then
 fi
 _DAPHNE_WSL_WINDOWS_XILINX_SH=1
 
-ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
+SCRIPT_SOURCE="${BASH_SOURCE:-$0}"
+case "$SCRIPT_SOURCE" in
+  sh|bash|zsh|-sh|-bash|-zsh)
+    if [ -f "$PWD/scripts/wsl/setup_windows_xilinx.sh" ]; then
+      SCRIPT_SOURCE="$PWD/scripts/wsl/setup_windows_xilinx.sh"
+    fi
+    ;;
+esac
+
+ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$SCRIPT_SOURCE")/../.." && pwd)}"
 
 daphne_to_windows_path() {
   input_path="$1"

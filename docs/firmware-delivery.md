@@ -2,8 +2,8 @@
 
 ## Current deliverable boundary
 
-The repository can now be driven toward a stable post-build firmware artifact
-set for the qualified K26C path:
+The repository can now produce and validate a stable post-build firmware
+artifact set for the qualified K26C path:
 
 - `.bit`
 - `.bin`
@@ -11,19 +11,27 @@ set for the qualified K26C path:
 - `.dtbo`
 - overlay bundle zip
 
-This is **not yet** the full bootable firmware image set.
+This is a real deployable overlay-style firmware package.
+
+It is **not yet** the full bootable firmware image set.
 
 ## Why this matters
 
-The build flow already reaches:
+The repo now owns the hardware handoff and overlay bundle contract end to end:
 
-- implementation reports,
-- `.bit`,
-- `.bin`,
-- `.xsa`,
+- implementation reports
+- `.bit`
+- `.bin`
+- `.xsa`
+- `.dtbo`
+- overlay bundle zip
 
-but a stable repo-local step is still needed to finish the device-tree overlay
-packaging outside the main Vivado build.
+That boundary has already been exercised on target through:
+
+- overlay load
+- clock-client bring-up
+- `daphne-server`
+- oscilloscope-mode signal visibility
 
 For the Flow API implementation paths on
 `dune-daq:daphne:k26c-composable-platform:0.1.0`, there is now an explicit
@@ -75,6 +83,18 @@ Expected tools on `PATH`:
 - `zip`
 - `sha256sum`
 
+On Windows hosts where the implementation already completed under `C:\w\d`
+but the separate WSL-only packaging step is still brittle, use the repo-owned
+PowerShell wrapper:
+
+```powershell
+cd C:\w\d
+.\scripts\windows\package_dtbo_from_existing_xsa.ps1 -GitSha 176ee43
+```
+
+That script bootstraps `pl.dtsi` with Windows `xsct.bat` and then hands the
+rest of the bundle generation back to the normal WSL packaging script.
+
 Expected outputs:
 
 - `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_<gitsha>.dtbo`
@@ -82,19 +102,19 @@ Expected outputs:
 - `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_ol_<gitsha>.zip`
 - `xilinx/output-$DAPHNE_GIT_SHA/SHA256SUMS`
 
-## Current highest-priority blocker
+## Current validated baseline
 
-A successful overlay package is not yet sufficient for target deployment.
+The current working reference line is:
 
-The March 31, 2026 board validation of firmware commit `7f032ac` showed that
-the overlay loads through `xmutil`, but the expected Linux-visible PL I2C path
-for the clock generator does not reappear on target. That blocks the clock-chip
-bring-up path used by `daphne-server` and therefore blocks endpoint/service
-validation.
+- routed-clean hardware commit: `a389fcd`
+- repo `main` tip carrying the DTBO packaging fixes: `eb5f971`
 
-Treat PL I2C recovery after overlay load as the first firmware-delivery
-acceptance criterion. Details and target-side evidence live in
-`docs/pl-i2c-binding-blocker.md`.
+That line has been validated on hardware:
+
+- overlay loads on target
+- the clock-service/client path works
+- `daphne-server` runs
+- oscilloscope mode sees signals
 
 ## What the known-good golden bundle tells us
 
@@ -142,6 +162,7 @@ The repo still does **not** yet generate:
 - boot scripts
 - rootfs image payloads
 - QSPI or eMMC staging images
+- a fully qualified repo-owned boot flow on target from those outputs
 
 That work belongs to the next packaging phase around PetaLinux and boot-image
 assembly, which now has a terminal-driven wrapper in
@@ -157,15 +178,13 @@ The first repo-owned scaffold for that phase now lives under
 
 ## Recommended next milestone
 
-Treat the stable overlay bundle as the immediate firmware artifact milestone,
-then build outward toward the golden-package shape:
+Treat the stable overlay bundle as complete, then build outward toward the
+golden-package shape:
 
-1. qualify `.dtbo` generation from the repo build,
-2. compare the resulting DT outputs against the known-good golden DTB,
-3. stage the generated overlay bundle into the PetaLinux project through
-   `scripts/petalinux/stage_overlay_into_project.sh`,
-4. build and collect the image into `petalinux/output/<project-name>/` through
-   `scripts/petalinux/build_kr260_image.sh`,
-5. define the board-owned DT inputs for MAC/IP defaults and optional IP,
-6. replace placeholder userspace/service recipes with real packages,
-7. validate the resulting bundle against the known-good golden image.
+1. stage the generated overlay bundle into the PetaLinux project through
+   `scripts/petalinux/stage_overlay_into_project.sh`
+2. build and collect the image into `petalinux/output/<project-name>/` through
+   `scripts/petalinux/build_kr260_image.sh`
+3. define the board-owned DT inputs for MAC/IP defaults and optional IP
+4. replace placeholder userspace/service recipes with real packages
+5. validate the resulting image bundle against the known-good golden image
