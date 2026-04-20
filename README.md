@@ -291,6 +291,13 @@ To finish the DT overlay packaging from an existing `.xsa` / `.bin` pair:
 ./scripts/package/complete_dtbo_bundle.sh
 ```
 
+On the recommended Windows clone at `C:\w\d`, the supported recovery wrapper
+for packaging an existing handoff is:
+
+```powershell
+.\scripts\windows\package_dtbo_from_existing_xsa.ps1 -GitSha 176ee43
+```
+
 The current isolation/formal-prep structure is described in
 `docs/rtl-isolation-plan.md`, the dependency transition is tracked in
 `docs/dependency-transition-plan.md`, and the current qualified build
