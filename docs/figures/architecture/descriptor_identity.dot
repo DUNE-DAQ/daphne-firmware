@@ -1,0 +1,53 @@
+digraph descriptor_identity {
+  graph [
+    bgcolor="white",
+    rankdir="LR",
+    nodesep="0.55",
+    ranksep="0.95",
+    pad="0.10",
+    splines="spline",
+    overlap="false",
+    fontname="Helvetica",
+    fontsize="16",
+    labelloc="t",
+    labeljust="l"
+  ];
+
+  node [
+    fontname="Helvetica",
+    fontsize="12",
+    shape="box",
+    style="rounded,filled",
+    color="#5A5A5A",
+    penwidth="1.7",
+    margin="0.16,0.10"
+  ];
+
+  edge [
+    fontname="Helvetica",
+    fontsize="10.5",
+    arrowsize="0.9"
+  ];
+
+  waveform [label="Aligned waveform\nper channel", fillcolor="#E8F4E2"];
+  xcorr [label="XC self-trigger", fillcolor="#F8DCDD"];
+  pd [label="Peak descriptor\ncalculator", fillcolor="#F8DCDD"];
+  sample_start [label="sample_start", shape="hexagon", fillcolor="#FBF7E7"];
+  stc3 [label="STC3 record builder", fillcolor="#F8DCDD"];
+  frame_ts [label="frame_timestamp\n(trigger_timestamp - 64)", shape="hexagon", fillcolor="#FBF7E7"];
+  channel_key [label="geoID + channel_id", shape="hexagon", fillcolor="#EDF5FD"];
+  key [label="Descriptor key\n(geoID, channel_id,\nframe_timestamp + sample_start)", fillcolor="#F3F3F3", penwidth="2.0"];
+  fix [label="Fixed handoff\ncommit current Time_Start\nbefore capturing next trigger", shape="note", fillcolor="#FFF1E4", color="#C17D11"];
+
+  waveform -> xcorr [color="#444444", penwidth="1.9", label="trigger-domain samples"];
+  xcorr -> pd [color="#444444", penwidth="1.9", label="trigger pulse + descriptor waveform"];
+  pd -> sample_start [color="#444444", penwidth="1.9", label="exported descriptor offset"];
+  xcorr -> stc3 [color="#444444", penwidth="1.9", label="trigger timestamp"];
+  stc3 -> frame_ts [color="#444444", penwidth="1.9", label="frame header timestamp"];
+  sample_start -> key [color="#444444", penwidth="1.9"];
+  frame_ts -> key [color="#444444", penwidth="1.9"];
+  channel_key -> key [color="#4E79A7", style="dashed", penwidth="1.8", label="DAQ scope"];
+  fix -> pd [color="#C17D11", style="dashed", penwidth="1.8"];
+
+  { rank=same; sample_start; frame_ts; channel_key; }
+}

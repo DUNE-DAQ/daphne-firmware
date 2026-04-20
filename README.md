@@ -67,6 +67,10 @@ repo-owned lanes, see `docs/developer-manifest.md`.
 For the reusable architecture figure set and short explanations of each view,
 see `docs/architecture-reference.md`.
 
+For the peak-descriptor identity contract and the fixed same-channel
+`sample_start` collision mechanism, see
+`docs/peak-descriptor-id-uniqueness.md`.
+
 ## Architecture at a glance
 
 ### Subsystem hierarchy
@@ -76,6 +80,10 @@ see `docs/architecture-reference.md`.
 ### Runtime acquisition path
 
 ![daphne-firmware runtime acquisition path](docs/figures/architecture/runtime_dataflow.svg)
+
+### Descriptor identity path
+
+![daphne-firmware descriptor identity path](docs/figures/architecture/descriptor_identity.svg)
 
 ### Logic smoke test with FuseSoC
 

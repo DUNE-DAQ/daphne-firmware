@@ -9,6 +9,7 @@ basis for a GitHub wiki page later.
 For the reusable generated figure set itself, see:
 
 - [architecture-reference.md](/Users/marroyav/repo/daphne-firmware/docs/architecture-reference.md)
+- [peak-descriptor-id-uniqueness.md](/Users/marroyav/repo/daphne-firmware/docs/peak-descriptor-id-uniqueness.md)
 
 ## Philosophy
 
@@ -150,6 +151,10 @@ Keep the path short and avoid spaces.
 
 ![daphne-firmware runtime acquisition path](figures/architecture/runtime_dataflow.svg)
 
+#### Descriptor identity path
+
+![daphne-firmware descriptor identity path](figures/architecture/descriptor_identity.svg)
+
 #### Readiness contracts
 
 ![daphne-firmware readiness contracts](figures/architecture/readiness_contracts.svg)
@@ -208,6 +213,14 @@ Main responsibility:
 - peak-descriptor generation
 - STC3 record assembly
 - readout handoff
+
+Current contract note:
+
+- downstream descriptor identity is channel-scoped
+  `(geo_id, channel_id, frame_timestamp + sample_start)`
+- the repo now documents and fixes the same-channel `sample_start` reuse bug in
+  the peak-descriptor path; see
+  [peak-descriptor-id-uniqueness.md](/Users/marroyav/repo/daphne-firmware/docs/peak-descriptor-id-uniqueness.md)
 
 Examples:
 
