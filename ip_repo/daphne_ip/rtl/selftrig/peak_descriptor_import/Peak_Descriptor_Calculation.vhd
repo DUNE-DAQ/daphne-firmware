@@ -34,6 +34,10 @@ use ieee.numeric_std.all;
 --use UNISIM.VComponents.all;
 
 entity Peak_Descriptor_Calculation is
+generic(
+    PRETRIGGER_SAMPLES_G:             natural := 64;                                        -- Samples kept before the trigger sample
+    FRAME_POSTTRIGGER_SAMPLES_G:      natural := 960                                        -- Samples acquired after the trigger sample
+);
 port(
     clock:                          in  std_logic;                                              -- AFE clock
     reset:                          in  std_logic;                                              -- Reset signal. ACTIVE HIGH
@@ -181,8 +185,7 @@ SIGNAL Trailer_Word_10_reg:                 std_logic_vector(31 downto 0);
 SIGNAL Trailer_Word_11_reg:                 std_logic_vector(31 downto 0);
                             
 -- Sending Data control Signal 
-signal Data_Sent_Count: integer:=0; -- 1024 total samples - 64 pretrigger samples
-CONSTANT Frame_Size : integer := 960; -- 1024 total samples - 64 pretrigger samples
+signal Data_Sent_Count: integer:=0; -- Samples acquired after the trigger sample
 type Data_State is   (Not_Sending_Data, Sending_Data);
 signal CurrentState_Data, NextState_Data: Data_State;
 signal Sending_Data_aux: std_logic:='0'; -- ACTIVE HIGH when data is being sent
@@ -322,7 +325,7 @@ begin
                 NextState_Data <= Not_Sending_Data; 
             end if;
         when Sending_Data =>
-            if(Data_Sent_Count >= Frame_Size) then
+            if(Data_Sent_Count >= FRAME_POSTTRIGGER_SAMPLES_G) then
                 NextState_Data <= Not_Sending_Data;
             else
                 NextState_Data <= Sending_Data;
@@ -618,7 +621,7 @@ end process Output_FrameFormat;
 
 
 ---- TIME START For hits within the frame
-Time_Start_aux <= std_logic_vector(to_unsigned(Data_Sent_Count + 64,10));
+Time_Start_aux <= std_logic_vector(to_unsigned(Data_Sent_Count + PRETRIGGER_SAMPLES_G, Time_Start_aux'length));
 Proc_Time_Start: process(clock_aux, Ext_Self_Trigger_Match, Data_Available_aux)
 begin
     if(clock_aux'event and clock_aux='1') then

@@ -9,6 +9,10 @@ use ieee.std_logic_1164.all;
 use work.daphne_subsystem_pkg.all;
 
 entity peak_descriptor_channel is
+  generic (
+    FRAME_SAMPLE_COUNT_G : positive := 512;
+    PRETRIGGER_SAMPLES_G : natural  := 64
+  );
   port (
     clock_i   : in  std_logic;
     reset_i   : in  std_logic;
@@ -20,46 +24,7 @@ entity peak_descriptor_channel is
 end entity peak_descriptor_channel;
 
 architecture rtl of peak_descriptor_channel is
-  component Peak_Descriptor_Calculation is
-    port (
-      clock                  : in  std_logic;
-      reset                  : in  std_logic;
-      din                    : in  std_logic_vector(13 downto 0);
-      Config_Param           : in  std_logic_vector(13 downto 0);
-      Ext_Self_Trigger       : in  std_logic;
-      Match_with_Frame       : in  std_logic;
-      Self_trigger           : out std_logic;
-      Data_Available         : out std_logic;
-      Time_Peak              : out std_logic_vector(8 downto 0);
-      Time_Over_Baseline     : out std_logic_vector(8 downto 0);
-      Time_Start             : out std_logic_vector(9 downto 0);
-      ADC_Peak               : out std_logic_vector(13 downto 0);
-      ADC_Integral           : out std_logic_vector(22 downto 0);
-      Number_Peaks           : out std_logic_vector(3 downto 0);
-      Baseline               : in  std_logic_vector(13 downto 0);
-      Amplitude              : out std_logic_vector(14 downto 0);
-      Peak_Current           : out std_logic;
-      Slope_Current          : out std_logic_vector(13 downto 0);
-      Slope_Threshold        : out std_logic_vector(6 downto 0);
-      Detection              : out std_logic;
-      Sending                : out std_logic;
-      Info_Previous          : out std_logic;
-      Data_Available_Trailer : out std_logic;
-      Trailer_Word_0         : out std_logic_vector(31 downto 0);
-      Trailer_Word_1         : out std_logic_vector(31 downto 0);
-      Trailer_Word_2         : out std_logic_vector(31 downto 0);
-      Trailer_Word_3         : out std_logic_vector(31 downto 0);
-      Trailer_Word_4         : out std_logic_vector(31 downto 0);
-      Trailer_Word_5         : out std_logic_vector(31 downto 0);
-      Trailer_Word_6         : out std_logic_vector(31 downto 0);
-      Trailer_Word_7         : out std_logic_vector(31 downto 0);
-      Trailer_Word_8         : out std_logic_vector(31 downto 0);
-      Trailer_Word_9         : out std_logic_vector(31 downto 0);
-      Trailer_Word_10        : out std_logic_vector(31 downto 0);
-      Trailer_Word_11        : out std_logic_vector(31 downto 0)
-    );
-  end component;
-
+  constant FRAME_POSTTRIGGER_SAMPLES_C : natural := FRAME_SAMPLE_COUNT_G - PRETRIGGER_SAMPLES_G;
   signal self_trigger_s      : std_logic;
   signal data_available_s    : std_logic;
   signal trailer_available_s : std_logic;
@@ -78,7 +43,15 @@ architecture rtl of peak_descriptor_channel is
   signal info_previous_s     : std_logic;
   signal trailer_words_s     : peak_descriptor_trailer_t;
 begin
-  descriptor_calc_inst : Peak_Descriptor_Calculation
+  assert FRAME_SAMPLE_COUNT_G > PRETRIGGER_SAMPLES_G
+    report "peak_descriptor_channel requires frame length larger than pretrigger"
+    severity failure;
+
+  descriptor_calc_inst : entity work.Peak_Descriptor_Calculation
+    generic map (
+      PRETRIGGER_SAMPLES_G        => PRETRIGGER_SAMPLES_G,
+      FRAME_POSTTRIGGER_SAMPLES_G => FRAME_POSTTRIGGER_SAMPLES_C
+    )
     port map (
       clock                  => clock_i,
       reset                  => reset_i,

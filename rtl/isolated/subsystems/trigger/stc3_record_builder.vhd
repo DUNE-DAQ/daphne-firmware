@@ -34,6 +34,9 @@ end entity stc3_record_builder;
 
 architecture rtl of stc3_record_builder is
   constant LIVE_COUNTER_WIDTH_C : positive := 16;
+  constant PRETRIGGER_SAMPLES_C : natural := 64;
+  constant FRAME_BLOCK_COUNT_C  : natural := 16;
+  constant FINAL_BLOCK_INDEX_C  : natural := FRAME_BLOCK_COUNT_C - 1;
   type array_10x14_type is array(9 downto 0) of std_logic_vector(13 downto 0);
   type state_type is (
     rst, wait4trig, w0, w1, w2, w3, h0, h1, h2, h3, h4, h5, h6, h7, h8,
@@ -45,7 +48,7 @@ architecture rtl of stc3_record_builder is
   signal din_delay            : array_10x14_type;
   signal r0_s, r1_s, r2_s     : std_logic_vector(13 downto 0);
   signal r3_s, r4_s, r5_s     : std_logic_vector(13 downto 0);
-  signal block_count_s        : integer range 0 to 31 := 0;
+  signal block_count_s        : integer range 0 to FINAL_BLOCK_INDEX_C := 0;
   signal state_s              : state_type := rst;
   signal trig_count_state_s   : trigger_counter_state_type := rst_trggr;
   signal sample0_ts_s         : std_logic_vector(63 downto 0);
@@ -226,7 +229,7 @@ begin
           when d29 => state_s <= d30;
           when d30 => state_s <= d31;
           when d31 =>
-            if block_count_s = 31 then
+            if block_count_s = FINAL_BLOCK_INDEX_C then
               state_s <= wait4trig;
             else
               block_count_s <= block_count_s + 1;
@@ -250,10 +253,10 @@ begin
     end if;
   end process record_count_proc;
 
-  sample0_ts_s <= std_logic_vector(unsigned(trigger_i.trigger_timestamp) - 64);
+  sample0_ts_s <= std_logic_vector(unsigned(trigger_i.trigger_timestamp) - PRETRIGGER_SAMPLES_C);
 
   marker_s <= X"BE" when (state_s = h1) else
-              X"ED" when (state_s = d27 and block_count_s = 31) else
+              X"ED" when (state_s = d27 and block_count_s = FINAL_BLOCK_INDEX_C) else
               X"00";
 
   fifo_din_s <= marker_s & sample0_ts_s when (state_s = h1) else
