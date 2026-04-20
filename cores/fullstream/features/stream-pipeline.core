@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne-fullstream:stream-pipeline:0.1.0
+description: Neutral stream-pipeline boundary wrapper for the variant-local datapath
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne-fullstream:fullstream-subsystem-types:0.1.0
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/isolated/subsystems/stream/stream_pipeline_boundary.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

@@ -44,10 +44,14 @@ snapshot.
   and formal targets.
 - `tests/logic/`: HDL smoke tests.
 - `boards/`: board metadata and support status.
+- `boards/k26c-fullstream/`: staged fullstream board profile for the dual-
+  architecture migration.
 - `petalinux/`: deployment-side toolchain/dependency notes for the Kria Linux
   environment, including the first `meta-daphne/` layer scaffold.
 - `docs/`: source audit, server contract, modular architecture, and gap
   analysis.
+- `docs/fullstream-support/`: migration notes for the staged fullstream
+  scaffold and the dual-architecture selection rules.
 - `formal/`: SymbiYosys scaffolds for leaf blocks that are suitable for formal.
 - `rtl/isolated/`: neutral subsystem wrapper shells and typed interfaces for the
   isolation/formal-prep phase.
@@ -74,6 +78,10 @@ For the peak-descriptor identity contract and the fixed same-channel
 For the current self-trigger dead-time bottleneck chain, including the
 builder-versus-transport split and the recommended architecture direction, see
 `docs/deadtime-bottleneck-cascade.md`.
+
+For the staged fullstream migration plan, including the dual-architecture
+selection rules and the parallel namespace used in this worktree, see
+`docs/fullstream-support/README.md`.
 
 ## Architecture at a glance
 

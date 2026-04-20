@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne-fullstream:control-plane:0.1.0
+description: Neutral control-plane boundary wrapper for the PS-visible register ABI
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne-fullstream:fullstream-subsystem-types:0.1.0
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/isolated/subsystems/control/control_plane_boundary.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

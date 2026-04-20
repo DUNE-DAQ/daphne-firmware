@@ -1,0 +1,16 @@
+CAPI=2:
+
+name: dune-daq:daphne-fullstream:daphne-fullstream-modular:0.1.0
+description: Modular fullstream source manifest assembled from reusable boundary scaffolds
+provider:
+  name: local
+
+filesets:
+  rtl_boundaries:
+    depend:
+      - dune-daq:daphne-fullstream:daphne-fullstream-boundary-top:0.1.0
+
+targets:
+  default:
+    filesets:
+      - rtl_boundaries

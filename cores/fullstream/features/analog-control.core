@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne-fullstream:analog-control:0.1.0
+description: Neutral analog-control boundary wrapper for AFE and DAC readiness
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne-fullstream:fullstream-subsystem-types:0.1.0
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/isolated/subsystems/analog/analog_control_boundary.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

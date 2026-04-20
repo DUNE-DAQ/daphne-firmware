@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne-fullstream:frontend-boundary:0.1.0
+description: Neutral frontend boundary wrapper for ingress alignment contracts
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne-fullstream:fullstream-subsystem-types:0.1.0
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/isolated/subsystems/frontend/frontend_boundary.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

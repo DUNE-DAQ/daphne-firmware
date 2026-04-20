@@ -1,0 +1,19 @@
+name: k26c-fullstream
+supported: true
+fpga_part: xck26-sfvc784-2LV-c
+board_part: xilinx.com:k26c:part0:1.4
+pfm_name: xilinx:k26c:name:0.0
+constraint_file: xilinx/daphne_fullstream_pin_map.xdc
+constraint_files: xilinx/daphne_fullstream_pin_map.xdc
+legacy_manifest: boards/k26c-fullstream/legacy-flow.yml
+default_platform_core: dune-daq:daphne-fullstream:k26c-platform:0.1.0
+platform_core: dune-daq:daphne-fullstream:k26c-platform:0.1.0
+default_platform_target: impl
+build_name_prefix: daphne_fullstream
+overlay_name_prefix: daphne_fullstream_ol
+vivado_flow_script: xilinx/daphne_fullstream_vivado_flow.tcl
+vivado_entry_proc: daphne_fullstream_run_full_build
+notes:
+  - Staged fullstream board profile for the dual-architecture migration.
+  - Keep the self-trigger `k26c` board profile untouched while this profile
+    points at the imported fullstream FuseSoC and Vivado flow surface.
