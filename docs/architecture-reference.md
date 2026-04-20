@@ -124,6 +124,24 @@ Interpretation:
 - the detailed failure analysis and fix live in
   [peak-descriptor-id-uniqueness.md](/Users/marroyav/repo/daphne-firmware/docs/peak-descriptor-id-uniqueness.md)
 
+## 7. Dead-Time Bottleneck Cascade
+
+Question answered:
+
+- where does the current self-trigger dead time come from, in cascade order?
+
+![daphne-firmware dead-time bottleneck cascade](figures/architecture/deadtime_bottleneck_cascade.svg)
+
+Interpretation:
+
+- the current first-order bottleneck is the per-channel STC3 frame builder
+- the per-channel FIFO and shared two-lane mux are the next bottlenecks
+- transport cleanup is still useful, but it does not remove the dominant
+  builder-driven `busy_count` term in the current `10–14 kHz/channel` region
+- the detailed table, quantitative split, and recommended architecture changes
+  live in
+  [deadtime-bottleneck-cascade.md](/Users/marroyav/repo/daphne-firmware/docs/deadtime-bottleneck-cascade.md)
+
 ## Notes
 
 - These figures are repo-local rendered copies for documentation use.

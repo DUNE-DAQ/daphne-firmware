@@ -71,6 +71,10 @@ For the peak-descriptor identity contract and the fixed same-channel
 `sample_start` collision mechanism, see
 `docs/peak-descriptor-id-uniqueness.md`.
 
+For the current self-trigger dead-time bottleneck chain, including the
+builder-versus-transport split and the recommended architecture direction, see
+`docs/deadtime-bottleneck-cascade.md`.
+
 ## Architecture at a glance
 
 ### Subsystem hierarchy
@@ -84,6 +88,10 @@ For the peak-descriptor identity contract and the fixed same-channel
 ### Descriptor identity path
 
 ![daphne-firmware descriptor identity path](docs/figures/architecture/descriptor_identity.svg)
+
+### Dead-time bottleneck cascade
+
+![daphne-firmware dead-time bottleneck cascade](docs/figures/architecture/deadtime_bottleneck_cascade.svg)
 
 ### Logic smoke test with FuseSoC
 
