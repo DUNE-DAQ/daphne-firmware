@@ -75,6 +75,7 @@ begin
         reset_st_counters_i => reset_st_counters_i,
         enable_i            => trigger_result_s(idx).enabled,
         force_trigger_i     => force_trigger_i,
+        timestamp_i         => timestamp_i,
         din_i               => din_i(idx),
         trigger_i           => trigger_result_s(idx),
         trailer_capture_i   => descriptor_result_s(idx).trailer_available,

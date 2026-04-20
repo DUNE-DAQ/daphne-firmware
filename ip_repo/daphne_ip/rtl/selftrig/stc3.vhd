@@ -286,6 +286,7 @@ port map(
     reset_st_counters_i => reset_st_counters,
     enable_i            => enable,
     force_trigger_i     => clean_forcetrig,
+    timestamp_i         => timestamp,
     din_i               => din,
     trigger_i           => trigger_builder_s,
     trailer_capture_i   => Data_Available_Trailer_aux,
