@@ -622,10 +622,15 @@ Time_Start_aux <= std_logic_vector(to_unsigned(Data_Sent_Count + 64,10));
 Proc_Time_Start: process(clock_aux, Ext_Self_Trigger_Match, Data_Available_aux)
 begin
     if(clock_aux'event and clock_aux='1') then
-        if (Ext_Self_Trigger_Match='1') then               
+        if (Data_Available_aux='1') then
+            -- Commit the pending start time for the descriptor that is being
+            -- emitted now before capturing any new trigger that begins in the
+            -- same cycle. The previous if/elsif ordering dropped this update
+            -- during back-to-back descriptors and reused a stale Time_Start.
+            Time_Start_reg2 <= Time_Start_reg;
+        end if;
+        if (Ext_Self_Trigger_Match='1') then
             Time_Start_reg <= Time_Start_aux;
-        elsif (Data_Available_aux='1') then               
-            Time_Start_reg2 <= Time_Start_reg;            
         end if;
     end if;
 end process Proc_Time_Start;
