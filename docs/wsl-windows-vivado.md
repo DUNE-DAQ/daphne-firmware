@@ -9,7 +9,21 @@ Use this when:
 This is different from `docs/remote-vivado.md`, which assumes a native Linux
 host with Xilinx tools installed directly on that host.
 
+For the full clone-to-products runbook, see
+[build-manual.md](/Users/marroyav/repo/daphne-firmware/docs/build-manual.md).
+
 ## Default assumptions
+
+Recommended repo path:
+
+- Windows: `C:\w\d`
+- WSL: `/mnt/c/w/d`
+
+All commands below run from the repo root in WSL.
+
+Avoid long or space-containing repo paths. The WSL-to-Windows wrapper path is
+more reliable when the repo is visible through a short Windows path, and the
+generated IP/DTG trees become deep quickly.
 
 The helper scripts assume:
 
@@ -29,7 +43,7 @@ export DAPHNE_VITIS_VERSION=2024.1
 Run:
 
 ```bash
-cd ~/work/daphne-firmware
+cd /mnt/c/w/d
 ./scripts/wsl/check_windows_xilinx.sh
 ```
 
@@ -49,9 +63,11 @@ That script:
 Run:
 
 ```bash
-cd ~/work/daphne-firmware
+cd /mnt/c/w/d
 export DAPHNE_BOARD=k26c
 export DAPHNE_ETH_MODE=create_ip
+export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
+export DAPHNE_OUTPUT_DIR="./output-$DAPHNE_GIT_SHA"
 ./scripts/wsl/run_wsl_vivado_chain.sh
 ```
 
@@ -123,17 +139,7 @@ artifacts do not appear under the repo directory you expected.
 
 ## Expected outputs
 
-With the default output location, the build populates:
-
-- `xilinx/output/`
-
-If you set:
-
-```bash
-export DAPHNE_OUTPUT_DIR="./output-$DAPHNE_GIT_SHA"
-```
-
-then the build populates:
+With the recommended commit-specific output setting, the build populates:
 
 - `xilinx/output-<gitsha>/`
 
@@ -166,6 +172,50 @@ When this script runs under WSL and `xsct` is not already on `PATH`, it
 automatically sources [setup_windows_xilinx.sh](/Users/marroyav/repo/daphne-firmware/scripts/wsl/setup_windows_xilinx.sh)
 to activate the Windows Vitis wrapper for the current process.
 
+## Windows PowerShell recovery helper
+
+When the implementation artifacts already exist under `C:\w\d\xilinx\output-<gitsha>`
+but the direct WSL packaging step still trips over Windows/WSL `createdts`
+path handling, use the repo-owned PowerShell wrapper instead of typing the
+manual two-stage fallback by hand:
+
+```powershell
+cd C:\w\d
+.\scripts\windows\package_dtbo_from_existing_xsa.ps1 -GitSha 176ee43
+```
+
+This script does the qualified recovery flow:
+
+1. locate `daphne_selftrigger_<gitsha>.xsa` and `.bin` under the selected
+   output directory;
+2. run Windows `xsct.bat` from that directory using the artifact basename as
+   the `createdts -hw` argument;
+3. generate or regenerate `pl.dtsi` when needed;
+4. call the normal WSL-side
+   [complete_dtbo_bundle.sh](/Users/marroyav/repo/daphne-firmware/scripts/package/complete_dtbo_bundle.sh)
+   with `DAPHNE_FIRMWARE_ROOT` fixed explicitly.
+
+Useful parameters:
+
+```powershell
+.\scripts\windows\package_dtbo_from_existing_xsa.ps1 `
+  -OutputDir C:\w\d\xilinx\output-176ee43 `
+  -Board k26c `
+  -WslDistro Debian `
+  -ForceRegenerateDtg
+```
+
+The defaults are:
+
+- repo root: script-relative, intended for `C:\w\d`
+- Vitis root: `C:\Xilinx\Vitis\2024.1`
+- WSL distro: `Debian`
+- board: `k26c`
+
+This is now the preferred recovery path on Windows hosts where the direct WSL
+wrapper still succeeds for build/implementation but is brittle for separate
+DTBO packaging.
+
 The WSL wrapper also records:
 
 - `build/wsl-vivado/<timestamp>/run.env`
@@ -174,21 +224,12 @@ The WSL wrapper also records:
 - `build/wsl-vivado/<timestamp>/build.log`
 - `build/wsl-vivado/<timestamp>/artifacts.txt`
 
-## Current status on the WSL host
+## Manual fallback
 
-The repo wrappers no longer rely on the Windows current working directory being
-mapped into the WSL repo. Instead they call the Windows `.bat` launchers
-directly and pass absolute converted Tcl and artifact paths. This is a better
-fit for the observed working path, where Windows Vivado can already source
-`\\wsl.localhost\...` Tcl files directly.
+The repo-default wrapper is `./scripts/wsl/run_wsl_vivado_chain.sh`.
 
-If you still see stale local state, re-run:
-
-```bash
-./scripts/wsl/check_windows_xilinx.sh
-```
-
-If that still fails on a specific host, the manual fallback remains:
+If a specific host still fails with the wrapper path, the manual fallback
+remains:
 
 ```bash
 ./scripts/wsl/run_manual_vivado_pushd.sh all

@@ -18,8 +18,8 @@ The currently qualified hardware build path is:
 - board: `k26c`
 - branch: `main`
 - routed-clean hardware baseline: `a389fcd`
-- current `main` tip carrying that baseline plus DTBO packaging fixes:
-  `eb5f971`
+- current `main` tip carrying that baseline plus the repo-owned DTBO packaging
+  fixes
 - qualified host/tool arrangement:
   - WSL2 shell
   - Windows Vivado 2024.1
@@ -170,6 +170,22 @@ export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
 This is the right recovery step when implementation finished but the overlay
 bundle still needs to be generated.
 
+On Windows hosts using the recommended `C:\w\d` clone, the supported
+PowerShell wrapper for this recovery path is:
+
+```powershell
+cd C:\w\d
+.\scripts\windows\package_dtbo_from_existing_xsa.ps1 -GitSha 176ee43
+```
+
+That helper runs the known-good two-stage sequence:
+
+- Windows `xsct.bat` generates `pl.dtsi` from the existing `.xsa`
+- WSL `complete_dtbo_bundle.sh` compiles the `.dtbo` and overlay zip
+
+Use `-OutputDir` instead of `-GitSha` if you want to package a nonstandard
+output directory explicitly.
+
 ## 6. Expected Build Products
 
 The main output directory is:
@@ -197,7 +213,7 @@ For a successful qualified build, expect at least:
 The current repo-owned build and deployment boundary is now proven through:
 
 - routed-clean firmware baseline `a389fcd`
-- repo `main` tip `eb5f971` for DTBO packaging
+- current `main` tip for DTBO packaging
 - overlay load on target
 - clock-client bring-up
 - `daphne-server` start
