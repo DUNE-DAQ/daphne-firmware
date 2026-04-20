@@ -1,0 +1,8 @@
+legacy_user_ip_vlnv: dune.pds:user:DAPHNE3:1.0
+legacy_bd_name: daphne_fullstream_bd
+legacy_bd_wrapper_name: daphne_fullstream_bd_wrapper
+legacy_ip_cell_name: DAPHNE3
+legacy_ip_component_identifier: DAPHNE3
+legacy_ip_display_name: DAPHNE3_v1_0
+legacy_ip_xgui_file: DAPHNE3_v1_0.tcl
+legacy_ip_cell_bind_root: DAPHNE_V3_F4_1_i/DAPHNE3_0/U0

@@ -1,0 +1,17 @@
+CAPI=2:
+
+name: dune-daq:daphne-fullstream:fullstream-subsystem-types:0.1.0
+description: Neutral typed interfaces for additive fullstream boundary scaffolding
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ../../ip_repo/daphne3_ip/rtl/isolated/common/daphne_fullstream_subsystem_types_pkg.vhd
+    file_type: vhdlSource
+
+targets:
+  default:
+    filesets:
+      - rtl

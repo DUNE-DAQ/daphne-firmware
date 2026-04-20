@@ -1,0 +1,58 @@
+CAPI=2:
+
+name: dune-daq:daphne-fullstream:k26c-modular-platform:0.1.0
+description: K26C platform collateral layered on the modular fullstream source graph
+provider:
+  name: local
+
+filesets:
+  platform:
+    depend:
+      - dune-daq:daphne-fullstream:daphne-fullstream-modular:0.1.0
+    files:
+      - boards/k26c-fullstream/board.yml
+      - Memory_Map.md
+      - xilinx/daphne_fullstream_pin_map.xdc
+      - xilinx/daphne_fullstream_bd_gen.tcl
+      - xilinx/daphne_fullstream_dtbo_gen.tcl
+      - xilinx/daphne_fullstream_ip_gen.tcl
+      - xilinx/daphne_fullstream_vivado_flow.tcl
+      - xilinx/daphne_fullstream_xgui_gen.tcl
+      - xilinx/vivado_impl_entry.tcl
+      - xilinx/scripts/axi_quad_spi_dtbo_patch.sed
+      - xilinx/vivado_batch.tcl
+    file_type: user
+  hooks:
+    files:
+      - scripts/fusesoc/vivado_batch_hook.sh
+    file_type: user
+
+scripts:
+  vivado_batch:
+    cmd:
+      - sh
+      - scripts/fusesoc/vivado_batch_hook.sh
+    filesets:
+      - hooks
+
+targets:
+  default:
+    description: Source-only platform manifest for the modular K26C fullstream build flow
+    filesets:
+      - platform
+  impl:
+    description: FuseSoC entry point for the modular K26C fullstream Vivado batch flow
+    default_tool: vivado
+    toplevel: daphne_fullstream_bd_wrapper
+    filesets:
+      - platform
+    hooks:
+      pre_build:
+        - vivado_batch
+    tools:
+      vivado:
+        part: xck26-sfvc784-2LV-c
+        board_part: xilinx.com:k26c:part0:1.4
+        synth: none
+        pnr: none
+        source_mgmt_mode: None

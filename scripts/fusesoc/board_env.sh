@@ -171,6 +171,12 @@ daphne_platform_core_build_slug() {
     dune-daq:daphne:k26c-composable-platform:0.1.0)
       printf '%s' "k26c_comp"
       ;;
+    dune-daq:daphne-fullstream:k26c-platform:0.1.0)
+      printf '%s' "k26c_full"
+      ;;
+    dune-daq:daphne-fullstream:k26c-modular-platform:0.1.0)
+      printf '%s' "k26c_full_mod"
+      ;;
     *)
       printf '%s' "$platform_core" | tr ':.-' '_'
       ;;
@@ -343,6 +349,8 @@ daphne_resolve_board_defaults() {
   timing_endpoint_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_endpoint_path)"
   timing_plane_path="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_plane_path)"
   timing_clock_source="$(daphne_board_manifest_value "$root_dir" "$board_name" timing_clock_source)"
+  vivado_flow_script="$(daphne_board_manifest_value "$root_dir" "$board_name" vivado_flow_script)"
+  vivado_entry_proc="$(daphne_board_manifest_value "$root_dir" "$board_name" vivado_entry_proc)"
   afe_capture_input_delay_enable="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_input_delay_enable)"
   afe_capture_virtual_launch_period_ns="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_virtual_launch_period_ns)"
   afe_capture_input_delay_min_ns="$(daphne_board_manifest_value "$root_dir" "$board_name" afe_capture_input_delay_min_ns)"
@@ -460,6 +468,12 @@ daphne_resolve_board_defaults() {
   if [ -n "$timing_clock_source" ]; then
     : "${DAPHNE_TIMING_CLOCK_SOURCE:=$timing_clock_source}"
   fi
+  if [ -n "$vivado_flow_script" ]; then
+    : "${DAPHNE_VIVADO_FLOW_SCRIPT:=$vivado_flow_script}"
+  fi
+  if [ -n "$vivado_entry_proc" ]; then
+    : "${DAPHNE_VIVADO_ENTRY_PROC:=$vivado_entry_proc}"
+  fi
   if [ -n "$afe_capture_input_delay_enable" ]; then
     : "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE:=$afe_capture_input_delay_enable}"
   fi
@@ -536,6 +550,12 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "${DAPHNE_TIMING_CLOCK_SOURCE-}" ]; then
     export DAPHNE_TIMING_CLOCK_SOURCE
+  fi
+  if [ -n "${DAPHNE_VIVADO_FLOW_SCRIPT-}" ]; then
+    export DAPHNE_VIVADO_FLOW_SCRIPT
+  fi
+  if [ -n "${DAPHNE_VIVADO_ENTRY_PROC-}" ]; then
+    export DAPHNE_VIVADO_ENTRY_PROC
   fi
   if [ -n "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE-}" ]; then
     export DAPHNE_AFE_CAPTURE_INPUT_DELAY_ENABLE
