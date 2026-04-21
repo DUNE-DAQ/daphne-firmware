@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    [string]$RepoRoot,
     [string]$GitSha,
     [string]$Board = 'k26c',
     [string]$VivadoRoot = 'C:\Xilinx\Vivado\2024.1',
@@ -49,6 +49,9 @@ function Set-Or-RemoveEnv {
     }
 }
 
+if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
+    $RepoRoot = Join-Path $PSScriptRoot '..\..'
+}
 $RepoRoot = Get-FullPath -PathValue $RepoRoot
 if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot 'xilinx\vivado_impl_entry.tcl'))) {
     throw "Repo root does not look like daphne-firmware: $RepoRoot"
@@ -99,4 +102,3 @@ try {
 } finally {
     Pop-Location
 }
-

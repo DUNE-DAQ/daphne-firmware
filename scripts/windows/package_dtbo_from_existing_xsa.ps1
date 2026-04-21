@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    [string]$RepoRoot,
     [string]$OutputDir,
     [string]$GitSha,
     [string]$ArtifactPrefix = 'daphne_selftrigger',
@@ -61,6 +61,9 @@ function Remove-GeneratedDeviceTreeDir {
     }
 }
 
+if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
+    $RepoRoot = Join-Path $PSScriptRoot '..\..'
+}
 $RepoRoot = Resolve-FullPath -PathValue $RepoRoot
 
 if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot 'scripts\package\complete_dtbo_bundle.sh'))) {
