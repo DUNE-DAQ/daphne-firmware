@@ -46,8 +46,8 @@ architecture rtl of stc3_record_builder is
   constant BLOCK_SAMPLE_COUNT_C        : natural := 32;
   constant WORDS_PER_BLOCK_C           : natural := 7;
   constant HEADER_WORD_COUNT_C         : natural := 8;
-  constant RING_DEPTH_C                : positive := 1024;
-  constant RING_ADDR_WIDTH_C           : positive := 10;
+  constant RING_DEPTH_C                : positive := 2048;
+  constant RING_ADDR_WIDTH_C           : positive := 11;
   constant FRAME_QUEUE_DEPTH_C         : positive := 4;
   constant OVERLAP_GRANULARITY_C       : natural := 16;
 

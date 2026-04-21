@@ -1,11 +1,12 @@
-# Ring Buffer 1k Experiment
+# Ring Buffer 2k Experiment
 
-This branch is the 1k BRAM ring-buffer experiment on top of main.
+This branch is the 2k BRAM ring-buffer experiment on top of the
+instrumented 1k ring branch.
 
 Current contract:
 - frame length: 512 samples
 - pretrigger: 64 samples
-- ring depth: 1024 samples
+- ring depth: 2048 samples
 - overlap: configurable through `signal_delay_i` in 16-sample steps
 
 Behavioral note:
@@ -19,6 +20,8 @@ Scope:
 - builder instrumentation now splits rejected events into:
   `spacing`, `queue`, `ring`, and `output-full` counters at the
   `stc3_record_builder` boundary
+- queue depth remains `4`; this branch changes only ring retention depth
+  so the dead-time probe can isolate the effect of a deeper sample store
 
 WSL/Windows note:
 - if a run was launched with `DAPHNE_STOP_AFTER_SYNTH=1`, resume the same
