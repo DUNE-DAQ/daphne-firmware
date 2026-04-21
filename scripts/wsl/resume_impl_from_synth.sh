@@ -67,5 +67,29 @@ echo "INFO: Output dir       = $OUTPUT_DIR"
 echo "INFO: Synth checkpoint = $SYNTH_DCP"
 echo "INFO: Resuming implementation from synth checkpoint."
 
+# WSL does not automatically forward arbitrary environment variables into
+# Windows processes. Vivado on Windows needs these values to resolve the same
+# output directory and implementation directives used by the synth run.
+append_wslenv_var() {
+  current="$1"
+  candidate="$2"
+  case ":$current:" in
+    *":$candidate:"*) printf '%s' "$current" ;;
+    "") printf '%s' "$candidate" ;;
+    *) printf '%s:%s' "$current" "$candidate" ;;
+  esac
+}
+
+WSLENV_CURRENT="${WSLENV-}"
+WSLENV_CURRENT="$(append_wslenv_var "$WSLENV_CURRENT" "DAPHNE_OUTPUT_DIR/p")"
+WSLENV_CURRENT="$(append_wslenv_var "$WSLENV_CURRENT" "DAPHNE_GIT_SHA")"
+WSLENV_CURRENT="$(append_wslenv_var "$WSLENV_CURRENT" "DAPHNE_BOARD")"
+WSLENV_CURRENT="$(append_wslenv_var "$WSLENV_CURRENT" "DAPHNE_OPT_DIRECTIVE")"
+WSLENV_CURRENT="$(append_wslenv_var "$WSLENV_CURRENT" "DAPHNE_PLACE_DIRECTIVE")"
+WSLENV_CURRENT="$(append_wslenv_var "$WSLENV_CURRENT" "DAPHNE_POST_PLACE_PHYSOPT_DIRECTIVE")"
+WSLENV_CURRENT="$(append_wslenv_var "$WSLENV_CURRENT" "DAPHNE_ROUTE_DIRECTIVE")"
+WSLENV_CURRENT="$(append_wslenv_var "$WSLENV_CURRENT" "DAPHNE_POST_ROUTE_PHYSOPT_DIRECTIVE")"
+export WSLENV="$WSLENV_CURRENT"
+
 cd "$ROOT_DIR"
 exec vivado -mode batch -source "$ROOT_DIR/xilinx/vivado_resume_from_synth_entry.tcl"
