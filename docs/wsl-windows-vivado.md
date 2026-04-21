@@ -28,6 +28,15 @@ Use the WSL wrappers in this document when they are specifically needed for
 tool setup, packaging, or recovery. Do not treat them as the preferred
 implementation launch path if native PowerShell is available.
 
+For the repo-owned PowerShell wrappers:
+
+```powershell
+cd C:\w\s
+.\scripts\windows\build_impl_from_powershell.ps1 -StopAfterSynth
+.\scripts\windows\resume_impl_from_synth.ps1
+.\scripts\windows\package_dtbo_from_existing_xsa.ps1
+```
+
 Recommended repo path:
 
 - Windows: `C:\w\d`

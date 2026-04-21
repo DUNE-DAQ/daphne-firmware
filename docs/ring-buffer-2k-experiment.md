@@ -35,3 +35,45 @@ WSL/Windows note:
   `./scripts/wsl/resume_impl_from_synth.sh`
 - the script reuses `xilinx/output-<gitsha>/<bd_name>_synth.dcp` and continues
   with opt/place/route/bit/xsa generation instead of rerunning synthesis
+
+## Copy/paste commands
+
+Update the branch from WSL:
+
+```bash
+cd /mnt/c/w/s
+git fetch origin
+git switch marroyav/ring-builder-2k
+git pull --ff-only
+git rev-parse --short=7 HEAD
+```
+
+Run synth-only from Windows PowerShell:
+
+```powershell
+cd C:\w\s
+.\scripts\windows\build_impl_from_powershell.ps1 -StopAfterSynth
+```
+
+Resume implementation from the existing synth checkpoint:
+
+```powershell
+cd C:\w\s
+.\scripts\windows\resume_impl_from_synth.ps1
+```
+
+Package DTBO artifacts from the existing `.xsa`/`.bin`:
+
+```powershell
+cd C:\w\s
+.\scripts\windows\package_dtbo_from_existing_xsa.ps1
+```
+
+If you need to pin a specific checkpoint SHA explicitly:
+
+```powershell
+cd C:\w\s
+.\scripts\windows\build_impl_from_powershell.ps1 -GitSha 769f1a7 -StopAfterSynth
+.\scripts\windows\resume_impl_from_synth.ps1 -GitSha 769f1a7
+.\scripts\windows\package_dtbo_from_existing_xsa.ps1 -GitSha 769f1a7
+```
