@@ -24,6 +24,12 @@ Scope:
   so the dead-time probe can isolate the effect of a deeper sample store
 
 WSL/Windows note:
+- host workflow directive for this branch:
+  - build on a Windows machine
+  - manage `git` from WSL
+  - run Vivado from Windows PowerShell, not through WSL wrappers
+  - current observed behavior is that native PowerShell Vivado execution is
+    about `6x` faster than the WSL-driven path
 - if a run was launched with `DAPHNE_STOP_AFTER_SYNTH=1`, resume the same
   output directory with:
   `./scripts/wsl/resume_impl_from_synth.sh`

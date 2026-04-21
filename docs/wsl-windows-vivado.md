@@ -14,6 +14,20 @@ For the full clone-to-products runbook, see
 
 ## Default assumptions
 
+## Workflow directive
+
+For the active K26 build workflow on this project:
+
+- the build host is a Windows machine;
+- `git` operations are managed from WSL against the Windows clone;
+- Vivado should be executed from Windows PowerShell, not from WSL;
+- the current observed behavior is that native PowerShell Vivado runs are
+  about `6x` faster than the WSL-driven Vivado path.
+
+Use the WSL wrappers in this document when they are specifically needed for
+tool setup, packaging, or recovery. Do not treat them as the preferred
+implementation launch path if native PowerShell is available.
+
 Recommended repo path:
 
 - Windows: `C:\w\d`
