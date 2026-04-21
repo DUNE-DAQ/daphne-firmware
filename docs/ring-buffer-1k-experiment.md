@@ -16,6 +16,9 @@ Behavioral note:
 Scope:
 - builder waveform storage moves to explicit XPM BRAM-backed ring buffers
 - no BRAM delay-bank migration is included in this branch
+- builder instrumentation now splits rejected events into:
+  `spacing`, `queue`, `ring`, and `output-full` counters at the
+  `stc3_record_builder` boundary
 
 WSL/Windows note:
 - if a run was launched with `DAPHNE_STOP_AFTER_SYNTH=1`, resume the same

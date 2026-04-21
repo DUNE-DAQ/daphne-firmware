@@ -24,6 +24,10 @@ entity stc3_record_builder is
     record_count_o           : out std_logic_vector(63 downto 0);
     full_count_o             : out std_logic_vector(63 downto 0);
     busy_count_o             : out std_logic_vector(63 downto 0);
+    spacing_reject_count_o   : out std_logic_vector(63 downto 0);
+    queue_reject_count_o     : out std_logic_vector(63 downto 0);
+    ring_reject_count_o      : out std_logic_vector(63 downto 0);
+    output_reject_count_o    : out std_logic_vector(63 downto 0);
     trigger_count_o          : out std_logic_vector(63 downto 0);
     packet_count_o           : out std_logic_vector(63 downto 0);
     delayed_sample_o         : out std_logic_vector(13 downto 0);
@@ -158,12 +162,18 @@ architecture rtl of stc3_record_builder is
   signal ring_safe_ok_s           : std_logic;
   signal queue_space_ok_s         : std_logic;
   signal can_accept_frame_s       : std_logic;
+  signal spacing_reject_s         : std_logic;
+  signal queue_reject_s           : std_logic;
+  signal ring_reject_s            : std_logic;
   signal busy_reject_s            : std_logic;
   signal full_reject_s            : std_logic;
   signal last_trigger_ts_s        : unsigned(63 downto 0) := (others => '0');
   signal last_trigger_valid_s     : std_logic := '0';
   signal record_count_s           : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal busydrop_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal spacingdrop_count_s      : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal queuedrop_count_s        : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
+  signal ringdrop_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal fulldrop_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal trig_count_s             : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal pack_count_s             : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
@@ -216,6 +226,9 @@ begin
   ) else
     '0';
 
+  spacing_reject_s <= '1' when (enable_i = '1' and spacing_ok_s = '0') else '0';
+  queue_reject_s   <= '1' when (enable_i = '1' and spacing_ok_s = '1' and queue_space_ok_s = '0') else '0';
+  ring_reject_s    <= '1' when (enable_i = '1' and spacing_ok_s = '1' and queue_space_ok_s = '1' and ring_safe_ok_s = '0') else '0';
   full_reject_s <= '1' when (enable_i = '1' and prog_full_s = '1') else '0';
   busy_reject_s <= '1' when (enable_i = '1' and can_accept_frame_s = '0' and full_reject_s = '0') else '0';
 
@@ -349,6 +362,9 @@ begin
         emit_index_s         <= 0;
         record_count_s       <= (others => '0');
         busydrop_count_s     <= (others => '0');
+        spacingdrop_count_s  <= (others => '0');
+        queuedrop_count_s    <= (others => '0');
+        ringdrop_count_s     <= (others => '0');
         fulldrop_count_s     <= (others => '0');
         pack_count_s         <= (others => '0');
         last_trigger_ts_s    <= (others => '0');
@@ -366,6 +382,9 @@ begin
         if enable_i = '0' then
           record_count_s       <= (others => '0');
           busydrop_count_s     <= (others => '0');
+          spacingdrop_count_s  <= (others => '0');
+          queuedrop_count_s    <= (others => '0');
+          ringdrop_count_s     <= (others => '0');
           fulldrop_count_s     <= (others => '0');
           pack_count_s         <= (others => '0');
           last_trigger_ts_s    <= (others => '0');
@@ -392,6 +411,15 @@ begin
               last_trigger_valid_s <= '1';
             elsif full_reject_s = '1' then
               fulldrop_count_s <= fulldrop_count_s + 1;
+            elsif spacing_reject_s = '1' then
+              busydrop_count_s <= busydrop_count_s + 1;
+              spacingdrop_count_s <= spacingdrop_count_s + 1;
+            elsif queue_reject_s = '1' then
+              busydrop_count_s <= busydrop_count_s + 1;
+              queuedrop_count_s <= queuedrop_count_s + 1;
+            elsif ring_reject_s = '1' then
+              busydrop_count_s <= busydrop_count_s + 1;
+              ringdrop_count_s <= ringdrop_count_s + 1;
             elsif busy_reject_s = '1' then
               busydrop_count_s <= busydrop_count_s + 1;
             end if;
@@ -466,6 +494,10 @@ begin
   record_count_o   <= std_logic_vector(resize(record_count_s, record_count_o'length));
   full_count_o     <= std_logic_vector(resize(fulldrop_count_s, full_count_o'length));
   busy_count_o     <= std_logic_vector(resize(busydrop_count_s, busy_count_o'length));
+  spacing_reject_count_o <= std_logic_vector(resize(spacingdrop_count_s, spacing_reject_count_o'length));
+  queue_reject_count_o   <= std_logic_vector(resize(queuedrop_count_s, queue_reject_count_o'length));
+  ring_reject_count_o    <= std_logic_vector(resize(ringdrop_count_s, ring_reject_count_o'length));
+  output_reject_count_o  <= std_logic_vector(resize(fulldrop_count_s, output_reject_count_o'length));
   trigger_count_o  <= std_logic_vector(resize(trig_count_s, trigger_count_o'length));
   packet_count_o   <= std_logic_vector(resize(pack_count_s, packet_count_o'length));
   delayed_sample_o <= din_i;
