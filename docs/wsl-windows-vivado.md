@@ -241,6 +241,40 @@ then, if needed:
 ./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
+## Resume From Synth Checkpoint
+
+If a run was intentionally stopped after synthesis with
+`DAPHNE_STOP_AFTER_SYNTH=1`, do not restart the full build wrapper. The normal
+batch flow deletes and recreates the output directory.
+
+Instead, resume from the generated synth checkpoint:
+
+```bash
+cd /mnt/c/w/d
+export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
+./scripts/wsl/resume_impl_from_synth.sh
+```
+
+That script reuses:
+
+- `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_bd_synth.dcp`
+
+and continues with:
+
+- `opt_design`
+- `place_design`
+- post-place `phys_opt_design`
+- `route_design`
+- post-route `phys_opt_design`
+- `.bit` / `.xsa` generation
+
+Then run the Windows DTBO wrapper if needed:
+
+```powershell
+cd C:\w\d
+.\scripts\windows\package_dtbo_from_existing_xsa.ps1 -GitSha <gitsha>
+```
+
 Also note that `run_wsl_vivado_chain.sh` now runs under `bash` with
 `pipefail`, so failed preflight/build/package stages are no longer hidden by
 their `tee` logging pipeline.

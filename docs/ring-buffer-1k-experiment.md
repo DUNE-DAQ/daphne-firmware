@@ -16,3 +16,10 @@ Behavioral note:
 Scope:
 - builder waveform storage moves to BRAM-backed ring buffers
 - no BRAM delay-bank migration is included in this branch
+
+WSL/Windows note:
+- if a run was launched with `DAPHNE_STOP_AFTER_SYNTH=1`, resume the same
+  output directory with:
+  `./scripts/wsl/resume_impl_from_synth.sh`
+- the script reuses `xilinx/output-<gitsha>/<bd_name>_synth.dcp` and continues
+  with opt/place/route/bit/xsa generation instead of rerunning synthesis
