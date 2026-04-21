@@ -48,7 +48,7 @@ architecture rtl of stc3_record_builder is
   constant HEADER_WORD_COUNT_C         : natural := 8;
   constant RING_DEPTH_C                : positive := 2048;
   constant RING_ADDR_WIDTH_C           : positive := 11;
-  constant FRAME_QUEUE_DEPTH_C         : positive := 4;
+  constant FRAME_QUEUE_DEPTH_C         : positive := 2;
   constant OVERLAP_GRANULARITY_C       : natural := 16;
 
   subtype ring_addr_t is unsigned(RING_ADDR_WIDTH_C - 1 downto 0);
@@ -77,17 +77,17 @@ architecture rtl of stc3_record_builder is
 
   function wrap_add(addr : ring_addr_t; offset : natural) return ring_addr_t is
   begin
-    return to_unsigned((to_integer(addr) + offset) mod RING_DEPTH_C, addr'length);
+    return addr + to_unsigned(offset, addr'length);
   end function;
 
   function wrap_sub(addr : ring_addr_t; offset : natural) return ring_addr_t is
-    variable base_v : integer;
   begin
-    base_v := (to_integer(addr) - integer(offset)) mod RING_DEPTH_C;
-    if base_v < 0 then
-      base_v := base_v + RING_DEPTH_C;
-    end if;
-    return to_unsigned(base_v, addr'length);
+    return addr - to_unsigned(offset, addr'length);
+  end function;
+
+  function ring_distance(newer : ring_addr_t; older : ring_addr_t) return natural is
+  begin
+    return to_integer(newer - older);
   end function;
 
   function next_queue_idx(idx : integer) return integer is
@@ -156,7 +156,7 @@ architecture rtl of stc3_record_builder is
   signal overlap_samples_s        : natural range 0 to FRAME_SAMPLE_COUNT_C - 1 := 0;
   signal min_trigger_spacing_s    : natural range 1 to FRAME_SAMPLE_COUNT_C := FRAME_SAMPLE_COUNT_C;
   signal oldest_pending_valid_s   : std_logic;
-  signal oldest_pending_ts_s      : std_logic_vector(63 downto 0) := (others => '0');
+  signal oldest_pending_ptr_s     : ring_addr_t := (others => '0');
   signal queue_head_ready_s       : std_logic;
   signal spacing_ok_s             : std_logic;
   signal ring_safe_ok_s           : std_logic;
@@ -167,8 +167,7 @@ architecture rtl of stc3_record_builder is
   signal ring_reject_s            : std_logic;
   signal busy_reject_s            : std_logic;
   signal full_reject_s            : std_logic;
-  signal last_trigger_ts_s        : unsigned(63 downto 0) := (others => '0');
-  signal last_trigger_valid_s     : std_logic := '0';
+  signal samples_since_accept_s   : natural range 0 to FRAME_SAMPLE_COUNT_C := FRAME_SAMPLE_COUNT_C;
   signal record_count_s           : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal busydrop_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal spacingdrop_count_s      : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
@@ -190,30 +189,23 @@ begin
   oldest_pending_valid_s <= active_frame_valid_s when active_frame_valid_s = '1' else
                             '1' when frame_queue_count_s > 0 else
                             '0';
-  oldest_pending_ts_s    <= active_frame_s.sample0_ts when active_frame_valid_s = '1' else
-                            frame_queue_s(frame_queue_head_s).sample0_ts when frame_queue_count_s > 0 else
+  oldest_pending_ptr_s   <= active_frame_s.start_ptr when active_frame_valid_s = '1' else
+                            frame_queue_s(frame_queue_head_s).start_ptr when frame_queue_count_s > 0 else
                             (others => '0');
 
   queue_head_ready_s <= '1' when (
     frame_queue_count_s > 0 and
-    unsigned(timestamp_i) >= unsigned(frame_queue_s(frame_queue_head_s).sample0_ts) +
-      to_unsigned(FRAME_SAMPLE_COUNT_C - 1, timestamp_i'length)
+    ring_distance(write_ptr_s, frame_queue_s(frame_queue_head_s).start_ptr) >= FRAME_SAMPLE_COUNT_C - 1
   ) else
     '0';
 
-  spacing_ok_s <= '1' when (
-    last_trigger_valid_s = '0' or
-    unsigned(trigger_i.trigger_timestamp) >= last_trigger_ts_s +
-      to_unsigned(min_trigger_spacing_s, trigger_i.trigger_timestamp'length)
-  ) else
-    '0';
+  spacing_ok_s <= '1' when samples_since_accept_s >= min_trigger_spacing_s else '0';
 
   queue_space_ok_s <= '1' when frame_queue_count_s < FRAME_QUEUE_DEPTH_C else '0';
 
   ring_safe_ok_s <= '1' when (
     oldest_pending_valid_s = '0' or
-    unsigned(timestamp_i) - unsigned(oldest_pending_ts_s) <=
-      to_unsigned(RING_DEPTH_C - FRAME_SAMPLE_COUNT_C, timestamp_i'length)
+    ring_distance(write_ptr_s, oldest_pending_ptr_s) <= RING_DEPTH_C - FRAME_SAMPLE_COUNT_C
   ) else
     '0';
 
@@ -367,8 +359,7 @@ begin
         ringdrop_count_s     <= (others => '0');
         fulldrop_count_s     <= (others => '0');
         pack_count_s         <= (others => '0');
-        last_trigger_ts_s    <= (others => '0');
-        last_trigger_valid_s <= '0';
+        samples_since_accept_s <= FRAME_SAMPLE_COUNT_C;
       else
         queue_v        := frame_queue_s;
         head_v         := frame_queue_head_s;
@@ -387,13 +378,18 @@ begin
           ringdrop_count_s     <= (others => '0');
           fulldrop_count_s     <= (others => '0');
           pack_count_s         <= (others => '0');
-          last_trigger_ts_s    <= (others => '0');
-          last_trigger_valid_s <= '0';
+          samples_since_accept_s <= FRAME_SAMPLE_COUNT_C;
         else
+          if samples_since_accept_s < FRAME_SAMPLE_COUNT_C then
+            samples_since_accept_s <= samples_since_accept_s + 1;
+          end if;
+
           if event_pulse_s = '1' then
             if can_accept_frame_s = '1' then
-              trigger_age_v := to_integer(unsigned(timestamp_i(RING_ADDR_WIDTH_C - 1 downto 0)) -
-                                          unsigned(trigger_i.trigger_timestamp(RING_ADDR_WIDTH_C - 1 downto 0)));
+              trigger_age_v := ring_distance(
+                unsigned(timestamp_i(RING_ADDR_WIDTH_C - 1 downto 0)),
+                unsigned(trigger_i.trigger_timestamp(RING_ADDR_WIDTH_C - 1 downto 0))
+              );
               sample0_ts_v  := unsigned(trigger_i.trigger_timestamp) - to_unsigned(PRETRIGGER_SAMPLES_C, trigger_i.trigger_timestamp'length);
               start_ptr_v   := wrap_sub(write_ptr_s, trigger_age_v + PRETRIGGER_SAMPLES_C);
 
@@ -407,8 +403,7 @@ begin
               count_v := count_v + 1;
 
               pack_count_s         <= pack_count_s + 1;
-              last_trigger_ts_s    <= unsigned(trigger_i.trigger_timestamp);
-              last_trigger_valid_s <= '1';
+              samples_since_accept_s <= 0;
             elsif full_reject_s = '1' then
               fulldrop_count_s <= fulldrop_count_s + 1;
             elsif spacing_reject_s = '1' then
