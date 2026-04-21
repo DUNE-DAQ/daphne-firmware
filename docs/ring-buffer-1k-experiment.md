@@ -14,7 +14,7 @@ Behavioral note:
 - overlapping frames are allowed for experimentation, but the descriptor/trailer ownership policy is not yet redesigned for that case
 
 Scope:
-- builder waveform storage moves to BRAM-backed ring buffers
+- builder waveform storage moves to explicit XPM BRAM-backed ring buffers
 - no BRAM delay-bank migration is included in this branch
 
 WSL/Windows note:
