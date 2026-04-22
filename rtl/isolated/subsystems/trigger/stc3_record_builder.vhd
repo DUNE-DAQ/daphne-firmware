@@ -150,7 +150,6 @@ architecture rtl of stc3_record_builder is
   signal fifo_sleep_s             : std_logic := '1';
   signal prog_empty_s             : std_logic;
   signal prog_full_s              : std_logic;
-  signal fifo_word_count_s        : std_logic_vector(12 downto 0);
   signal trailer_reg_s            : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
   signal event_pulse_s            : std_logic;
   signal overlap_samples_s        : natural range 0 to FRAME_SAMPLE_COUNT_C - 1 := 0;
@@ -263,7 +262,7 @@ begin
       dout_o          => dout_o,
       prog_empty_o    => prog_empty_s,
       prog_full_o     => prog_full_s,
-      wr_data_count_o => fifo_word_count_s
+      wr_data_count_o => open
     );
 
   fifo_sleep_s <= '1' when serializer_state_s = ser_idle else '0';

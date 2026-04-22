@@ -20,20 +20,19 @@ module IIRFilter_afe_integrator_optimized(
     output wire signed[15:0] y
     );
 
-    reg signed [17:0] n1, n2, n3, d1, d2;
+    reg signed [17:0] n2, n3, d1, d2;
     reg signed [24:0] x_1, x_2, y_1, y_2;
   	reg signed[15:0] x_i, en_mux;
   	reg enable_reg, reset_reg;
 
   	wire signed[24:0] w1, w4, w7, w12, w13, w15;
-  	wire signed [17:0] w2, w20, w8, w14, w16;
+    wire signed [17:0] w20, w8, w14, w16;
   	wire signed[47:0] w3, w5, w9, w6, w10, w11, w17, w18, w19;
 
   	initial begin 
   		reset_reg <= 1'b0; 
 	    enable_reg <= 1'b0;
 	    // These coefficients correspond to the AFE compesator filter
-	    n1 <= {3'b001,15'b000000000000000}; 
 		n2 <= {3'b110,15'b000100101101100};
 		n3 <= {3'b000,15'b111011010101110}; 
 		d1 <= {3'b001,15'b110111101000100}; 
@@ -54,7 +53,6 @@ module IIRFilter_afe_integrator_optimized(
 	always @(posedge clk) begin
 		if(reset_reg) begin
 			// These coefficients correspond to the AFE compesator filter
-			n1 <= {3'b001,15'b000000000000000}; 
 			n2 <= {3'b110,15'b000100101101100};
 			n3 <= {3'b000,15'b111011010101110}; 
 			d1 <= {3'b001,15'b110111101000100}; 
@@ -84,8 +82,9 @@ module IIRFilter_afe_integrator_optimized(
 
 	assign w1 = {x_i,9'b0};
   //assign w1 = {1'b0,x_i[13:0],10'b0};
-  assign w2 = n1;
-  assign w3 = (w1*w2);
+  // n1 is a fixed unity coefficient, so carry the shifted sample forward
+  // directly instead of allocating a multiply.
+  assign w3 = {{23{w1[24]}}, w1};
   assign w4 = x_1;
   assign w20 = n2;
   assign w5 = (w4*w20);
