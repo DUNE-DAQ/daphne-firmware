@@ -303,47 +303,25 @@ proc daphne_write_bitstream_and_xsa {cfg_name} {
 proc daphne_package_overlay_linux {cfg_name} {
     upvar 1 $cfg_name cfg
 
-    set overlay_dir [file join $cfg(output_dir) $cfg(overlay_name)]
-    file mkdir $overlay_dir
+    set bundle_script [file join $cfg(repo_root) "scripts" "package" "complete_dtbo_bundle.sh"]
+    if {![file exists $bundle_script]} {
+        error "ERROR: missing Linux DT bundle helper at $bundle_script"
+    }
 
     if {![info exists ::env(XILINX_VITIS)]} {
         error "ERROR: XILINX_VITIS is not set. Please source settings64.bat/.sh first."
     }
 
-    set vitis_path $::env(XILINX_VITIS)
-    puts "INFO: Found Vitis at $vitis_path."
-    set xsct_exe [file join $vitis_path "bin" "xsct"]
-
-    puts "INFO: Generating Device Tree files."
-    if {[catch {exec $xsct_exe $cfg(dtbo_gen_tcl) [file join $cfg(output_dir) "${cfg(build_name)}.xsa"] $cfg(output_dir) $cfg(git_sha) 2>@1} result]} {
-        error "ERROR: xsct command failed:\n$result"
+    set tool_path $::env(PATH)
+    set vitis_bin [file join $::env(XILINX_VITIS) "bin"]
+    if {[string first $vitis_bin $tool_path] == -1} {
+        set tool_path "${vitis_bin}:$tool_path"
     }
-    puts "INFO: Device Tree files have been generated."
 
-    set pl_dtsi_path [glob -nocomplain -types f [file join $cfg(output_dir) $cfg(build_name) "*" "*" "*" "*" "*" "*" "pl.dtsi"]]
-    puts "INFO: Adding missing lines for AXI Quad SPI module in the dtsi file."
-    exec sed -i -f $cfg(axi_quad_spi_patch) $pl_dtsi_path
-    puts "INFO: Finished adding missing lines for dtsi file."
-
-    puts "INFO: Compiling Device Tree."
-    if {[catch {exec dtc -@ -O dtb -o [file join $cfg(output_dir) "${cfg(build_name)}.dtbo"] $pl_dtsi_path 2>@1} result]} {
-        error "ERROR: dtc command failed:\n$result"
+    puts "INFO: Packaging Linux device-tree overlay via $bundle_script."
+    if {[catch {exec env "PATH=$tool_path" bash $bundle_script $cfg(output_dir) 2>@1} result]} {
+        error "ERROR: Linux DT bundle helper failed:\n$result"
     }
-    puts "INFO: Device Tree files have been compiled."
-
-    puts "INFO: Creating json file."
-    exec echo { { "shell_type" : "XRT_FLAT", "num_slots": "1" } } > [file join $cfg(output_dir) "shell.json"]
-    puts "INFO: Json file has been generated."
-
-    puts "INFO: Creating Overlay folder."
-    file rename -force [file join $cfg(output_dir) "${cfg(build_name)}.dtbo"] [file join $overlay_dir "${cfg(overlay_name)}.dtbo"]
-    file rename -force [file join $cfg(output_dir) "${cfg(build_name)}.bin"] [file join $overlay_dir "${cfg(overlay_name)}.bin"]
-    file rename -force [file join $cfg(output_dir) "shell.json"] [file join $overlay_dir "shell.json"]
-
-    set old_dir [pwd]
-    cd $cfg(output_dir)
-    exec zip -r "${cfg(overlay_name)}.zip" $cfg(overlay_name)
-    cd $old_dir
     puts "INFO: Successfully generated Device Tree Overlay folder."
 }
 
