@@ -58,11 +58,11 @@ if {![file exists $hw_xsa_open]} {
 
 set hw_xsa_createdts [daphne_createdts_hw_path $hw_xsa_open]
 
-# generate the device tree using the generated XSA
+# generate the device tree using the generated XSA. createdts opens the
+# hardware handoff itself, so avoid pre-opening the same XSA here.
 if {$hw_arg ne "" && $hw_arg ne $hw_xsa_open} {
     puts "INFO: normalized HW path differs from argv; using canonical XSA path $hw_xsa_open"
 }
-hsi::open_hw_design $hw_xsa_open
 createdts -hw $hw_xsa_createdts -zocl -platform-name ${artifact_prefix}_$git_sha -git-branch $dtg_git_branch -overlay -out [file join $out_dir ${artifact_prefix}_$git_sha]
  
 # exit the process once done
