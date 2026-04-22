@@ -33,6 +33,23 @@ running_under_wsl() {
   [ -n "${WSL_DISTRO_NAME-}" ] || [ -n "${WSL_INTEROP-}" ]
 }
 
+using_native_linux_vivado() {
+  vivado_path="$(command -v vivado 2>/dev/null || true)"
+  [ -n "$vivado_path" ] || return 1
+
+  case "$vivado_path" in
+    /mnt/*|"$HOME"/.local/bin/*|"$HOME"/.cache/daphne-wsl-xilinx/*)
+      return 1
+      ;;
+    /*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 is_windows_style_path() {
   case "$1" in
     [A-Za-z]:/*|[A-Za-z]:\\*) return 0 ;;
@@ -61,6 +78,11 @@ resolve_platform_path() {
 convert_host_path() {
   raw_path="$1"
   [ -n "$raw_path" ] || return 0
+
+  if using_native_linux_vivado; then
+    printf '%s\n' "$raw_path"
+    return 0
+  fi
 
   if running_under_wsl && command -v wslpath >/dev/null 2>&1; then
     case "$raw_path" in
