@@ -39,6 +39,14 @@ export DAPHNE_BOARD=k26c
 ./scripts/remote/run_remote_vivado_chain.sh
 ```
 
+If the Linux Vivado/Vitis install is local to the current WSL/Linux host, use
+the convenience wrapper instead:
+
+```bash
+cd ~/repo/daphne-firmware
+./scripts/wsl/run_native_vivado_chain.sh --threads 24
+```
+
 This runs:
 
 1. `./scripts/fusesoc/preflight_vivado_build.sh`
