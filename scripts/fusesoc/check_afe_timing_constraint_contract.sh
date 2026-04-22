@@ -114,6 +114,22 @@ require_fixed "    mmcm1_clkout0" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend bit clock in its async-group family."
 require_fixed "    clk125" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend byte clock in its async-group family."
+require_fixed "proc daphne_collect_optional_hier_pins {patterns} {" "$CDC_TCL" \
+  "frontend CDC Tcl no longer collects explicit synchronizer destination pins."
+require_fixed "set frontend_sync_stage1_pins [daphne_collect_optional_hier_pins {" "$CDC_TCL" \
+  "frontend CDC Tcl no longer defines the frontend synchronizer first-stage pin set."
+require_fixed "*frontend_common_inst/idelayctrl_reset_500_meta_reg/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the idelayctrl_reset first-stage synchronizer pin."
+require_fixed "*frontend_common_inst/idelay_load_clk125_meta_reg[*]/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the idelay_load first-stage synchronizer pins."
+require_fixed "*frontend_common_inst/trig_meta_reg/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the trig first-stage synchronizer pin."
+require_fixed "set_false_path -to \$frontend_sync_stage1_pins" "$CDC_TCL" \
+  "frontend CDC Tcl no longer cuts the explicit frontend synchronizer first-stage pins."
+forbid_fixed "set_false_path -through \$frontend_sync_boundary_nets" "$CDC_TCL" \
+  "frontend CDC Tcl still relies on the deprecated broad sync-boundary net exception."
+require_fixed "set_false_path -through \$frontend_async_control_nets" "$CDC_TCL" \
+  "frontend CDC Tcl no longer cuts the remaining async control nets."
 require_fixed "set_false_path -to \$endpoint_sync_stage1_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the explicit PDTS synchronizer first-stage pins."
 require_fixed "set_false_path -from \$rx_tmg_port -to \$endpoint_raw_rx_sample_pins" "$ENDPOINT_CDC_TCL" \
