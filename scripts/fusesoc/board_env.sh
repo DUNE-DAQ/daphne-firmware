@@ -20,6 +20,23 @@ daphne_legacy_support_manifest_path() {
   printf '%s/xilinx/legacy_flow_support_sources.txt' "$root_dir"
 }
 
+daphne_resolve_repo_relative_path() {
+  root_dir="$1"
+  path_value="$2"
+
+  case "$path_value" in
+    "")
+      return 1
+      ;;
+    /*)
+      printf '%s\n' "$path_value"
+      ;;
+    *)
+      printf '%s/%s\n' "$root_dir" "$path_value"
+      ;;
+  esac
+}
+
 daphne_resolve_ip_repo_root() {
   root_dir="$1"
 
@@ -471,6 +488,12 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "$afe_capture_input_delay_max_ns" ]; then
     : "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_MAX_NS:=$afe_capture_input_delay_max_ns}"
+  fi
+  if [ -n "${DAPHNE_IP_TOP_HDL_FILE-}" ]; then
+    DAPHNE_IP_TOP_HDL_FILE="$(daphne_resolve_repo_relative_path "$root_dir" "$DAPHNE_IP_TOP_HDL_FILE")"
+  fi
+  if [ -n "${DAPHNE_PUBLIC_TOP_HDL_FILE-}" ]; then
+    DAPHNE_PUBLIC_TOP_HDL_FILE="$(daphne_resolve_repo_relative_path "$root_dir" "$DAPHNE_PUBLIC_TOP_HDL_FILE")"
   fi
   DAPHNE_BOARD="$board_name"
 
