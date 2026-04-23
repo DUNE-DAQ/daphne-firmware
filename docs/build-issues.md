@@ -15,6 +15,34 @@ artifacts on short WSL paths:
 
 Do not use `/mnt/c/w/s` for the performance-sensitive native Linux run.
 
+## Most Recent Completed 2k Run
+
+As of 2026-04-23, the most recent successfully built
+`marroyav/ring-builder-2k` tip is `27a4ca9`
+(`Document current build issues`).
+
+Observed outputs from that run:
+
+- `daphne_selftrigger_27a4ca9.bit`
+- `daphne_selftrigger_27a4ca9.bin`
+- `daphne_selftrigger_27a4ca9.xsa`
+- `daphne_selftrigger_27a4ca9.dtbo`
+- `daphne_selftrigger_ol_27a4ca9.zip`
+- `SHA256SUMS`
+
+Timing:
+
+- post-route timing passed with `WNS=0.103 ns` and `TNS=0.000 ns`
+
+Packaging note:
+
+- the Vivado implementation produced `.bit`, `.bin`, and `.xsa`
+- DTBO packaging initially failed because `complete_dtbo_bundle.sh` searched a
+  not-yet-existing DTG output directory under `set -e`
+- the helper was corrected to check that expected directory before searching,
+  then the DTBO bundle completed successfully from the existing implementation
+  outputs
+
 ## Landed Fixes
 
 ### `d79bb40` `Fix Linux DT overlay packaging flow`
