@@ -106,6 +106,7 @@ signal descriptor_control_s: peak_descriptor_control_t := PEAK_DESCRIPTOR_CONTRO
 signal descriptor_result_s: peak_descriptor_result_t := PEAK_DESCRIPTOR_RESULT_NULL;
 signal trailer_builder_s: peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
 signal frame_match_s: std_logic;
+signal frame_trigger_offset_s: std_logic_vector(9 downto 0);
 
 -- component baseline
 -- generic( baseline_runlength: integer := 256 );
@@ -257,8 +258,9 @@ trig_sample_dat <= trigger_builder_s.trigger_sample;
 trig_sample_ts <= trigger_builder_s.trigger_timestamp;
 
 descriptor_control_s <= (
-    config      => st_config,
-    frame_match => match_descriptor_with_frame_s
+    config         => st_config,
+    frame_match    => match_descriptor_with_frame_s,
+    trigger_offset => frame_trigger_offset_s
 );
 
 descriptor_channel_inst: entity work.peak_descriptor_channel
@@ -292,6 +294,7 @@ port map(
     trailer_capture_i   => Data_Available_Trailer_aux,
     trailer_i           => trailer_builder_s,
     frame_match_o       => frame_match_s,
+    frame_trigger_offset_o => frame_trigger_offset_s,
     record_count_o      => record_count,
     full_count_o        => full_count,
     busy_count_o        => busy_count,

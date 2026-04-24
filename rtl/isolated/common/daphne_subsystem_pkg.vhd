@@ -126,8 +126,9 @@ package daphne_subsystem_pkg is
   end record;
 
   type peak_descriptor_control_t is record
-    config      : std_logic_vector(13 downto 0);
-    frame_match : std_logic;
+    config         : std_logic_vector(13 downto 0);
+    frame_match    : std_logic;
+    trigger_offset : std_logic_vector(9 downto 0);
   end record;
 
   type peak_descriptor_result_t is record
@@ -277,8 +278,9 @@ package daphne_subsystem_pkg is
   );
 
   constant PEAK_DESCRIPTOR_CONTROL_NULL : peak_descriptor_control_t := (
-    config      => (others => '0'),
-    frame_match => '0'
+    config         => (others => '0'),
+    frame_match    => '0',
+    trigger_offset => (others => '0')
   );
 
   constant PEAK_DESCRIPTOR_RESULT_NULL : peak_descriptor_result_t := (

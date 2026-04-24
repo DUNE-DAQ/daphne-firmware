@@ -41,6 +41,7 @@ port(
     Config_Param:                   in  std_logic_vector(13 downto 0);                          -- Configure parameters for filtering & self-trigger bloks
     Ext_Self_Trigger:               in  std_logic;                                              -- External Self-Trigger coming from another block
     Match_with_Frame:               in  std_logic;                                              -- External signal that allows being matched with the frame construction.
+    Trigger_Offset:                 in  std_logic_vector(9 downto 0);                           -- Trigger position inside the frame when the waveform start is clipped
     Self_trigger:                   out std_logic;                                              -- Self-Trigger signal comming from the Self-Trigger block
     Data_Available:                 out std_logic;                                              -- ACTIVE HIGH when peak descriptors are calculated
     Time_Peak:                      out std_logic_vector(8 downto 0);                           -- Time in Samples to achieve de Max peak
@@ -618,7 +619,7 @@ end process Output_FrameFormat;
 
 
 ---- TIME START For hits within the frame
-Time_Start_aux <= std_logic_vector(to_unsigned(Data_Sent_Count + 64,10));
+Time_Start_aux <= std_logic_vector(to_unsigned(Data_Sent_Count, 10) + unsigned(Trigger_Offset));
 Proc_Time_Start: process(clock_aux, Ext_Self_Trigger_Match, Data_Available_aux)
 begin
     if(clock_aux'event and clock_aux='1') then

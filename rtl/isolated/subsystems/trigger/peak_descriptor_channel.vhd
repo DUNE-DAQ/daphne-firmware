@@ -28,6 +28,7 @@ architecture rtl of peak_descriptor_channel is
       Config_Param           : in  std_logic_vector(13 downto 0);
       Ext_Self_Trigger       : in  std_logic;
       Match_with_Frame       : in  std_logic;
+      Trigger_Offset         : in  std_logic_vector(9 downto 0);
       Self_trigger           : out std_logic;
       Data_Available         : out std_logic;
       Time_Peak              : out std_logic_vector(8 downto 0);
@@ -86,6 +87,7 @@ begin
       Config_Param           => control_i.config,
       Ext_Self_Trigger       => trigger_i.trigger_pulse,
       Match_with_Frame       => control_i.frame_match,
+      Trigger_Offset         => control_i.trigger_offset,
       Self_trigger           => self_trigger_s,
       Data_Available         => data_available_s,
       Time_Peak              => time_peak_s,

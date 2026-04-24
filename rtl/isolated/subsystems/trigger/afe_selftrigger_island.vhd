@@ -35,11 +35,14 @@ entity afe_selftrigger_island is
 end entity afe_selftrigger_island;
 
 architecture rtl of afe_selftrigger_island is
+  type trigger_offset_array_t is array (natural range <>) of std_logic_vector(9 downto 0);
+
   signal descriptor_control_s : peak_descriptor_control_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal trigger_result_s     : trigger_xcorr_result_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal descriptor_result_s  : peak_descriptor_result_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal descriptor_trailer_s : peak_descriptor_trailer_bank_t(0 to CHANNELS_PER_AFE_G - 1);
   signal frame_match_s        : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
+  signal frame_trigger_offset_s : trigger_offset_array_t(0 to CHANNELS_PER_AFE_G - 1) := (others => (others => '0'));
 begin
   trigger_bank_inst : entity work.afe_trigger_bank
     generic map (
@@ -63,6 +66,7 @@ begin
   begin
     descriptor_control_s(idx).config <= descriptor_config_i;
     descriptor_control_s(idx).frame_match <= frame_match_s(idx);
+    descriptor_control_s(idx).trigger_offset <= frame_trigger_offset_s(idx);
 
     record_builder_inst : entity work.stc3_record_builder
       port map (
@@ -81,6 +85,7 @@ begin
         trailer_capture_i   => descriptor_result_s(idx).trailer_available,
         trailer_i           => descriptor_trailer_s(idx),
         frame_match_o       => frame_match_s(idx),
+        frame_trigger_offset_o => frame_trigger_offset_s(idx),
         record_count_o      => record_count_o(idx),
         full_count_o        => full_count_o(idx),
         busy_count_o        => busy_count_o(idx),

@@ -21,6 +21,7 @@ entity stc3_record_builder is
     trailer_capture_i        : in  std_logic;
     trailer_i                : in  peak_descriptor_trailer_t;
     frame_match_o            : out std_logic;
+    frame_trigger_offset_o   : out std_logic_vector(9 downto 0);
     record_count_o           : out std_logic_vector(63 downto 0);
     full_count_o             : out std_logic_vector(63 downto 0);
     busy_count_o             : out std_logic_vector(63 downto 0);
@@ -49,7 +50,6 @@ architecture rtl of stc3_record_builder is
   constant RING_DEPTH_C                : positive := 2048;
   constant RING_ADDR_WIDTH_C           : positive := 11;
   constant FRAME_QUEUE_DEPTH_C         : positive := 2;
-  constant OVERLAP_GRANULARITY_C       : natural := 16;
 
   subtype ring_addr_t is unsigned(RING_ADDR_WIDTH_C - 1 downto 0);
 
@@ -60,6 +60,7 @@ architecture rtl of stc3_record_builder is
   type frame_meta_t is record
     start_ptr      : ring_addr_t;
     sample0_ts     : std_logic_vector(63 downto 0);
+    trigger_offset : std_logic_vector(9 downto 0);
     baseline       : std_logic_vector(13 downto 0);
     trigger_sample : std_logic_vector(13 downto 0);
     threshold_lsb  : std_logic_vector(13 downto 0);
@@ -70,6 +71,7 @@ architecture rtl of stc3_record_builder is
   constant FRAME_META_NULL_C : frame_meta_t := (
     start_ptr      => (others => '0'),
     sample0_ts     => (others => '0'),
+    trigger_offset => (others => '0'),
     baseline       => (others => '0'),
     trigger_sample => (others => '0'),
     threshold_lsb  => (others => '0')
@@ -98,14 +100,12 @@ architecture rtl of stc3_record_builder is
     return idx + 1;
   end function;
 
-  function overlap_samples_cfg(signal_delay : std_logic_vector(4 downto 0)) return natural is
-    variable overlap_v : natural;
+  function subtract_clamped(value : unsigned; amount : natural) return unsigned is
   begin
-    overlap_v := to_integer(unsigned(signal_delay)) * OVERLAP_GRANULARITY_C;
-    if overlap_v > FRAME_SAMPLE_COUNT_C - 1 then
-      overlap_v := FRAME_SAMPLE_COUNT_C - 1;
+    if value < to_unsigned(amount, value'length) then
+      return (others => '0');
     end if;
-    return overlap_v;
+    return value - to_unsigned(amount, value'length);
   end function;
 
   function pack_block_word(samples : sample_block_t; word_idx : natural) return std_logic_vector is
@@ -152,21 +152,25 @@ architecture rtl of stc3_record_builder is
   signal prog_full_s              : std_logic;
   signal trailer_reg_s            : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
   signal event_pulse_s            : std_logic;
-  signal overlap_samples_s        : natural range 0 to FRAME_SAMPLE_COUNT_C - 1 := 0;
-  signal min_trigger_spacing_s    : natural range 1 to FRAME_SAMPLE_COUNT_C := FRAME_SAMPLE_COUNT_C;
   signal oldest_pending_valid_s   : std_logic;
   signal oldest_pending_ptr_s     : ring_addr_t := (others => '0');
   signal queue_head_ready_s       : std_logic;
-  signal spacing_ok_s             : std_logic;
   signal ring_safe_ok_s           : std_logic;
   signal queue_space_ok_s         : std_logic;
   signal can_accept_frame_s       : std_logic;
+  signal coverage_valid_s         : std_logic := '0';
+  signal coverage_end_ts_s        : unsigned(63 downto 0) := (others => '0');
+  signal trigger_timestamp_s      : unsigned(63 downto 0);
+  signal natural_sample0_ts_s     : unsigned(63 downto 0);
+  signal clipped_sample0_ts_s     : unsigned(63 downto 0);
+  signal frame_end_ts_s           : unsigned(63 downto 0);
+  signal covered_trigger_s        : std_logic;
+  signal frame_trigger_offset_s   : std_logic_vector(9 downto 0);
   signal spacing_reject_s         : std_logic;
   signal queue_reject_s           : std_logic;
   signal ring_reject_s            : std_logic;
   signal busy_reject_s            : std_logic;
   signal full_reject_s            : std_logic;
-  signal samples_since_accept_s   : natural range 0 to FRAME_SAMPLE_COUNT_C := FRAME_SAMPLE_COUNT_C;
   signal record_count_s           : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal busydrop_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal spacingdrop_count_s      : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
@@ -176,14 +180,29 @@ architecture rtl of stc3_record_builder is
   signal trig_count_s             : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal pack_count_s             : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
 begin
-  -- Ring-buffer builder experiment:
-  -- waveform capture is the primary contract.
-  -- overlap is configurable via signal_delay_i (16 samples per step).
-  -- peak descriptor trailers are only fully trustworthy when overlap = 0.
+  -- Coalesced fixed-record experiment:
+  -- emitted records stay 512 samples / 120 words wide for downstream compatibility.
+  -- already-covered triggers do not allocate a new record.
+  -- when a new record would overlap the previous coverage window, its sample0 is clipped
+  -- forward and the true trigger position is carried explicitly in the metadata header.
   event_pulse_s <= trigger_i.trigger_pulse or force_trigger_i;
-
-  overlap_samples_s     <= overlap_samples_cfg(signal_delay_i);
-  min_trigger_spacing_s <= FRAME_SAMPLE_COUNT_C - overlap_samples_s;
+  trigger_timestamp_s  <= unsigned(trigger_i.trigger_timestamp);
+  natural_sample0_ts_s <= subtract_clamped(trigger_timestamp_s, PRETRIGGER_SAMPLES_C);
+  clipped_sample0_ts_s <= coverage_end_ts_s + 1 when (
+    coverage_valid_s = '1' and
+    natural_sample0_ts_s <= coverage_end_ts_s
+  ) else
+    natural_sample0_ts_s;
+  frame_end_ts_s <= clipped_sample0_ts_s + to_unsigned(FRAME_SAMPLE_COUNT_C - 1, 64);
+  covered_trigger_s <= '1' when (
+    enable_i = '1' and
+    coverage_valid_s = '1' and
+    trigger_timestamp_s <= coverage_end_ts_s
+  ) else
+    '0';
+  frame_trigger_offset_s <= std_logic_vector(resize(trigger_timestamp_s - clipped_sample0_ts_s, frame_trigger_offset_s'length)) when
+    trigger_timestamp_s >= clipped_sample0_ts_s else
+    (others => '0');
 
   oldest_pending_valid_s <= active_frame_valid_s when active_frame_valid_s = '1' else
                             '1' when frame_queue_count_s > 0 else
@@ -198,8 +217,6 @@ begin
   ) else
     '0';
 
-  spacing_ok_s <= '1' when samples_since_accept_s >= min_trigger_spacing_s else '0';
-
   queue_space_ok_s <= '1' when frame_queue_count_s < FRAME_QUEUE_DEPTH_C else '0';
 
   ring_safe_ok_s <= '1' when (
@@ -210,20 +227,40 @@ begin
 
   can_accept_frame_s <= '1' when (
     enable_i = '1' and
-    spacing_ok_s = '1' and
+    covered_trigger_s = '0' and
     queue_space_ok_s = '1' and
     ring_safe_ok_s = '1' and
     prog_full_s = '0'
   ) else
     '0';
 
-  spacing_reject_s <= '1' when (enable_i = '1' and spacing_ok_s = '0') else '0';
-  queue_reject_s   <= '1' when (enable_i = '1' and spacing_ok_s = '1' and queue_space_ok_s = '0') else '0';
-  ring_reject_s    <= '1' when (enable_i = '1' and spacing_ok_s = '1' and queue_space_ok_s = '1' and ring_safe_ok_s = '0') else '0';
-  full_reject_s <= '1' when (enable_i = '1' and prog_full_s = '1') else '0';
-  busy_reject_s <= '1' when (enable_i = '1' and can_accept_frame_s = '0' and full_reject_s = '0') else '0';
+  spacing_reject_s <= '0';
+  queue_reject_s   <= '1' when (enable_i = '1' and covered_trigger_s = '0' and queue_space_ok_s = '0') else '0';
+  ring_reject_s    <= '1' when (
+    enable_i = '1' and
+    covered_trigger_s = '0' and
+    queue_space_ok_s = '1' and
+    ring_safe_ok_s = '0'
+  ) else
+    '0';
+  full_reject_s <= '1' when (
+    enable_i = '1' and
+    covered_trigger_s = '0' and
+    queue_space_ok_s = '1' and
+    ring_safe_ok_s = '1' and
+    prog_full_s = '1'
+  ) else
+    '0';
+  busy_reject_s <= '1' when (
+    enable_i = '1' and
+    covered_trigger_s = '0' and
+    can_accept_frame_s = '0' and
+    full_reject_s = '0'
+  ) else
+    '0';
 
-  frame_match_o <= can_accept_frame_s;
+  frame_match_o          <= can_accept_frame_s;
+  frame_trigger_offset_o <= frame_trigger_offset_s when can_accept_frame_s = '1' else (others => '0');
 
   ring_rd_addr_s <= wrap_add(active_frame_s.start_ptr, block_index_s * BLOCK_SAMPLE_COUNT_C + load_issue_index_s)
     when serializer_state_s = ser_load and load_issue_index_s < BLOCK_SAMPLE_COUNT_C else
@@ -270,9 +307,9 @@ begin
   fifo_wr_en_s <= '1' when (serializer_state_s = ser_header or serializer_state_s = ser_emit) else '0';
 
   fifo_din_s <= X"BE" & active_frame_s.sample0_ts when (serializer_state_s = ser_header and header_index_s = 0) else
-                X"00" & ch_id_i(7 downto 0) & version_i(3 downto 0) & "000000" &
-                active_frame_s.baseline & "00" & active_frame_s.threshold_lsb &
-                "00" & active_frame_s.trigger_sample when (serializer_state_s = ser_header and header_index_s = 1) else
+                X"00" & ch_id_i(7 downto 0) & version_i(3 downto 0) &
+                active_frame_s.trigger_offset & active_frame_s.baseline &
+                active_frame_s.threshold_lsb & active_frame_s.trigger_sample when (serializer_state_s = ser_header and header_index_s = 1) else
                 X"00" & active_trailer_s(1) & active_trailer_s(0) when (serializer_state_s = ser_header and header_index_s = 2) else
                 X"00" & active_trailer_s(3) & active_trailer_s(2) when (serializer_state_s = ser_header and header_index_s = 3) else
                 X"00" & active_trailer_s(5) & active_trailer_s(4) when (serializer_state_s = ser_header and header_index_s = 4) else
@@ -331,7 +368,7 @@ begin
     variable count_v        : integer range 0 to FRAME_QUEUE_DEPTH_C;
     variable active_v       : frame_meta_t;
     variable active_valid_v : std_logic;
-    variable trigger_age_v  : natural;
+    variable start_age_v    : natural;
     variable sample0_ts_v   : unsigned(63 downto 0);
     variable start_ptr_v    : ring_addr_t;
   begin
@@ -358,7 +395,8 @@ begin
         ringdrop_count_s     <= (others => '0');
         fulldrop_count_s     <= (others => '0');
         pack_count_s         <= (others => '0');
-        samples_since_accept_s <= FRAME_SAMPLE_COUNT_C;
+        coverage_valid_s     <= '0';
+        coverage_end_ts_s    <= (others => '0');
       else
         queue_v        := frame_queue_s;
         head_v         := frame_queue_head_s;
@@ -377,32 +415,31 @@ begin
           ringdrop_count_s     <= (others => '0');
           fulldrop_count_s     <= (others => '0');
           pack_count_s         <= (others => '0');
-          samples_since_accept_s <= FRAME_SAMPLE_COUNT_C;
         else
-          if samples_since_accept_s < FRAME_SAMPLE_COUNT_C then
-            samples_since_accept_s <= samples_since_accept_s + 1;
-          end if;
-
           if event_pulse_s = '1' then
-            if can_accept_frame_s = '1' then
-              trigger_age_v := ring_distance(
+            if covered_trigger_s = '1' then
+              null;
+            elsif can_accept_frame_s = '1' then
+              sample0_ts_v := clipped_sample0_ts_s;
+              start_age_v  := ring_distance(
                 unsigned(timestamp_i(RING_ADDR_WIDTH_C - 1 downto 0)),
-                unsigned(trigger_i.trigger_timestamp(RING_ADDR_WIDTH_C - 1 downto 0))
+                sample0_ts_v(RING_ADDR_WIDTH_C - 1 downto 0)
               );
-              sample0_ts_v  := unsigned(trigger_i.trigger_timestamp) - to_unsigned(PRETRIGGER_SAMPLES_C, trigger_i.trigger_timestamp'length);
-              start_ptr_v   := wrap_sub(write_ptr_s, trigger_age_v + PRETRIGGER_SAMPLES_C);
+              start_ptr_v  := wrap_sub(write_ptr_s, start_age_v);
 
               queue_v(tail_v).start_ptr      := start_ptr_v;
               queue_v(tail_v).sample0_ts     := std_logic_vector(sample0_ts_v);
+              queue_v(tail_v).trigger_offset := frame_trigger_offset_s;
               queue_v(tail_v).baseline       := trigger_i.baseline;
               queue_v(tail_v).trigger_sample := trigger_i.trigger_sample;
               queue_v(tail_v).threshold_lsb  := threshold_xc_i(13 downto 0);
 
-              tail_v := next_queue_idx(tail_v);
+              tail_v  := next_queue_idx(tail_v);
               count_v := count_v + 1;
 
-              pack_count_s         <= pack_count_s + 1;
-              samples_since_accept_s <= 0;
+              pack_count_s      <= pack_count_s + 1;
+              coverage_valid_s  <= '1';
+              coverage_end_ts_s <= frame_end_ts_s;
             elsif full_reject_s = '1' then
               fulldrop_count_s <= fulldrop_count_s + 1;
             elsif spacing_reject_s = '1' then
