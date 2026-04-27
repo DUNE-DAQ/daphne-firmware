@@ -2,6 +2,10 @@
 
 Branch: `marroyav/coal`
 
+Current implementation branch:
+
+- `marroyav/coal-tail512`
+
 ## Goal
 
 Reduce dead time without changing the Ethernet-visible record size.
@@ -23,6 +27,25 @@ Instead:
 - the trigger position inside the emitted record is carried explicitly as a `10`-bit `trigger_offset`
 
 That preserves fixed-size records while enforcing non-overlap.
+
+## Current Branch Additions
+
+The current `coal-tail512` branch extends the original fixed-record experiment
+with the following implementation work:
+
+- `2k` rings with a queue depth of `4`
+- chained continuation via `frame_extend_i` while preserving fixed
+  `512`-sample / `120`-word records
+- an explicit builder/readout seam:
+  - packet availability for the mux is tracked as a packet count
+  - builder admission uses an explicit FIFO word-count limit instead of
+    programmable full/empty thresholds as an implicit contract
+  - detailed reject counters are now a simulation/formal specialization, not
+    permanent synthesized baggage
+- a tightened two-lane mux:
+  - no extra `pause` bubble after `ED`
+  - registered `valid` / `last` pulses
+  - no idle-cycle zero rewrites on the payload bus
 
 ## Metadata Change
 
@@ -50,3 +73,12 @@ So:
 - per-record peak-descriptor metadata still corresponds only to emitted records, not to every covered trigger
 
 That is intentional for the first HDL step. It lets us test the dead-time benefit of non-overlap while preserving the downstream transport contract.
+
+## FuseSoC Target
+
+This branch also exposes a dedicated platform target:
+
+- `impl_coal_tail512`
+
+Use that target when you want the build name and logs to reflect this
+specialized fixed-512 continuation flavor explicitly.

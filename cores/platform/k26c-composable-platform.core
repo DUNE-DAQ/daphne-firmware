@@ -165,6 +165,22 @@ targets:
         synth: none
         pnr: none
         source_mgmt_mode: None
+  impl_coal_tail512:
+    description: Specialized composable platform implementation target for the coal-tail512 fixed-512 chained-continuation self-trigger branch
+    default_tool: vivado
+    toplevel: daphne_selftrigger_bd_wrapper
+    filesets:
+      - platform_impl
+    hooks:
+      pre_build:
+        - vivado_batch
+    tools:
+      vivado:
+        part: xck26-sfvc784-2LV-c
+        board_part: xilinx.com:k26c:part0:1.4
+        synth: none
+        pnr: none
+        source_mgmt_mode: None
   synth_public_top_ooc:
     description: Vivado out-of-context synthesis of the public composable top from the FuseSoC-resolved source graph
     default_tool: vivado

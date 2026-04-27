@@ -46,6 +46,9 @@ Current proof entry points:
   gate.
 - `formal/sby/frontend_to_selftrigger_adapter_contract.sby` for the frontend
   capture to self-trigger channel-map and truncation contract.
+- `formal/sby/selftrigger_register_bank_contract.sby` for the arithmetic
+  threshold/counter AXI-Lite decode in the isolated self-trigger register
+  plane.
 - `formal/sby/hermes_boundary_contract.sby` for the deterministic local Hermes
   handoff contract used by the composable verification model.
 - `formal/sby/thresholds_axi_lite.sby` for the self-trigger threshold register
@@ -134,6 +137,9 @@ Properties currently checked:
   `WSTRB = "1111"`.
 - Accepted writes produce a matching readable register image where the block
   exposes readback.
+- The arithmetic self-trigger register-bank decode preserves the documented
+  threshold/counter register map without falling back to a 40-channel linear
+  scan.
 - The frontend trigger pulse and IDELAY load pulse self-clear after their
   documented stretch intervals.
 - Boundary enable outputs are exactly the conjunction of the documented

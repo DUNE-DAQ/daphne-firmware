@@ -1,0 +1,19 @@
+[options]
+mode bmc
+depth 32
+
+[engines]
+smtbmc z3
+
+[script]
+# Prove the arithmetic channel/primitive decode in the self-trigger register
+# bank preserves the documented AXI-Lite threshold/counter register contract.
+plugin -i ghdl
+ghdl --std=08 daphne_package.vhd daphne_subsystem_pkg.vhd selftrigger_register_bank.vhd selftrigger_register_bank_formal.vhd -e selftrigger_register_bank_formal
+prep -top selftrigger_register_bank_formal
+
+[files]
+../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/control/selftrigger_register_bank.vhd
+../vhdl/selftrigger_register_bank_formal.vhd

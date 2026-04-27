@@ -267,14 +267,14 @@ daphne_require_supported_platform_target() {
   fi
 
   case "$platform_target" in
-    synth_public_top_ooc|synth_public_top_flow|synth_board_shell_ooc|synth_board_shell_flow|validate|validate_optional_off|validate_frontend_shell|validate_public_top)
+    impl_coal_tail512|synth_public_top_ooc|synth_public_top_flow|synth_board_shell_ooc|synth_board_shell_flow|validate|validate_optional_off|validate_frontend_shell|validate_public_top)
       return 0
       ;;
   esac
 
   echo "ERROR: unsupported platform target '$platform_target' for board '$board_name'." >&2
   echo "INFO: supported implementation target: $default_target" >&2
-  echo "INFO: supported auxiliary targets: synth_public_top_ooc, synth_public_top_flow, synth_board_shell_ooc, synth_board_shell_flow, validate, validate_optional_off, validate_frontend_shell, validate_public_top" >&2
+  echo "INFO: supported auxiliary targets: impl_coal_tail512, synth_public_top_ooc, synth_public_top_flow, synth_board_shell_ooc, synth_board_shell_flow, validate, validate_optional_off, validate_frontend_shell, validate_public_top" >&2
   return 2
 }
 
@@ -289,7 +289,7 @@ daphne_platform_exports_flow_bundle() {
 
   [ -n "$default_core" ] || return 1
   [ "$platform_core" = "$default_core" ] || return 1
-  [ "$platform_target" = "$default_target" ]
+  [ "$platform_target" = "$default_target" ] || [ "$platform_target" = "impl_coal_tail512" ]
 }
 
 daphne_platform_requires_packaged_ip_preflight() {
@@ -315,7 +315,7 @@ daphne_platform_requires_packaged_ip_preflight() {
   fi
 
   case "$platform_target" in
-    synth_public_top_ooc|synth_public_top_flow|synth_board_shell_ooc|synth_board_shell_flow|validate|validate_optional_off|validate_frontend_shell|validate_public_top)
+    impl_coal_tail512|synth_public_top_ooc|synth_public_top_flow|synth_board_shell_ooc|synth_board_shell_flow|validate|validate_optional_off|validate_frontend_shell|validate_public_top)
       return 1
       ;;
   esac

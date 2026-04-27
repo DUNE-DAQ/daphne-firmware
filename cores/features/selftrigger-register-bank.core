@@ -13,8 +13,18 @@ filesets:
     files:
       - rtl/isolated/subsystems/control/selftrigger_register_bank.vhd
     file_type: vhdlSource-2008
+  formal:
+    files:
+      - ../../formal/sby/selftrigger_register_bank_contract.sby
+    file_type: user
 
 targets:
   default:
     filesets:
       - rtl
+  formal:
+    description: Formal proof of arithmetic threshold/counter AXI-Lite channel decode
+    filesets:
+      - rtl
+    filesets_append:
+      - formal

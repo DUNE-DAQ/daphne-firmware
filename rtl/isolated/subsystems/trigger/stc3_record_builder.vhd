@@ -5,6 +5,9 @@ use ieee.numeric_std.all;
 use work.daphne_subsystem_pkg.all;
 
 entity stc3_record_builder is
+  generic (
+    DETAILED_REJECT_COUNTERS_G : boolean := false
+  );
   port (
     ch_id_i                  : in  std_logic_vector(7 downto 0);
     version_i                : in  std_logic_vector(3 downto 0);
@@ -48,9 +51,14 @@ architecture rtl of stc3_record_builder is
   constant BLOCK_SAMPLE_COUNT_C        : natural := 32;
   constant WORDS_PER_BLOCK_C           : natural := 7;
   constant HEADER_WORD_COUNT_C         : natural := 8;
+  constant WORDS_PER_PACKET_C          : natural := HEADER_WORD_COUNT_C + FRAME_BLOCK_COUNT_C * WORDS_PER_BLOCK_C;
   constant RING_DEPTH_C                : positive := 2048;
   constant RING_ADDR_WIDTH_C           : positive := 11;
   constant FRAME_QUEUE_DEPTH_C         : positive := 4;
+  constant OUTPUT_FIFO_DEPTH_C         : positive := 4096;
+  constant OUTPUT_FIFO_HEADROOM_C      : natural := 256;
+  constant OUTPUT_FIFO_ACCEPT_LIMIT_C  : natural := OUTPUT_FIFO_DEPTH_C - OUTPUT_FIFO_HEADROOM_C;
+  constant MAX_BUFFERED_PACKETS_C      : positive := (OUTPUT_FIFO_DEPTH_C / WORDS_PER_PACKET_C) + 1;
 
   subtype ring_addr_t is unsigned(RING_ADDR_WIDTH_C - 1 downto 0);
 
@@ -106,7 +114,7 @@ architecture rtl of stc3_record_builder is
   function subtract_clamped(value : unsigned; amount : natural) return unsigned is
   begin
     if value < to_unsigned(amount, value'length) then
-      return (others => '0');
+      return to_unsigned(0, value'length);
     end if;
     return value - to_unsigned(amount, value'length);
   end function;
@@ -149,10 +157,11 @@ architecture rtl of stc3_record_builder is
   signal load_issue_index_s       : integer range 0 to BLOCK_SAMPLE_COUNT_C := 0;
   signal emit_index_s             : integer range 0 to WORDS_PER_BLOCK_C - 1 := 0;
   signal fifo_din_s               : std_logic_vector(71 downto 0) := (others => '0');
+  signal fifo_dout_s              : std_logic_vector(71 downto 0);
   signal fifo_wr_en_s             : std_logic := '0';
   signal fifo_sleep_s             : std_logic := '1';
-  signal prog_empty_s             : std_logic;
-  signal prog_full_s              : std_logic;
+  signal fifo_wr_data_count_s     : std_logic_vector(12 downto 0);
+  signal fifo_packet_count_s      : integer range 0 to MAX_BUFFERED_PACKETS_C := 0;
   signal trailer_reg_s            : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
   signal event_pulse_s            : std_logic;
   signal oldest_pending_valid_s   : std_logic;
@@ -160,6 +169,7 @@ architecture rtl of stc3_record_builder is
   signal queue_head_ready_s       : std_logic;
   signal ring_safe_ok_s           : std_logic;
   signal queue_space_ok_s         : std_logic;
+  signal output_space_ok_s        : std_logic;
   signal can_accept_frame_s       : std_logic;
   signal coverage_valid_s         : std_logic := '0';
   signal coverage_end_ts_s        : unsigned(63 downto 0) := (others => '0');
@@ -193,6 +203,9 @@ begin
   -- forward and the true trigger position is carried explicitly in the metadata header.
   -- if the descriptor path is still active on the last sample of the current frame,
   -- a continuation frame is queued immediately after it with no overlap.
+  -- The readout seam is explicit on this branch: packet availability for the mux is
+  -- tracked as a packet count, and builder admission uses an explicit FIFO word-count
+  -- limit instead of programmable empty/full watermarks as an implicit contract.
   event_pulse_s <= trigger_i.trigger_pulse or force_trigger_i;
   trigger_timestamp_s  <= unsigned(trigger_i.trigger_timestamp);
   current_timestamp_s  <= unsigned(timestamp_i);
@@ -235,6 +248,7 @@ begin
     '0';
 
   queue_space_ok_s <= '1' when frame_queue_count_s < FRAME_QUEUE_DEPTH_C else '0';
+  output_space_ok_s <= '1' when to_integer(unsigned(fifo_wr_data_count_s)) <= OUTPUT_FIFO_ACCEPT_LIMIT_C else '0';
 
   ring_safe_ok_s <= '1' when (
     oldest_pending_valid_s = '0' or
@@ -247,7 +261,7 @@ begin
     covered_trigger_s = '0' and
     queue_space_ok_s = '1' and
     ring_safe_ok_s = '1' and
-    prog_full_s = '0'
+    output_space_ok_s = '1'
   ) else
     '0';
 
@@ -265,7 +279,7 @@ begin
     covered_trigger_s = '0' and
     queue_space_ok_s = '1' and
     ring_safe_ok_s = '1' and
-    prog_full_s = '1'
+    output_space_ok_s = '0'
   ) else
     '0';
   busy_reject_s <= '1' when (
@@ -301,10 +315,10 @@ begin
   output_fifo_inst : entity work.sync_fifo_fwft
     generic map (
       DATA_WIDTH_G        => 72,
-      DEPTH_G             => 4096,
+      DEPTH_G             => OUTPUT_FIFO_DEPTH_C,
       COUNT_WIDTH_G       => 13,
-      PROG_EMPTY_THRESH_G => 119,
-      PROG_FULL_THRESH_G  => 3840
+      PROG_EMPTY_THRESH_G => 1,
+      PROG_FULL_THRESH_G  => OUTPUT_FIFO_ACCEPT_LIMIT_C + 1
     )
     port map (
       clock_i         => clock_i,
@@ -313,13 +327,13 @@ begin
       wr_en_i         => fifo_wr_en_s,
       din_i           => fifo_din_s,
       rd_en_i         => rd_en_i,
-      dout_o          => dout_o,
-      prog_empty_o    => prog_empty_s,
-      prog_full_o     => prog_full_s,
-      wr_data_count_o => open
+      dout_o          => fifo_dout_s,
+      prog_empty_o    => open,
+      prog_full_o     => open,
+      wr_data_count_o => fifo_wr_data_count_s
     );
 
-  fifo_sleep_s <= '1' when serializer_state_s = ser_idle else '0';
+  fifo_sleep_s <= '1' when serializer_state_s = ser_idle and fifo_packet_count_s = 0 else '0';
 
   fifo_wr_en_s <= '1' when (serializer_state_s = ser_header or serializer_state_s = ser_emit) else '0';
 
@@ -388,6 +402,7 @@ begin
     variable start_age_v    : natural;
     variable sample0_ts_v   : unsigned(63 downto 0);
     variable start_ptr_v    : ring_addr_t;
+    variable fifo_packet_count_v : integer range 0 to MAX_BUFFERED_PACKETS_C;
   begin
     if rising_edge(clock_i) then
       if (reset_i = '1' or reset_st_counters_i = '1') then
@@ -412,6 +427,7 @@ begin
         ringdrop_count_s     <= (others => '0');
         fulldrop_count_s     <= (others => '0');
         pack_count_s         <= (others => '0');
+        fifo_packet_count_s  <= 0;
         coverage_valid_s     <= '0';
         coverage_end_ts_s    <= (others => '0');
       else
@@ -421,6 +437,7 @@ begin
         count_v        := frame_queue_count_s;
         active_v       := active_frame_s;
         active_valid_v := active_frame_valid_s;
+        fifo_packet_count_v := fifo_packet_count_s;
 
         write_ptr_s <= wrap_add(write_ptr_s, 1);
 
@@ -462,20 +479,26 @@ begin
               fulldrop_count_s <= fulldrop_count_s + 1;
             elsif spacing_reject_s = '1' then
               busydrop_count_s <= busydrop_count_s + 1;
-              spacingdrop_count_s <= spacingdrop_count_s + 1;
+              if DETAILED_REJECT_COUNTERS_G then
+                spacingdrop_count_s <= spacingdrop_count_s + 1;
+              end if;
             elsif queue_reject_s = '1' then
               busydrop_count_s <= busydrop_count_s + 1;
-              queuedrop_count_s <= queuedrop_count_s + 1;
+              if DETAILED_REJECT_COUNTERS_G then
+                queuedrop_count_s <= queuedrop_count_s + 1;
+              end if;
             elsif ring_reject_s = '1' then
               busydrop_count_s <= busydrop_count_s + 1;
-              ringdrop_count_s <= ringdrop_count_s + 1;
+              if DETAILED_REJECT_COUNTERS_G then
+                ringdrop_count_s <= ringdrop_count_s + 1;
+              end if;
             elsif busy_reject_s = '1' then
               busydrop_count_s <= busydrop_count_s + 1;
             end if;
           end if;
 
           if continuation_request_s = '1' then
-            if count_v < FRAME_QUEUE_DEPTH_C and ring_safe_ok_s = '1' and prog_full_s = '0' then
+            if count_v < FRAME_QUEUE_DEPTH_C and ring_safe_ok_s = '1' and output_space_ok_s = '1' then
               queue_v(tail_v).start_ptr      := wrap_add(write_ptr_s, 1);
               queue_v(tail_v).sample0_ts     := std_logic_vector(coverage_end_ts_s + 1);
               queue_v(tail_v).trigger_offset := (others => '0');
@@ -539,6 +562,9 @@ begin
             when ser_emit =>
               if emit_index_s = WORDS_PER_BLOCK_C - 1 then
                 if block_index_s = FINAL_BLOCK_INDEX_C then
+                  if fifo_packet_count_v < MAX_BUFFERED_PACKETS_C then
+                    fifo_packet_count_v := fifo_packet_count_v + 1;
+                  end if;
                   active_v           := FRAME_META_NULL_C;
                   active_valid_v     := '0';
                   serializer_state_s <= ser_idle;
@@ -551,6 +577,10 @@ begin
                 emit_index_s <= emit_index_s + 1;
               end if;
           end case;
+
+          if rd_en_i = '1' and fifo_dout_s(71 downto 64) = X"ED" and fifo_packet_count_v > 0 then
+            fifo_packet_count_v := fifo_packet_count_v - 1;
+          end if;
         end if;
 
         frame_queue_s        <= queue_v;
@@ -559,6 +589,7 @@ begin
         frame_queue_count_s  <= count_v;
         active_frame_s       <= active_v;
         active_frame_valid_s <= active_valid_v;
+        fifo_packet_count_s  <= fifo_packet_count_v;
       end if;
     end if;
   end process main_proc;
@@ -566,12 +597,13 @@ begin
   record_count_o   <= std_logic_vector(resize(record_count_s, record_count_o'length));
   full_count_o     <= std_logic_vector(resize(fulldrop_count_s, full_count_o'length));
   busy_count_o     <= std_logic_vector(resize(busydrop_count_s, busy_count_o'length));
-  spacing_reject_count_o <= std_logic_vector(resize(spacingdrop_count_s, spacing_reject_count_o'length));
-  queue_reject_count_o   <= std_logic_vector(resize(queuedrop_count_s, queue_reject_count_o'length));
-  ring_reject_count_o    <= std_logic_vector(resize(ringdrop_count_s, ring_reject_count_o'length));
-  output_reject_count_o  <= std_logic_vector(resize(fulldrop_count_s, output_reject_count_o'length));
+  spacing_reject_count_o <= std_logic_vector(resize(spacingdrop_count_s, spacing_reject_count_o'length)) when DETAILED_REJECT_COUNTERS_G else (others => '0');
+  queue_reject_count_o   <= std_logic_vector(resize(queuedrop_count_s, queue_reject_count_o'length)) when DETAILED_REJECT_COUNTERS_G else (others => '0');
+  ring_reject_count_o    <= std_logic_vector(resize(ringdrop_count_s, ring_reject_count_o'length)) when DETAILED_REJECT_COUNTERS_G else (others => '0');
+  output_reject_count_o  <= std_logic_vector(resize(fulldrop_count_s, output_reject_count_o'length)) when DETAILED_REJECT_COUNTERS_G else (others => '0');
   trigger_count_o  <= std_logic_vector(resize(trig_count_s, trigger_count_o'length));
   packet_count_o   <= std_logic_vector(resize(pack_count_s, packet_count_o'length));
   delayed_sample_o <= din_i;
-  ready_o          <= not prog_empty_s;
+  ready_o          <= '1' when fifo_packet_count_s > 0 else '0';
+  dout_o           <= fifo_dout_s;
 end architecture rtl;
