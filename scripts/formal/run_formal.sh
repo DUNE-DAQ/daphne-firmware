@@ -93,19 +93,24 @@ daphne_composable_top_hermes_cover
 daphne_composable_top_timing_cover
 EOF
       ;;
+    coal-tail512)
+      cat <<'EOF'
+selftrigger_register_bank_contract
+EOF
+      ;;
     all-local)
       discover_jobs
       ;;
     *)
       echo "ERROR: unknown formal suite '$1'" >&2
-      echo "Known suites: default, leaf-fast, cover-fast, boundary-cover, composable, composable-cover, all-local" >&2
+      echo "Known suites: default, leaf-fast, cover-fast, boundary-cover, composable, composable-cover, coal-tail512, all-local" >&2
       exit 2
       ;;
   esac
 }
 
 print_suite_names() {
-  printf '%s\n' default leaf-fast cover-fast boundary-cover composable composable-cover all-local
+  printf '%s\n' default leaf-fast cover-fast boundary-cover composable composable-cover coal-tail512 all-local
 }
 
 if ! command -v sby >/dev/null 2>&1 || [[ -z "${GHDL_PREFIX:-}" ]]; then
