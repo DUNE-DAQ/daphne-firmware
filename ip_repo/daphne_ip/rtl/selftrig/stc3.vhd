@@ -291,6 +291,7 @@ port map(
     timestamp_i         => timestamp,
     din_i               => din,
     trigger_i           => trigger_builder_s,
+    frame_extend_i      => descriptor_result_s.detection,
     trailer_capture_i   => Data_Available_Trailer_aux,
     trailer_i           => trailer_builder_s,
     frame_match_o       => frame_match_s,

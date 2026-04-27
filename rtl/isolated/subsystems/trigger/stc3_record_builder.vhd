@@ -18,6 +18,7 @@ entity stc3_record_builder is
     timestamp_i              : in  std_logic_vector(63 downto 0);
     din_i                    : in  std_logic_vector(13 downto 0);
     trigger_i                : in  trigger_xcorr_result_t;
+    frame_extend_i           : in  std_logic;
     trailer_capture_i        : in  std_logic;
     trailer_i                : in  peak_descriptor_trailer_t;
     frame_match_o            : out std_logic;
@@ -47,9 +48,9 @@ architecture rtl of stc3_record_builder is
   constant BLOCK_SAMPLE_COUNT_C        : natural := 32;
   constant WORDS_PER_BLOCK_C           : natural := 7;
   constant HEADER_WORD_COUNT_C         : natural := 8;
-  constant RING_DEPTH_C                : positive := 2048;
-  constant RING_ADDR_WIDTH_C           : positive := 11;
-  constant FRAME_QUEUE_DEPTH_C         : positive := 2;
+  constant RING_DEPTH_C                : positive := 4096;
+  constant RING_ADDR_WIDTH_C           : positive := 12;
+  constant FRAME_QUEUE_DEPTH_C         : positive := 4;
 
   subtype ring_addr_t is unsigned(RING_ADDR_WIDTH_C - 1 downto 0);
 
@@ -64,6 +65,7 @@ architecture rtl of stc3_record_builder is
     baseline       : std_logic_vector(13 downto 0);
     trigger_sample : std_logic_vector(13 downto 0);
     threshold_lsb  : std_logic_vector(13 downto 0);
+    continuation   : std_logic;
   end record;
 
   type frame_meta_array_t is array (0 to FRAME_QUEUE_DEPTH_C - 1) of frame_meta_t;
@@ -74,7 +76,8 @@ architecture rtl of stc3_record_builder is
     trigger_offset => (others => '0'),
     baseline       => (others => '0'),
     trigger_sample => (others => '0'),
-    threshold_lsb  => (others => '0')
+    threshold_lsb  => (others => '0'),
+    continuation   => '0'
   );
 
   function wrap_add(addr : ring_addr_t; offset : natural) return ring_addr_t is
@@ -161,11 +164,14 @@ architecture rtl of stc3_record_builder is
   signal coverage_valid_s         : std_logic := '0';
   signal coverage_end_ts_s        : unsigned(63 downto 0) := (others => '0');
   signal trigger_timestamp_s      : unsigned(63 downto 0);
+  signal current_timestamp_s      : unsigned(63 downto 0);
   signal natural_sample0_ts_s     : unsigned(63 downto 0);
   signal clipped_sample0_ts_s     : unsigned(63 downto 0);
   signal frame_end_ts_s           : unsigned(63 downto 0);
+  signal continuation_end_ts_s    : unsigned(63 downto 0);
   signal covered_trigger_s        : std_logic;
   signal frame_trigger_offset_s   : std_logic_vector(9 downto 0);
+  signal continuation_request_s   : std_logic;
   signal spacing_reject_s         : std_logic;
   signal queue_reject_s           : std_logic;
   signal ring_reject_s            : std_logic;
@@ -180,13 +186,16 @@ architecture rtl of stc3_record_builder is
   signal trig_count_s             : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal pack_count_s             : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
 begin
-  -- Coalesced fixed-record experiment:
+  -- Coalesced fixed-record experiment with chained continuation:
   -- emitted records stay 512 samples / 120 words wide for downstream compatibility.
   -- already-covered triggers do not allocate a new record.
   -- when a new record would overlap the previous coverage window, its sample0 is clipped
   -- forward and the true trigger position is carried explicitly in the metadata header.
+  -- if the descriptor path is still active on the last sample of the current frame,
+  -- a continuation frame is queued immediately after it with no overlap.
   event_pulse_s <= trigger_i.trigger_pulse or force_trigger_i;
   trigger_timestamp_s  <= unsigned(trigger_i.trigger_timestamp);
+  current_timestamp_s  <= unsigned(timestamp_i);
   natural_sample0_ts_s <= subtract_clamped(trigger_timestamp_s, PRETRIGGER_SAMPLES_C);
   clipped_sample0_ts_s <= coverage_end_ts_s + 1 when (
     coverage_valid_s = '1' and
@@ -194,6 +203,7 @@ begin
   ) else
     natural_sample0_ts_s;
   frame_end_ts_s <= clipped_sample0_ts_s + to_unsigned(FRAME_SAMPLE_COUNT_C - 1, 64);
+  continuation_end_ts_s <= coverage_end_ts_s + to_unsigned(FRAME_SAMPLE_COUNT_C, 64);
   covered_trigger_s <= '1' when (
     enable_i = '1' and
     coverage_valid_s = '1' and
@@ -203,6 +213,13 @@ begin
   frame_trigger_offset_s <= std_logic_vector(resize(trigger_timestamp_s - clipped_sample0_ts_s, frame_trigger_offset_s'length)) when
     trigger_timestamp_s >= clipped_sample0_ts_s else
     (others => '0');
+  continuation_request_s <= '1' when (
+    enable_i = '1' and
+    coverage_valid_s = '1' and
+    frame_extend_i = '1' and
+    current_timestamp_s = coverage_end_ts_s
+  ) else
+    '0';
 
   oldest_pending_valid_s <= active_frame_valid_s when active_frame_valid_s = '1' else
                             '1' when frame_queue_count_s > 0 else
@@ -286,8 +303,8 @@ begin
       DATA_WIDTH_G        => 72,
       DEPTH_G             => 4096,
       COUNT_WIDTH_G       => 13,
-      PROG_EMPTY_THRESH_G => 220,
-      PROG_FULL_THRESH_G  => 200
+      PROG_EMPTY_THRESH_G => 119,
+      PROG_FULL_THRESH_G  => 3840
     )
     port map (
       clock_i         => clock_i,
@@ -433,6 +450,7 @@ begin
               queue_v(tail_v).baseline       := trigger_i.baseline;
               queue_v(tail_v).trigger_sample := trigger_i.trigger_sample;
               queue_v(tail_v).threshold_lsb  := threshold_xc_i(13 downto 0);
+              queue_v(tail_v).continuation   := '0';
 
               tail_v  := next_queue_idx(tail_v);
               count_v := count_v + 1;
@@ -456,12 +474,35 @@ begin
             end if;
           end if;
 
+          if continuation_request_s = '1' then
+            if count_v < FRAME_QUEUE_DEPTH_C and ring_safe_ok_s = '1' and prog_full_s = '0' then
+              queue_v(tail_v).start_ptr      := wrap_add(write_ptr_s, 1);
+              queue_v(tail_v).sample0_ts     := std_logic_vector(coverage_end_ts_s + 1);
+              queue_v(tail_v).trigger_offset := (others => '0');
+              queue_v(tail_v).baseline       := trigger_i.baseline;
+              queue_v(tail_v).trigger_sample := din_i;
+              queue_v(tail_v).threshold_lsb  := threshold_xc_i(13 downto 0);
+              queue_v(tail_v).continuation   := '1';
+
+              tail_v  := next_queue_idx(tail_v);
+              count_v := count_v + 1;
+
+              pack_count_s      <= pack_count_s + 1;
+              coverage_valid_s  <= '1';
+              coverage_end_ts_s <= continuation_end_ts_s;
+            end if;
+          end if;
+
           case serializer_state_s is
             when ser_idle =>
               if active_valid_v = '0' and queue_head_ready_s = '1' then
                 active_v           := queue_v(head_v);
                 active_valid_v     := '1';
-                active_trailer_s   <= trailer_reg_s;
+                if queue_v(head_v).continuation = '1' then
+                  active_trailer_s <= PEAK_DESCRIPTOR_TRAILER_NULL;
+                else
+                  active_trailer_s <= trailer_reg_s;
+                end if;
                 header_index_s     <= 0;
                 block_index_s      <= 0;
                 load_issue_index_s <= 0;

@@ -82,6 +82,7 @@ begin
         timestamp_i         => timestamp_i,
         din_i               => din_i(idx),
         trigger_i           => trigger_result_s(idx),
+        frame_extend_i      => descriptor_result_s(idx).detection,
         trailer_capture_i   => descriptor_result_s(idx).trailer_available,
         trailer_i           => descriptor_trailer_s(idx),
         frame_match_o       => frame_match_s(idx),
