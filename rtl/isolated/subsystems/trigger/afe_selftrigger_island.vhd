@@ -69,6 +69,9 @@ begin
     descriptor_control_s(idx).trigger_offset <= frame_trigger_offset_s(idx);
 
     record_builder_inst : entity work.stc3_record_builder
+      generic map (
+        DETAILED_REJECT_COUNTERS_G => false
+      )
       port map (
         ch_id_i             => CHANNEL_ID_C,
         version_i           => version_i,

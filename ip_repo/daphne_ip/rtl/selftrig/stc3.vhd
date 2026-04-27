@@ -278,6 +278,9 @@ Data_Available_Trailer_aux <= descriptor_result_s.trailer_available;
 match_descriptor_with_frame_s <= frame_match_s;
 
 record_builder_inst: entity work.stc3_record_builder
+generic map(
+    DETAILED_REJECT_COUNTERS_G => false
+)
 port map(
     ch_id_i             => ch_id,
     version_i           => version,
