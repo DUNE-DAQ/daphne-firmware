@@ -116,7 +116,9 @@ begin
   reg_wren <= axi_wready and AXI_IN.WVALID and axi_awready and AXI_IN.AWVALID;
 
   process (AXI_IN.ACLK)
-    variable addr_v : integer;
+    variable addr_v   : integer;
+    variable idx_v    : integer;
+    variable offset_v : integer;
   begin
     if rising_edge(AXI_IN.ACLK) then
       if AXI_IN.ARESETN = '0' then
@@ -126,11 +128,13 @@ begin
       else
         if reg_wren = '1' and AXI_IN.WSTRB = "1111" then
           addr_v := to_integer(unsigned(axi_awaddr(11 downto 0)));
-          for idx in 0 to CHANNEL_COUNT_G - 1 loop
-            if addr_v = idx * CHANNEL_STRIDE_C + THRESHOLD_OFFSET_C then
-              threshold_xc_reg(idx) <= AXI_IN.WDATA(27 downto 0);
+          if addr_v >= 0 and addr_v < CHANNEL_COUNT_G * CHANNEL_STRIDE_C then
+            idx_v := addr_v / CHANNEL_STRIDE_C;
+            offset_v := addr_v mod CHANNEL_STRIDE_C;
+            if offset_v = THRESHOLD_OFFSET_C then
+              threshold_xc_reg(idx_v) <= AXI_IN.WDATA(27 downto 0);
             end if;
-          end loop;
+          end if;
         end if;
       end if;
     end if;
@@ -190,37 +194,53 @@ begin
   reg_rden <= axi_arready and AXI_IN.ARVALID and (not axi_rvalid);
 
   process(all)
-    variable addr_v : integer;
-    variable data_v : std_logic_vector(31 downto 0);
+    variable addr_v          : integer;
+    variable data_v          : std_logic_vector(31 downto 0);
+    variable channel_idx_v   : integer;
+    variable channel_off_v   : integer;
+    variable primitive_idx_v : integer;
+    variable primitive_off_v : integer;
   begin
     addr_v := to_integer(unsigned(axi_araddr(11 downto 0)));
     data_v := (others => '0');
 
-    for idx in 0 to CHANNEL_COUNT_G - 1 loop
-      if addr_v = idx * CHANNEL_STRIDE_C + THRESHOLD_OFFSET_C then
-        data_v := "0000" & threshold_xc_reg(idx);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + RECORD_COUNT_LO_C then
-        data_v := record_count_i(idx)(31 downto 0);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + RECORD_COUNT_HI_C then
-        data_v := record_count_i(idx)(63 downto 32);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + BUSY_COUNT_LO_C then
-        data_v := busy_count_i(idx)(31 downto 0);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + BUSY_COUNT_HI_C then
-        data_v := busy_count_i(idx)(63 downto 32);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + FULL_COUNT_LO_C then
-        data_v := full_count_i(idx)(31 downto 0);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + FULL_COUNT_HI_C then
-        data_v := full_count_i(idx)(63 downto 32);
-      elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_LO_OFFSET_C then
-        data_v := tcount_i(idx)(31 downto 0);
-      elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_HI_OFFSET_C then
-        data_v := tcount_i(idx)(63 downto 32);
-      elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + PCOUNT_LO_OFFSET_C then
-        data_v := pcount_i(idx)(31 downto 0);
-      elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + PCOUNT_HI_OFFSET_C then
-        data_v := pcount_i(idx)(63 downto 32);
-      end if;
-    end loop;
+    if addr_v >= 0 and addr_v < CHANNEL_COUNT_G * CHANNEL_STRIDE_C then
+      channel_idx_v := addr_v / CHANNEL_STRIDE_C;
+      channel_off_v := addr_v mod CHANNEL_STRIDE_C;
+      case channel_off_v is
+        when THRESHOLD_OFFSET_C =>
+          data_v := "0000" & threshold_xc_reg(channel_idx_v);
+        when RECORD_COUNT_LO_C =>
+          data_v := record_count_i(channel_idx_v)(31 downto 0);
+        when RECORD_COUNT_HI_C =>
+          data_v := record_count_i(channel_idx_v)(63 downto 32);
+        when BUSY_COUNT_LO_C =>
+          data_v := busy_count_i(channel_idx_v)(31 downto 0);
+        when BUSY_COUNT_HI_C =>
+          data_v := busy_count_i(channel_idx_v)(63 downto 32);
+        when FULL_COUNT_LO_C =>
+          data_v := full_count_i(channel_idx_v)(31 downto 0);
+        when FULL_COUNT_HI_C =>
+          data_v := full_count_i(channel_idx_v)(63 downto 32);
+        when others =>
+          null;
+      end case;
+    elsif addr_v >= PRIMITIVE_BASE_C and addr_v < PRIMITIVE_BASE_C + CHANNEL_COUNT_G * PRIMITIVE_STRIDE_C then
+      primitive_idx_v := (addr_v - PRIMITIVE_BASE_C) / PRIMITIVE_STRIDE_C;
+      primitive_off_v := (addr_v - PRIMITIVE_BASE_C) mod PRIMITIVE_STRIDE_C;
+      case primitive_off_v is
+        when TCOUNT_LO_OFFSET_C =>
+          data_v := tcount_i(primitive_idx_v)(31 downto 0);
+        when TCOUNT_HI_OFFSET_C =>
+          data_v := tcount_i(primitive_idx_v)(63 downto 32);
+        when PCOUNT_LO_OFFSET_C =>
+          data_v := pcount_i(primitive_idx_v)(31 downto 0);
+        when PCOUNT_HI_OFFSET_C =>
+          data_v := pcount_i(primitive_idx_v)(63 downto 32);
+        when others =>
+          null;
+      end case;
+    end if;
 
     reg_data_out <= data_v;
   end process;

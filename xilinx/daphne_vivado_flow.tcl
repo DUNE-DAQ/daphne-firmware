@@ -247,6 +247,8 @@ proc daphne_run_synth {cfg_name} {
         daphne_run_nonfatal "post-synth report_timing_summary" [list report_timing_summary -file [file join $cfg(output_dir) "post_synth_timing_summary.rpt"]]
         daphne_run_nonfatal "post-synth report_power" [list report_power -file [file join $cfg(output_dir) "post_synth_power.rpt"]]
         daphne_run_nonfatal "post-synth report_utilization" [list report_utilization -file [file join $cfg(output_dir) "post_synth_util.rpt"]]
+        daphne_run_nonfatal "post-synth report_design_analysis" [list report_design_analysis -logic_level_distribution -file [file join $cfg(output_dir) "post_synth_design_analysis.rpt"]]
+        daphne_run_nonfatal "post-synth report_qor_suggestions" [list report_qor_suggestions -file [file join $cfg(output_dir) "post_synth_qor_suggestions.rpt"]]
     }
     if {$cfg(skip_post_synth_checkpoint) eq "1"} {
         puts "INFO: Skipping post-synth checkpoint by request."
@@ -277,6 +279,8 @@ proc daphne_run_impl {cfg_name} {
     report_timing -sort_by group -max_paths 100 -path_type summary -file [file join $cfg(output_dir) "post_place_timing.rpt"]
     report_clock_utilization -file [file join $cfg(output_dir) "post_place_clock_util.rpt"]
     daphne_run_nonfatal "post-place report_power" [list report_power -file [file join $cfg(output_dir) "post_place_power.rpt"]]
+    daphne_run_nonfatal "post-place report_design_analysis" [list report_design_analysis -congestion -file [file join $cfg(output_dir) "post_place_design_analysis.rpt"]]
+    daphne_run_nonfatal "post-place report_qor_suggestions" [list report_qor_suggestions -file [file join $cfg(output_dir) "post_place_qor_suggestions.rpt"]]
 
     route_design -directive $cfg(route_directive)
     phys_opt_design -directive $cfg(post_route_physopt_directive)
@@ -290,6 +294,8 @@ proc daphne_run_impl {cfg_name} {
     report_power -file [file join $cfg(output_dir) "post_route_power.rpt"]
     report_drc -file [file join $cfg(output_dir) "post_imp_drc.rpt"]
     report_io -file [file join $cfg(output_dir) "io.rpt"]
+    daphne_run_nonfatal "post-route report_design_analysis" [list report_design_analysis -congestion -file [file join $cfg(output_dir) "post_route_design_analysis.rpt"]]
+    daphne_run_nonfatal "post-route report_qor_suggestions" [list report_qor_suggestions -file [file join $cfg(output_dir) "post_route_qor_suggestions.rpt"]]
     write_checkpoint -force [file join $cfg(output_dir) "${cfg(bd_name)}_post_impl.dcp"]
 }
 
