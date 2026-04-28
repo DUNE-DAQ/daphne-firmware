@@ -80,9 +80,9 @@ architecture rtl of k26c_selftrigger_datapath_plane is
   signal offset_mosi:        std_logic_vector(4 downto 0);
   signal offset_ldac_n:      std_logic_vector(4 downto 0);
   signal offset_sync_n:      std_logic_vector(4 downto 0);
-  signal ready:              std_logic_array_t(0 to 39);
-  signal rd_en:              std_logic_array_t(0 to 39);
-  signal fabric_dout:        slv72_array_t(0 to 39);
+  signal afe_ready:          std_logic_array_t(0 to 4);
+  signal afe_rd_en:          std_logic_array_t(0 to 4);
+  signal afe_dout:           slv72_array_t(0 to 4);
 begin
   threshold_axi_in.ACLK    <= thresh_s_axi_aclk;
   threshold_axi_in.ARESETN <= thresh_s_axi_aresetn;
@@ -143,69 +143,64 @@ begin
       reset_st_counters_o      => open
     );
 
-  daphne_composable_core_top_inst : entity work.daphne_composable_core_top
+  afe_subsystem_fabric_inst : entity work.afe_subsystem_fabric
     generic map (
       AFE_COUNT_G          => 5,
-      ENABLE_SELFTRIGGER_G => true,
-      ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false
+      CHANNELS_PER_AFE_G   => 8,
+      ENABLE_SELFTRIGGER_G => true
     )
     port map (
-      clock_i                   => clock,
-      reset_i                   => reset,
-      timing_clk_axi_i          => clock,
-      timing_resetn_axi_i       => not reset,
-      timing_ctrl_i             => TIMING_CONTROL_NULL,
-      timing_stat_o             => open,
-      timing_timestamp_o        => open,
-      timing_sync_o             => open,
-      timing_sync_stb_o         => open,
-      hermes_descriptor_i       => TRIGGER_DESCRIPTOR_NULL,
-      hermes_descriptor_taken_o => open,
-      hermes_stat_o             => open,
-      config_valid_i            => config_valid,
-      config_cmd_i              => config_cmd,
-      config_status_o           => config_status,
-      afe_miso_i                => afe_miso,
-      afe_sclk_o                => afe_sclk,
-      afe_sen_o                 => afe_sen,
-      afe_mosi_o                => afe_mosi,
-      trim_sclk_o               => trim_sclk,
-      trim_mosi_o               => trim_mosi,
-      trim_ldac_n_o             => trim_ldac_n,
-      trim_sync_n_o             => trim_sync_n,
-      offset_sclk_o             => offset_sclk,
-      offset_mosi_o             => offset_mosi,
-      offset_ldac_n_o           => offset_ldac_n,
-      offset_sync_n_o           => offset_sync_n,
-      reset_st_counters_i       => reset_st_counters,
-      force_trigger_i           => forcetrig,
-      timestamp_i               => timestamp,
-      version_i                 => version(3 downto 0),
-      signal_delay_i            => signal_delay,
-      descriptor_config_i       => st_config,
-      din_i                     => trigger_samples,
-      trigger_control_i         => trigger_control,
-      rd_en_i                   => rd_en,
-      trigger_result_o          => trigger_result,
-      descriptor_result_o       => open,
-      record_count_o            => record_count,
-      full_count_o              => full_count,
-      busy_count_o              => busy_count,
-      trigger_count_o           => TCount,
-      packet_count_o            => PCount,
-      delayed_sample_o          => open,
-      ready_o                   => ready,
-      dout_o                    => fabric_dout
+      clock_i             => clock,
+      reset_i             => reset,
+      reset_st_counters_i => reset_st_counters,
+      config_valid_i      => config_valid,
+      config_cmd_i        => config_cmd,
+      config_status_o     => config_status,
+      afe_miso_i          => afe_miso,
+      afe_sclk_o          => afe_sclk,
+      afe_sen_o           => afe_sen,
+      afe_mosi_o          => afe_mosi,
+      trim_sclk_o         => trim_sclk,
+      trim_mosi_o         => trim_mosi,
+      trim_ldac_n_o       => trim_ldac_n,
+      trim_sync_n_o       => trim_sync_n,
+      offset_sclk_o       => offset_sclk,
+      offset_mosi_o       => offset_mosi,
+      offset_ldac_n_o     => offset_ldac_n,
+      offset_sync_n_o     => offset_sync_n,
+      timestamp_i         => timestamp,
+      version_i           => version(3 downto 0),
+      signal_delay_i      => signal_delay,
+      descriptor_config_i => st_config,
+      force_trigger_i     => forcetrig,
+      din_i               => trigger_samples,
+      trigger_control_i   => trigger_control,
+      trigger_result_o    => trigger_result,
+      descriptor_result_o => open,
+      record_count_o      => record_count,
+      full_count_o        => full_count,
+      busy_count_o        => busy_count,
+      trigger_count_o     => TCount,
+      packet_count_o      => PCount,
+      delayed_sample_o    => open,
+      afe_ready_o         => afe_ready,
+      afe_rd_en_i         => afe_rd_en,
+      afe_dout_o          => afe_dout,
+      ready_o             => open,
+      rd_en_i             => (others => '0'),
+      dout_o              => open
     );
 
   two_lane_readout_mux_inst : entity work.two_lane_readout_mux
+    generic map (
+      CHANNEL_COUNT_G => 5
+    )
     port map (
       clock_i => clock,
       reset_i => reset,
-      ready_i => ready,
-      dout_i  => fabric_dout,
-      rd_en_o => rd_en,
+      ready_i => afe_ready,
+      dout_i  => afe_dout,
+      rd_en_o => afe_rd_en,
       dout_o  => readout_data_o,
       valid_o => readout_valid_o,
       last_o  => readout_last_o

@@ -66,6 +66,8 @@ architecture rtl of daphne_composable_core_top is
   signal timing_sync_s         : std_logic_vector(7 downto 0);
   signal timing_sync_stb_s     : std_logic;
   signal effective_timestamp_s : std_logic_vector(63 downto 0);
+  signal ignored_afe_ready_s   : std_logic_array_t(0 to AFE_COUNT_G - 1);
+  signal ignored_afe_dout_s    : slv72_array_t(0 to AFE_COUNT_G - 1);
 begin
   timing_boundary_inst : entity work.timing_subsystem_boundary
     port map (
@@ -145,6 +147,9 @@ begin
       trigger_count_o     => trigger_count_o,
       packet_count_o      => packet_count_o,
       delayed_sample_o    => delayed_sample_o,
+      afe_ready_o         => ignored_afe_ready_s,
+      afe_rd_en_i         => (others => '0'),
+      afe_dout_o          => ignored_afe_dout_s,
       ready_o             => ready_o,
       rd_en_i             => rd_en_i,
       dout_o              => dout_o

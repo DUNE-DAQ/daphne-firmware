@@ -44,6 +44,9 @@ entity afe_subsystem_fabric is
     trigger_count_o     : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     packet_count_o      : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     delayed_sample_o    : out sample14_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
+    afe_ready_o         : out std_logic_array_t(0 to AFE_COUNT_G - 1);
+    afe_rd_en_i         : in  std_logic_array_t(0 to AFE_COUNT_G - 1);
+    afe_dout_o          : out slv72_array_t(0 to AFE_COUNT_G - 1);
     ready_o             : out std_logic_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     rd_en_i             : in  std_logic_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     dout_o              : out slv72_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1)
@@ -64,6 +67,8 @@ begin
     signal trigger_count_afe_s     : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal packet_count_afe_s      : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal delayed_sample_afe_s    : sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    signal afe_ready_s             : std_logic;
+    signal afe_dout_s              : std_logic_vector(71 downto 0);
     signal ready_afe_s             : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal rd_en_afe_s             : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal dout_afe_s              : slv72_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -85,6 +90,9 @@ begin
       ready_o(CHANNEL_BASE_C + ch_idx) <= ready_afe_s(ch_idx);
       dout_o(CHANNEL_BASE_C + ch_idx) <= dout_afe_s(ch_idx);
     end generate gen_channel;
+
+    afe_ready_o(afe_idx) <= afe_ready_s;
+    afe_dout_o(afe_idx)  <= afe_dout_s;
 
     afe_island_inst : entity work.afe_subsystem_island
       generic map (
@@ -126,6 +134,9 @@ begin
         trigger_count_o     => trigger_count_afe_s,
         packet_count_o      => packet_count_afe_s,
         delayed_sample_o    => delayed_sample_afe_s,
+        afe_ready_o         => afe_ready_s,
+        afe_rd_en_i         => afe_rd_en_i(afe_idx),
+        afe_dout_o          => afe_dout_s,
         ready_o             => ready_afe_s,
         rd_en_i             => rd_en_afe_s,
         dout_o              => dout_afe_s

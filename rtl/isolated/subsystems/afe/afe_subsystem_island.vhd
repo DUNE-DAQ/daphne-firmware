@@ -43,6 +43,9 @@ entity afe_subsystem_island is
     trigger_count_o     : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     packet_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     delayed_sample_o    : out sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    afe_ready_o         : out std_logic;
+    afe_rd_en_i         : in  std_logic;
+    afe_dout_o          : out std_logic_vector(71 downto 0);
     ready_o             : out std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     rd_en_i             : in  std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     dout_o              : out slv72_array_t(0 to CHANNELS_PER_AFE_G - 1)
@@ -98,6 +101,9 @@ begin
         trigger_count_o     => trigger_count_o,
         packet_count_o      => packet_count_o,
         delayed_sample_o    => delayed_sample_o,
+        afe_ready_o         => afe_ready_o,
+        afe_rd_en_i         => afe_rd_en_i,
+        afe_dout_o          => afe_dout_o,
         ready_o             => ready_o,
         rd_en_i             => rd_en_i,
         dout_o              => dout_o
@@ -114,6 +120,8 @@ begin
     trigger_count_o     <= (others => (others => '0'));
     packet_count_o      <= (others => (others => '0'));
     delayed_sample_o    <= (others => (others => '0'));
+    afe_ready_o         <= '0';
+    afe_dout_o          <= (others => '0');
     ready_o             <= (others => '0');
     dout_o              <= (others => (others => '0'));
   end generate gen_selftrigger_disabled;

@@ -7,9 +7,8 @@ use work.daphne_subsystem_pkg.all;
 
 entity two_lane_readout_mux is
   generic (
-    CHANNEL_COUNT_G      : positive := 40;
-    LANE_COUNT_G         : positive := 2;
-    CHANNELS_PER_LANE_G  : positive := 20
+    CHANNEL_COUNT_G : positive := 40;
+    LANE_COUNT_G    : positive := 2
   );
   port (
     clock_i : in  std_logic;
@@ -25,93 +24,138 @@ end entity two_lane_readout_mux;
 
 architecture rtl of two_lane_readout_mux is
   type state_t is (rst, scan, dump, pause);
+  type state_array_t is array (0 to LANE_COUNT_G - 1) of state_t;
+  type lane_sel_array_t is array (0 to LANE_COUNT_G - 1) of integer range 0 to CHANNEL_COUNT_G - 1;
+  type producer_claim_array_t is array (0 to CHANNEL_COUNT_G - 1) of boolean;
+
+  function next_idx(idx : integer) return integer is
+  begin
+    if idx = CHANNEL_COUNT_G - 1 then
+      return 0;
+    end if;
+    return idx + 1;
+  end function;
+
+  signal state_s : state_array_t := (others => rst);
+  signal sel_s   : lane_sel_array_t := (others => 0);
 begin
   assert LANE_COUNT_G = 2
     report "two_lane_readout_mux currently supports exactly two output lanes"
     severity failure;
 
-  assert CHANNEL_COUNT_G = (LANE_COUNT_G * CHANNELS_PER_LANE_G)
-    report "two_lane_readout_mux requires CHANNEL_COUNT_G = LANE_COUNT_G * CHANNELS_PER_LANE_G"
-    severity failure;
-
-  gen_lane : for lane_idx in 0 to LANE_COUNT_G - 1 generate
-    constant CHANNEL_BASE_C : natural := lane_idx * CHANNELS_PER_LANE_G;
-    signal state_s          : state_t := rst;
-    signal sel_s            : integer range 0 to CHANNELS_PER_LANE_G - 1 := 0;
-    signal fifo_dout_mux_s  : std_logic_vector(71 downto 0);
+  rd_en_proc : process (state_s, sel_s)
+    variable rd_en_v : std_logic_array_t(0 to CHANNEL_COUNT_G - 1);
   begin
-    gen_rd_en : for ch_idx in 0 to CHANNELS_PER_LANE_G - 1 generate
-    begin
-      rd_en_o(CHANNEL_BASE_C + ch_idx) <= '1'
-        when (sel_s = ch_idx and state_s = dump)
-        else '0';
-    end generate gen_rd_en;
+    rd_en_v := (others => '0');
 
-    fifo_dout_mux_s <= dout_i(CHANNEL_BASE_C + sel_s);
+    for lane_idx in 0 to LANE_COUNT_G - 1 loop
+      if state_s(lane_idx) = dump then
+        rd_en_v(sel_s(lane_idx)) := '1';
+      end if;
+    end loop;
 
-    fsm_proc : process (clock_i)
-    begin
-      if rising_edge(clock_i) then
-        if reset_i = '1' then
-          sel_s <= 0;
-          state_s <= rst;
-        else
-          case state_s is
+    rd_en_o <= rd_en_v;
+  end process rd_en_proc;
+
+  fsm_proc : process (clock_i)
+    variable state_next_v    : state_array_t;
+    variable sel_next_v      : lane_sel_array_t;
+    variable claimed_v       : producer_claim_array_t;
+    variable found_v         : boolean;
+    variable candidate_v     : integer range 0 to CHANNEL_COUNT_G - 1;
+  begin
+    if rising_edge(clock_i) then
+      if reset_i = '1' then
+        for lane_idx in 0 to LANE_COUNT_G - 1 loop
+          state_s(lane_idx) <= rst;
+          sel_s(lane_idx)   <= lane_idx mod CHANNEL_COUNT_G;
+        end loop;
+      else
+        state_next_v := state_s;
+        sel_next_v   := sel_s;
+        claimed_v    := (others => false);
+
+        for lane_idx in 0 to LANE_COUNT_G - 1 loop
+          if state_s(lane_idx) = dump then
+            claimed_v(sel_s(lane_idx)) := true;
+          end if;
+        end loop;
+
+        for lane_idx in 0 to LANE_COUNT_G - 1 loop
+          case state_s(lane_idx) is
             when rst =>
-              sel_s <= 0;
-              state_s <= scan;
+              sel_next_v(lane_idx)   := lane_idx mod CHANNEL_COUNT_G;
+              state_next_v(lane_idx) := scan;
 
             when scan =>
-              if ready_i(CHANNEL_BASE_C + sel_s) = '1' then
-                state_s <= dump;
-              else
-                if sel_s = CHANNELS_PER_LANE_G - 1 then
-                  sel_s <= 0;
-                else
-                  sel_s <= sel_s + 1;
+              found_v := false;
+              candidate_v := sel_s(lane_idx);
+
+              for offset in 0 to CHANNEL_COUNT_G - 1 loop
+                candidate_v := (sel_s(lane_idx) + offset) mod CHANNEL_COUNT_G;
+                if ready_i(candidate_v) = '1' and not claimed_v(candidate_v) then
+                  found_v := true;
+                  exit;
                 end if;
-                state_s <= scan;
+              end loop;
+
+              if found_v then
+                sel_next_v(lane_idx)   := candidate_v;
+                state_next_v(lane_idx) := dump;
+                claimed_v(candidate_v) := true;
+              else
+                sel_next_v(lane_idx)   := next_idx(sel_s(lane_idx));
+                state_next_v(lane_idx) := scan;
               end if;
 
             when dump =>
-              if fifo_dout_mux_s(71 downto 64) = X"ED" then
-                state_s <= pause;
+              claimed_v(sel_s(lane_idx)) := true;
+              if dout_i(sel_s(lane_idx))(71 downto 64) = X"ED" then
+                state_next_v(lane_idx) := pause;
               else
-                state_s <= dump;
+                state_next_v(lane_idx) := dump;
               end if;
 
             when pause =>
-              if sel_s = CHANNELS_PER_LANE_G - 1 then
-                sel_s <= 0;
-              else
-                sel_s <= sel_s + 1;
-              end if;
-              state_s <= scan;
+              sel_next_v(lane_idx)   := next_idx(sel_s(lane_idx));
+              state_next_v(lane_idx) := scan;
 
             when others =>
-              sel_s <= 0;
-              state_s <= rst;
+              sel_next_v(lane_idx)   := lane_idx mod CHANNEL_COUNT_G;
+              state_next_v(lane_idx) := rst;
           end case;
-        end if;
-      end if;
-    end process fsm_proc;
+        end loop;
 
-    outreg_proc : process (clock_i)
-    begin
-      if rising_edge(clock_i) then
-        if reset_i = '1' then
+        state_s <= state_next_v;
+        sel_s   <= sel_next_v;
+      end if;
+    end if;
+  end process fsm_proc;
+
+  outreg_proc : process (clock_i)
+  begin
+    if rising_edge(clock_i) then
+      if reset_i = '1' then
+        for lane_idx in 0 to LANE_COUNT_G - 1 loop
           dout_o(lane_idx)  <= (others => '0');
           valid_o(lane_idx) <= '0';
-        elsif state_s = dump then
-          dout_o(lane_idx)  <= fifo_dout_mux_s(63 downto 0);
-          valid_o(lane_idx) <= '1';
-        else
-          dout_o(lane_idx)  <= (others => '0');
-          valid_o(lane_idx) <= '0';
-        end if;
+        end loop;
+      else
+        for lane_idx in 0 to LANE_COUNT_G - 1 loop
+          if state_s(lane_idx) = dump then
+            dout_o(lane_idx)  <= dout_i(sel_s(lane_idx))(63 downto 0);
+            valid_o(lane_idx) <= '1';
+          else
+            dout_o(lane_idx)  <= (others => '0');
+            valid_o(lane_idx) <= '0';
+          end if;
+        end loop;
       end if;
-    end process outreg_proc;
+    end if;
+  end process outreg_proc;
 
-    last_o(lane_idx) <= '1' when state_s = pause else '0';
-  end generate gen_lane;
+  gen_last : for lane_idx in 0 to LANE_COUNT_G - 1 generate
+  begin
+    last_o(lane_idx) <= '1' when state_s(lane_idx) = pause else '0';
+  end generate gen_last;
 end architecture rtl;
