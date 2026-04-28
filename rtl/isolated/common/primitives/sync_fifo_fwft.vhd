@@ -10,6 +10,7 @@ entity sync_fifo_fwft is
     DATA_WIDTH_G        : positive := 72;
     DEPTH_G             : positive := 4096;
     COUNT_WIDTH_G       : positive := 13;
+    MEMORY_TYPE_G       : string   := "ultra";
     PROG_EMPTY_THRESH_G : natural  := 220;
     PROG_FULL_THRESH_G  : natural  := 200
   );
@@ -41,19 +42,17 @@ architecture rtl of sync_fifo_fwft is
   signal ignored_wr_ack_s       : std_logic;
   signal ignored_wr_busy_s      : std_logic;
 begin
-  -- The STC3 record-builder FIFO is a large single-clock FWFT buffer. The
-  -- vendor-neutral behavioral array used during early composable bring-up
-  -- synthesizes into LUTRAM and over-utilizes the K26C device. Use the native
-  -- XPM FIFO here so the implementation path recovers the intended URAM-backed
-  -- behavior. Only prog_full/prog_empty are used by the record-builder, so
-  -- leave the unused count/overflow bookkeeping disabled.
+  -- Use the native XPM FIFO so the implementation path can choose the intended
+  -- memory class explicitly. The coal-tail512 branch uses the same primitive as
+  -- the legacy path, but with a much smaller per-channel staging depth and
+  -- block-memory backing instead of forcing a large URAM buffer.
   xpm_fifo_sync_inst : xpm_fifo_sync
     generic map (
       CASCADE_HEIGHT      => 0,
       DOUT_RESET_VALUE    => "0",
       ECC_MODE            => "no_ecc",
       EN_SIM_ASSERT_ERR   => "warning",
-      FIFO_MEMORY_TYPE    => "ultra",
+      FIFO_MEMORY_TYPE    => MEMORY_TYPE_G,
       FIFO_READ_LATENCY   => 0,
       FIFO_WRITE_DEPTH    => DEPTH_G,
       FULL_RESET_VALUE    => 0,

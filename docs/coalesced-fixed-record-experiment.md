@@ -42,6 +42,8 @@ with the following implementation work:
   - trigger admission now uses the local frame queue as the explicit
     backpressure boundary instead of inherited FIFO programmable full/empty
     thresholds
+  - the local per-channel output FIFO is now only a small block-RAM staging
+    buffer for emitted fixed packets, not a deep admission-side reservoir
   - detailed reject counters are now a simulation/formal specialization, not
     permanent synthesized baggage
 - a tightened two-lane mux:

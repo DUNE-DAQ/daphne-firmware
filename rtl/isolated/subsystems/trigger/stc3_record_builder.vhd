@@ -55,7 +55,8 @@ architecture rtl of stc3_record_builder is
   constant RING_DEPTH_C                : positive := 2048;
   constant RING_ADDR_WIDTH_C           : positive := 11;
   constant FRAME_QUEUE_DEPTH_C         : positive := 4;
-  constant OUTPUT_FIFO_DEPTH_C         : positive := 4096;
+  constant OUTPUT_FIFO_DEPTH_C         : positive := 256;
+  constant OUTPUT_FIFO_COUNT_WIDTH_C   : positive := 8;
   constant OUTPUT_FIFO_ACCEPT_LIMIT_C  : natural := OUTPUT_FIFO_DEPTH_C - WORDS_PER_PACKET_C;
   constant MAX_BUFFERED_PACKETS_C      : positive := OUTPUT_FIFO_DEPTH_C / WORDS_PER_PACKET_C;
 
@@ -157,7 +158,7 @@ architecture rtl of stc3_record_builder is
   signal fifo_dout_s              : std_logic_vector(71 downto 0);
   signal fifo_wr_en_s             : std_logic := '0';
   signal fifo_sleep_s             : std_logic := '1';
-  signal fifo_wr_data_count_s     : std_logic_vector(12 downto 0);
+  signal fifo_wr_data_count_s     : std_logic_vector(OUTPUT_FIFO_COUNT_WIDTH_C - 1 downto 0);
   signal fifo_packet_count_s      : integer range 0 to MAX_BUFFERED_PACKETS_C := 0;
   signal trailer_reg_s            : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
   signal event_pulse_s            : std_logic;
@@ -305,7 +306,8 @@ begin
     generic map (
       DATA_WIDTH_G        => 72,
       DEPTH_G             => OUTPUT_FIFO_DEPTH_C,
-      COUNT_WIDTH_G       => 13,
+      COUNT_WIDTH_G       => OUTPUT_FIFO_COUNT_WIDTH_C,
+      MEMORY_TYPE_G       => "block",
       PROG_EMPTY_THRESH_G => 5,
       PROG_FULL_THRESH_G  => OUTPUT_FIFO_ACCEPT_LIMIT_C + 1
     )
