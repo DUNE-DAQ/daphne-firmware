@@ -46,7 +46,7 @@ architecture rtl of stc3_frame_source is
   constant FRAME_SAMPLE_COUNT_C  : natural := 512;
   constant RING_DEPTH_C          : positive := 2048;
   constant RING_ADDR_WIDTH_C     : positive := 11;
-  constant FRAME_QUEUE_DEPTH_C   : positive := 2;
+  constant FRAME_QUEUE_DEPTH_C   : positive := 4;
   constant OVERLAP_GRANULARITY_C : natural := 16;
 
   subtype ring_addr_t is unsigned(RING_ADDR_WIDTH_C - 1 downto 0);
