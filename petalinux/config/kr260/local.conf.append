@@ -1,2 +1,20 @@
 # DAPHNE image package set
 IMAGE_INSTALL:append = " daphne-overlay daphne-server daphne-services"
+
+# DAPHNE image profiles:
+#   developer: include the on-target daphne-server / daphneZMQ build stack
+#   minimal:   keep only the repo-owned deploy payload
+DAPHNE_IMAGE_PROFILE ?= "developer"
+IMAGE_INSTALL:append = "${@bb.utils.contains('DAPHNE_IMAGE_PROFILE', 'developer', ' packagegroup-daphne-server-build', '', d)}"
+IMAGE_FEATURES:append = "${@bb.utils.contains('DAPHNE_IMAGE_PROFILE', 'developer', ' dev-pkgs tools-sdk', '', d)}"
+
+# xsctyaml.bbclass otherwise injects device-tree-only BSP keys into the
+# standalone firmware YAML files. Also drop PMUFW stdin/stdout entirely for
+# this handoff; the PMU generator rejects both the generic psu_uart_0 default
+# and the CoreSight DCC endpoint as BSP console objects.
+YAML_SERIAL_CONSOLE_STDIN:pn-pmu-firmware = ""
+YAML_SERIAL_CONSOLE_STDOUT:pn-pmu-firmware = ""
+YAML_DT_BOARD_FLAGS:pn-pmu-firmware = ""
+YAML_SERIAL_CONSOLE_BAUDRATE:pn-pmu-firmware = ""
+YAML_DT_BOARD_FLAGS:pn-fsbl-firmware = ""
+YAML_SERIAL_CONSOLE_BAUDRATE:pn-fsbl-firmware = ""

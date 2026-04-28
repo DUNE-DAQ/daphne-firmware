@@ -27,11 +27,11 @@ python __anonymous() {
 do_install() {
     install -d ${D}${datadir}/daphne-firmware
     install -m 0644 ${WORKDIR}/README.overlay ${D}${datadir}/daphne-firmware/README.overlay
-    install -m 0644 ${WORKDIR}/BUILD-METADATA.txt ${D}${datadir}/daphne-firmware/BUILD-METADATA.txt
+    install -m 0644 ${WORKDIR}/staged/BUILD-METADATA.txt ${D}${datadir}/daphne-firmware/BUILD-METADATA.txt
 
     for f in daphne-overlay.dtbo daphne-overlay.bin shell.json SHA256SUMS; do
-        if [ -f "${WORKDIR}/$f" ]; then
-            install -m 0644 "${WORKDIR}/$f" "${D}${datadir}/daphne-firmware/$f"
+        if [ -f "${WORKDIR}/staged/$f" ]; then
+            install -m 0644 "${WORKDIR}/staged/$f" "${D}${datadir}/daphne-firmware/$f"
         fi
     done
 }

@@ -14,6 +14,8 @@ Options:
                           zynqMP template
   --template NAME        PetaLinux template to use when --bsp is not given
                           (default: zynqMP)
+  --image-profile NAME   DAPHNE image profile: developer|minimal
+                         (default: developer)
   --output-dir DIR       Stage overlay artifacts from this firmware output dir
   --skip-stage-overlay   Do not stage overlay artifacts
   --copy-layer           Copy meta-daphne into the project instead of symlinking
@@ -44,6 +46,7 @@ TEMPLATE_NAME="zynqMP"
 OUTPUT_DIR=""
 STAGE_OVERLAY=1
 LAYER_MODE="symlink"
+IMAGE_PROFILE="developer"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -57,6 +60,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --output-dir)
       OUTPUT_DIR="$2"
+      shift 2
+      ;;
+    --image-profile)
+      IMAGE_PROFILE="$2"
       shift 2
       ;;
     --skip-stage-overlay)
@@ -85,6 +92,15 @@ HW_HANDOFF_DIR="$(CDPATH= cd -- "$HW_HANDOFF_ARG" && pwd)"
 CREATE_ARGS="${DAPHNE_PETALINUX_CREATE_ARGS:-}"
 CONFIG_ARGS="${DAPHNE_PETALINUX_CONFIG_ARGS:-}"
 
+case "$IMAGE_PROFILE" in
+  developer|minimal)
+    ;;
+  *)
+    echo "ERROR: unsupported --image-profile: $IMAGE_PROFILE" >&2
+    exit 2
+    ;;
+esac
+
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
     echo "ERROR: required command '$1' not found on PATH" >&2
@@ -101,7 +117,7 @@ if [[ ! -d "$HW_HANDOFF_DIR" ]]; then
 fi
 
 project_is_initialized() {
-  [[ -d "$1/project-spec" && -d "$1/build/conf" ]]
+  [[ -d "$1/project-spec" && ( -d "$1/.petalinux" || -d "$1/build/conf" ) ]]
 }
 
 create_project() {
@@ -119,13 +135,13 @@ create_project() {
     (
       cd "$parent_dir"
       # shellcheck disable=SC2086
-      petalinux-create project -s "$BSP_PATH" -n "$project_name" $CREATE_ARGS
+      petalinux-create project --source "$BSP_PATH" -n "$project_name" $CREATE_ARGS
     )
   else
     (
       cd "$parent_dir"
       # shellcheck disable=SC2086
-      petalinux-create project -t "$TEMPLATE_NAME" -n "$project_name" $CREATE_ARGS
+      petalinux-create project --template "$TEMPLATE_NAME" -n "$project_name" $CREATE_ARGS
     )
   fi
 }
@@ -149,7 +165,9 @@ fi
 )
 
 DAPHNE_META_LAYER_MODE="$LAYER_MODE" \
-  "$ROOT_DIR/scripts/petalinux/bootstrap_kr260_project.sh" "$PROJECT_DIR"
+  "$ROOT_DIR/scripts/petalinux/bootstrap_kr260_project.sh" \
+    "$PROJECT_DIR" \
+    --image-profile "$IMAGE_PROFILE"
 
 if (( STAGE_OVERLAY )); then
   if [[ -n "$OUTPUT_DIR" ]]; then
