@@ -314,7 +314,7 @@ begin
       DATA_WIDTH_G        => 72,
       DEPTH_G             => OUTPUT_FIFO_DEPTH_C,
       COUNT_WIDTH_G       => 13,
-      PROG_EMPTY_THRESH_G => 1,
+      PROG_EMPTY_THRESH_G => 5,
       PROG_FULL_THRESH_G  => OUTPUT_FIFO_ACCEPT_LIMIT_C + 1
     )
     port map (
