@@ -1,0 +1,17 @@
+[options]
+mode bmc
+depth 24
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 daphne_package.vhd daphne_subsystem_pkg.vhd two_lane_readout_mux.vhd two_lane_readout_mux_formal.vhd -e two_lane_readout_mux_formal
+prep -top two_lane_readout_mux_formal
+
+[files]
+../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd
+../vhdl/two_lane_readout_mux_formal.vhd

@@ -96,6 +96,7 @@ EOF
     coal-tail512)
       cat <<'EOF'
 selftrigger_register_bank_contract
+two_lane_readout_mux_contract
 EOF
       ;;
     all-local)

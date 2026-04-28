@@ -32,9 +32,11 @@ Files:
 What changed:
 
 - the builder no longer uses FIFO programmable empty/full thresholds as the
-  readout contract
+  trigger-admission contract
 - packet availability is tracked explicitly with `fifo_packet_count_s`
-- builder admission uses explicit FIFO word-count headroom
+- serializer start now waits for explicit whole-packet FIFO space
+- trigger admission is now decoupled from output FIFO fullness and uses the
+  local frame queue as the real backpressure boundary
 - the mux no longer inserts an extra bubble after `ED`
 
 What did not change:
@@ -56,6 +58,7 @@ What changed:
 - mux payload registers update only on valid dumped words
 - idle cycles no longer rewrite zero payloads
 - detailed reject counters are no longer forced into the hardware instantiations
+- the old trigger-count FSM was reduced to a simple edge detector
 
 What did not change:
 
@@ -93,6 +96,8 @@ What changed:
 - the arithmetic register-bank decode has a dedicated proof entry point
 - dead spacing-reject baggage was removed from the coal builder path after the
   branch proved it no longer contributes behavior
+- the two-lane mux now has a dedicated contract proof entry point so the
+  simplified fixed-record readout seam is formally checked
 
 ### 5. RTL-wrapping simulation instead of behavioral mirroring
 
@@ -126,6 +131,8 @@ What changed:
 - continuation requests travel explicitly via `frame_extend_i`
 - descriptor alignment travels explicitly via `frame_trigger_offset_o`
 - hardware instantiations explicitly disable detailed reject-counter baggage
+- the fixed-record serializer only starts when a whole packet fits in the local
+  output buffer
 
 What did not change:
 

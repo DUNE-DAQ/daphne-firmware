@@ -56,13 +56,11 @@ architecture rtl of stc3_record_builder is
   constant RING_ADDR_WIDTH_C           : positive := 11;
   constant FRAME_QUEUE_DEPTH_C         : positive := 4;
   constant OUTPUT_FIFO_DEPTH_C         : positive := 4096;
-  constant OUTPUT_FIFO_HEADROOM_C      : natural := 256;
-  constant OUTPUT_FIFO_ACCEPT_LIMIT_C  : natural := OUTPUT_FIFO_DEPTH_C - OUTPUT_FIFO_HEADROOM_C;
-  constant MAX_BUFFERED_PACKETS_C      : positive := (OUTPUT_FIFO_DEPTH_C / WORDS_PER_PACKET_C) + 1;
+  constant OUTPUT_FIFO_ACCEPT_LIMIT_C  : natural := OUTPUT_FIFO_DEPTH_C - WORDS_PER_PACKET_C;
+  constant MAX_BUFFERED_PACKETS_C      : positive := OUTPUT_FIFO_DEPTH_C / WORDS_PER_PACKET_C;
 
   subtype ring_addr_t is unsigned(RING_ADDR_WIDTH_C - 1 downto 0);
 
-  type trigger_counter_state_type is (rst_trggr, wait4trig_trggr, rising_triggered);
   type serializer_state_t is (ser_idle, ser_header, ser_load, ser_emit);
   type sample_block_t is array (0 to BLOCK_SAMPLE_COUNT_C - 1) of std_logic_vector(13 downto 0);
 
@@ -140,7 +138,6 @@ architecture rtl of stc3_record_builder is
   end function;
 
   signal serializer_state_s       : serializer_state_t := ser_idle;
-  signal trig_count_state_s       : trigger_counter_state_type := rst_trggr;
   signal write_ptr_s              : ring_addr_t := (others => '0');
   signal ring_rd_addr_s           : ring_addr_t := (others => '0');
   signal ring_dout_s              : std_logic_vector(13 downto 0);
@@ -170,6 +167,7 @@ architecture rtl of stc3_record_builder is
   signal ring_safe_ok_s           : std_logic;
   signal queue_space_ok_s         : std_logic;
   signal output_space_ok_s        : std_logic;
+  signal serialize_space_ok_s     : std_logic;
   signal can_accept_frame_s       : std_logic;
   signal coverage_valid_s         : std_logic := '0';
   signal coverage_end_ts_s        : unsigned(63 downto 0) := (others => '0');
@@ -186,6 +184,7 @@ architecture rtl of stc3_record_builder is
   signal ring_reject_s            : std_logic;
   signal busy_reject_s            : std_logic;
   signal full_reject_s            : std_logic;
+  signal trigger_pulse_prev_s     : std_logic := '0';
   signal record_count_s           : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal busydrop_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal queuedrop_count_s        : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
@@ -247,6 +246,7 @@ begin
 
   queue_space_ok_s <= '1' when frame_queue_count_s < FRAME_QUEUE_DEPTH_C else '0';
   output_space_ok_s <= '1' when to_integer(unsigned(fifo_wr_data_count_s)) <= OUTPUT_FIFO_ACCEPT_LIMIT_C else '0';
+  serialize_space_ok_s <= output_space_ok_s;
 
   ring_safe_ok_s <= '1' when (
     oldest_pending_valid_s = '0' or
@@ -258,8 +258,7 @@ begin
     enable_i = '1' and
     covered_trigger_s = '0' and
     queue_space_ok_s = '1' and
-    ring_safe_ok_s = '1' and
-    output_space_ok_s = '1'
+    ring_safe_ok_s = '1'
   ) else
     '0';
 
@@ -271,14 +270,7 @@ begin
     ring_safe_ok_s = '0'
   ) else
     '0';
-  full_reject_s <= '1' when (
-    enable_i = '1' and
-    covered_trigger_s = '0' and
-    queue_space_ok_s = '1' and
-    ring_safe_ok_s = '1' and
-    output_space_ok_s = '0'
-  ) else
-    '0';
+  full_reject_s <= '0';
   busy_reject_s <= '1' when (
     enable_i = '1' and
     covered_trigger_s = '0' and
@@ -367,24 +359,13 @@ begin
   begin
     if rising_edge(clock_i) then
       if (reset_i = '1' or reset_st_counters_i = '1' or enable_i = '0') then
-        trig_count_s       <= (others => '0');
-        trig_count_state_s <= rst_trggr;
+        trig_count_s         <= (others => '0');
+        trigger_pulse_prev_s <= '0';
       else
-        case trig_count_state_s is
-          when rst_trggr =>
-            trig_count_state_s <= wait4trig_trggr;
-          when wait4trig_trggr =>
-            if trigger_i.trigger_pulse = '1' then
-              trig_count_s       <= trig_count_s + 1;
-              trig_count_state_s <= rising_triggered;
-            end if;
-          when rising_triggered =>
-            if trigger_i.trigger_pulse = '0' then
-              trig_count_state_s <= wait4trig_trggr;
-            end if;
-          when others =>
-            trig_count_state_s <= rst_trggr;
-        end case;
+        if trigger_pulse_prev_s = '0' and trigger_i.trigger_pulse = '1' then
+          trig_count_s <= trig_count_s + 1;
+        end if;
+        trigger_pulse_prev_s <= trigger_i.trigger_pulse;
       end if;
     end if;
   end process count_proc;
@@ -488,7 +469,7 @@ begin
           end if;
 
           if continuation_request_s = '1' then
-            if count_v < FRAME_QUEUE_DEPTH_C and ring_safe_ok_s = '1' and output_space_ok_s = '1' then
+            if count_v < FRAME_QUEUE_DEPTH_C and ring_safe_ok_s = '1' then
               queue_v(tail_v).start_ptr      := wrap_add(write_ptr_s, 1);
               queue_v(tail_v).sample0_ts     := std_logic_vector(coverage_end_ts_s + 1);
               queue_v(tail_v).trigger_offset := (others => '0');
@@ -508,7 +489,7 @@ begin
 
           case serializer_state_s is
             when ser_idle =>
-              if active_valid_v = '0' and queue_head_ready_s = '1' then
+              if active_valid_v = '0' and queue_head_ready_s = '1' and serialize_space_ok_s = '1' then
                 active_v           := queue_v(head_v);
                 active_valid_v     := '1';
                 if queue_v(head_v).continuation = '1' then

@@ -38,14 +38,18 @@ with the following implementation work:
   `512`-sample / `120`-word records
 - an explicit builder/readout seam:
   - packet availability for the mux is tracked as a packet count
-  - builder admission uses an explicit FIFO word-count limit instead of
-    programmable full/empty thresholds as an implicit contract
+  - the serializer only starts when a whole packet fits in the local buffer
+  - trigger admission now uses the local frame queue as the explicit
+    backpressure boundary instead of inherited FIFO programmable full/empty
+    thresholds
   - detailed reject counters are now a simulation/formal specialization, not
     permanent synthesized baggage
 - a tightened two-lane mux:
   - no extra `pause` bubble after `ED`
   - registered `valid` / `last` pulses
   - no idle-cycle zero rewrites on the payload bus
+- a simplified trigger counter:
+  - rising-edge count instead of the older local FSM
 
 ## Metadata Change
 
