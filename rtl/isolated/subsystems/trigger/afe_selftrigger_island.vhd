@@ -40,6 +40,14 @@ architecture rtl of afe_selftrigger_island is
   signal descriptor_result_s  : peak_descriptor_result_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal descriptor_trailer_s : peak_descriptor_trailer_bank_t(0 to CHANNELS_PER_AFE_G - 1);
   signal frame_match_s        : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
+  signal source_desc_valid_s  : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
+  signal source_desc_s        : stc3_frame_descriptor_array_t(0 to CHANNELS_PER_AFE_G - 1);
+  signal source_trailer_s     : peak_descriptor_trailer_bank_t(0 to CHANNELS_PER_AFE_G - 1);
+  signal source_desc_taken_s  : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
+  signal source_ring_addr_s   : slv11_array_t(0 to CHANNELS_PER_AFE_G - 1);
+  signal source_ring_dout_s   : sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
+  signal serializer_ready_s   : std_logic;
+  signal serializer_dout_s    : std_logic_vector(71 downto 0);
 begin
   trigger_bank_inst : entity work.afe_trigger_bank
     generic map (
@@ -64,7 +72,7 @@ begin
     descriptor_control_s(idx).config <= descriptor_config_i;
     descriptor_control_s(idx).frame_match <= frame_match_s(idx);
 
-    record_builder_inst : entity work.stc3_record_builder
+    frame_source_inst : entity work.stc3_frame_source
       port map (
         ch_id_i             => CHANNEL_ID_C,
         version_i           => version_i,
@@ -91,11 +99,42 @@ begin
         trigger_count_o     => trigger_count_o(idx),
         packet_count_o      => packet_count_o(idx),
         delayed_sample_o    => delayed_sample_o(idx),
-        ready_o             => ready_o(idx),
-        rd_en_i             => rd_en_i(idx),
-        dout_o              => dout_o(idx)
+        desc_valid_o        => source_desc_valid_s(idx),
+        desc_o              => source_desc_s(idx),
+        desc_trailer_o      => source_trailer_s(idx),
+        desc_taken_i        => source_desc_taken_s(idx),
+        ring_rd_addr_i      => source_ring_addr_s(idx),
+        ring_dout_o         => source_ring_dout_s(idx)
       );
   end generate gen_channel;
+
+  serializer_inst : entity work.afe_stc3_stream_serializer
+    generic map (
+      CHANNELS_PER_AFE_G => CHANNELS_PER_AFE_G
+    )
+    port map (
+      clock_i             => clock_i,
+      reset_i             => reset_i,
+      reset_st_counters_i => reset_st_counters_i,
+      desc_valid_i        => source_desc_valid_s,
+      desc_i              => source_desc_s,
+      desc_trailer_i      => source_trailer_s,
+      desc_taken_o        => source_desc_taken_s,
+      ring_rd_addr_o      => source_ring_addr_s,
+      ring_dout_i         => source_ring_dout_s,
+      ready_o             => serializer_ready_s,
+      rd_en_i             => rd_en_i(0),
+      dout_o              => serializer_dout_s
+    );
+
+  ready_o(0) <= serializer_ready_s;
+  dout_o(0)  <= serializer_dout_s;
+
+  gen_transport_passthrough_off : for idx in 1 to CHANNELS_PER_AFE_G - 1 generate
+  begin
+    ready_o(idx) <= '0';
+    dout_o(idx)  <= (others => '0');
+  end generate gen_transport_passthrough_off;
 
   trigger_result_o    <= trigger_result_s;
   descriptor_result_o <= descriptor_result_s;
