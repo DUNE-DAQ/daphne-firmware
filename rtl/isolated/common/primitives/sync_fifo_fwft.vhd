@@ -10,6 +10,7 @@ entity sync_fifo_fwft is
     DATA_WIDTH_G        : positive := 72;
     DEPTH_G             : positive := 4096;
     COUNT_WIDTH_G       : positive := 13;
+    MEMORY_TYPE_G       : string   := "ultra";
     PROG_EMPTY_THRESH_G : natural  := 220;
     PROG_FULL_THRESH_G  : natural  := 200
   );
@@ -53,7 +54,7 @@ begin
       DOUT_RESET_VALUE    => "0",
       ECC_MODE            => "no_ecc",
       EN_SIM_ASSERT_ERR   => "warning",
-      FIFO_MEMORY_TYPE    => "ultra",
+      FIFO_MEMORY_TYPE    => MEMORY_TYPE_G,
       FIFO_READ_LATENCY   => 0,
       FIFO_WRITE_DEPTH    => DEPTH_G,
       FULL_RESET_VALUE    => 0,
