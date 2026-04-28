@@ -37,8 +37,8 @@ What changed:
 - serializer start now waits for explicit whole-packet FIFO space
 - trigger admission is now decoupled from output FIFO fullness and uses the
   local frame queue as the real backpressure boundary
-- the per-channel output FIFO was reduced to a small block-RAM staging buffer
-  sized for fixed-packet serialization rather than a deep local store
+- the per-channel output FIFO was reduced to a small staging buffer sized for
+  fixed-packet serialization rather than a deep local store
 - the mux no longer inserts an extra bubble after `ED`
 
 What did not change:

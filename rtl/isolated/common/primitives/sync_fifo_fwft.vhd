@@ -44,8 +44,8 @@ architecture rtl of sync_fifo_fwft is
 begin
   -- Use the native XPM FIFO so the implementation path can choose the intended
   -- memory class explicitly. The coal-tail512 branch uses the same primitive as
-  -- the legacy path, but with a much smaller per-channel staging depth and
-  -- block-memory backing instead of forcing a large URAM buffer.
+  -- the legacy path, but with a much smaller per-channel staging depth and a
+  -- narrower contract around it instead of relying on a deep local reservoir.
   xpm_fifo_sync_inst : xpm_fifo_sync
     generic map (
       CASCADE_HEIGHT      => 0,
