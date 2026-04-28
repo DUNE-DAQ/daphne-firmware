@@ -12,6 +12,8 @@ run petalinux-build, package BOOT.BIN, and collect the resulting artifacts.
 Project creation/config options:
   --bsp BSP_PATH          Create the project from a BSP
   --template NAME        PetaLinux template when --bsp is not given
+  --image-profile NAME   DAPHNE image profile: developer|minimal
+                         (default: developer)
   --output-dir DIR       Firmware xilinx/output directory for overlay staging
   --skip-stage-overlay   Do not stage overlay artifacts
   --copy-layer           Copy meta-daphne instead of symlinking it
@@ -55,7 +57,7 @@ PACKAGE_ARGS="${DAPHNE_PETALINUX_PACKAGE_ARGS:-}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --bsp|--template|--output-dir)
+    --bsp|--template|--output-dir|--image-profile)
       INIT_ARGS+=("$1" "$2")
       shift 2
       ;;

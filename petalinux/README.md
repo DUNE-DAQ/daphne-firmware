@@ -19,6 +19,8 @@ Current contents:
   `scripts/petalinux/collect_project_artifacts.sh` for repo-owned
   `petalinux-build`, boot packaging, and image artifact collection into a
   stable bundle.
+- a default-on `packagegroup-daphne-server-build` that stages the target-side
+  development dependencies needed by `daphne-server` / `daphneZMQ`
 
 Still missing before this repo can be considered a full Petalinux deliverable:
 
@@ -35,6 +37,43 @@ current deployable contract is still anchored on the working K26C Vivado batch
 flow plus the documented `daphne-server` runtime dependencies, but the missing
 Yocto ownership points now exist as repo-owned scaffolding under
 `petalinux/meta-daphne/`.
+
+## Current default package policy
+
+When `scripts/petalinux/bootstrap_kr260_project.sh` attaches `meta-daphne`, the
+project-local config now records a `DAPHNE_IMAGE_PROFILE`. The supported
+profiles are:
+
+- `developer`
+  - `daphne-overlay`
+  - `daphne-server`
+  - `daphne-services`
+  - `packagegroup-daphne-server-build`
+  - `dev-pkgs` and `tools-sdk`
+- `minimal`
+  - `daphne-overlay`
+  - `daphne-server`
+  - `daphne-services`
+
+The `developer` packagegroup is meant to make on-target `daphne-server` /
+`daphneZMQ` builds practical by default. It pulls in the core toolchain plus
+the upstream dependency families called out by `daphneZMQ`: ZeroMQ / cppzmq,
+protobuf, abseil, CLI11, Python 3, and the Python client packages.
+
+To select the smaller profile during project setup:
+
+```bash
+./scripts/petalinux/init_kr260_project.sh \
+  /path/to/petalinux-project \
+  /path/to/hw-handoff-dir \
+  --image-profile minimal
+```
+
+or change it later in the project `build/conf/local.conf`:
+
+```conf
+DAPHNE_IMAGE_PROFILE = "minimal"
+```
 
 ## Current bootstrap point
 
