@@ -423,6 +423,11 @@ Current local scaffold for this slice:
   directly with generic `SOURCE_COUNT_G`,
 - [grouped-hermes-readout-bridge.core](../cores/features/grouped-hermes-readout-bridge.core)
   keeps that seam reusable without wiring it into the live K26 path.
+- [grouped-hermes-readout-ooc.core](../cores/tests/grouped-hermes-readout-ooc.core)
+  provides three Vivado OOC targets for `N_SRC = 2, 5, 10` at the soft
+  `tx_mux` seam,
+- [run_grouped_hermes_ooc.sh](../scripts/fusesoc/run_grouped_hermes_ooc.sh)
+  is the repo-native launcher for those measurements.
 
 Only after that should the branch introduce:
 
@@ -455,9 +460,27 @@ This order is deliberate:
 Current status:
 
 - step 1 is now done locally in this draft branch,
-- the next concrete action is the out-of-context `N_SRC = 2, 5, 10` transport
-  comparison,
+- the OOC measurement lane for `N_SRC = 2, 5, 10` is now staged locally at
+  the grouped-source `tx_mux` seam,
+- the next concrete action is to run those three measurements on the Vivado
+  server,
 - no live readout-plane wiring has been changed yet.
+
+Measurement scope of the current OOC lane:
+
+- it measures grouped-source scaling where the per-source input FIFOs and mux
+  arbitration actually live,
+- it intentionally excludes the fixed vendor-backed Ethernet/GT collateral,
+- that makes it the correct first-order resource delta for `N_SRC`, not a full
+  board-level transport signoff.
+
+Planned invocation:
+
+```bash
+./scripts/fusesoc/run_grouped_hermes_ooc.sh --sources 2
+./scripts/fusesoc/run_grouped_hermes_ooc.sh --sources 5
+./scripts/fusesoc/run_grouped_hermes_ooc.sh --sources 10
+```
 
 ## Stop Conditions
 
