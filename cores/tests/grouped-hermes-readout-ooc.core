@@ -1,0 +1,115 @@
+CAPI=2:
+
+name: dune-daq:daphne:grouped-hermes-readout-ooc:0.1.0
+description: Repo-native Vivado out-of-context measurement targets for grouped-source tx_mux scaling
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_package.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_reg_types.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_ctrlreg_v.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_fabric_sel.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_tx_mux.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_decl.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_src_sel.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_syncreg.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_ibuf.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_out.vhd
+      - ../../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux.vhd
+      - ../../rtl/isolated/subsystems/readout/grouped_transport_pkg.vhd
+      - ../../rtl/isolated/subsystems/readout/grouped_hermes_readout_ooc_shell.vhd
+      - ../../tests/ooc/grouped_hermes_readout_ooc_src2_top.vhd
+      - ../../tests/ooc/grouped_hermes_readout_ooc_src5_top.vhd
+      - ../../tests/ooc/grouped_hermes_readout_ooc_src10_top.vhd
+    file_type: vhdlSource-2008
+  hook_support:
+    files:
+      - ../../boards/k26c/board.yml
+      - ../../xilinx/daphne_board_env.tcl
+      - ../../xilinx/daphne_composable_ooc_entry.tcl
+      - ../../scripts/fusesoc/board_env.sh
+      - ../../scripts/fusesoc/vivado_composable_ooc_hook.sh
+      - ../../scripts/fusesoc/vivado_grouped_hermes_ooc_hook.sh
+    file_type: user
+
+scripts:
+  vivado_grouped_src2_ooc:
+    cmd:
+      - sh
+      - src/dune-daq_daphne_grouped-hermes-readout-ooc_0.1.0/scripts/fusesoc/vivado_grouped_hermes_ooc_hook.sh
+      - grouped_hermes_readout_ooc_src2_top
+      - src2
+    filesets:
+      - hook_support
+  vivado_grouped_src5_ooc:
+    cmd:
+      - sh
+      - src/dune-daq_daphne_grouped-hermes-readout-ooc_0.1.0/scripts/fusesoc/vivado_grouped_hermes_ooc_hook.sh
+      - grouped_hermes_readout_ooc_src5_top
+      - src5
+    filesets:
+      - hook_support
+  vivado_grouped_src10_ooc:
+    cmd:
+      - sh
+      - src/dune-daq_daphne_grouped-hermes-readout-ooc_0.1.0/scripts/fusesoc/vivado_grouped_hermes_ooc_hook.sh
+      - grouped_hermes_readout_ooc_src10_top
+      - src10
+    filesets:
+      - hook_support
+
+targets:
+  default:
+    filesets:
+      - rtl
+  synth_src2_ooc:
+    description: Vivado out-of-context synthesis of the grouped-source tx_mux seam with 2 logical sources
+    default_tool: vivado
+    toplevel: grouped_hermes_readout_ooc_src2_top
+    filesets:
+      - rtl
+    hooks:
+      pre_build:
+        - vivado_grouped_src2_ooc
+    tools:
+      vivado:
+        part: xck26-sfvc784-2LV-c
+        board_part: xilinx.com:k26c:part0:1.4
+        synth: none
+        pnr: none
+        source_mgmt_mode: None
+  synth_src5_ooc:
+    description: Vivado out-of-context synthesis of the grouped-source tx_mux seam with 5 logical sources
+    default_tool: vivado
+    toplevel: grouped_hermes_readout_ooc_src5_top
+    filesets:
+      - rtl
+    hooks:
+      pre_build:
+        - vivado_grouped_src5_ooc
+    tools:
+      vivado:
+        part: xck26-sfvc784-2LV-c
+        board_part: xilinx.com:k26c:part0:1.4
+        synth: none
+        pnr: none
+        source_mgmt_mode: None
+  synth_src10_ooc:
+    description: Vivado out-of-context synthesis of the grouped-source tx_mux seam with 10 logical sources
+    default_tool: vivado
+    toplevel: grouped_hermes_readout_ooc_src10_top
+    filesets:
+      - rtl
+    hooks:
+      pre_build:
+        - vivado_grouped_src10_ooc
+    tools:
+      vivado:
+        part: xck26-sfvc784-2LV-c
+        board_part: xilinx.com:k26c:part0:1.4
+        synth: none
+        pnr: none
+        source_mgmt_mode: None
