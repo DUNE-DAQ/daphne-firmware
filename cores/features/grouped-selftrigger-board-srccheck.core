@@ -1,0 +1,27 @@
+CAPI=2:
+
+name: dune-daq:daphne:grouped-selftrigger-board-srccheck:0.1.0
+description: Source-only grouped board-plane dependency check without generated Hermes IP collateral
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-ip:0.1.0
+      - dune-daq:daphne:grouped-transport-types:0.1.0
+      - dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0
+      - dune-daq:daphne:k26c-board-grouped-outbuffer-plane:0.1.0
+    files:
+      - rtl/isolated/subsystems/readout/grouped_hermes_readout_bridge.vhd
+      - rtl/isolated/subsystems/readout/k26c_grouped_hermes_transport_plane.vhd
+      - rtl/isolated/subsystems/readout/k26c_board_grouped_transport_plane.vhd
+      - rtl/isolated/subsystems/readout/k26c_board_grouped_selftrigger_plane.vhd
+    file_type: vhdlSource-2008
+
+targets:
+  default:
+    toplevel: k26c_board_grouped_selftrigger_plane
+    filesets:
+      - rtl

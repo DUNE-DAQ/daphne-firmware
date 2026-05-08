@@ -339,6 +339,14 @@ New grouped self-trigger/export modules:
 - [k26c_grouped_hermes_transport_plane.vhd](../rtl/isolated/subsystems/readout/k26c_grouped_hermes_transport_plane.vhd)
   - board-local grouped Hermes wrapper,
   - aligned to the grouped-source stream type.
+- [k26c_board_grouped_outbuffer_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_outbuffer_plane.vhd)
+  - grouped-to-legacy debug/outbuffer shim,
+  - preserves the existing outbuffer AXI and debug shape by tapping the first
+    two grouped producers only.
+- [k26c_board_grouped_transport_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_transport_plane.vhd)
+  - board-local grouped transport composition,
+  - keeps Hermes and outbuffer ownership split the same way as the deployed
+    board transport plane.
 
 Supporting branch-local core additions:
 
@@ -349,6 +357,8 @@ Supporting branch-local core additions:
 - [grouped-selftrigger-fabric.core](../cores/features/grouped-selftrigger-fabric.core)
 - [grouped-selftrigger-fabric-bridge.core](../cores/features/grouped-selftrigger-fabric-bridge.core)
 - [k26c-grouped-hermes-transport-plane.core](../cores/features/k26c-grouped-hermes-transport-plane.core)
+- [k26c-board-grouped-outbuffer-plane.core](../cores/features/k26c-board-grouped-outbuffer-plane.core)
+- [k26c-board-grouped-transport-plane.core](../cores/features/k26c-board-grouped-transport-plane.core)
 - [k26c-grouped-selftrigger-datapath-plane.core](../cores/features/k26c-grouped-selftrigger-datapath-plane.core)
 - [k26c-board-grouped-selftrigger-plane.core](../cores/features/k26c-board-grouped-selftrigger-plane.core)
 
@@ -357,7 +367,8 @@ Draft paired wrapper cut:
 - [k26c_grouped_selftrigger_datapath_plane.vhd](../rtl/isolated/subsystems/readout/k26c_grouped_selftrigger_datapath_plane.vhd)
   pairs the grouped self-trigger bridge with the threshold register bank,
 - [k26c_board_grouped_selftrigger_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_selftrigger_plane.vhd)
-  pairs that grouped datapath plane with the grouped Hermes transport wrapper.
+  pairs that grouped datapath plane with the grouped transport wrapper and
+  restores the legacy outbuffer/debug side through the grouped debug shim.
 
 Branch-local verification status:
 
@@ -366,6 +377,12 @@ Branch-local verification status:
   resolves dependencies and sets up cleanly,
 - `fusesoc run --tool ghdl --setup dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0`
   also resolves and sets up cleanly,
+- `fusesoc run --tool ghdl --setup dune-daq:daphne:k26c-board-grouped-outbuffer-plane:0.1.0`
+  should resolve independently of Hermes collateral because it depends only on
+  grouped stream types and the existing outbuffer sink,
+- [grouped-selftrigger-board-srccheck.core](../cores/features/grouped-selftrigger-board-srccheck.core)
+  provides the correct source-only dependency-resolution path for the grouped
+  board draft when generated Hermes IP collateral is absent locally,
 - the grouped Hermes transport wrapper still hits the known missing XCI
   collateral in the existing Hermes transport dependency path; that is the same
   transport collateral limitation already seen in earlier grouped OOC work, not

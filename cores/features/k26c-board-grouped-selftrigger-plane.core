@@ -10,7 +10,7 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
       - dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0
-      - dune-daq:daphne:k26c-grouped-hermes-transport-plane:0.1.0
+      - dune-daq:daphne:k26c-board-grouped-transport-plane:0.1.0
     files:
       - rtl/isolated/subsystems/readout/k26c_board_grouped_selftrigger_plane.vhd
     file_type: vhdlSource-2008

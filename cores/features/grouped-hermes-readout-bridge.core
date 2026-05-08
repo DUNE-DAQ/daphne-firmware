@@ -17,5 +17,6 @@ filesets:
 
 targets:
   default:
+    toplevel: grouped_hermes_readout_bridge
     filesets:
       - rtl

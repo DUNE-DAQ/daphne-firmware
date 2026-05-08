@@ -1,0 +1,22 @@
+CAPI=2:
+
+name: dune-daq:daphne:k26c-board-grouped-outbuffer-plane:0.1.0
+description: Board-local grouped-source outbuffer/debug sink plane
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:grouped-transport-types:0.1.0
+      - dune-daq:daphne:spy-buffer:0.1.0
+    files:
+      - rtl/isolated/subsystems/readout/k26c_board_grouped_outbuffer_plane.vhd
+    file_type: vhdlSource-2008
+
+targets:
+  default:
+    toplevel: k26c_board_grouped_outbuffer_plane
+    filesets:
+      - rtl
