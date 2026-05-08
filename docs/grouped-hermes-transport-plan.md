@@ -264,6 +264,62 @@ Additional resource observation:
 That means `10` grouped Hermes sources are structurally attractive but must be
 budgeted against a BRAM-constrained baseline from the outset.
 
+## Measured Evidence So Far
+
+The draft now has two concrete measurements behind it.
+
+### OOC Grouped-Source Transport Scaling
+
+The grouped-source OOC lane was run for the `tx_mux` seam at `N_SRC = 2, 5, 10`.
+
+Observed utilization:
+
+- `src2`: `1830` LUT, `3222` FF, `8` BRAM
+- `src5`: `4314` LUT, `7788` FF, `20` BRAM
+- `src10`: `8441` LUT, `15398` FF, `40` BRAM
+
+Interpretation:
+
+- BRAM scaling is close to linear and matches the source-buffer hypothesis,
+- LUT/FF scaling is also close to linear,
+- `N_SRC = 10` is not disqualified on transport-side soft logic grounds,
+- the main widening cost is still BRAM, not DSP or URAM.
+
+### RTL Grouped-Producer Smoke Study
+
+The grouped dead-time bench was updated to compare grouped producer counts
+directly against the dormant grouped-source RTL modules on this branch.
+
+Short smoke sweep (`40` channels, `1` repeat, shortened measurement window):
+
+- `5 x 8` grouped producers:
+  - `4.6 kHz/ch`: dead fraction `0.243421`, accepted `115`
+  - `9.7 kHz/ch`: dead fraction `0.531690`, accepted `133`
+  - `14.9 kHz/ch`: dead fraction `0.740079`, accepted `131`
+  - `20.0 kHz/ch`: dead fraction `0.812883`, accepted `122`
+- `10 x 4` grouped producers:
+  - `4.6 kHz/ch`: dead fraction `0.236842`, accepted `116`
+  - `9.7 kHz/ch`: dead fraction `0.500000`, accepted `142`
+  - `14.9 kHz/ch`: dead fraction `0.722222`, accepted `140`
+  - `20.0 kHz/ch`: dead fraction `0.799080`, accepted `131`
+
+Observed counter split:
+
+- the `10 x 4` case is consistently better than `5 x 8`,
+- the improvement comes mainly from fewer queue rejects,
+- ring rejects remain material in both cases,
+- the absolute dead-time level is still poor, so the grouped-source direction
+  is not ready for the live datapath just because `10` beats `5`.
+
+Important limitation:
+
+- this bench is still using the dormant grouped serializer path and the current
+  mux/readout seam,
+- `sent_total` is not yet a decision-grade transport completion metric in this
+  bench,
+- the useful signal today is acceptance-side behavior and relative comparison
+  between grouped-source counts.
+
 ## Formal / Contract Plan
 
 The first useful formal package for this redesign is seam-oriented, not

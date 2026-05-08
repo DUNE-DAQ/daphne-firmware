@@ -25,22 +25,37 @@ end entity two_lane_readout_mux;
 
 architecture rtl of two_lane_readout_mux is
   type state_t is (rst, scan, dump, pause);
+
+  function min_nat(lhs : natural; rhs : natural) return natural is
+  begin
+    if lhs < rhs then
+      return lhs;
+    end if;
+    return rhs;
+  end function;
 begin
   assert LANE_COUNT_G = 2
     report "two_lane_readout_mux currently supports exactly two output lanes"
     severity failure;
 
-  assert CHANNEL_COUNT_G = (LANE_COUNT_G * CHANNELS_PER_LANE_G)
-    report "two_lane_readout_mux requires CHANNEL_COUNT_G = LANE_COUNT_G * CHANNELS_PER_LANE_G"
+  assert CHANNEL_COUNT_G <= (LANE_COUNT_G * CHANNELS_PER_LANE_G)
+    report "two_lane_readout_mux requires CHANNEL_COUNT_G <= LANE_COUNT_G * CHANNELS_PER_LANE_G"
     severity failure;
+
+  assert CHANNEL_COUNT_G > ((LANE_COUNT_G - 1) * CHANNELS_PER_LANE_G)
+    report "two_lane_readout_mux requires every lane partition to own at least one channel"
+    severity failure;
+
+  rd_en_o <= (others => '0');
 
   gen_lane : for lane_idx in 0 to LANE_COUNT_G - 1 generate
     constant CHANNEL_BASE_C : natural := lane_idx * CHANNELS_PER_LANE_G;
+    constant ACTIVE_CHANNELS_C : natural := min_nat(CHANNELS_PER_LANE_G, CHANNEL_COUNT_G - CHANNEL_BASE_C);
     signal state_s          : state_t := rst;
-    signal sel_s            : integer range 0 to CHANNELS_PER_LANE_G - 1 := 0;
+    signal sel_s            : integer range 0 to ACTIVE_CHANNELS_C - 1 := 0;
     signal fifo_dout_mux_s  : std_logic_vector(71 downto 0);
   begin
-    gen_rd_en : for ch_idx in 0 to CHANNELS_PER_LANE_G - 1 generate
+    gen_rd_en : for ch_idx in 0 to ACTIVE_CHANNELS_C - 1 generate
     begin
       rd_en_o(CHANNEL_BASE_C + ch_idx) <= '1'
         when (sel_s = ch_idx and state_s = dump)
@@ -65,7 +80,7 @@ begin
               if ready_i(CHANNEL_BASE_C + sel_s) = '1' then
                 state_s <= dump;
               else
-                if sel_s = CHANNELS_PER_LANE_G - 1 then
+                if sel_s = ACTIVE_CHANNELS_C - 1 then
                   sel_s <= 0;
                 else
                   sel_s <= sel_s + 1;
@@ -81,7 +96,7 @@ begin
               end if;
 
             when pause =>
-              if sel_s = CHANNELS_PER_LANE_G - 1 then
+              if sel_s = ACTIVE_CHANNELS_C - 1 then
                 sel_s <= 0;
               else
                 sel_s <= sel_s + 1;
