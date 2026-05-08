@@ -349,16 +349,29 @@ Supporting branch-local core additions:
 - [grouped-selftrigger-fabric.core](../cores/features/grouped-selftrigger-fabric.core)
 - [grouped-selftrigger-fabric-bridge.core](../cores/features/grouped-selftrigger-fabric-bridge.core)
 - [k26c-grouped-hermes-transport-plane.core](../cores/features/k26c-grouped-hermes-transport-plane.core)
+- [k26c-grouped-selftrigger-datapath-plane.core](../cores/features/k26c-grouped-selftrigger-datapath-plane.core)
+- [k26c-board-grouped-selftrigger-plane.core](../cores/features/k26c-board-grouped-selftrigger-plane.core)
+
+Draft paired wrapper cut:
+
+- [k26c_grouped_selftrigger_datapath_plane.vhd](../rtl/isolated/subsystems/readout/k26c_grouped_selftrigger_datapath_plane.vhd)
+  pairs the grouped self-trigger bridge with the threshold register bank,
+- [k26c_board_grouped_selftrigger_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_selftrigger_plane.vhd)
+  pairs that grouped datapath plane with the grouped Hermes transport wrapper.
 
 Branch-local verification status:
 
 - `fusesoc core-info` resolves for the new grouped cores,
 - `fusesoc run --tool ghdl --setup dune-daq:daphne:grouped-selftrigger-fabric-bridge:0.1.0`
   resolves dependencies and sets up cleanly,
+- `fusesoc run --tool ghdl --setup dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0`
+  also resolves and sets up cleanly,
 - the grouped Hermes transport wrapper still hits the known missing XCI
   collateral in the existing Hermes transport dependency path; that is the same
   transport collateral limitation already seen in earlier grouped OOC work, not
-  a new grouped self-trigger architecture fault.
+  a new grouped self-trigger architecture fault,
+- `k26c-board-grouped-selftrigger-plane` inherits that same transport
+  collateral limitation because it composes the grouped Hermes wrapper directly.
 
 ## Formal / Contract Plan
 
