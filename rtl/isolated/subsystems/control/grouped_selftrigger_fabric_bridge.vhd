@@ -36,6 +36,9 @@ entity grouped_selftrigger_fabric_bridge is
     trigger_count_o           : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
     packet_count_o            : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
     delayed_sample_o          : out sample14_array_t(0 to (AFE_COUNT_G * 8) - 1);
+    grouped_readout_ready_i   : in  std_logic_vector(
+      0 to ((AFE_COUNT_G * 8) / CHANNELS_PER_PRODUCER_G) - 1
+    );
     grouped_readout_o         : out grouped_source_stream_array_t(
       0 to ((AFE_COUNT_G * 8) / CHANNELS_PER_PRODUCER_G) - 1
     )
@@ -99,6 +102,7 @@ begin
       trigger_count_o     => trigger_count_o,
       packet_count_o      => packet_count_o,
       delayed_sample_o    => delayed_sample_o,
+      grouped_readout_ready_i => grouped_readout_ready_i,
       grouped_readout_o   => grouped_readout_o
     );
 end architecture rtl;

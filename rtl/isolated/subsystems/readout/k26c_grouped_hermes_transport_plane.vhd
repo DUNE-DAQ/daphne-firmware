@@ -39,7 +39,8 @@ entity k26c_grouped_hermes_transport_plane is
     eth0_tx_p          : out std_logic_vector(0 downto 0);
     eth0_tx_n          : out std_logic_vector(0 downto 0);
     eth0_tx_dis        : out std_logic_vector(0 downto 0);
-    readout_i          : in  grouped_source_stream_array_t(0 to SOURCE_COUNT_G - 1)
+    readout_i          : in  grouped_source_stream_array_t(0 to SOURCE_COUNT_G - 1);
+    readout_ready_o    : out std_logic_vector(0 to SOURCE_COUNT_G - 1)
   );
 end entity k26c_grouped_hermes_transport_plane;
 
@@ -83,6 +84,7 @@ begin
       data_clk_i      => clock,
       data_clk_rst_i  => reset,
       readout_i       => readout_i,
+      readout_ready_o => readout_ready_o,
       timestamp_i     => timestamp
     );
 end architecture rtl;

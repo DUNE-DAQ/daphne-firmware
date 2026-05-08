@@ -30,6 +30,9 @@ entity afe_grouped_selftrigger_island is
     trigger_count_o     : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     packet_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     delayed_sample_o    : out sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    grouped_readout_ready_i : in  std_logic_vector(
+      0 to (CHANNELS_PER_AFE_G / CHANNELS_PER_PRODUCER_G) - 1
+    );
     grouped_readout_o   : out grouped_source_stream_array_t(
       0 to (CHANNELS_PER_AFE_G / CHANNELS_PER_PRODUCER_G) - 1
     )
@@ -142,10 +145,8 @@ begin
         dout_o              => serializer_dout_s(producer_idx)
       );
 
-    -- This draft seam assumes the grouped producer can drain continuously into
-    -- downstream transport buffering. Backpressure is reintroduced later at
-    -- the grouped Hermes wrapper boundary, not here.
-    serializer_rd_en_s(producer_idx) <= serializer_ready_s(producer_idx);
+    serializer_rd_en_s(producer_idx) <= serializer_ready_s(producer_idx) and
+                                        grouped_readout_ready_i(producer_idx);
 
     grouped_readout_o(producer_idx).data  <= serializer_dout_s(producer_idx)(63 downto 0);
     grouped_readout_o(producer_idx).valid <= serializer_ready_s(producer_idx);

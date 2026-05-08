@@ -55,6 +55,9 @@ entity k26c_grouped_selftrigger_datapath_plane is
 
     grouped_readout_o      : out grouped_source_stream_array_t(
       0 to ((AFE_COUNT_G * CHANNELS_PER_AFE_G) / CHANNELS_PER_PRODUCER_G) - 1
+    );
+    grouped_readout_ready_i : in  std_logic_vector(
+      0 to ((AFE_COUNT_G * CHANNELS_PER_AFE_G) / CHANNELS_PER_PRODUCER_G) - 1
     )
   );
 end entity k26c_grouped_selftrigger_datapath_plane;
@@ -134,6 +137,7 @@ begin
       trigger_count_o          => tcount,
       packet_count_o           => pcount,
       delayed_sample_o         => delayed_sample,
+      grouped_readout_ready_i  => grouped_readout_ready_i,
       grouped_readout_o        => grouped_readout_o
     );
 

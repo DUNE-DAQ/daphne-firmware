@@ -30,6 +30,9 @@ entity grouped_selftrigger_fabric is
     trigger_count_o     : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     packet_count_o      : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     delayed_sample_o    : out sample14_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
+    grouped_readout_ready_i : in  std_logic_vector(
+      0 to ((AFE_COUNT_G * CHANNELS_PER_AFE_G) / CHANNELS_PER_PRODUCER_G) - 1
+    );
     grouped_readout_o   : out grouped_source_stream_array_t(
       0 to ((AFE_COUNT_G * CHANNELS_PER_AFE_G) / CHANNELS_PER_PRODUCER_G) - 1
     )
@@ -56,6 +59,7 @@ begin
     signal trigger_count_afe_s     : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal packet_count_afe_s      : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal delayed_sample_afe_s    : sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    signal grouped_ready_afe_s      : std_logic_vector(0 to PRODUCERS_PER_AFE_C - 1);
     signal grouped_readout_afe_s   : grouped_source_stream_array_t(0 to PRODUCERS_PER_AFE_C - 1);
   begin
     gen_channel : for ch_idx in 0 to CHANNELS_PER_AFE_G - 1 generate
@@ -75,6 +79,7 @@ begin
 
     gen_producer : for producer_idx in 0 to PRODUCERS_PER_AFE_C - 1 generate
     begin
+      grouped_ready_afe_s(producer_idx) <= grouped_readout_ready_i(PRODUCER_BASE_C + producer_idx);
       grouped_readout_o(PRODUCER_BASE_C + producer_idx) <= grouped_readout_afe_s(producer_idx);
     end generate gen_producer;
 
@@ -103,6 +108,7 @@ begin
         trigger_count_o     => trigger_count_afe_s,
         packet_count_o      => packet_count_afe_s,
         delayed_sample_o    => delayed_sample_afe_s,
+        grouped_readout_ready_i => grouped_ready_afe_s,
         grouped_readout_o   => grouped_readout_afe_s
       );
   end generate gen_afe;

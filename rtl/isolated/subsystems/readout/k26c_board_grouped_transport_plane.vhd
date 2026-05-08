@@ -66,6 +66,7 @@ entity k26c_board_grouped_transport_plane is
     eth0_tx_dis         : out std_logic_vector(0 downto 0);
 
     readout_i           : in  grouped_source_stream_array_t(0 to SOURCE_COUNT_G - 1);
+    readout_ready_o     : out std_logic_vector(0 to SOURCE_COUNT_G - 1);
 
     out_buff_data       : out std_logic_vector(63 downto 0);
     out_buff_trig       : out std_logic;
@@ -112,7 +113,8 @@ begin
       eth0_tx_p           => eth0_tx_p,
       eth0_tx_n           => eth0_tx_n,
       eth0_tx_dis         => eth0_tx_dis,
-      readout_i           => readout_i
+      readout_i           => readout_i,
+      readout_ready_o     => readout_ready_o
     );
 
   outbuffer_plane_inst : entity work.k26c_board_grouped_outbuffer_plane

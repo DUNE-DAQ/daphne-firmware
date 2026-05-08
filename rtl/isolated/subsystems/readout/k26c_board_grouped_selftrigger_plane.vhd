@@ -119,6 +119,7 @@ architecture rtl of k26c_board_grouped_selftrigger_plane is
   constant SOURCE_COUNT_C : positive := (AFE_COUNT_G * CHANNELS_PER_AFE_G) / CHANNELS_PER_PRODUCER_G;
 
   signal grouped_readout_s : grouped_source_stream_array_t(0 to SOURCE_COUNT_C - 1);
+  signal grouped_ready_s   : std_logic_vector(0 to SOURCE_COUNT_C - 1);
 begin
   -- These identifiers are retained for interface parity with the deployed
   -- board plane. The grouped draft path does not yet thread them into the
@@ -169,7 +170,8 @@ begin
       thresh_s_axi_rresp     => thresh_s_axi_rresp,
       thresh_s_axi_rvalid    => thresh_s_axi_rvalid,
       thresh_s_axi_rready    => thresh_s_axi_rready,
-      grouped_readout_o      => grouped_readout_s
+      grouped_readout_o      => grouped_readout_s,
+      grouped_readout_ready_i=> grouped_ready_s
     );
 
   transport_plane_inst : entity work.k26c_board_grouped_transport_plane
@@ -230,6 +232,7 @@ begin
       eth0_tx_n           => eth0_tx_n,
       eth0_tx_dis         => eth0_tx_dis,
       readout_i           => grouped_readout_s,
+      readout_ready_o     => grouped_ready_s,
       out_buff_data       => out_buff_data,
       out_buff_trig       => out_buff_trig,
       valid_debug         => valid_debug,

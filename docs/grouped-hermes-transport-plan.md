@@ -390,25 +390,52 @@ Recent seam correction:
 - this fixes the earlier draft bug where an in-flight descriptor could disappear
   from the ring-retention accounting before its waveform had been fully read.
 
+Current readout-pressure contract:
+
+- the grouped datapath now carries an explicit `grouped_readout_ready_i` vector
+  from the board transport plane back to each grouped serializer,
+- [afe_grouped_selftrigger_island.vhd](../rtl/isolated/subsystems/trigger/afe_grouped_selftrigger_island.vhd)
+  only drains a serializer when both the serializer has a word ready and the
+  matching grouped readout slot is ready,
+- [grouped_hermes_readout_bridge.vhd](../rtl/isolated/subsystems/readout/grouped_hermes_readout_bridge.vhd)
+  currently ties that ready vector high because the imported Hermes `src_d`
+  boundary exposes `d/valid/last` but no per-source ready,
+- this does not yet add measured Hermes backpressure, but it removes the
+  hidden unconditional-drain assumption from the grouped self-trigger path and
+  leaves one explicit seam for a later credit/backpressure adapter.
+
 Branch-local verification status:
 
 - `fusesoc core-info` resolves for the new grouped cores,
 - `fusesoc run --tool ghdl --setup dune-daq:daphne:grouped-selftrigger-fabric-bridge:0.1.0`
   resolves dependencies and sets up cleanly,
-- `fusesoc run --tool ghdl --setup dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0`
-  also resolves and sets up cleanly,
+- `fusesoc run --tool ghdl --setup --build dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0`
+  builds cleanly with the grouped ready and descriptor-release contracts,
 - `fusesoc run --tool ghdl --setup dune-daq:daphne:k26c-board-grouped-outbuffer-plane:0.1.0`
   should resolve independently of Hermes collateral because it depends only on
   grouped stream types and the existing outbuffer sink,
 - [grouped-selftrigger-board-srccheck.core](../cores/features/grouped-selftrigger-board-srccheck.core)
   provides the correct source-only dependency-resolution path for the grouped
   board draft when generated Hermes IP collateral is absent locally,
-- the grouped Hermes transport wrapper still hits the known missing XCI
-  collateral in the existing Hermes transport dependency path; that is the same
-  transport collateral limitation already seen in earlier grouped OOC work, not
-  a new grouped self-trigger architecture fault,
+- `fusesoc run --tool ghdl --setup --build dune-daq:daphne:grouped-selftrigger-board-srccheck:0.1.0`
+  still stops in imported Hermes collateral at
+  `wib_eth_readout.vhd:82`, before board-level grouped elaboration can finish;
+  that is a Hermes/GHDL compatibility limitation, not a grouped self-trigger
+  datapath failure,
 - `k26c-board-grouped-selftrigger-plane` inherits that same transport
   collateral limitation because it composes the grouped Hermes wrapper directly.
+
+RTL dead-time bench status:
+
+- [multichannel_deadtime_tb_lane.vhd](../../daphne_mezz_xc_sim/hdl/multichannel_deadtime_tb_lane.vhd)
+  now wires `desc_released_o` from the grouped serializer back into each
+  `stc3_frame_source`,
+- the lane bench elaborates with GHDL against this firmware checkout,
+- short `10 x 4` and `5 x 8` grouped smoke points show nonzero descriptor
+  release/drain counts,
+- the existing bench-side `sent_total` counter remains unreliable in this
+  wrapper because packet completion is inferred from the two-lane mux `last`
+  pulse rather than from the serializer release seam.
 
 ## Formal / Contract Plan
 

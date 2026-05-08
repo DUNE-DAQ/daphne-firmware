@@ -49,7 +49,8 @@ entity grouped_hermes_readout_bridge is
     dune_base_rst_i : in  std_logic;
     data_clk_i      : in  std_logic;
     data_clk_rst_i  : in  std_logic;
-    readout_i       : in  grouped_source_stream_array_t(SOURCE_COUNT_G - 1 downto 0);
+    readout_i       : in  grouped_source_stream_array_t(0 to SOURCE_COUNT_G - 1);
+    readout_ready_o : out std_logic_vector(0 to SOURCE_COUNT_G - 1);
     timestamp_i     : in  std_logic_vector(63 downto 0);
     ext_mac_addr_i  : in  std_logic_vector(47 downto 0) := DEFAULT_ext_mac_addr_0;
     ext_ip_addr_i   : in  std_logic_vector(31 downto 0) := DEFAULT_ext_ip_addr_0;
@@ -138,7 +139,7 @@ architecture rtl of grouped_hermes_readout_bridge is
   function to_src_d_array(
     streams_i : grouped_source_stream_array_t
   ) return src_d_array is
-    variable result_v : src_d_array(streams_i'range);
+    variable result_v : src_d_array(SOURCE_COUNT_G - 1 downto 0);
   begin
     for idx in streams_i'range loop
       result_v(idx) := to_src_d(streams_i(idx));
@@ -171,6 +172,7 @@ begin
   ext_mac_addr_s(0)   <= ext_mac_addr_i;
   ext_ip_addr_s(0)    <= ext_ip_addr_i;
   ext_port_addr_s(0)  <= ext_port_addr_i;
+  readout_ready_o     <= (others => '1');
 
   ipb_ctrl_inst : ipb_axi4_lite_ctrl
     port map (
