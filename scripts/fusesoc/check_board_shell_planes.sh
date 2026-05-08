@@ -10,7 +10,7 @@ EXPECTED_CORE_DEPS='
 dune-daq:daphne:daphne-package:0.1.0
 dune-daq:daphne:k26c-board-analog-control-plane:0.1.0
 dune-daq:daphne:k26c-board-frontend-plane:0.1.0
-dune-daq:daphne:k26c-board-selftrigger-plane:0.1.0
+dune-daq:daphne:k26c-board-grouped-selftrigger-plane:0.1.0
 dune-daq:daphne:k26c-board-spy-capture-plane:0.1.0
 dune-daq:daphne:k26c-board-timing-plane:0.1.0
 '
@@ -18,7 +18,7 @@ dune-daq:daphne:k26c-board-timing-plane:0.1.0
 EXPECTED_ENTITY_DEPS='
 k26c_board_analog_control_plane
 k26c_board_frontend_plane
-k26c_board_selftrigger_plane
+k26c_board_grouped_selftrigger_plane
 k26c_board_spy_capture_plane
 k26c_board_timing_plane
 '

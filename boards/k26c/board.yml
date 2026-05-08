@@ -15,15 +15,15 @@ bd_name: daphne_selftrigger_bd
 bd_wrapper_name: daphne_selftrigger_bd_wrapper
 bd_shell_tcl: boards/k26c/bd_shell.tcl
 legacy_manifest: boards/k26c/legacy-flow.yml
-build_name_prefix: daphne_selftrigger
-overlay_name_prefix: daphne_selftrigger_ol
+build_name_prefix: daphne_grouped_selftrigger
+overlay_name_prefix: daphne_grouped_selftrigger_ol
 ip_top_hdl_file: rtl/isolated/tops/k26c_board_shell.vhd
 ip_top_module: k26c_board_shell
 ip_cell_name: daphne_selftrigger_top
 ip_component_identifier: daphne_selftrigger_top
 ip_display_name: daphne_selftrigger_top_v1_0
 ip_xgui_file: daphne_selftrigger_top_v1_0.tcl
-ip_cell_bind_root: selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst
+ip_cell_bind_root: selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/grouped_hermes_readout_bridge_inst/hermes_transport_inst
 public_top_hdl_file: rtl/isolated/tops/daphne_composable_top.vhd
 public_top_module: daphne_composable_top
 timing_endpoint_path: timing_bridge_inst/endpoint_inst;daphne_selftrigger_bd_i/*/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst
@@ -38,4 +38,6 @@ afe_capture_input_delay_max_ns:
 notes:
   - Current firmware baseline validated around the Kria K26C SoM flow in the
     imported non-project Vivado tree.
+  - This branch routes the board shell through the grouped self-trigger plane
+    so the default implementation target is a grouped-architecture candidate.
   - This is the only board profile wired through the imported Tcl scripts today.

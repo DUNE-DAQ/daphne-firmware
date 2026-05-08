@@ -437,6 +437,29 @@ RTL dead-time bench status:
   wrapper because packet completion is inferred from the two-lane mux `last`
   pulse rather than from the serializer release seam.
 
+## Build Candidate
+
+The branch default K26C shell now instantiates the grouped self-trigger plane:
+
+- [k26c_board_shell.vhd](../rtl/isolated/tops/k26c_board_shell.vhd)
+  uses [k26c_board_grouped_selftrigger_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_selftrigger_plane.vhd),
+- [k26c-board-shell.core](../cores/features/k26c-board-shell.core)
+  depends on the grouped board self-trigger plane,
+- [boards/k26c/board.yml](../boards/k26c/board.yml)
+  names artifacts as `daphne_grouped_selftrigger_*`,
+- [boards/k26c/legacy-flow.yml](../boards/k26c/legacy-flow.yml)
+  points the packaged Hermes XCI cell binding at the grouped Hermes hierarchy.
+
+This makes the normal full implementation command the grouped candidate:
+
+```sh
+./scripts/fusesoc/build_platform.sh --target impl
+```
+
+The first useful Vivado result is post-synthesis utilization. If post-synthesis
+already exceeds K26 resources, the next action is RTL/resource reduction rather
+than place/route tuning.
+
 ## Formal / Contract Plan
 
 The first useful formal package for this redesign is seam-oriented, not

@@ -542,7 +542,7 @@ begin
       stuff_s_axi_rready     => STUFF_S_AXI_RREADY
     );
 
-  selftrigger_plane_inst : entity work.k26c_board_selftrigger_plane
+  selftrigger_plane_inst : entity work.k26c_board_grouped_selftrigger_plane
     port map (
       link_id                => link_id,
       slot_id                => slot_id,
