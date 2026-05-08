@@ -16,6 +16,7 @@ entity afe_stc3_stream_serializer is
     desc_i              : in  stc3_frame_descriptor_array_t(0 to CHANNELS_PER_AFE_G - 1);
     desc_trailer_i      : in  peak_descriptor_trailer_bank_t(0 to CHANNELS_PER_AFE_G - 1);
     desc_taken_o        : out std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    desc_released_o     : out std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     ring_rd_addr_o      : out slv11_array_t(0 to CHANNELS_PER_AFE_G - 1);
     ring_dout_i         : in  sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
     ready_o             : out std_logic;
@@ -76,8 +77,10 @@ architecture rtl of afe_stc3_stream_serializer is
   signal fifo_wr_data_count_s : std_logic_vector(OUTPUT_FIFO_COUNT_WIDTH_C - 1 downto 0);
   signal output_space_ok_s    : std_logic;
   signal desc_taken_s         : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1) := (others => '0');
+  signal desc_released_s      : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1) := (others => '0');
 begin
   desc_taken_o <= desc_taken_s;
+  desc_released_o <= desc_released_s;
 
   ring_addr_gen : for idx in 0 to CHANNELS_PER_AFE_G - 1 generate
   begin
@@ -133,11 +136,13 @@ begin
 
   main_proc : process(clock_i)
     variable desc_taken_v : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    variable desc_released_v : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     variable found_v      : boolean;
     variable found_idx_v  : integer range 0 to CHANNELS_PER_AFE_G - 1;
   begin
     if rising_edge(clock_i) then
       desc_taken_v := (others => '0');
+      desc_released_v := (others => '0');
 
       if (reset_i = '1' or reset_st_counters_i = '1') then
         serializer_state_s <= ser_idle;
@@ -203,6 +208,7 @@ begin
           when ser_emit =>
             if emit_index_s = WORDS_PER_BLOCK_C - 1 then
               if block_index_s = FINAL_BLOCK_INDEX_C then
+                desc_released_v(active_channel_s) := '1';
                 active_desc_s      <= STC3_FRAME_DESCRIPTOR_NULL;
                 active_trailer_s   <= PEAK_DESCRIPTOR_TRAILER_NULL;
                 serializer_state_s <= ser_idle;
@@ -218,6 +224,7 @@ begin
       end if;
 
       desc_taken_s <= desc_taken_v;
+      desc_released_s <= desc_released_v;
     end if;
   end process main_proc;
 

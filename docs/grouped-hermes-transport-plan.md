@@ -111,6 +111,15 @@ Per channel:
 - compact frame descriptor queue,
 - peak-descriptor side storage.
 
+Descriptor ownership rule:
+
+- once a grouped serializer claims a matured descriptor, the frame source may
+  remove it from the export queue,
+- but the frame must remain ring-protected until the serializer explicitly
+  releases it after the final payload word,
+- ring-retention safety must therefore track both queued and in-flight
+  descriptors, not just queue contents.
+
 Per grouped source:
 
 - arbitration over a small set of channel descriptor queues,
@@ -369,6 +378,17 @@ Draft paired wrapper cut:
 - [k26c_board_grouped_selftrigger_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_selftrigger_plane.vhd)
   pairs that grouped datapath plane with the grouped transport wrapper and
   restores the legacy outbuffer/debug side through the grouped debug shim.
+
+Recent seam correction:
+
+- [stc3_frame_source.vhd](../rtl/isolated/subsystems/trigger/stc3_frame_source.vhd)
+  no longer treats `desc_taken` as the end of ring ownership,
+- [afe_stc3_stream_serializer.vhd](../rtl/isolated/subsystems/trigger/afe_stc3_stream_serializer.vhd)
+  now emits an explicit descriptor-release pulse on packet completion,
+- [afe_grouped_selftrigger_island.vhd](../rtl/isolated/subsystems/trigger/afe_grouped_selftrigger_island.vhd)
+  threads that release back to the owning frame source,
+- this fixes the earlier draft bug where an in-flight descriptor could disappear
+  from the ring-retention accounting before its waveform had been fully read.
 
 Branch-local verification status:
 

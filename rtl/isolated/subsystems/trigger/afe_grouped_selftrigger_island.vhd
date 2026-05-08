@@ -47,6 +47,7 @@ architecture rtl of afe_grouped_selftrigger_island is
   signal desc_valid_s         : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal desc_s               : stc3_frame_descriptor_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal desc_taken_s         : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
+  signal desc_released_s      : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal desc_trailer_s       : peak_descriptor_trailer_bank_t(0 to CHANNELS_PER_AFE_G - 1);
   signal ring_rd_addr_s       : slv11_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal ring_dout_s          : sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -112,6 +113,7 @@ begin
         desc_o                 => desc_s(idx),
         desc_trailer_o         => desc_trailer_s(idx),
         desc_taken_i           => desc_taken_s(idx),
+        desc_released_i        => desc_released_s(idx),
         ring_rd_addr_i         => ring_rd_addr_s(idx),
         ring_dout_o            => ring_dout_s(idx)
       );
@@ -132,6 +134,7 @@ begin
         desc_i              => desc_s(CHANNEL_BASE_C to CHANNEL_BASE_C + CHANNELS_PER_PRODUCER_G - 1),
         desc_trailer_i      => desc_trailer_s(CHANNEL_BASE_C to CHANNEL_BASE_C + CHANNELS_PER_PRODUCER_G - 1),
         desc_taken_o        => desc_taken_s(CHANNEL_BASE_C to CHANNEL_BASE_C + CHANNELS_PER_PRODUCER_G - 1),
+        desc_released_o     => desc_released_s(CHANNEL_BASE_C to CHANNEL_BASE_C + CHANNELS_PER_PRODUCER_G - 1),
         ring_rd_addr_o      => ring_rd_addr_s(CHANNEL_BASE_C to CHANNEL_BASE_C + CHANNELS_PER_PRODUCER_G - 1),
         ring_dout_i         => ring_dout_s(CHANNEL_BASE_C to CHANNEL_BASE_C + CHANNELS_PER_PRODUCER_G - 1),
         ready_o             => serializer_ready_s(producer_idx),

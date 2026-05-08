@@ -35,6 +35,7 @@ entity stc3_frame_source is
     desc_o                 : out stc3_frame_descriptor_t;
     desc_trailer_o         : out peak_descriptor_trailer_t;
     desc_taken_i           : in  std_logic;
+    desc_released_i        : in  std_logic;
     ring_rd_addr_i         : in  std_logic_vector(10 downto 0);
     ring_dout_o            : out std_logic_vector(13 downto 0)
   );
@@ -99,6 +100,8 @@ architecture rtl of stc3_frame_source is
   signal min_trigger_spacing_s  : natural range 1 to FRAME_SAMPLE_COUNT_C := FRAME_SAMPLE_COUNT_C;
   signal oldest_pending_valid_s : std_logic;
   signal oldest_pending_ptr_s   : ring_addr_t := (others => '0');
+  signal inflight_valid_s       : std_logic := '0';
+  signal inflight_ptr_s         : ring_addr_t := (others => '0');
   signal queue_head_ready_s     : std_logic;
   signal spacing_ok_s           : std_logic;
   signal ring_safe_ok_s         : std_logic;
@@ -122,8 +125,10 @@ begin
   overlap_samples_s     <= overlap_samples_cfg(signal_delay_i);
   min_trigger_spacing_s <= FRAME_SAMPLE_COUNT_C - overlap_samples_s;
 
-  oldest_pending_valid_s <= '1' when frame_queue_count_s > 0 else '0';
-  oldest_pending_ptr_s   <= unsigned(frame_queue_s(frame_queue_head_s).start_ptr) when frame_queue_count_s > 0 else (others => '0');
+  oldest_pending_valid_s <= '1' when (inflight_valid_s = '1' or frame_queue_count_s > 0) else '0';
+  oldest_pending_ptr_s   <= inflight_ptr_s when inflight_valid_s = '1' else
+                            unsigned(frame_queue_s(frame_queue_head_s).start_ptr) when frame_queue_count_s > 0 else
+                            (others => '0');
 
   queue_head_ready_s <= '1' when (
     frame_queue_count_s > 0 and
@@ -228,6 +233,8 @@ begin
         frame_queue_head_s     <= 0;
         frame_queue_tail_s     <= 0;
         frame_queue_count_s    <= 0;
+        inflight_valid_s       <= '0';
+        inflight_ptr_s         <= (others => '0');
         record_count_s         <= (others => '0');
         busydrop_count_s       <= (others => '0');
         spacingdrop_count_s    <= (others => '0');
@@ -251,14 +258,23 @@ begin
           ringdrop_count_s       <= (others => '0');
           pack_count_s           <= (others => '0');
           samples_since_accept_s <= FRAME_SAMPLE_COUNT_C;
+          inflight_valid_s       <= '0';
+          inflight_ptr_s         <= (others => '0');
         else
           if samples_since_accept_s < FRAME_SAMPLE_COUNT_C then
             samples_since_accept_s <= samples_since_accept_s + 1;
           end if;
 
           if desc_taken_i = '1' and queue_head_ready_s = '1' and count_v > 0 then
+            inflight_valid_s <= '1';
+            inflight_ptr_s   <= unsigned(queue_v(head_v).start_ptr);
             head_v := next_queue_idx(head_v);
             count_v := count_v - 1;
+          end if;
+
+          if desc_released_i = '1' then
+            inflight_valid_s <= '0';
+            inflight_ptr_s   <= (others => '0');
             record_count_s <= record_count_s + 1;
           end if;
 
