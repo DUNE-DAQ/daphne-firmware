@@ -123,6 +123,28 @@ architecture rtl of grouped_hermes_readout_bridge is
   signal ext_mac_addr_s   : mac_addr_array(0 downto 0);
   signal ext_ip_addr_s    : ip_addr_array(0 downto 0);
   signal ext_port_addr_s  : udp_port_array(0 downto 0);
+
+  function to_src_d(
+    stream_i : grouped_source_stream_t
+  ) return src_d is
+    variable result_v : src_d := SRC_D_NULL;
+  begin
+    result_v.d     := stream_i.data;
+    result_v.valid := stream_i.valid;
+    result_v.last  := stream_i.last;
+    return result_v;
+  end function to_src_d;
+
+  function to_src_d_array(
+    streams_i : grouped_source_stream_array_t
+  ) return src_d_array is
+    variable result_v : src_d_array(streams_i'range);
+  begin
+    for idx in streams_i'range loop
+      result_v(idx) := to_src_d(streams_i(idx));
+    end loop;
+    return result_v;
+  end function to_src_d_array;
 begin
   axi_in_s.awaddr  <= s_axi_awaddr_i;
   axi_in_s.awprot  <= s_axi_awprot_i;

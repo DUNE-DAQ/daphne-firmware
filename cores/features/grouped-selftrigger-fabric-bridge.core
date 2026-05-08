@@ -1,0 +1,26 @@
+CAPI=2:
+
+name: dune-daq:daphne:grouped-selftrigger-fabric-bridge:0.1.0
+description: Branch-local grouped self-trigger bridge from legacy frontend/control inputs to grouped producer streams
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-package:0.1.0
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+      - dune-daq:daphne:grouped-transport-types:0.1.0
+      - dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
+      - dune-daq:daphne:trigger-control-adapter:0.1.0
+      - dune-daq:daphne:grouped-selftrigger-fabric:0.1.0
+    files:
+      - rtl/isolated/subsystems/control/legacy_selftrigger_inputs_bridge.vhd
+      - rtl/isolated/subsystems/control/grouped_selftrigger_fabric_bridge.vhd
+    file_type: vhdlSource-2008
+
+targets:
+  default:
+    toplevel: grouped_selftrigger_fabric_bridge
+    filesets:
+      - rtl

@@ -1,0 +1,17 @@
+CAPI=2:
+
+name: dune-daq:daphne:grouped-transport-types:0.1.0
+description: Shared grouped-source stream types for experimental self-trigger and Hermes transport seams
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - rtl/isolated/subsystems/readout/grouped_transport_pkg.vhd
+    file_type: vhdlSource-2008
+
+targets:
+  default:
+    filesets:
+      - rtl
