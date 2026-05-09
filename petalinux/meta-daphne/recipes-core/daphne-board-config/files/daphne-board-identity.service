@@ -1,0 +1,15 @@
+[Unit]
+Description=Apply DAPHNE board hostname
+DefaultDependencies=no
+After=local-fs.target
+Before=network-pre.target systemd-networkd.service systemd-hostnamed.service
+Wants=network-pre.target
+ConditionPathExists=/etc/daphne-board.env
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/daphne-board-identity.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=basic.target

@@ -1,0 +1,19 @@
+[Unit]
+Description=Program DAPHNE firmware app
+After=local-fs.target dfx-mgrd.service
+Wants=dfx-mgrd.service
+Before=clockchip.service endpoint.service hermes.service daphne.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/default/firmware
+EnvironmentFile=-/etc/daphne-board.env
+Environment=ACCEL_CONFIG_PATH=/lib/firmware/xilinx
+ExecStart=/usr/local/bin/daphne-fw.sh
+ExecStop=/usr/local/bin/daphne-fw-stop.sh
+TimeoutStartSec=20
+TimeoutStopSec=20
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

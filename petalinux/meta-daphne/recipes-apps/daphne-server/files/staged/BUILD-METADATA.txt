@@ -1,0 +1,5 @@
+source_bundle=/w/a/deploy/live-contracts/np04-daphne-015-20260507/np04-daphne-015-runtime-minimal.tgz
+source_board=np04-daphne-015
+generated_at=2026-05-08T20:12:27Z
+sha256=45043cc8bbbc0c8ca50040f5b437ed7dab259eebbfc81dcd9e4e5655d482f858
+contents=bin/hermes_udp_srv home/petalinux/daphne-server/build-petalinux/{daphneServer,_deps/...}

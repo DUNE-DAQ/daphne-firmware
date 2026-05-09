@@ -1,10 +1,5 @@
-No staged overlay artifacts have been installed yet.
-
-Populate this directory through:
-  scripts/petalinux/stage_overlay_into_project.sh
-
-Expected staged payload after qualification:
-  daphne-overlay.dtbo
-  daphne-overlay.bin
-  shell.json
-  SHA256SUMS
+git_sha=7353a17
+overlay_dir=/w/8/daphne_selftrigger_ol_7353a17
+overlay_zip=/w/8/daphne_selftrigger_ol_7353a17.zip
+source_output_dir=/w/8
+staged_at=2026-05-07T13:12:25Z

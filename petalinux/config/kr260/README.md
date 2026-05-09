@@ -10,7 +10,7 @@ The expected flow is:
 3. attach `meta-daphne`,
 4. choose the DAPHNE image profile,
 5. install the DAPHNE package set into the image,
-6. later add the real overlay and userspace payloads.
+6. stage the qualified overlay and userspace runtime payloads.
 
 The helper script:
 
@@ -23,6 +23,11 @@ uses the fragments here to:
 - add `project-spec/meta-daphne`
 - append the DAPHNE layer to `build/conf/bblayers.conf`
 - append the DAPHNE package set to `build/conf/local.conf`
+- pin the project config to the KR260 machine
+  (`CONFIG_SUBSYSTEM_INITRAMFS_IMAGE_NAME="petalinux-initramfs-image"`,
+  `CONFIG_YOCTO_MACHINE_NAME="xilinx-k26-kr"`,
+  `CONFIG_YOCTO_INCLUDE_MACHINE_NAME="k26-smk-kr"`,
+  `CONFIG_SUBSYSTEM_MACHINE_NAME="AUTO"`)
 - record `DAPHNE_IMAGE_PROFILE` in the project `local.conf`
 
 Two profiles are currently supported:
@@ -42,3 +47,9 @@ Example:
 ```
 
 This is still scaffolding, not a verified end-to-end PetaLinux image build.
+
+The current KR260 repo build path still uses an initramfs-oriented experiment,
+but that is not the long-term fleet contract. The intended remote-operations
+boot model is documented in:
+
+- `docs/remote-boot-deployment-plan.md`

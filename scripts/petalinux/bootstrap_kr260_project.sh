@@ -157,6 +157,39 @@ dst.write_text(text)
 PY
 }
 
+upsert_project_machine_settings() {
+  local dst="$1"
+
+  python3 - "$dst" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+dst = Path(sys.argv[1])
+text = dst.read_text()
+
+replacements = {
+    r'^CONFIG_SUBSYSTEM_MACHINE_NAME=.*$':
+        'CONFIG_SUBSYSTEM_MACHINE_NAME="AUTO"',
+    r'^CONFIG_SUBSYSTEM_INITRAMFS_IMAGE_NAME=.*$':
+        'CONFIG_SUBSYSTEM_INITRAMFS_IMAGE_NAME="petalinux-initramfs-image"',
+    r'^CONFIG_YOCTO_MACHINE_NAME=.*$':
+        'CONFIG_YOCTO_MACHINE_NAME="xilinx-k26-kr"',
+    r'^CONFIG_YOCTO_INCLUDE_MACHINE_NAME=.*$':
+        'CONFIG_YOCTO_INCLUDE_MACHINE_NAME="k26-smk-kr"',
+}
+
+for pattern, replacement in replacements.items():
+    text, count = re.subn(pattern, replacement, text, flags=re.MULTILINE)
+    if count == 0:
+        if text and not text.endswith("\n"):
+            text += "\n"
+        text += replacement + "\n"
+
+dst.write_text(text)
+PY
+}
+
 install_meta_layer
 
 append_once \
@@ -172,6 +205,7 @@ append_once \
   "# <<< DAPHNE image packages <<<"
 
 upsert_profile_setting "$LOCAL_CONF_FILE"
+upsert_project_machine_settings "$PROJECT_SPEC_DIR/configs/config"
 
 cat <<EOF
 Attached meta-daphne to:
@@ -180,13 +214,21 @@ Attached meta-daphne to:
 Updated:
   $BBLAYERS_FILE
   $LOCAL_CONF_FILE
+  $PROJECT_SPEC_DIR/configs/config
 
 Selected DAPHNE image profile:
   $IMAGE_PROFILE
 
+Pinned KR260 machine settings:
+  CONFIG_SUBSYSTEM_MACHINE_NAME="AUTO"
+  CONFIG_SUBSYSTEM_INITRAMFS_IMAGE_NAME="petalinux-initramfs-image"
+  CONFIG_YOCTO_MACHINE_NAME="xilinx-k26-kr"
+  CONFIG_YOCTO_INCLUDE_MACHINE_NAME="k26-smk-kr"
+
 Next manual steps:
-  1. Run petalinux-config --get-hw-description against the directory that contains your generated .xsa.
+  1. Run petalinux-config --silentconfig to regenerate build/conf/ with the KR260 machine if you are not using init_kr260_project.sh.
   2. Review device-tree integration under project-spec/meta-daphne/recipes-bsp/device-tree/files/.
   3. Stage overlay assets from xilinx/output/ once the firmware build is qualified.
-  4. Build and validate the image on a KR260/PetaLinux host.
+  4. Stage a qualified daphne-server runtime bundle with scripts/petalinux/stage_runtime_into_project.sh.
+  5. Build and validate the image on a KR260/PetaLinux host.
 EOF

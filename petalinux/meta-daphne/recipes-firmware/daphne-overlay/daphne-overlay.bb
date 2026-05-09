@@ -1,4 +1,4 @@
-SUMMARY = "Placeholder package for DAPHNE firmware overlay assets"
+SUMMARY = "DAPHNE firmware overlay assets"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
@@ -7,33 +7,46 @@ inherit allarch
 SRC_URI += " \
   file://README.overlay \
   file://staged/BUILD-METADATA.txt \
+  file://staged/daphne-overlay.dtbo \
+  file://staged/daphne-overlay.bin \
+  file://staged/shell.json \
+  file://staged/SHA256SUMS \
 "
 
-python __anonymous() {
-    import os
-    staged_dir = d.expand("${THISDIR}/files/staged")
-    staged_files = (
-        "daphne-overlay.dtbo",
-        "daphne-overlay.bin",
-        "shell.json",
-        "SHA256SUMS",
-    )
-    for name in staged_files:
-        path = os.path.join(staged_dir, name)
-        if os.path.exists(path):
-            d.appendVar("SRC_URI", f" file://staged/{name}")
-}
+DAPHNE_OVERLAY_APP ?= "daphne_selftrigger_ol_a389fcd"
+DAPHNE_LEGACY_OVERLAY_ALIASES ?= "MEZ_SELF_TRIG_V15_OL_UPGRADED MEZ_ALT_FW_TIMING_OL_UPGRADED"
 
 do_install() {
-    install -d ${D}${datadir}/daphne-firmware
-    install -m 0644 ${WORKDIR}/README.overlay ${D}${datadir}/daphne-firmware/README.overlay
-    install -m 0644 ${WORKDIR}/staged/BUILD-METADATA.txt ${D}${datadir}/daphne-firmware/BUILD-METADATA.txt
+    app_dir="${D}/lib/firmware/xilinx/${DAPHNE_OVERLAY_APP}"
 
-    for f in daphne-overlay.dtbo daphne-overlay.bin shell.json SHA256SUMS; do
-        if [ -f "${WORKDIR}/staged/$f" ]; then
-            install -m 0644 "${WORKDIR}/staged/$f" "${D}${datadir}/daphne-firmware/$f"
-        fi
+    install -d "${app_dir}"
+    install -d ${D}${datadir}/daphne-firmware
+
+    install -m 0644 ${WORKDIR}/README.overlay \
+        ${D}${datadir}/daphne-firmware/README.overlay
+    install -m 0644 ${WORKDIR}/staged/BUILD-METADATA.txt \
+        "${app_dir}/BUILD-METADATA.txt"
+    install -m 0644 ${WORKDIR}/staged/SHA256SUMS \
+        "${app_dir}/SHA256SUMS"
+    install -m 0644 ${WORKDIR}/staged/shell.json \
+        "${app_dir}/shell.json"
+    install -m 0644 ${WORKDIR}/staged/daphne-overlay.bin \
+        "${app_dir}/daphne-overlay.bin"
+    install -m 0644 ${WORKDIR}/staged/daphne-overlay.dtbo \
+        "${app_dir}/daphne-overlay.dtbo"
+
+    ln -snf daphne-overlay.bin "${app_dir}/${DAPHNE_OVERLAY_APP}.bin"
+    ln -snf daphne-overlay.dtbo "${app_dir}/${DAPHNE_OVERLAY_APP}.dtbo"
+
+    for alias in ${DAPHNE_LEGACY_OVERLAY_ALIASES}; do
+        ln -snf ${DAPHNE_OVERLAY_APP} "${D}/lib/firmware/xilinx/${alias}"
     done
 }
 
-FILES:${PN} += "${datadir}/daphne-firmware/*"
+FILES:${PN} += " \
+    ${datadir}/daphne-firmware/README.overlay \
+    /lib/firmware/xilinx/${DAPHNE_OVERLAY_APP} \
+    /lib/firmware/xilinx/${DAPHNE_OVERLAY_APP}/* \
+    /lib/firmware/xilinx/MEZ_SELF_TRIG_V15_OL_UPGRADED \
+    /lib/firmware/xilinx/MEZ_ALT_FW_TIMING_OL_UPGRADED \
+"

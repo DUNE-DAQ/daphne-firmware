@@ -8,5 +8,30 @@ Intended service chain:
 - hermes.service
 - daphne.service
 
-The exact units should eventually be generated from repo-owned sources rather
-than from target-side ad hoc installation.
+The service logic is now repo-owned, but the userspace runtime and overlay
+payloads are still staged from qualified artifacts rather than rebuilt here
+from source.
+
+The board-selection inputs for those units should come from the board-config
+package:
+
+- `/etc/default/firmware`
+- `/etc/daphne-board.env`
+
+In particular, the common timing profile should be driven from inventory
+metadata such as `TIMING_PROFILE`, `ENDPOINT_WAIT_MS`, and
+`ENDPOINT_SUCCESS_STATES`, not from per-board hand edits.
+
+Current implementation notes:
+
+- `firmware.service`, `hermes.service`, and `daphne.service` are based on the
+  verified `015` service contract.
+- `endpoint.service` performs the known endpoint MMIO bring-up from the
+  `daphneZMQ` register map through `/dev/mem`.
+- `clockchip.service` now carries the programming payload harvested from the
+  live `NP04-DAPHNE-014` `daphne-server` checkout on branch
+  `marroyav/server_bringup_thresholds` at commit
+  `aa2942a58d62e19a49cdfbf0b382ed118fcef9a5`.
+- `hermes.service` and `daphne.service` now start from normal system paths
+  (`/usr/bin/hermes_udp_srv` and `/usr/bin/daphneServer`) rather than from
+  `/home/petalinux/...`.

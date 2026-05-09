@@ -26,16 +26,16 @@ Still missing before this repo can be considered a full Petalinux deliverable:
 
 - a build-tested integration of `meta-daphne/` into a real KR260 PetaLinux
   project;
-- non-placeholder Yocto recipes for `daphne-server` and the systemd service
-  chain;
 - an automated handoff from the firmware build outputs
   (`xilinx/output/*.xsa`, `.bit`, `.dtbo`) to the board image build;
+- an automated handoff from a qualified `daphne-server` runtime bundle into the
+  board image build;
 - a validated target rootfs test on a Linux/Petalinux host.
 
 The modular FuseSoC split does not change these deploy-time gaps yet. The
-current deployable contract is still anchored on the working K26C Vivado batch
-flow plus the documented `daphne-server` runtime dependencies, but the missing
-Yocto ownership points now exist as repo-owned scaffolding under
+current deployable contract is anchored on the working K26C Vivado batch flow,
+the staged overlay bundle, and the staged `daphne-server` runtime bundle. The
+Yocto ownership points now exist as repo-owned recipes under
 `petalinux/meta-daphne/`.
 
 ## Current default package policy
@@ -90,8 +90,28 @@ That wrapper:
 
 - creates the project if needed,
 - runs `petalinux-config --get-hw-description`,
+- pins the project to the KR260 machine (`xilinx-k26-kr` / `k26-smk-kr`) plus `petalinux-initramfs-image`, then reruns `petalinux-config --silentconfig`,
 - attaches `meta-daphne`,
 - optionally stages the generated overlay artifacts.
+
+## Boot model status
+
+The current repo build flow is still experimenting with an `initramfs-root`
+style image, but that is not the long-term fleet contract.
+
+The target remote-operations contract is documented in:
+
+- `docs/remote-boot-deployment-plan.md`
+
+In short:
+
+- QSPI should own first-stage boot and rescue
+- eMMC should own the normal runtime OS
+- U-Boot should own slot selection, MAC identity, and fallback state
+- Linux should own board services and boot-health confirmation
+
+The current repo-built image should therefore be treated as an experimental
+bring-up path until it reproduces the intended eMMC-root remote-boot contract.
 
 ## Current full build wrapper
 
@@ -148,6 +168,28 @@ project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged/
 
 so the `daphne-overlay` recipe has a repo-owned place to install the qualified
 firmware artifacts from.
+
+## Current userspace runtime staging point
+
+After harvesting a qualified runtime bundle from a working board:
+
+```bash
+./scripts/petalinux/stage_runtime_into_project.sh \
+  /path/to/petalinux-project \
+  /path/to/daphne-server-runtime-minimal.tgz
+```
+
+That copies the bundle into:
+
+```text
+project-spec/meta-daphne/recipes-apps/daphne-server/files/staged/
+```
+
+so the `daphne-server` recipe can install:
+
+- `daphneServer`
+- `hermes_udp_srv`
+- the private runtime libraries needed by `daphneServer`
 
 ## Collected bundle layout
 

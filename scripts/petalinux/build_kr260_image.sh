@@ -6,8 +6,9 @@ usage() {
 Usage: build_kr260_image.sh PETALINUX_PROJECT_DIR HW_HANDOFF_DIR [options]
 
 Create or reuse a KR260-compatible PetaLinux project, apply the hardware
-handoff, attach the repo-owned layer, optionally stage the overlay payload,
-run petalinux-build, package BOOT.BIN, and collect the resulting artifacts.
+handoff, attach the repo-owned layer, optionally stage the overlay payload and
+runtime bundle, run petalinux-build, package BOOT.BIN, and collect the
+resulting artifacts.
 
 Project creation/config options:
   --bsp BSP_PATH          Create the project from a BSP
@@ -15,7 +16,9 @@ Project creation/config options:
   --image-profile NAME   DAPHNE image profile: developer|minimal
                          (default: developer)
   --output-dir DIR       Firmware xilinx/output directory for overlay staging
+  --runtime-bundle TGZ   Qualified DAPHNE runtime bundle for image staging
   --skip-stage-overlay   Do not stage overlay artifacts
+  --skip-stage-runtime   Do not stage the runtime bundle
   --copy-layer           Copy meta-daphne instead of symlinking it
 
 Build/package options:
@@ -57,13 +60,12 @@ PACKAGE_ARGS="${DAPHNE_PETALINUX_PACKAGE_ARGS:-}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --bsp|--template|--output-dir|--image-profile)
+    --bsp|--template|--output-dir|--runtime-bundle|--image-profile)
       INIT_ARGS+=("$1" "$2")
       shift 2
       ;;
-    --skip-stage-overlay|--copy-layer)
+    --skip-stage-overlay|--skip-stage-runtime|--copy-layer)
       INIT_ARGS+=("$1")
-      [[ "$1" == "--skip-stage-overlay" ]] && STAGE_OVERLAY=0
       shift
       ;;
     --bundle-dir)
