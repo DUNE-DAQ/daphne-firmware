@@ -143,7 +143,7 @@ def format_uboot_env(row):
         "slot_b_bootpart=3",
         "slot_b_root=/dev/mmcblk0p4",
         "select_slot=if test \"${active_slot}\" = \"a\"; then setenv slot_bootpart ${slot_a_bootpart}; setenv slot_root ${slot_a_root}; else setenv slot_bootpart ${slot_b_bootpart}; setenv slot_root ${slot_b_root}; fi",
-        "set_bootargs_daphne=run select_slot; setenv bootargs \"${bootargs_base} root=${slot_root} rootwait rw\"",
+        "set_bootargs_daphne=run select_slot; setenv bootargs \"${bootargs_base} ext4=${slot_root}:/rootfs\"",
         "load_slot_assets=mmc dev 0; load mmc 0:${slot_bootpart} ${kernel_addr_r} ${kernel_image}; load mmc 0:${slot_bootpart} ${fdt_addr_r} ${fdtfile}; load mmc 0:${slot_bootpart} ${ramdisk_addr_r} ${ramdisk_image}",
         "boot_slot=run set_bootargs_daphne; run load_slot_assets; booti ${kernel_addr_r} ${ramdisk_addr_r} ${fdt_addr_r}",
         "boot_qspi_rescue=echo QSPI rescue image is not provisioned yet; false",

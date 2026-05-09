@@ -10,6 +10,8 @@ SRC_URI += " \
   file://daphne-uboot-env-sync.py \
   file://daphne-board-identity.sh \
   file://daphne-board-identity.service \
+  file://daphne-boot-ok.sh \
+  file://daphne-boot-ok.service \
   file://fw_env.config \
 "
 
@@ -22,7 +24,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 DAPHNE_BOARD_ID ?= ""
 
 SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE:${PN} = "daphne-board-identity.service"
+SYSTEMD_SERVICE:${PN} = "daphne-board-identity.service daphne-boot-ok.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 do_install() {
@@ -39,8 +41,12 @@ do_install() {
         ${D}${bindir}/daphne-uboot-env-sync
     install -m 0755 ${WORKDIR}/daphne-board-identity.sh \
         ${D}${prefix}/local/bin/daphne-board-identity.sh
+    install -m 0755 ${WORKDIR}/daphne-boot-ok.sh \
+        ${D}${prefix}/local/bin/daphne-boot-ok.sh
     install -m 0644 ${WORKDIR}/daphne-board-identity.service \
         ${D}${systemd_system_unitdir}/daphne-board-identity.service
+    install -m 0644 ${WORKDIR}/daphne-boot-ok.service \
+        ${D}${systemd_system_unitdir}/daphne-boot-ok.service
     install -d ${D}${sysconfdir}
     install -m 0644 ${WORKDIR}/fw_env.config \
         ${D}${sysconfdir}/fw_env.config
@@ -58,7 +64,9 @@ FILES:${PN} += " \
     ${bindir}/daphne-uboot-env-sync \
     ${datadir}/daphne-board-config/ff0b_board_inventory.csv \
     ${prefix}/local/bin/daphne-board-identity.sh \
+    ${prefix}/local/bin/daphne-boot-ok.sh \
     ${systemd_system_unitdir}/daphne-board-identity.service \
+    ${systemd_system_unitdir}/daphne-boot-ok.service \
     /etc/default/firmware \
     /etc/daphne-board.env \
     /etc/daphne-uboot.env \
