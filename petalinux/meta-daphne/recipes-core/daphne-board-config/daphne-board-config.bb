@@ -7,12 +7,13 @@ inherit allarch systemd
 SRC_URI += " \
   file://ff0b_board_inventory.csv \
   file://daphne-board-config-apply.py \
+  file://daphne-uboot-env-sync.py \
   file://daphne-board-identity.sh \
   file://daphne-board-identity.service \
   file://fw_env.config \
 "
 
-RDEPENDS:${PN} += "python3-core"
+RDEPENDS:${PN} += "python3-core libubootenv-bin"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
@@ -34,6 +35,8 @@ do_install() {
         ${D}${datadir}/daphne-board-config/ff0b_board_inventory.csv
     install -m 0755 ${WORKDIR}/daphne-board-config-apply.py \
         ${D}${bindir}/daphne-board-config-apply
+    install -m 0755 ${WORKDIR}/daphne-uboot-env-sync.py \
+        ${D}${bindir}/daphne-uboot-env-sync
     install -m 0755 ${WORKDIR}/daphne-board-identity.sh \
         ${D}${prefix}/local/bin/daphne-board-identity.sh
     install -m 0644 ${WORKDIR}/daphne-board-identity.service \
@@ -52,6 +55,7 @@ do_install() {
 
 FILES:${PN} += " \
     ${bindir}/daphne-board-config-apply \
+    ${bindir}/daphne-uboot-env-sync \
     ${datadir}/daphne-board-config/ff0b_board_inventory.csv \
     ${prefix}/local/bin/daphne-board-identity.sh \
     ${systemd_system_unitdir}/daphne-board-identity.service \
