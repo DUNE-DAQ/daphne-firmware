@@ -19,6 +19,8 @@ Current contents:
   `scripts/petalinux/collect_project_artifacts.sh` for repo-owned
   `petalinux-build`, boot packaging, and image artifact collection into a
   stable bundle.
+- `docs/kr260-petalinux-build-guide.md` for the current written build and
+  staging procedure, updated against the proven `015` findings.
 - a default-on `packagegroup-daphne-server-build` that stages the target-side
   development dependencies needed by `daphne-server` / `daphneZMQ`
 
