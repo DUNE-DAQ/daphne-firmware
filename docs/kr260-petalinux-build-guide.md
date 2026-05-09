@@ -28,6 +28,9 @@ Important current status:
   - repo-built `rootfs.ext4`
   - repo-built tiny switch-root ramdisk
   - full repo-owned runtime service chain
+- board-stamped images now also carry first-step U-Boot ownership artifacts:
+  - `/etc/daphne-uboot.env`
+  - `/etc/fw_env.config`
 - the original repo-built DTB failure on `015` has been traced and fixed by
   removing the generated base `pl-bus` from the non-overlay DT
 - that fixed repo-owned DTB is now also proven in the persistent default boot

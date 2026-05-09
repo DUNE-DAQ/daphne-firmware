@@ -9,6 +9,7 @@ SRC_URI += " \
   file://daphne-board-config-apply.py \
   file://daphne-board-identity.sh \
   file://daphne-board-identity.service \
+  file://fw_env.config \
 "
 
 RDEPENDS:${PN} += "python3-core"
@@ -37,6 +38,9 @@ do_install() {
         ${D}${prefix}/local/bin/daphne-board-identity.sh
     install -m 0644 ${WORKDIR}/daphne-board-identity.service \
         ${D}${systemd_system_unitdir}/daphne-board-identity.service
+    install -d ${D}${sysconfdir}
+    install -m 0644 ${WORKDIR}/fw_env.config \
+        ${D}${sysconfdir}/fw_env.config
 
     if [ -n "${DAPHNE_BOARD_ID}" ]; then
         ${PYTHON} ${WORKDIR}/daphne-board-config-apply.py \
@@ -53,6 +57,8 @@ FILES:${PN} += " \
     ${systemd_system_unitdir}/daphne-board-identity.service \
     /etc/default/firmware \
     /etc/daphne-board.env \
+    /etc/daphne-uboot.env \
+    /etc/fw_env.config \
     /etc/systemd/network/10-ff0b.link \
     /etc/systemd/network/11-ff0c.link \
     /etc/systemd/network/20-ff0b.network \
@@ -62,6 +68,8 @@ FILES:${PN} += " \
 CONFFILES:${PN} += " \
     /etc/default/firmware \
     /etc/daphne-board.env \
+    /etc/daphne-uboot.env \
+    /etc/fw_env.config \
     /etc/systemd/network/10-ff0b.link \
     /etc/systemd/network/11-ff0c.link \
     /etc/systemd/network/20-ff0b.network \
