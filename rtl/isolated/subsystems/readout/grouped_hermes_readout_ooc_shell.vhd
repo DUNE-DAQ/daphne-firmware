@@ -9,7 +9,7 @@ use work.tx_mux_decl.all;
 entity grouped_hermes_readout_ooc_shell is
   generic (
     SOURCE_COUNT_G : positive := 5;
-    IN_BUF_DEPTH_G : natural := 2048
+    IN_BUF_DEPTH_G : natural := 1024
   );
   port (
     ipb_clk_i       : in  std_logic;

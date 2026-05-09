@@ -6,8 +6,9 @@ use work.grouped_transport_pkg.all;
 
 entity k26c_board_grouped_transport_plane is
   generic (
-    SOURCE_COUNT_G     : positive := 10;
-    ENABLE_OUTBUFFER_G : boolean  := true
+    SOURCE_COUNT_G        : positive := 10;
+    HERMES_IN_BUF_DEPTH_G : natural := 1024;
+    ENABLE_OUTBUFFER_G    : boolean  := true
   );
   port (
     clock               : in  std_logic;
@@ -80,7 +81,8 @@ architecture rtl of k26c_board_grouped_transport_plane is
 begin
   hermes_transport_plane_inst : entity work.k26c_grouped_hermes_transport_plane
     generic map (
-      SOURCE_COUNT_G => SOURCE_COUNT_G
+      SOURCE_COUNT_G        => SOURCE_COUNT_G,
+      HERMES_IN_BUF_DEPTH_G => HERMES_IN_BUF_DEPTH_G
     )
     port map (
       clock               => clock,

@@ -13,7 +13,7 @@ use work.tx_mux_decl.all;
 entity grouped_hermes_readout_bridge is
   generic (
     SOURCE_COUNT_G : positive := 5;
-    IN_BUF_DEPTH_G : natural := 2048;
+    IN_BUF_DEPTH_G : natural := 1024;
     REF_FREQ_G     : t_freq := f156_25
   );
   port (
