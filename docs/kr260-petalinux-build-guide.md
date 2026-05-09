@@ -29,6 +29,8 @@ Important current status:
 - the original repo-built DTB failure on `015` has been traced and fixed by
   removing the generated base `pl-bus` from the non-overlay DT
 - that fixed repo-owned DTB is proven in one-shot serial/U-Boot boot testing
+- the shared DAPHNE DT now makes `gem0` explicitly boot as the management
+  `sgmii` fixed-link, following the proven `daphne-14` contract
 - the remaining boot gap is narrower:
   - promote the fixed DTB into the normal persistent boot path
   - preserve the expected management-network identity there
@@ -112,6 +114,7 @@ before exporting hardware. Legacy notes still broadly match the intended KR260
 shape:
 
 - GEM0 enabled for management
+  - explicitly `sgmii` on the PS GT path with a `fixed-link`
 - SD0 / eMMC enabled
 - UART1 on MIO 36..37
 - I2C1 on MIO 24..25

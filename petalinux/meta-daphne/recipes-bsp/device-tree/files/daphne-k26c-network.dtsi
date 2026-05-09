@@ -17,11 +17,18 @@
 
 &gem0 {
 	/*
-	 * The golden DTB uses GEM0 in SGMII mode with a fixed-link. Preserve that
-	 * ownership on the PS/device-tree side.
+	 * DAPHNE uses GEM0 over the PS GT SGMII path with a fixed-link. Keep that
+	 * contract explicit here so Linux does not depend on the generated external
+	 * PHY defaults from the base KR260 tree.
 	 */
+	is-internal-pcspma;
 	phy-mode = "sgmii";
 	local-mac-address = [02 00 00 00 00 20];
 	mac-address = [02 00 00 00 00 20];
 	status = "okay";
+
+	fixed-link {
+		speed = <1000>;
+		full-duplex;
+	};
 };
