@@ -6,6 +6,7 @@ PartOf=firmware.service
 
 [Service]
 Type=simple
+Environment=LD_LIBRARY_PATH=/usr/lib/daphne-server
 Environment=DAPHNE_BIND_ENDPOINT=tcp://*:40001
 ExecStart=/bin/sh -c 'exec /usr/bin/daphneServer --bind "${DAPHNE_BIND_ENDPOINT}"'
 Restart=on-failure

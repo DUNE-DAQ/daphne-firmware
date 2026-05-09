@@ -119,22 +119,25 @@ Current comparison:
 - `NP04-DAPHNE-014` is booting with `/dev/mmcblk0p2` as the real `/` rootfs,
   and exposes both `/dev/i2c-1` and `/dev/i2c-2`.
 - `NP04-DAPHNE-015` now has one persistent mixed deploy that boots with
-  `/dev/mmcblk0p2` as the real `/` rootfs, but still only exposes
-  `/dev/i2c-1`.
-- On that `015` boot, `firmware.service` succeeds, but `clockchip.service`
-  still fails because the expected timing I2C adapter itself is absent.
+  `/dev/mmcblk0p2` as the real `/` rootfs.
+- The first repo-owned `firmware.service` implementation on `015` appeared to
+  succeed, but the overlay had actually failed to apply because the DT overlay
+  requested `daphne_selftrigger_7353a17.bit.bin` and that firmware alias was
+  missing under `/lib/firmware/`.
+- Once that alias was installed, `015` immediately reached FPGA state
+  `operating`, exposed `/dev/i2c-2`, and bound both
+  `/sys/bus/platform/devices/9c000000.i2c` and
+  `/sys/bus/platform/devices/9c010000.interrupt-controller`.
 - The repo-owned service no longer hardcodes one fixed bus number: on `014` it
-  auto-discovers bus `2`, and on `015` it cleanly reports that no matching
-  clockchip bus is visible for `0x70/0x71/0x72`.
+  auto-discovers bus `2`, and on `015` it now does the same after the overlay
+  bind succeeds.
 
 So this is not simply "the overlay can never expose the timing I2C bus".
 The stronger working hypothesis is now:
 
 - the `014` boot payload and device-tree/runtime combination bind the
   PL timing I2C path correctly;
-- the current `015` boot payload and/or device-tree/runtime combination still
-  do not;
-- therefore the next engineering target is to replace the remaining `015`
-  kernel/DT boot payload with a repo-owned equivalent that preserves the Linux
-  timing-bus contract, rather than trying to special-case one hardcoded
-  `/dev/i2c-N`.
+- the current repo overlay package originally missed one required firmware-name
+  alias for the `015` DT overlay path;
+- the remaining `015` work has moved up-stack from Linux I2C visibility to
+  service/runtime packaging, not PL I2C binding itself.

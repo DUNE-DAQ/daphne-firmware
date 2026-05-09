@@ -1,161 +1,157 @@
-#!/usr/bin/env python3
+#!/bin/sh
+set -eu
 
-import mmap
-import os
-import struct
-import sys
-import time
-from pathlib import Path
+ENDPOINT_BASE=$((0x84000000))
+REG_CLOCK_CONTROL=$((ENDPOINT_BASE + 0x0))
+REG_CLOCK_STATUS=$((ENDPOINT_BASE + 0x4))
+REG_ENDPOINT_CONTROL=$((ENDPOINT_BASE + 0x8))
+REG_ENDPOINT_STATUS=$((ENDPOINT_BASE + 0xC))
 
-PAGE_SIZE = mmap.PAGESIZE
-ENDPOINT_BASE = 0x84000000
-REG_CLOCK_CONTROL = 0x0
-REG_CLOCK_STATUS = 0x4
-REG_ENDPOINT_CONTROL = 0x8
-REG_ENDPOINT_STATUS = 0xC
+BIT_MMCM_RESET=1
+BIT_CLOCK_SOURCE=2
+BIT_MMCM0_LOCKED=0
+BIT_MMCM1_LOCKED=1
+BIT_ENDPOINT_RESET=16
+BIT_TIMESTAMP_OK=4
+MASK_ENDPOINT_ADDR=0xFFFF
+MASK_FSM_STATUS=0xF
 
-BIT_SOFT_RESET = 0
-BIT_MMCM_RESET = 1
-BIT_CLOCK_SOURCE = 2
-BIT_MMCM0_LOCKED = 0
-BIT_MMCM1_LOCKED = 1
-BIT_ENDPOINT_RESET = 16
-BIT_TIMESTAMP_OK = 4
-MASK_ENDPOINT_ADDR = 0xFFFF
-MASK_FSM_STATUS = 0xF
+[ -f /etc/default/firmware ] && . /etc/default/firmware
+[ -f /etc/daphne-board.env ] && . /etc/daphne-board.env
 
+TIMING_PROFILE="${TIMING_PROFILE:-}"
+[ -n "$TIMING_PROFILE" ] || {
+  echo "TIMING_PROFILE not set; skipping endpoint init."
+  exit 0
+}
+[ "$TIMING_PROFILE" = "endpoint-sync-v14" ] || {
+  echo "Unknown TIMING_PROFILE=$TIMING_PROFILE" >&2
+  exit 1
+}
 
-def load_env(path):
-    values = {}
-    if not path.exists():
-        return values
-    for raw in path.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        values[key.strip()] = value.strip()
-    return values
+command -v devmem >/dev/null 2>&1 || {
+  echo "Missing devmem" >&2
+  exit 1
+}
 
+ENDPOINT_ADDR=$(( ${ENDPOINT_ADDR_HEX:-0x20} ))
+ENDPOINT_WAIT_MS="${ENDPOINT_WAIT_MS:-1000}"
+ENDPOINT_SUCCESS_STATES="${ENDPOINT_SUCCESS_STATES:-0x8}"
+CLOCK_SOURCE="${ENDPOINT_CLOCK_SOURCE:-1}"
 
-def parse_states(value):
-    if not value:
-        return {0x8}
-    states = set()
-    for item in value.split(","):
-        item = item.strip()
-        if item:
-            states.add(int(item, 0))
-    return states or {0x8}
+if [ "$ENDPOINT_WAIT_MS" -lt 1000 ]; then
+  ENDPOINT_WAIT_MS=1000
+fi
 
-
-def read_u32(mem, offset):
-    return struct.unpack_from("<I", mem, offset)[0]
-
-
-def write_u32(mem, offset, value):
-    struct.pack_into("<I", mem, offset, value & 0xFFFFFFFF)
-
-
-def set_bit(mem, reg, bit, enabled):
-    value = read_u32(mem, reg)
-    if enabled:
-        value |= 1 << bit
-    else:
-        value &= ~(1 << bit)
-    write_u32(mem, reg, value)
-
-
-def pulse_bit(mem, reg, bit):
-    set_bit(mem, reg, bit, True)
-    time.sleep(0.01)
-    set_bit(mem, reg, bit, False)
-
-
-def set_endpoint_address(mem, address):
-    value = read_u32(mem, REG_ENDPOINT_CONTROL)
-    value &= ~MASK_ENDPOINT_ADDR
-    value |= address & MASK_ENDPOINT_ADDR
-    write_u32(mem, REG_ENDPOINT_CONTROL, value)
-
-
-def wait_until(deadline, predicate, message):
-    while time.monotonic() < deadline:
-        if predicate():
-            return
-        time.sleep(0.05)
-    raise SystemExit(message)
-
-
-def main():
-    env = {}
-    env.update(load_env(Path("/etc/default/firmware")))
-    env.update(load_env(Path("/etc/daphne-board.env")))
-    env.update(os.environ)
-
-    profile = env.get("TIMING_PROFILE", "")
-    if not profile:
-        print("TIMING_PROFILE not set; skipping endpoint init.")
-        return 0
-    if profile != "endpoint-sync-v14":
-        raise SystemExit(f"Unknown TIMING_PROFILE={profile}")
-
-    endpoint_addr = int(env.get("ENDPOINT_ADDR_HEX", "0x20"), 0)
-    endpoint_wait_ms = int(env.get("ENDPOINT_WAIT_MS", "1000"), 0)
-    success_states = parse_states(env.get("ENDPOINT_SUCCESS_STATES", "0x8"))
-    clock_source = int(env.get("ENDPOINT_CLOCK_SOURCE", "1"), 0)
-    timeout = max(endpoint_wait_ms, 1000) / 1000.0
-
-    fd = os.open("/dev/mem", os.O_RDWR | os.O_SYNC)
-    try:
-        mem = mmap.mmap(fd, PAGE_SIZE, offset=ENDPOINT_BASE)
-        try:
-            set_bit(mem, REG_CLOCK_CONTROL, BIT_CLOCK_SOURCE, bool(clock_source))
-            pulse_bit(mem, REG_CLOCK_CONTROL, BIT_MMCM_RESET)
-
-            mmcm_deadline = time.monotonic() + timeout
-            wait_until(
-                mmcm_deadline,
-                lambda: (
-                    ((read_u32(mem, REG_CLOCK_STATUS) >> BIT_MMCM0_LOCKED) & 0x1) == 1
-                    and ((read_u32(mem, REG_CLOCK_STATUS) >> BIT_MMCM1_LOCKED) & 0x1) == 1
-                ),
-                "Endpoint MMCMs did not lock in time.",
-            )
-
-            set_endpoint_address(mem, endpoint_addr)
-            pulse_bit(mem, REG_ENDPOINT_CONTROL, BIT_ENDPOINT_RESET)
-
-            endpoint_deadline = time.monotonic() + timeout
-            def endpoint_ready():
-                status = read_u32(mem, REG_ENDPOINT_STATUS)
-                timestamp_ok = (status >> BIT_TIMESTAMP_OK) & 0x1
-                fsm_status = status & MASK_FSM_STATUS
-                if fsm_status not in success_states:
-                    return False
-                if fsm_status == 0x8:
-                    return timestamp_ok == 1
-                return True
-
-            wait_until(
-                endpoint_deadline,
-                endpoint_ready,
-                "Endpoint status did not reach an expected ready state.",
-            )
-
-            status = read_u32(mem, REG_ENDPOINT_STATUS)
-            print(
-                "Endpoint ready:"
-                f" address=0x{endpoint_addr:04x}"
-                f" timestamp_ok={(status >> BIT_TIMESTAMP_OK) & 0x1}"
-                f" fsm_status=0x{status & MASK_FSM_STATUS:x}"
-            )
-        finally:
-            mem.close()
-    finally:
-        os.close(fd)
+pause_us() {
+  delay="$1"
+  if busybox usleep "$delay" 2>/dev/null; then
     return 0
+  fi
+  sleep 0.1
+}
 
+read_reg() {
+  devmem "$1" 32
+}
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+write_reg() {
+  devmem "$1" 32 "$2" >/dev/null
+}
+
+read_reg_dec() {
+  value="$(read_reg "$1")"
+  printf '%u\n' "$((value))"
+}
+
+set_bit() {
+  reg="$1"
+  bit="$2"
+  enabled="$3"
+  value="$(read_reg_dec "$reg")"
+  if [ "$enabled" = "1" ]; then
+    value=$(( value | (1 << bit) ))
+  else
+    value=$(( value & ~(1 << bit) ))
+  fi
+  write_reg "$reg" "$value"
+}
+
+pulse_bit() {
+  reg="$1"
+  bit="$2"
+  set_bit "$reg" "$bit" 1
+  pause_us 10000
+  set_bit "$reg" "$bit" 0
+}
+
+set_endpoint_address() {
+  value="$(read_reg_dec "$REG_ENDPOINT_CONTROL")"
+  value=$(( (value & ~MASK_ENDPOINT_ADDR) | (ENDPOINT_ADDR & MASK_ENDPOINT_ADDR) ))
+  write_reg "$REG_ENDPOINT_CONTROL" "$value"
+}
+
+status_matches_success() {
+  status="$1"
+  fsm=$(( status & MASK_FSM_STATUS ))
+  timestamp_ok=$(( (status >> BIT_TIMESTAMP_OK) & 0x1 ))
+
+  old_ifs="$IFS"
+  IFS=','
+  set -- $ENDPOINT_SUCCESS_STATES
+  IFS="$old_ifs"
+
+  for state in "$@"; do
+    [ -n "$state" ] || continue
+    want=$((state))
+    if [ "$fsm" -eq "$want" ]; then
+      if [ "$fsm" -eq 8 ] && [ "$timestamp_ok" -ne 1 ]; then
+        return 1
+      fi
+      return 0
+    fi
+  done
+  return 1
+}
+
+wait_loops=$(( (ENDPOINT_WAIT_MS + 49) / 50 ))
+mmcm_loops="$wait_loops"
+endpoint_loops="$wait_loops"
+
+set_bit "$REG_CLOCK_CONTROL" "$BIT_CLOCK_SOURCE" "$CLOCK_SOURCE"
+pulse_bit "$REG_CLOCK_CONTROL" "$BIT_MMCM_RESET"
+
+while [ "$mmcm_loops" -gt 0 ]; do
+  status="$(read_reg_dec "$REG_CLOCK_STATUS")"
+  mmcm0_locked=$(( (status >> BIT_MMCM0_LOCKED) & 0x1 ))
+  mmcm1_locked=$(( (status >> BIT_MMCM1_LOCKED) & 0x1 ))
+  if [ "$mmcm0_locked" -eq 1 ] && [ "$mmcm1_locked" -eq 1 ]; then
+    break
+  fi
+  pause_us 50000
+  mmcm_loops=$(( mmcm_loops - 1 ))
+done
+
+[ "$mmcm_loops" -gt 0 ] || {
+  echo "Endpoint MMCMs did not lock in time." >&2
+  exit 1
+}
+
+set_endpoint_address
+pulse_bit "$REG_ENDPOINT_CONTROL" "$BIT_ENDPOINT_RESET"
+
+while [ "$endpoint_loops" -gt 0 ]; do
+  endpoint_status="$(read_reg_dec "$REG_ENDPOINT_STATUS")"
+  if status_matches_success "$endpoint_status"; then
+    timestamp_ok=$(( (endpoint_status >> BIT_TIMESTAMP_OK) & 0x1 ))
+    fsm_status=$(( endpoint_status & MASK_FSM_STATUS ))
+    printf 'Endpoint ready: address=0x%04x timestamp_ok=%s fsm_status=0x%x\n' \
+      "$ENDPOINT_ADDR" "$timestamp_ok" "$fsm_status"
+    exit 0
+  fi
+  pause_us 50000
+  endpoint_loops=$(( endpoint_loops - 1 ))
+done
+
+echo "Endpoint status did not reach an expected ready state." >&2
+exit 1

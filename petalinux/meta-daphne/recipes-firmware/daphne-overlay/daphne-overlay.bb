@@ -15,6 +15,7 @@ SRC_URI += " \
 
 DAPHNE_OVERLAY_APP ?= "daphne_selftrigger_ol_a389fcd"
 DAPHNE_LEGACY_OVERLAY_ALIASES ?= "MEZ_SELF_TRIG_V15_OL_UPGRADED MEZ_ALT_FW_TIMING_OL_UPGRADED"
+DAPHNE_OVERLAY_FIRMWARE_NAME ?= "daphne_selftrigger_7353a17.bit.bin"
 
 do_install() {
     app_dir="${D}/lib/firmware/xilinx/${DAPHNE_OVERLAY_APP}"
@@ -37,6 +38,8 @@ do_install() {
 
     ln -snf daphne-overlay.bin "${app_dir}/${DAPHNE_OVERLAY_APP}.bin"
     ln -snf daphne-overlay.dtbo "${app_dir}/${DAPHNE_OVERLAY_APP}.dtbo"
+    ln -snf "xilinx/${DAPHNE_OVERLAY_APP}/${DAPHNE_OVERLAY_APP}.bin" \
+        "${D}/lib/firmware/${DAPHNE_OVERLAY_FIRMWARE_NAME}"
 
     for alias in ${DAPHNE_LEGACY_OVERLAY_ALIASES}; do
         ln -snf ${DAPHNE_OVERLAY_APP} "${D}/lib/firmware/xilinx/${alias}"
@@ -45,6 +48,7 @@ do_install() {
 
 FILES:${PN} += " \
     ${datadir}/daphne-firmware/README.overlay \
+    /lib/firmware/${DAPHNE_OVERLAY_FIRMWARE_NAME} \
     /lib/firmware/xilinx/${DAPHNE_OVERLAY_APP} \
     /lib/firmware/xilinx/${DAPHNE_OVERLAY_APP}/* \
     /lib/firmware/xilinx/MEZ_SELF_TRIG_V15_OL_UPGRADED \

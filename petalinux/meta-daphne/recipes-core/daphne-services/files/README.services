@@ -27,7 +27,8 @@ Current implementation notes:
 - `firmware.service`, `hermes.service`, and `daphne.service` are based on the
   verified `015` service contract.
 - `endpoint.service` performs the known endpoint MMIO bring-up from the
-  `daphneZMQ` register map through `/dev/mem`.
+  `daphneZMQ` register map through `/dev/mem`, but now does it through a
+  shell-native `devmem` helper rather than a Python `mmap` dependency.
 - `clockchip.service` now carries the programming payload harvested from the
   live `NP04-DAPHNE-014` `daphne-server` checkout on branch
   `marroyav/server_bringup_thresholds` at commit
@@ -39,3 +40,6 @@ Current implementation notes:
 - `hermes.service` and `daphne.service` now start from normal system paths
   (`/usr/bin/hermes_udp_srv` and `/usr/bin/daphneServer`) rather than from
   `/home/petalinux/...`.
+- `daphne.service` also carries `LD_LIBRARY_PATH=/usr/lib/daphne-server`
+  because the staged `daphneServer` bundle still ships private shared libs
+  outside the default dynamic-linker search path.
