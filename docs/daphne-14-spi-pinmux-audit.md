@@ -46,6 +46,45 @@ Those default pinctrl groups owned the SPI-conflicting MIOs.
 - the current userspace SPI path `/dev/spidev-daphne` is PL `spidev3.0`, not
   these reclaimed PS MIO pins
 
+## Reference patch vs. live DT
+
+Two different DT shapes have circulated for `daphne-14`:
+
+1. an older board-specific patch sketch that looks roughly like:
+   - `ff0b0000` forced to a debug Ethernet role
+   - `gem1` kept enabled for SFP/SGMII
+   - `i2c0` enabled for SFP EEPROM
+   - `sdhci1` enabled
+2. the later live decompiled DT from the board after the SPI-safe boot-time
+   patch was staged
+
+The later decompiled DT is the stronger source of truth for the booted board.
+That live DT showed:
+
+- `ethernet@ff0b0000` (`gem0`) still active as the management path
+- `ethernet@ff0c0000` (`gem1`) disabled
+- `usb0` disabled
+- `usb1` disabled
+- `i2c1` still active
+- `i2c0` disabled
+- `sdhci1` disabled
+
+So the repo should **not** blindly copy the older small patch verbatim. In
+particular, re-enabling `gem1` would directly conflict with the SPI-safe MIO
+reclaim goal.
+
+For the repo-owned default DAPHNE image, the intended policy is the one proven
+by the later live DT:
+
+- keep `gem0`
+- disable `gem1`
+- disable `usb0`
+- disable `usb1`
+- keep `i2c1`
+- leave `i2c0` and `sdhci1` unchanged unless there is a separate board-level
+  reason to restore them
+- mux the mezzanine SPI-conflicting MIOs to `gpio0`
+
 ## Conclusion from the audit
 
 For the default DAPHNE image:
