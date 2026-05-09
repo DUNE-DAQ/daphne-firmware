@@ -10,6 +10,7 @@ filesets:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
       - dune-daq:daphne:daphne-ip:0.1.0
+      - dune-daq:daphne:daphne-subsystem-primitives:0.1.0
       - dune-daq:daphne:grouped-transport-types:0.1.0
       - dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0
       - dune-daq:daphne:k26c-board-grouped-outbuffer-plane:0.1.0

@@ -73,10 +73,6 @@ architecture rtl of k26c_grouped_selftrigger_datapath_plane is
   signal record_count      : slv64_array_t(0 to CHANNEL_COUNT_C - 1);
   signal full_count        : slv64_array_t(0 to CHANNEL_COUNT_C - 1);
   signal busy_count        : slv64_array_t(0 to CHANNEL_COUNT_C - 1);
-  signal delayed_sample    : sample14_array_t(0 to CHANNEL_COUNT_C - 1);
-  signal trigger_control   : trigger_xcorr_control_array_t(0 to CHANNEL_COUNT_C - 1);
-  signal trigger_result    : trigger_xcorr_result_array_t(0 to CHANNEL_COUNT_C - 1);
-  signal descriptor_result : peak_descriptor_result_array_t(0 to CHANNEL_COUNT_C - 1);
 begin
   threshold_axi_in.ACLK    <= thresh_s_axi_aclk;
   threshold_axi_in.ARESETN <= thresh_s_axi_aresetn;
@@ -101,10 +97,9 @@ begin
   thresh_s_axi_rresp   <= threshold_axi_out.RRESP;
   thresh_s_axi_rvalid  <= threshold_axi_out.RVALID;
 
-  gen_monitor_outputs : for idx in 0 to CHANNEL_COUNT_C - 1 generate
-  begin
-    st_trigger_signal(idx) <= trigger_result(idx).trigger_pulse;
-  end generate gen_monitor_outputs;
+  -- The deployed grouped top leaves this monitor port open. Keep it quiet so
+  -- the trigger/descriptor monitor records do not cross this hierarchy seam.
+  st_trigger_signal <= (others => '0');
 
   grouped_bridge_inst : entity work.grouped_selftrigger_fabric_bridge
     generic map (
@@ -129,14 +124,14 @@ begin
       force_trigger_i          => forcetrig,
       timestamp_i              => timestamp,
       version_i                => version(3 downto 0),
-      trigger_result_o         => trigger_result,
-      descriptor_result_o      => descriptor_result,
+      trigger_result_o         => open,
+      descriptor_result_o      => open,
       record_count_o           => record_count,
       full_count_o             => full_count,
       busy_count_o             => busy_count,
       trigger_count_o          => tcount,
       packet_count_o           => pcount,
-      delayed_sample_o         => delayed_sample,
+      delayed_sample_o         => open,
       grouped_readout_ready_i  => grouped_readout_ready_i,
       grouped_readout_o        => grouped_readout_o
     );

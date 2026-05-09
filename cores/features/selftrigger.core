@@ -21,7 +21,6 @@ filesets:
       - ip_repo/daphne_ip/rtl/selftrig/peak_descriptor_import/Peak_Descriptor_Calculation.vhd
       - ip_repo/daphne_ip/rtl/selftrig/core.vhd
       - ip_repo/daphne_ip/rtl/selftrig/dual_st20_top.vhd
-      - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/dsp_xc.vhd
       - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/st_xc.vhd
       - ip_repo/daphne_ip/rtl/selftrig/selftrig_core.vhd
       - ip_repo/daphne_ip/rtl/selftrig/st20_top.vhd

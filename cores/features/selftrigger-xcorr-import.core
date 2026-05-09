@@ -11,7 +11,6 @@ filesets:
       - dune-daq:daphne:selftrigger-import-common:0.1.0
     files:
       - ip_repo/daphne_ip/rtl/selftrig/xcorr_import/hpf_pedestal_recovery_filter_trigger.vhd
-      - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/dsp_xc.vhd
       - ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/st_xc.vhd
       - ip_repo/daphne_ip/rtl/selftrig/trig_xc.vhd
     file_type: vhdlSource-2008

@@ -107,16 +107,10 @@ architecture rtl of stc3_frame_source is
   signal ring_safe_ok_s         : std_logic;
   signal queue_space_ok_s       : std_logic;
   signal can_accept_frame_s     : std_logic;
-  signal spacing_reject_s       : std_logic;
-  signal queue_reject_s         : std_logic;
-  signal ring_reject_s          : std_logic;
   signal busy_reject_s          : std_logic;
   signal samples_since_accept_s : natural range 0 to FRAME_SAMPLE_COUNT_C := FRAME_SAMPLE_COUNT_C;
   signal record_count_s         : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal busydrop_count_s       : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
-  signal spacingdrop_count_s    : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
-  signal queuedrop_count_s      : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
-  signal ringdrop_count_s       : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal trig_count_s           : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
   signal pack_count_s           : unsigned(LIVE_COUNTER_WIDTH_C - 1 downto 0) := (others => '0');
 begin
@@ -153,9 +147,6 @@ begin
   ) else
     '0';
 
-  spacing_reject_s <= '1' when (enable_i = '1' and spacing_ok_s = '0') else '0';
-  queue_reject_s   <= '1' when (enable_i = '1' and spacing_ok_s = '1' and queue_space_ok_s = '0') else '0';
-  ring_reject_s    <= '1' when (enable_i = '1' and spacing_ok_s = '1' and queue_space_ok_s = '1' and ring_safe_ok_s = '0') else '0';
   busy_reject_s    <= '1' when (enable_i = '1' and can_accept_frame_s = '0') else '0';
 
   frame_match_o   <= can_accept_frame_s;
@@ -237,9 +228,6 @@ begin
         inflight_ptr_s         <= (others => '0');
         record_count_s         <= (others => '0');
         busydrop_count_s       <= (others => '0');
-        spacingdrop_count_s    <= (others => '0');
-        queuedrop_count_s      <= (others => '0');
-        ringdrop_count_s       <= (others => '0');
         pack_count_s           <= (others => '0');
         samples_since_accept_s <= FRAME_SAMPLE_COUNT_C;
       else
@@ -253,9 +241,6 @@ begin
         if enable_i = '0' then
           record_count_s         <= (others => '0');
           busydrop_count_s       <= (others => '0');
-          spacingdrop_count_s    <= (others => '0');
-          queuedrop_count_s      <= (others => '0');
-          ringdrop_count_s       <= (others => '0');
           pack_count_s           <= (others => '0');
           samples_since_accept_s <= FRAME_SAMPLE_COUNT_C;
           inflight_valid_s       <= '0';
@@ -303,15 +288,6 @@ begin
 
               pack_count_s           <= pack_count_s + 1;
               samples_since_accept_s <= 0;
-            elsif spacing_reject_s = '1' then
-              busydrop_count_s    <= busydrop_count_s + 1;
-              spacingdrop_count_s <= spacingdrop_count_s + 1;
-            elsif queue_reject_s = '1' then
-              busydrop_count_s   <= busydrop_count_s + 1;
-              queuedrop_count_s  <= queuedrop_count_s + 1;
-            elsif ring_reject_s = '1' then
-              busydrop_count_s  <= busydrop_count_s + 1;
-              ringdrop_count_s  <= ringdrop_count_s + 1;
             elsif busy_reject_s = '1' then
               busydrop_count_s <= busydrop_count_s + 1;
             end if;
@@ -329,9 +305,9 @@ begin
   record_count_o         <= std_logic_vector(resize(record_count_s, record_count_o'length));
   full_count_o           <= (others => '0');
   busy_count_o           <= std_logic_vector(resize(busydrop_count_s, busy_count_o'length));
-  spacing_reject_count_o <= std_logic_vector(resize(spacingdrop_count_s, spacing_reject_count_o'length));
-  queue_reject_count_o   <= std_logic_vector(resize(queuedrop_count_s, queue_reject_count_o'length));
-  ring_reject_count_o    <= std_logic_vector(resize(ringdrop_count_s, ring_reject_count_o'length));
+  spacing_reject_count_o <= (others => '0');
+  queue_reject_count_o   <= (others => '0');
+  ring_reject_count_o    <= (others => '0');
   output_reject_count_o  <= (others => '0');
   trigger_count_o        <= std_logic_vector(resize(trig_count_s, trigger_count_o'length));
   packet_count_o         <= std_logic_vector(resize(pack_count_s, packet_count_o'length));

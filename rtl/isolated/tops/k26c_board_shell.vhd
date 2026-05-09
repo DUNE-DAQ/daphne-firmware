@@ -11,7 +11,9 @@ entity k26c_board_shell is
     slot_id     : std_logic_vector(3 downto 0)  := X"2";
     crate_id    : std_logic_vector(9 downto 0)  := "0000000011";
     detector_id : std_logic_vector(5 downto 0)  := "000010";
-    version_id  : std_logic_vector(5 downto 0)  := "000001"
+    version_id  : std_logic_vector(5 downto 0)  := "000001";
+    ENABLE_SPY_CAPTURE_G : boolean := true;
+    ENABLE_OUTBUFFER_G   : boolean := true
   );
   port (
     sysclk100 : in std_logic;
@@ -361,38 +363,69 @@ begin
       s_axi_rready   => FRONT_END_S_AXI_RREADY
     );
 
-  spy_capture_bridge_inst : entity work.k26c_board_spy_capture_plane
-    port map (
-      clock_i             => clock,
-      reset_i             => '0',
-      frontend_trigger_i  => trig,
-      afe_dout_i          => din_full_array,
-      timestamp_i         => timestamp,
-      adhoc_i             => adhoc,
-      ti_trigger_i        => ti_trigger_reg,
-      ti_trigger_stbr_i   => ti_trigger_stbr_reg,
-      s_axi_aclk          => SPY_BUF_S_S_AXI_ACLK,
-      s_axi_aresetn       => SPY_BUF_S_S_AXI_ARESETN,
-      s_axi_awaddr        => SPY_BUF_S_S_AXI_AWADDR,
-      s_axi_awprot        => SPY_BUF_S_S_AXI_AWPROT,
-      s_axi_awvalid       => SPY_BUF_S_S_AXI_AWVALID,
-      s_axi_awready       => SPY_BUF_S_S_AXI_AWREADY,
-      s_axi_wdata         => SPY_BUF_S_S_AXI_WDATA,
-      s_axi_wstrb         => SPY_BUF_S_S_AXI_WSTRB,
-      s_axi_wvalid        => SPY_BUF_S_S_AXI_WVALID,
-      s_axi_wready        => SPY_BUF_S_S_AXI_WREADY,
-      s_axi_bresp         => SPY_BUF_S_S_AXI_BRESP,
-      s_axi_bvalid        => SPY_BUF_S_S_AXI_BVALID,
-      s_axi_bready        => SPY_BUF_S_S_AXI_BREADY,
-      s_axi_araddr        => SPY_BUF_S_S_AXI_ARADDR,
-      s_axi_arprot        => SPY_BUF_S_S_AXI_ARPROT,
-      s_axi_arvalid       => SPY_BUF_S_S_AXI_ARVALID,
-      s_axi_arready       => SPY_BUF_S_S_AXI_ARREADY,
-      s_axi_rdata         => SPY_BUF_S_S_AXI_RDATA,
-      s_axi_rresp         => SPY_BUF_S_S_AXI_RRESP,
-      s_axi_rvalid        => SPY_BUF_S_S_AXI_RVALID,
-      s_axi_rready        => SPY_BUF_S_S_AXI_RREADY
-    );
+  gen_spy_capture_enabled : if ENABLE_SPY_CAPTURE_G generate
+  begin
+    spy_capture_bridge_inst : entity work.k26c_board_spy_capture_plane
+      port map (
+        clock_i             => clock,
+        reset_i             => '0',
+        frontend_trigger_i  => trig,
+        afe_dout_i          => din_full_array,
+        timestamp_i         => timestamp,
+        adhoc_i             => adhoc,
+        ti_trigger_i        => ti_trigger_reg,
+        ti_trigger_stbr_i   => ti_trigger_stbr_reg,
+        s_axi_aclk          => SPY_BUF_S_S_AXI_ACLK,
+        s_axi_aresetn       => SPY_BUF_S_S_AXI_ARESETN,
+        s_axi_awaddr        => SPY_BUF_S_S_AXI_AWADDR,
+        s_axi_awprot        => SPY_BUF_S_S_AXI_AWPROT,
+        s_axi_awvalid       => SPY_BUF_S_S_AXI_AWVALID,
+        s_axi_awready       => SPY_BUF_S_S_AXI_AWREADY,
+        s_axi_wdata         => SPY_BUF_S_S_AXI_WDATA,
+        s_axi_wstrb         => SPY_BUF_S_S_AXI_WSTRB,
+        s_axi_wvalid        => SPY_BUF_S_S_AXI_WVALID,
+        s_axi_wready        => SPY_BUF_S_S_AXI_WREADY,
+        s_axi_bresp         => SPY_BUF_S_S_AXI_BRESP,
+        s_axi_bvalid        => SPY_BUF_S_S_AXI_BVALID,
+        s_axi_bready        => SPY_BUF_S_S_AXI_BREADY,
+        s_axi_araddr        => SPY_BUF_S_S_AXI_ARADDR,
+        s_axi_arprot        => SPY_BUF_S_S_AXI_ARPROT,
+        s_axi_arvalid       => SPY_BUF_S_S_AXI_ARVALID,
+        s_axi_arready       => SPY_BUF_S_S_AXI_ARREADY,
+        s_axi_rdata         => SPY_BUF_S_S_AXI_RDATA,
+        s_axi_rresp         => SPY_BUF_S_S_AXI_RRESP,
+        s_axi_rvalid        => SPY_BUF_S_S_AXI_RVALID,
+        s_axi_rready        => SPY_BUF_S_S_AXI_RREADY
+      );
+  end generate gen_spy_capture_enabled;
+
+  gen_spy_capture_disabled : if ENABLE_SPY_CAPTURE_G = false generate
+  begin
+    spy_null_slave_inst : entity work.axilite_null_slave
+      port map (
+        s_axi_aclk    => SPY_BUF_S_S_AXI_ACLK,
+        s_axi_aresetn => SPY_BUF_S_S_AXI_ARESETN,
+        s_axi_awaddr  => SPY_BUF_S_S_AXI_AWADDR,
+        s_axi_awprot  => SPY_BUF_S_S_AXI_AWPROT,
+        s_axi_awvalid => SPY_BUF_S_S_AXI_AWVALID,
+        s_axi_awready => SPY_BUF_S_S_AXI_AWREADY,
+        s_axi_wdata   => SPY_BUF_S_S_AXI_WDATA,
+        s_axi_wstrb   => SPY_BUF_S_S_AXI_WSTRB,
+        s_axi_wvalid  => SPY_BUF_S_S_AXI_WVALID,
+        s_axi_wready  => SPY_BUF_S_S_AXI_WREADY,
+        s_axi_bresp   => SPY_BUF_S_S_AXI_BRESP,
+        s_axi_bvalid  => SPY_BUF_S_S_AXI_BVALID,
+        s_axi_bready  => SPY_BUF_S_S_AXI_BREADY,
+        s_axi_araddr  => SPY_BUF_S_S_AXI_ARADDR,
+        s_axi_arprot  => SPY_BUF_S_S_AXI_ARPROT,
+        s_axi_arvalid => SPY_BUF_S_S_AXI_ARVALID,
+        s_axi_arready => SPY_BUF_S_S_AXI_ARREADY,
+        s_axi_rdata   => SPY_BUF_S_S_AXI_RDATA,
+        s_axi_rresp   => SPY_BUF_S_S_AXI_RRESP,
+        s_axi_rvalid  => SPY_BUF_S_S_AXI_RVALID,
+        s_axi_rready  => SPY_BUF_S_S_AXI_RREADY
+      );
+  end generate gen_spy_capture_disabled;
 
   timing_bridge_inst : entity work.k26c_board_timing_plane
     port map (
@@ -543,6 +576,9 @@ begin
     );
 
   selftrigger_plane_inst : entity work.k26c_board_grouped_selftrigger_plane
+    generic map (
+      ENABLE_OUTBUFFER_G => ENABLE_OUTBUFFER_G
+    )
     port map (
       link_id                => link_id,
       slot_id                => slot_id,

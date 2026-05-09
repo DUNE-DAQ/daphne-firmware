@@ -12,6 +12,7 @@ filesets:
       - rtl/isolated/common/primitives/fixed_delay_line.vhd
       - rtl/isolated/common/primitives/sample_ring_buffer.vhd
       - rtl/isolated/common/primitives/sync_fifo_fwft.vhd
+      - rtl/isolated/common/primitives/axilite_null_slave.vhd
     file_type: vhdlSource
 
 targets:

@@ -268,7 +268,10 @@ Additional resource observation:
 - the current successful ring2k line already used `139 / 144` BRAM tiles in the
   documented study reference,
 - optional spy/debug paths remain the clearest first BRAM-release lever before
-  transport architecture is widened aggressively.
+  transport architecture is widened aggressively,
+- this branch carries generic gates for input spy capture and grouped output spy
+  capture, but the normal board-bring-up defaults keep both enabled because they
+  are essential diagnostics.
 
 That means `10` grouped Hermes sources are structurally attractive but must be
 budgeted against a BRAM-constrained baseline from the outset.
@@ -354,8 +357,8 @@ New grouped self-trigger/export modules:
     two grouped producers only.
 - [k26c_board_grouped_transport_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_transport_plane.vhd)
   - board-local grouped transport composition,
-  - keeps Hermes and outbuffer ownership split the same way as the deployed
-    board transport plane.
+  - keeps Hermes and outbuffer ownership split, but the grouped outbuffer shim
+    is now generic-gated for resource studies.
 
 Supporting branch-local core additions:
 
@@ -377,7 +380,22 @@ Draft paired wrapper cut:
   pairs the grouped self-trigger bridge with the threshold register bank,
 - [k26c_board_grouped_selftrigger_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_selftrigger_plane.vhd)
   pairs that grouped datapath plane with the grouped transport wrapper and
-  restores the legacy outbuffer/debug side through the grouped debug shim.
+  exposes the legacy outbuffer/debug side only when `ENABLE_OUTBUFFER_G` is
+  explicitly enabled.
+
+Recent resource cleanup:
+
+- [axilite_null_slave.vhd](../rtl/isolated/common/primitives/axilite_null_slave.vhd)
+  terminates disabled debug AXI-Lite windows without instantiating capture RAMs,
+- [k26c_board_shell.vhd](../rtl/isolated/tops/k26c_board_shell.vhd)
+  now gates the legacy input spy-capture plane with `ENABLE_SPY_CAPTURE_G`,
+  while defaulting on for board diagnostics,
+- [k26c_grouped_selftrigger_datapath_plane.vhd](../rtl/isolated/subsystems/readout/k26c_grouped_selftrigger_datapath_plane.vhd)
+  stops exporting unused trigger/descriptor/delayed-sample monitor buses across
+  the grouped datapath seam,
+- [stc3_frame_source.vhd](../rtl/isolated/subsystems/trigger/stc3_frame_source.vhd)
+  keeps the aggregate busy/drop counter but removes the unused per-cause reject
+  counters from the active grouped frame-source path.
 
 Recent seam correction:
 
@@ -443,6 +461,9 @@ The branch default K26C shell now instantiates the grouped self-trigger plane:
 
 - [k26c_board_shell.vhd](../rtl/isolated/tops/k26c_board_shell.vhd)
   uses [k26c_board_grouped_selftrigger_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_selftrigger_plane.vhd),
+- its board-bring-up defaults keep legacy input spy capture and grouped output
+  spy capture enabled; both can be explicitly disabled for a resource-only
+  synthesis experiment while leaving the AXI-Lite windows responsive,
 - [k26c-board-shell.core](../cores/features/k26c-board-shell.core)
   depends on the grouped board self-trigger plane,
 - [boards/k26c/board.yml](../boards/k26c/board.yml)

@@ -9,7 +9,8 @@ entity k26c_board_grouped_selftrigger_plane is
   generic (
     AFE_COUNT_G             : positive range 1 to 5 := 5;
     CHANNELS_PER_AFE_G      : positive := 8;
-    CHANNELS_PER_PRODUCER_G : positive := 4
+    CHANNELS_PER_PRODUCER_G : positive := 4;
+    ENABLE_OUTBUFFER_G      : boolean  := true
   );
   port (
     link_id                : in  std_logic_vector(5 downto 0);
@@ -176,7 +177,8 @@ begin
 
   transport_plane_inst : entity work.k26c_board_grouped_transport_plane
     generic map (
-      SOURCE_COUNT_G => SOURCE_COUNT_C
+      SOURCE_COUNT_G     => SOURCE_COUNT_C,
+      ENABLE_OUTBUFFER_G => ENABLE_OUTBUFFER_G
     )
     port map (
       clock               => clock,

@@ -6,7 +6,8 @@ use work.grouped_transport_pkg.all;
 
 entity k26c_board_grouped_transport_plane is
   generic (
-    SOURCE_COUNT_G : positive := 10
+    SOURCE_COUNT_G     : positive := 10;
+    ENABLE_OUTBUFFER_G : boolean  := true
   );
   port (
     clock               : in  std_logic;
@@ -117,37 +118,73 @@ begin
       readout_ready_o     => readout_ready_o
     );
 
-  outbuffer_plane_inst : entity work.k26c_board_grouped_outbuffer_plane
-    generic map (
-      SOURCE_COUNT_G => SOURCE_COUNT_G
-    )
-    port map (
-      clock                => clock,
-      outbuff_s_axi_aclk   => outbuff_s_axi_aclk,
-      outbuff_s_axi_aresetn=> outbuff_s_axi_aresetn,
-      outbuff_s_axi_awaddr => outbuff_s_axi_awaddr,
-      outbuff_s_axi_awprot => outbuff_s_axi_awprot,
-      outbuff_s_axi_awvalid=> outbuff_s_axi_awvalid,
-      outbuff_s_axi_awready=> outbuff_s_axi_awready,
-      outbuff_s_axi_wdata  => outbuff_s_axi_wdata,
-      outbuff_s_axi_wstrb  => outbuff_s_axi_wstrb,
-      outbuff_s_axi_wvalid => outbuff_s_axi_wvalid,
-      outbuff_s_axi_wready => outbuff_s_axi_wready,
-      outbuff_s_axi_bresp  => outbuff_s_axi_bresp,
-      outbuff_s_axi_bvalid => outbuff_s_axi_bvalid,
-      outbuff_s_axi_bready => outbuff_s_axi_bready,
-      outbuff_s_axi_araddr => outbuff_s_axi_araddr,
-      outbuff_s_axi_arprot => outbuff_s_axi_arprot,
-      outbuff_s_axi_arvalid=> outbuff_s_axi_arvalid,
-      outbuff_s_axi_arready=> outbuff_s_axi_arready,
-      outbuff_s_axi_rdata  => outbuff_s_axi_rdata,
-      outbuff_s_axi_rresp  => outbuff_s_axi_rresp,
-      outbuff_s_axi_rvalid => outbuff_s_axi_rvalid,
-      outbuff_s_axi_rready => outbuff_s_axi_rready,
-      readout_i            => readout_i,
-      out_buff_data        => out_buff_data,
-      out_buff_trig        => out_buff_trig,
-      valid_debug          => valid_debug,
-      last_debug           => last_debug
-    );
+  gen_outbuffer_enabled : if ENABLE_OUTBUFFER_G generate
+  begin
+    outbuffer_plane_inst : entity work.k26c_board_grouped_outbuffer_plane
+      generic map (
+        SOURCE_COUNT_G => SOURCE_COUNT_G
+      )
+      port map (
+        clock                => clock,
+        outbuff_s_axi_aclk   => outbuff_s_axi_aclk,
+        outbuff_s_axi_aresetn=> outbuff_s_axi_aresetn,
+        outbuff_s_axi_awaddr => outbuff_s_axi_awaddr,
+        outbuff_s_axi_awprot => outbuff_s_axi_awprot,
+        outbuff_s_axi_awvalid=> outbuff_s_axi_awvalid,
+        outbuff_s_axi_awready=> outbuff_s_axi_awready,
+        outbuff_s_axi_wdata  => outbuff_s_axi_wdata,
+        outbuff_s_axi_wstrb  => outbuff_s_axi_wstrb,
+        outbuff_s_axi_wvalid => outbuff_s_axi_wvalid,
+        outbuff_s_axi_wready => outbuff_s_axi_wready,
+        outbuff_s_axi_bresp  => outbuff_s_axi_bresp,
+        outbuff_s_axi_bvalid => outbuff_s_axi_bvalid,
+        outbuff_s_axi_bready => outbuff_s_axi_bready,
+        outbuff_s_axi_araddr => outbuff_s_axi_araddr,
+        outbuff_s_axi_arprot => outbuff_s_axi_arprot,
+        outbuff_s_axi_arvalid=> outbuff_s_axi_arvalid,
+        outbuff_s_axi_arready=> outbuff_s_axi_arready,
+        outbuff_s_axi_rdata  => outbuff_s_axi_rdata,
+        outbuff_s_axi_rresp  => outbuff_s_axi_rresp,
+        outbuff_s_axi_rvalid => outbuff_s_axi_rvalid,
+        outbuff_s_axi_rready => outbuff_s_axi_rready,
+        readout_i            => readout_i,
+        out_buff_data        => out_buff_data,
+        out_buff_trig        => out_buff_trig,
+        valid_debug          => valid_debug,
+        last_debug           => last_debug
+      );
+  end generate gen_outbuffer_enabled;
+
+  gen_outbuffer_disabled : if ENABLE_OUTBUFFER_G = false generate
+  begin
+    outbuffer_null_slave_inst : entity work.axilite_null_slave
+      port map (
+        s_axi_aclk    => outbuff_s_axi_aclk,
+        s_axi_aresetn => outbuff_s_axi_aresetn,
+        s_axi_awaddr  => outbuff_s_axi_awaddr,
+        s_axi_awprot  => outbuff_s_axi_awprot,
+        s_axi_awvalid => outbuff_s_axi_awvalid,
+        s_axi_awready => outbuff_s_axi_awready,
+        s_axi_wdata   => outbuff_s_axi_wdata,
+        s_axi_wstrb   => outbuff_s_axi_wstrb,
+        s_axi_wvalid  => outbuff_s_axi_wvalid,
+        s_axi_wready  => outbuff_s_axi_wready,
+        s_axi_bresp   => outbuff_s_axi_bresp,
+        s_axi_bvalid  => outbuff_s_axi_bvalid,
+        s_axi_bready  => outbuff_s_axi_bready,
+        s_axi_araddr  => outbuff_s_axi_araddr,
+        s_axi_arprot  => outbuff_s_axi_arprot,
+        s_axi_arvalid => outbuff_s_axi_arvalid,
+        s_axi_arready => outbuff_s_axi_arready,
+        s_axi_rdata   => outbuff_s_axi_rdata,
+        s_axi_rresp   => outbuff_s_axi_rresp,
+        s_axi_rvalid  => outbuff_s_axi_rvalid,
+        s_axi_rready  => outbuff_s_axi_rready
+      );
+
+    out_buff_data <= (others => '0');
+    out_buff_trig <= '0';
+    valid_debug   <= '0';
+    last_debug    <= '0';
+  end generate gen_outbuffer_disabled;
 end architecture rtl;

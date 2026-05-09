@@ -11,10 +11,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use ieee.std_logic_signed.all;
-
-library unisim;
-use unisim.vcomponents.all;
 
 entity st_xc is
 port (     
@@ -37,66 +33,92 @@ signal s_threshold: signed(27 downto 0);
 
 -- cross correlator specific signals
 --------------------------------------------------------------------------------------------------------------------------------------------------
-type type_r_st_xc is array (0 to 32) of std_logic_vector(47 downto 0);
-signal r_st_xc: type_r_st_xc:= (others => (others => '0'));
-signal xcorr, xcorr_reg0, xcorr_reg1: signed(27 downto 0) := (others => '0');
-signal s_r_st_xc: signed(47 downto 0) := (others => '0');
+constant ACC_WIDTH_C : positive := 21;
+
+subtype acc_t is signed(ACC_WIDTH_C - 1 downto 0);
+type acc_array_t is array (natural range <>) of acc_t;
+type coeff_array_t is array (0 to 31) of integer;
 
 -- matching filter template
---------------------------------------------------------------------------------------------------------------------------------------------------
-type template is array (0 to 31) of std_logic_vector(13 downto 0);
-constant template_xc: template := (
-    std_logic_vector(to_signed(1,14)),
-    std_logic_vector(to_signed(0,14)),
-    std_logic_vector(to_signed(0,14)),
-    std_logic_vector(to_signed(0,14)),
-    std_logic_vector(to_signed(0,14)),
-    std_logic_vector(to_signed(0,14)),
-    std_logic_vector(to_signed(-1,14)),
-    std_logic_vector(to_signed(-1,14)),
-    std_logic_vector(to_signed(-1,14)),
-    std_logic_vector(to_signed(-1,14)),
-    std_logic_vector(to_signed(-1,14)),
-    std_logic_vector(to_signed(-2,14)),
-    std_logic_vector(to_signed(-2,14)),
-    std_logic_vector(to_signed(-3,14)),
-    std_logic_vector(to_signed(-4,14)),
-    std_logic_vector(to_signed(-4,14)),
-    std_logic_vector(to_signed(-5,14)),
-    std_logic_vector(to_signed(-5,14)),
-    std_logic_vector(to_signed(-6,14)),
-    std_logic_vector(to_signed(-7,14)),
-    std_logic_vector(to_signed(-6,14)),
-    std_logic_vector(to_signed(-7,14)),
-    std_logic_vector(to_signed(-7,14)),
-    std_logic_vector(to_signed(-7,14)),
-    std_logic_vector(to_signed(-7,14)),
-    std_logic_vector(to_signed(-6,14)),
-    std_logic_vector(to_signed(-5,14)),
-    std_logic_vector(to_signed(-4,14)),
-    std_logic_vector(to_signed(-3,14)),
-    std_logic_vector(to_signed(-2,14)),
-    std_logic_vector(to_signed(-1,14)),
-    std_logic_vector(to_signed(0,14))
+constant template_xc: coeff_array_t := (
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -2,
+    -2,
+    -3,
+    -4,
+    -4,
+    -5,
+    -5,
+    -6,
+    -7,
+    -6,
+    -7,
+    -7,
+    -7,
+    -7,
+    -6,
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    0
 );
 
--- dsp dedicated module
---------------------------------------------------------------------------------------------------------------------------------------------------
-component dsp_xc 
-    port ( 
-        -- module inputs
-    ----------------------------------------------------------------------------------------------------------------------------------------------
-        rst : in std_logic;
-        clk : in std_logic;
-        num_a : in std_logic_vector(13 downto 0);
-        num_b : in std_logic_vector(13 downto 0);
-        num_add : in std_logic_vector(47 downto 0);
-        
-        -- module outputs
-    ----------------------------------------------------------------------------------------------------------------------------------------------
-        res : out std_logic_vector(47 downto 0)
-    );
-end component dsp_xc;
+signal r_st_xc: acc_array_t(0 to 32):= (others => (others => '0'));
+signal mult_stage0: acc_array_t(0 to 31):= (others => (others => '0'));
+signal mult_stage1: acc_array_t(0 to 31):= (others => (others => '0'));
+signal xcorr, xcorr_reg0, xcorr_reg1: signed(27 downto 0) := (others => '0');
+signal s_r_st_xc: acc_t := (others => '0');
+
+function abs_int(value : integer) return natural is
+begin
+    if value < 0 then
+        return natural(-value);
+    end if;
+    return natural(value);
+end function;
+
+function coefficient_product(sample : signed(13 downto 0); coeff : integer) return acc_t is
+    variable sample_ext : acc_t := resize(sample, ACC_WIDTH_C);
+    variable magnitude  : acc_t := (others => '0');
+begin
+    case abs_int(coeff) is
+        when 0 =>
+            magnitude := (others => '0');
+        when 1 =>
+            magnitude := sample_ext;
+        when 2 =>
+            magnitude := shift_left(sample_ext, 1);
+        when 3 =>
+            magnitude := shift_left(sample_ext, 1) + sample_ext;
+        when 4 =>
+            magnitude := shift_left(sample_ext, 2);
+        when 5 =>
+            magnitude := shift_left(sample_ext, 2) + sample_ext;
+        when 6 =>
+            magnitude := shift_left(sample_ext, 2) + shift_left(sample_ext, 1);
+        when 7 =>
+            magnitude := shift_left(sample_ext, 3) - sample_ext;
+        when others =>
+            magnitude := (others => '0');
+    end case;
+
+    if coeff < 0 then
+        return -magnitude;
+    end if;
+    return magnitude;
+end function;
 
 begin
 
@@ -108,46 +130,33 @@ begin
     -- trigger modification to compare the cross correlation output
     s_threshold <= signed(threshold(27 downto 0));
 
-    -- instantiate all the necessary DSPs
---------------------------------------------------------------------------------------------------------------------------------------------------
-    st_xc_mult_gen: for i in 0 to 31 generate
-        -- generate operations to multiply the data with its respective coefficients, and add the results
-        
-        st_xc_mult_0: if (template_xc(i)=X"0000000") generate
-            -- if the multiplication is done with a coefficient that is equal to zero, then we must
-            -- avoid implementing it with DSPs, and only use mere registers to properly fit this
-            -- design structure
-            reg_block: block
-                signal local_reg: std_logic_vector(47 downto 0) := (others => '0');
-            begin
-                st_xc_reg_proc: process(clock, reset, r_st_xc, local_reg)
-                begin
-                    if rising_edge(clock) then
-                        if (reset='1') then
-                            r_st_xc(i) <= (others => '0');
-                            local_reg <= (others => '0');
-                        elsif (enable='1') then
-                            local_reg <= r_st_xc(i+1);
-                            r_st_xc(i) <= local_reg;
-                        end if;
-                    end if;
-                end process st_xc_reg_proc;
-            end block;
-        end generate st_xc_mult_0;
-        
-        st_xc_mult_dsp: if (template_xc(i)/=X"0000000") generate
-            -- instantiate the respective DSP
-            dsp_com: dsp_xc
-                port map (
-                    rst => reset,
-                    clk => clock,
-                    num_a => din,
-                    num_b => template_xc(i),
-                    num_add => r_st_xc(i+1),
-                    res => r_st_xc(i)
-                );
-        end generate st_xc_mult_dsp;        
-    end generate st_xc_mult_gen;
+    -- Constant-coefficient transposed FIR.
+    -- The old implementation used one DSP48E2 per nonzero coefficient. The
+    -- coefficients are only in [-7, 1], so shift/add logic gives the same
+    -- arithmetic result while preserving the two-stage tap pipeline.
+    --------------------------------------------------------------------------------------------------------------------------------------------------
+    st_xc_mult_proc: process(clock)
+        variable din_s : signed(13 downto 0);
+    begin
+        if rising_edge(clock) then
+            if (reset='1') then
+                r_st_xc <= (others => (others => '0'));
+                mult_stage0 <= (others => (others => '0'));
+                mult_stage1 <= (others => (others => '0'));
+            elsif (enable='1') then
+                din_s := signed(din);
+                r_st_xc(32) <= (others => '0');
+                for i in 0 to 31 loop
+                    mult_stage0(i) <= resize(
+                        coefficient_product(din_s, template_xc(i)) + r_st_xc(i+1),
+                        ACC_WIDTH_C
+                    );
+                    mult_stage1(i) <= mult_stage0(i);
+                    r_st_xc(i) <= mult_stage1(i);
+                end loop;
+            end if;
+        end if;
+    end process st_xc_mult_proc;
     
     -- generate a clocked process to register the output of the cross correlation
 --------------------------------------------------------------------------------------------------------------------------------------------------
