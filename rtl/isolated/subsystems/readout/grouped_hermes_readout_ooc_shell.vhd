@@ -66,6 +66,24 @@ architecture rtl of grouped_hermes_readout_ooc_shell is
   signal ipb_in_s  : ipb_wbus := IPB_WBUS_NULL;
   signal ipb_out_s : ipb_rbus := IPB_RBUS_NULL;
   signal mux_q_s   : src_d     := SRC_D_NULL;
+
+  function to_src_d(stream_i : grouped_source_stream_t) return src_d is
+    variable result_v : src_d := SRC_D_NULL;
+  begin
+    result_v.d     := stream_i.data;
+    result_v.valid := stream_i.valid;
+    result_v.last  := stream_i.last;
+    return result_v;
+  end function;
+
+  function to_src_d_array(streams_i : grouped_source_stream_array_t) return src_d_array is
+    variable result_v : src_d_array(SOURCE_COUNT_G - 1 downto 0);
+  begin
+    for idx in streams_i'range loop
+      result_v(idx) := to_src_d(streams_i(idx));
+    end loop;
+    return result_v;
+  end function;
 begin
   ipb_in_s.ipb_addr   <= ipb_addr_i;
   ipb_in_s.ipb_wdata  <= ipb_wdata_i;

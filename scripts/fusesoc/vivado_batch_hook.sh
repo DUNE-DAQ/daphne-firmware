@@ -3,7 +3,7 @@ set -eu
 
 WORK_ROOT="${PWD}"
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-PLATFORM_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
+PLATFORM_ROOT="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
 ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
 
@@ -179,7 +179,9 @@ find_first_file_dir() {
 }
 
 if [ -z "${DAPHNE_IP_REPO_ROOT-}" ]; then
-  if [ -d "$WORK_ROOT/ip_repo/daphne_ip" ]; then
+  if [ -d "$PLATFORM_ROOT/ip_repo/daphne_ip" ]; then
+    DAPHNE_IP_REPO_ROOT="$PLATFORM_ROOT/ip_repo/daphne_ip"
+  elif [ -d "$WORK_ROOT/ip_repo/daphne_ip" ]; then
     DAPHNE_IP_REPO_ROOT="$WORK_ROOT/ip_repo/daphne_ip"
   elif [ -d "$WORK_ROOT/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip" ]; then
     DAPHNE_IP_REPO_ROOT="$WORK_ROOT/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
@@ -193,14 +195,14 @@ fi
 if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
   auto_extra_roots=""
   for candidate_dir in \
-    "$WORK_ROOT/rtl/isolated/common" \
-    "$WORK_ROOT/rtl/isolated/common/primitives" \
-    "$WORK_ROOT/rtl/isolated/subsystems/control" \
-    "$WORK_ROOT/rtl/isolated/subsystems/frontend" \
-    "$WORK_ROOT/rtl/isolated/subsystems/readout" \
-    "$WORK_ROOT/rtl/isolated/subsystems/spy" \
-    "$WORK_ROOT/rtl/isolated/subsystems/timing" \
-    "$WORK_ROOT/rtl/isolated/subsystems/trigger"
+    "$PLATFORM_ROOT/rtl/isolated/common" \
+    "$PLATFORM_ROOT/rtl/isolated/common/primitives" \
+    "$PLATFORM_ROOT/rtl/isolated/subsystems/control" \
+    "$PLATFORM_ROOT/rtl/isolated/subsystems/frontend" \
+    "$PLATFORM_ROOT/rtl/isolated/subsystems/readout" \
+    "$PLATFORM_ROOT/rtl/isolated/subsystems/spy" \
+    "$PLATFORM_ROOT/rtl/isolated/subsystems/timing" \
+    "$PLATFORM_ROOT/rtl/isolated/subsystems/trigger"
   do
     if [ -d "$candidate_dir" ]; then
       auto_extra_roots="$(append_unique_path "$auto_extra_roots" "$candidate_dir")"

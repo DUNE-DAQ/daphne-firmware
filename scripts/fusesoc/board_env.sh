@@ -22,19 +22,32 @@ daphne_legacy_support_manifest_path() {
 
 daphne_resolve_ip_repo_root() {
   root_dir="$1"
+  repo_ip_root="$root_dir/ip_repo/daphne_ip"
+  staged_ip_root="$root_dir/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
+
+  case "${DAPHNE_IP_REPO_ROOT-}" in
+    */src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip|*/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip/)
+      ;;
+    *)
+      if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -d "${DAPHNE_IP_REPO_ROOT}" ]; then
+        printf '%s\n' "$DAPHNE_IP_REPO_ROOT"
+        return 0
+      fi
+      ;;
+  esac
+
+  if [ -d "$repo_ip_root" ]; then
+    printf '%s\n' "$repo_ip_root"
+    return 0
+  fi
 
   if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -d "${DAPHNE_IP_REPO_ROOT}" ]; then
     printf '%s\n' "$DAPHNE_IP_REPO_ROOT"
     return 0
   fi
 
-  if [ -d "$root_dir/ip_repo/daphne_ip" ]; then
-    printf '%s\n' "$root_dir/ip_repo/daphne_ip"
-    return 0
-  fi
-
-  if [ -d "$root_dir/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip" ]; then
-    printf '%s\n' "$root_dir/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
+  if [ -d "$staged_ip_root" ]; then
+    printf '%s\n' "$staged_ip_root"
     return 0
   fi
 
