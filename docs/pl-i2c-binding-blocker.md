@@ -141,3 +141,32 @@ The stronger working hypothesis is now:
   alias for the `015` DT overlay path;
 - the remaining `015` work has moved up-stack from Linux I2C visibility to
   service/runtime packaging, not PL I2C binding itself.
+
+## May 9, 2026 later update
+
+The next boot-side root cause is now also understood.
+
+What changed:
+
+- the original repo-built `system.dtb` for `015` baked the generated base
+  `pl-bus` into the non-overlay DT, including:
+  - `interrupt-controller@9c010000`
+  - `i2c@9c000000`
+  - `axi_quad_spi@9c020000`
+- that base DT arrangement reproduced the old early-boot `rcu_sched` stall
+  before root handoff on `015`;
+- removing the generated base PL bus from the repo-owned
+  `system-user.dtsi` fixes that early-boot failure;
+- with that DT fix in place, a one-shot serial/U-Boot boot on `015` using the
+  proven older kernel plus the fixed repo-owned DTB and current ramdisk now:
+  - boots through ext4-root userspace,
+  - loads the overlay,
+  - binds the PL timing path again,
+  - and starts `firmware`, `clockchip`, `endpoint`, `hermes`, and `daphne`.
+
+So the blocker is no longer "Linux can never see the PL I2C bus". The current
+remaining gap is narrower:
+
+- promote the fixed DTB into the persistent default boot path on `015`;
+- preserve the expected management-network identity during that boot path;
+- then retest the fully repo-built kernel on top of the same DT fix.

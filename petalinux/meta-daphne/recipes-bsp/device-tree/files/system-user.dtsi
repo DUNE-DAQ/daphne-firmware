@@ -11,6 +11,10 @@
 	 *   - firmware/overlay install assumptions
 	 *
 	 * The PL hardware description itself should continue to arrive via the
-	 * generated overlay path from the firmware build.
+	 * generated overlay path from the firmware build. Remove the BSP-generated
+	 * PL bus from the base DT so Linux does not probe PL timing peripherals
+	 * before the overlay is loaded.
 	 */
 };
+
+/delete-node/ &amba_pl;
