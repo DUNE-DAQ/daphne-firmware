@@ -21,8 +21,9 @@ RDEPENDS:${PN} += " \
     bash \
     daphne-overlay \
     daphne-server \
-    python3-core \
+    fpga-manager-script \
     i2c-tools \
+    python3-core \
 "
 
 SYSTEMD_SERVICE:${PN} = " \

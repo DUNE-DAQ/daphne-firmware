@@ -115,15 +115,30 @@ append_once() {
   local marker_begin="$3"
   local marker_end="$4"
 
-  if grep -Fq "$marker_begin" "$dst"; then
-    return 0
-  fi
+  python3 - "$src" "$dst" "$marker_begin" "$marker_end" <<'PY'
+from pathlib import Path
+import sys
 
-  {
-    printf '\n%s\n' "$marker_begin"
-    cat "$src"
-    printf '%s\n' "$marker_end"
-  } >> "$dst"
+src = Path(sys.argv[1])
+dst = Path(sys.argv[2])
+begin = sys.argv[3]
+end = sys.argv[4]
+block = f"{begin}\n{src.read_text()}{end}\n"
+text = dst.read_text()
+
+if begin in text and end in text:
+    start = text.index(begin)
+    finish = text.index(end, start) + len(end)
+    if finish < len(text) and text[finish:finish + 1] == "\n":
+        finish += 1
+    text = text[:start] + block + text[finish:]
+else:
+    if text and not text.endswith("\n"):
+        text += "\n"
+    text += "\n" + block
+
+dst.write_text(text)
+PY
 }
 
 upsert_profile_setting() {
