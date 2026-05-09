@@ -28,13 +28,14 @@ Important current status:
   - full repo-owned runtime service chain
 - the original repo-built DTB failure on `015` has been traced and fixed by
   removing the generated base `pl-bus` from the non-overlay DT
-- that fixed repo-owned DTB is proven in one-shot serial/U-Boot boot testing
+- that fixed repo-owned DTB is now also proven in the persistent default boot
+  path on `015`
 - the shared DAPHNE DT now makes `gem0` explicitly boot as the management
   `sgmii` fixed-link, following the proven `daphne-14` contract
 - the remaining boot gap is narrower:
-  - promote the fixed DTB into the normal persistent boot path
-  - preserve the expected management-network identity there
-  - then retest the fully repo-built kernel on top of that DT fix
+  - preserve that management-network identity while moving to the repo-built
+    kernel
+  - then retest the fully repo-built kernel on top of the same fixed DTB
 
 So this is now a real bring-up and deployment guide, but not yet the final
 fleet-grade remote-update guide. The longer-term boot contract is documented
@@ -366,7 +367,10 @@ On `NP04-DAPHNE-015`:
 - the rebuilt repo-owned `rootfs.ext4` was flashed successfully
 - the board came back with `/dev/mmcblk0p2` as the real `/`
 - the repo-owned service chain came up without live rootfs patching
-- the fixed repo-owned DTB was proven in one-shot serial/U-Boot boot testing
+- the fixed repo-owned DTB was first proven in one-shot serial/U-Boot boot
+  testing, and is now the persistent default `/boot/system.dtb` on `015`
+- after a plain reboot, `015` comes back on `10.73.137.16` with the full
+  `firmware`, `clockchip`, `endpoint`, `hermes`, and `daphne` chain active
 - the early DT-related `rcu_sched` stall is gone
 
 What is still not fully proven:

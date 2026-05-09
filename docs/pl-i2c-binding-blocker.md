@@ -163,10 +163,13 @@ What changed:
   - loads the overlay,
   - binds the PL timing path again,
   - and starts `firmware`, `clockchip`, `endpoint`, `hermes`, and `daphne`.
+- after making `gem0` explicitly boot as the management `sgmii` fixed-link and
+  installing that rebuilt DTB into `/boot/system.dtb`, the same full service
+  chain now also comes back on the normal persistent reboot path.
 
 So the blocker is no longer "Linux can never see the PL I2C bus". The current
 remaining gap is narrower:
 
-- promote the fixed DTB into the persistent default boot path on `015`;
-- preserve the expected management-network identity during that boot path;
+- preserve the expected management-network identity while moving from the older
+  proven kernel to the repo-built kernel;
 - then retest the fully repo-built kernel on top of the same DT fix.
