@@ -32,6 +32,10 @@ Current implementation notes:
   live `NP04-DAPHNE-014` `daphne-server` checkout on branch
   `marroyav/server_bringup_thresholds` at commit
   `aa2942a58d62e19a49cdfbf0b382ed118fcef9a5`.
+- the repo-owned `daphne-clockchip.sh` no longer assumes one fixed
+  `/dev/i2c-N` number. It prefers the configured `CLOCKCHIP_BUS`, but falls
+  back to probing the available adapters for the expected clockchip address
+  cluster when Linux renumbers the bus.
 - `hermes.service` and `daphne.service` now start from normal system paths
   (`/usr/bin/hermes_udp_srv` and `/usr/bin/daphneServer`) rather than from
   `/home/petalinux/...`.

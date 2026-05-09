@@ -118,18 +118,23 @@ Current comparison:
 
 - `NP04-DAPHNE-014` is booting with `/dev/mmcblk0p2` as the real `/` rootfs,
   and exposes both `/dev/i2c-1` and `/dev/i2c-2`.
-- `NP04-DAPHNE-015` under the current repo-built deploy still comes up with
-  `rootfs on / type rootfs`, and only exposes `/dev/i2c-1`.
+- `NP04-DAPHNE-015` now has one persistent mixed deploy that boots with
+  `/dev/mmcblk0p2` as the real `/` rootfs, but still only exposes
+  `/dev/i2c-1`.
 - On that `015` boot, `firmware.service` succeeds, but `clockchip.service`
-  fails immediately because the configured `CLOCKCHIP_BUS=2` path does not
-  exist.
+  still fails because the expected timing I2C adapter itself is absent.
+- The repo-owned service no longer hardcodes one fixed bus number: on `014` it
+  auto-discovers bus `2`, and on `015` it cleanly reports that no matching
+  clockchip bus is visible for `0x70/0x71/0x72`.
 
 So this is not simply "the overlay can never expose the timing I2C bus".
 The stronger working hypothesis is now:
 
-- the `014` ext4-root boot payload and device-tree/runtime combination bind the
+- the `014` boot payload and device-tree/runtime combination bind the
   PL timing I2C path correctly;
-- the current `015` ramdisk-root boot payload does not;
-- therefore the next engineering target is to reproduce the `014` ext4-root
-  boot contract on `015`, rather than trying to normalize the legacy
-  ramdisk-root path.
+- the current `015` boot payload and/or device-tree/runtime combination still
+  do not;
+- therefore the next engineering target is to replace the remaining `015`
+  kernel/DT boot payload with a repo-owned equivalent that preserves the Linux
+  timing-bus contract, rather than trying to special-case one hardcoded
+  `/dev/i2c-N`.

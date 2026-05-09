@@ -9,7 +9,7 @@ set -eu
 [ -f /etc/default/firmware ] && . /etc/default/firmware
 [ -f /etc/daphne-board.env ] && . /etc/daphne-board.env
 
-BUS="${CLOCKCHIP_BUS:-2}"
+BUS="${CLOCKCHIP_BUS:-auto}"
 CHIP="${CLOCKCHIP_ADDR:-0x70}"
 VERIFY="${CLOCKCHIP_VERIFY:-0}"
 DRYRUN="${CLOCKCHIP_DRYRUN:-0}"
@@ -17,10 +17,11 @@ DO_RESET="${CLOCKCHIP_DO_RESET:-1}"
 ONLY_FILTER="${CLOCKCHIP_ONLY:-}"
 VERBOSE="${CLOCKCHIP_VERBOSE:-0}"
 LOGDIR="${CLOCKCHIP_LOGDIR:-/var/log/daphne-clockchip}"
+DISCOVERY_ADDRS="${CLOCKCHIP_DISCOVERY_ADDRS:-${CHIP} 0x71 0x72}"
 
 usage() {
   cat <<EOF
-Usage: $0 [--bus N] [--chip 0x70] [--verify] [--dry-run] [--no-reset]
+Usage: $0 [--bus N|auto] [--chip 0x70] [--verify] [--dry-run] [--no-reset]
           [--only <ranges>] [--verbose] [--logdir DIR]
 EOF
 }
@@ -40,7 +41,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-for cmd in i2cset i2cget; do
+for cmd in i2cset i2cget i2cdetect; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "Missing $cmd" >&2; exit 2; }
 done
 
@@ -53,7 +54,62 @@ LOGFILE="${LOGDIR}/clk_conf_${TS}_bus${BUS}_chip${chip_tag}${verify_suffix}.log"
 
 hex() { printf "0x%02X" "$1"; }
 log() { echo "$*" >> "$LOGFILE"; }
-out() { [ "$VERBOSE" = "1" ] && echo "$*"; log "$*"; }
+out() { [ "$VERBOSE" = "1" ] && echo "$*" >&2; log "$*"; }
+
+probe_addr_on_bus() {
+  bus="$1"
+  addr="$2"
+  token="$(i2cdetect -y "$bus" "$addr" "$addr" 2>/dev/null | awk 'END{print $2}')"
+  want="$(printf '%02x' "$((addr))")"
+  [ "$token" = "$want" ] || [ "$token" = "UU" ]
+}
+
+bus_exists() {
+  [ -c "/dev/i2c-$1" ]
+}
+
+score_bus() {
+  bus="$1"
+  score=0
+  for addr in $DISCOVERY_ADDRS; do
+    if probe_addr_on_bus "$bus" "$addr"; then
+      score=$((score + 1))
+    fi
+  done
+  printf '%s\n' "$score"
+}
+
+discover_bus() {
+  best_bus=""
+  best_score=0
+
+  if [ "$BUS" != "auto" ] && bus_exists "$BUS"; then
+    preferred_score="$(score_bus "$BUS")"
+    out "Preferred bus ${BUS} score=${preferred_score}"
+    if [ "$preferred_score" -gt 0 ]; then
+      printf '%s\n' "$BUS"
+      return 0
+    fi
+  fi
+
+  for node in /dev/i2c-*; do
+    [ -e "$node" ] || continue
+    bus="${node##*/i2c-}"
+    score="$(score_bus "$bus")"
+    out "Candidate bus ${bus} score=${score}"
+    if [ "$score" -gt "$best_score" ]; then
+      best_bus="$bus"
+      best_score="$score"
+    fi
+  done
+
+  if [ -n "$best_bus" ] && [ "$best_score" -gt 0 ]; then
+    printf '%s\n' "$best_bus"
+    return 0
+  fi
+
+  return 1
+}
 
 ONLY_HAS=0
 RANGE_LO=""
@@ -190,8 +246,15 @@ REGVALS='
 
 RESET_REG=0xF6
 
+if ! BUS="$(discover_bus)"; then
+  echo "Could not discover a clockchip bus for ${CHIP}. Candidates scanned from /dev/i2c-*." >&2
+  echo "Discovery addresses: ${DISCOVERY_ADDRS}" >&2
+  exit 1
+fi
+
 echo "Starting clock-chip programming (bus=${BUS}, chip=${CHIP})"
 log "Clock chip programming bus=${BUS} chip=${CHIP}"
+log "Discovery addresses: ${DISCOVERY_ADDRS}"
 log "Log file: ${LOGFILE}"
 
 errors=0
