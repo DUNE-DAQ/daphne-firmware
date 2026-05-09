@@ -9,17 +9,35 @@ from pathlib import Path
 
 def parse_env_text(text: str):
     entries = []
+    current_name = None
+    current_value_lines = []
+
+    def flush_current():
+        nonlocal current_name, current_value_lines
+        if current_name is not None:
+            entries.append((current_name, "\n".join(current_value_lines)))
+            current_name = None
+            current_value_lines = []
+
     for raw_line in text.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
+        stripped = raw_line.strip()
+        if not stripped:
             continue
-        if "=" not in line:
+        if not raw_line[:1].isspace() and "=" in raw_line:
+            name, value = raw_line.split("=", 1)
+            name = name.strip()
+            if not name:
+                raise SystemExit(f"invalid env line with empty name: {raw_line}")
+            flush_current()
+            current_name = name
+            current_value_lines = [value]
+            continue
+        if stripped.startswith("#") and current_name is None:
+            continue
+        if current_name is None:
             raise SystemExit(f"invalid env line without '=': {raw_line}")
-        name, value = line.split("=", 1)
-        name = name.strip()
-        if not name:
-            raise SystemExit(f"invalid env line with empty name: {raw_line}")
-        entries.append((name, value))
+        current_value_lines.append(raw_line)
+    flush_current()
     return entries
 
 
@@ -106,9 +124,21 @@ def main():
         action="store_true",
         help="Apply the env fragment through fw_setenv instead of printing commands.",
     )
+    parser.add_argument(
+        "--only",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help="Limit planning or apply actions to the named U-Boot variable. Repeat as needed.",
+    )
     args = parser.parse_args()
 
     desired_entries = parse_env(args.env_file)
+    if args.only:
+        allowed = set(args.only)
+        desired_entries = [
+            (name, value) for name, value in desired_entries if name in allowed
+        ]
     current_env = None
     if args.changed_only or args.check or args.apply:
         current_env = load_current_env(args.fw_env_config)

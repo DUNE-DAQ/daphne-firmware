@@ -13,7 +13,7 @@ SRC_URI += " \
   file://fw_env.config \
 "
 
-RDEPENDS:${PN} += "python3-core libubootenv-bin"
+RDEPENDS:${PN} += "python3-core python3-shell libubootenv-bin"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
