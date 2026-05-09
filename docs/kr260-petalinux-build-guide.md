@@ -23,19 +23,22 @@ Important current status:
 - the repo now owns real overlay, service, board-config, and runtime packaging
   paths; `meta-daphne` is no longer only empty scaffolding
 - `015` is proven with:
+  - repo-built `Image`
+  - repo-built `system.dtb`
   - repo-built `rootfs.ext4`
   - repo-built tiny switch-root ramdisk
   - full repo-owned runtime service chain
 - the original repo-built DTB failure on `015` has been traced and fixed by
   removing the generated base `pl-bus` from the non-overlay DT
 - that fixed repo-owned DTB is now also proven in the persistent default boot
-  path on `015`
+  path on `015`, together with the repo-built `Image`
 - the shared DAPHNE DT now makes `gem0` explicitly boot as the management
   `sgmii` fixed-link, following the proven `daphne-14` contract
 - the remaining boot gap is narrower:
-  - preserve that management-network identity while moving to the repo-built
-    kernel
-  - then retest the fully repo-built kernel on top of the same fixed DTB
+  - move from the current single-slot boot/update flow to the intended A/B
+    eMMC plus QSPI rescue model
+  - qualify BOOT.BIN/U-Boot ownership and rollback policy on top of this now
+    working repo-built kernel/DT/rootfs path
 
 So this is now a real bring-up and deployment guide, but not yet the final
 fleet-grade remote-update guide. The longer-term boot contract is documented
@@ -369,14 +372,15 @@ On `NP04-DAPHNE-015`:
 - the repo-owned service chain came up without live rootfs patching
 - the fixed repo-owned DTB was first proven in one-shot serial/U-Boot boot
   testing, and is now the persistent default `/boot/system.dtb` on `015`
+- the repo-built `Image` is now also the top-level boot image on
+  `mmcblk0p1`, and `015` comes back through the normal U-Boot `bootcmd`
+  path with the repo-built `Image + system.dtb + ramdisk`
 - after a plain reboot, `015` comes back on `10.73.137.16` with the full
   `firmware`, `clockchip`, `endpoint`, `hermes`, and `daphne` chain active
 - the early DT-related `rcu_sched` stall is gone
 
 What is still not fully proven:
 
-- the fully repo-built kernel on top of that fixed DTB in the persistent normal
-  boot path
 - the final remote-only A/B boot and recovery model from
   `docs/remote-boot-deployment-plan.md`
 

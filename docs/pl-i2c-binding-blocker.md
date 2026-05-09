@@ -166,10 +166,14 @@ What changed:
 - after making `gem0` explicitly boot as the management `sgmii` fixed-link and
   installing that rebuilt DTB into `/boot/system.dtb`, the same full service
   chain now also comes back on the normal persistent reboot path.
+- after replacing the live top-level boot `Image` with the repo-built one, the
+  same normal reboot path still comes back on `015` with the full timing
+  service chain active.
 
 So the blocker is no longer "Linux can never see the PL I2C bus". The current
 remaining gap is narrower:
 
-- preserve the expected management-network identity while moving from the older
-  proven kernel to the repo-built kernel;
-- then retest the fully repo-built kernel on top of the same DT fix.
+- preserve the expected management-network identity while we move to the
+  longer-term fleet update and rollback model;
+- qualify the A/B boot and rescue contract around this now-working kernel/DT
+  and timing path.
