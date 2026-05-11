@@ -28,6 +28,7 @@ BUNDLE_DIR="$BUNDLE_DIR_INPUT"
 IMAGES_DIR="$PROJECT_DIR/images/linux"
 STAGED_DIR="$PROJECT_DIR/project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged"
 BOOT_DIR="$BUNDLE_DIR/boot"
+QSPI_DIR="$BOOT_DIR/qspi-primary"
 ROOTFS_DIR="$BUNDLE_DIR/rootfs"
 OVERLAY_DIR="$BUNDLE_DIR/overlay"
 META_DIR="$BUNDLE_DIR/meta"
@@ -53,7 +54,7 @@ if [[ ! -d "$IMAGES_DIR" ]]; then
   exit 2
 fi
 
-mkdir -p "$BOOT_DIR" "$ROOTFS_DIR" "$OVERLAY_DIR" "$META_DIR"
+mkdir -p "$BOOT_DIR" "$QSPI_DIR" "$ROOTFS_DIR" "$OVERLAY_DIR" "$META_DIR"
 
 copy_if_exists() {
   local src="$1"
@@ -82,6 +83,26 @@ copy_if_exists "$IMAGES_DIR/rootfs.cpio.gz.u-boot" "$BOOT_DIR/rootfs.cpio.gz.u-b
 
 copy_glob_matches "$IMAGES_DIR" "*.dtb" "$BOOT_DIR"
 copy_glob_matches "$IMAGES_DIR" "*.dtbo" "$BOOT_DIR"
+
+if command -v bootgen >/dev/null 2>&1; then
+  qspi_required=(
+    "$IMAGES_DIR/zynqmp_fsbl.elf"
+    "$IMAGES_DIR/pmufw.elf"
+    "$IMAGES_DIR/bl31.elf"
+    "$IMAGES_DIR/u-boot.elf"
+    "$IMAGES_DIR/u-boot-dtb.elf"
+  )
+  qspi_ready=1
+  for path in "${qspi_required[@]}"; do
+    if [[ ! -f "$path" ]]; then
+      qspi_ready=0
+      break
+    fi
+  done
+  if (( qspi_ready )); then
+    "$ROOT_DIR/scripts/petalinux/generate_qspi_boot_candidates.sh" "$IMAGES_DIR" "$QSPI_DIR"
+  fi
+fi
 
 copy_if_exists "$IMAGES_DIR/rootfs.ext4" "$ROOTFS_DIR/rootfs.ext4"
 copy_if_exists "$IMAGES_DIR/rootfs.ext4.gz" "$ROOTFS_DIR/rootfs.ext4.gz"

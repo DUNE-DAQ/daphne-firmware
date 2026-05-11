@@ -135,6 +135,7 @@ That wrapper:
 - optionally stages the overlay bundle,
 - runs `petalinux-build`,
 - runs `petalinux-package --boot --u-boot --force`,
+- preserves explicit QSPI-primary boot candidates under `boot/qspi-primary/`,
 - collects the resulting artifacts into:
 
 ```text

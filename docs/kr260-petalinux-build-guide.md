@@ -219,6 +219,7 @@ Collected output lands in:
 ```text
 petalinux/output/<project-name>/
   boot/
+    qspi-primary/
   rootfs/
   overlay/
   meta/
@@ -230,6 +231,8 @@ At minimum, check for:
 
 ```text
 boot/BOOT.BIN
+boot/qspi-primary/BOOT.primary.BIN
+boot/qspi-primary/PRIMARY-BOOT-METADATA.txt
 boot/Image
 boot/system.dtb
 boot/boot.scr
@@ -239,6 +242,10 @@ overlay/daphne-overlay.dtbo
 overlay/daphne-overlay.bin
 overlay/shell.json
 ```
+
+`boot/BOOT.BIN` remains the stock PetaLinux package output. The long-term
+repo-owned QSPI-primary target is the explicit `boot/qspi-primary/BOOT.primary.BIN`
+artifact and its matching `bootgen.primary.bif`.
 
 ## 6. Overlay generation notes
 
