@@ -39,6 +39,11 @@ Two profiles are currently supported:
   keeps only the repo-owned deploy payload (`daphne-overlay`,
   `daphne-server`, `daphne-services`)
 
+Fresh KR260 projects now default to `minimal`. The `developer` profile is
+still supported, but it is opt-in because the current initramfs-oriented build
+path can exceed `INITRAMFS_MAXSIZE` when the full on-target build stack is
+enabled.
+
 Example:
 
 ```bash

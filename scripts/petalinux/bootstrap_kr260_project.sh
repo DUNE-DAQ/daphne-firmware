@@ -16,7 +16,7 @@ This script:
 
 Options:
   --image-profile NAME   DAPHNE image profile: developer|minimal
-                         (default: developer)
+                         (default: minimal)
   -h, --help             Show this help
 
 Environment:
@@ -42,7 +42,7 @@ PROJECT_DIR="$(CDPATH= cd -- "$PROJECT_ARG" && pwd)"
 META_LAYER_SRC="$ROOT_DIR/petalinux/meta-daphne"
 CONFIG_DIR="$ROOT_DIR/petalinux/config/kr260"
 LAYER_MODE="${DAPHNE_META_LAYER_MODE:-symlink}"
-IMAGE_PROFILE="developer"
+IMAGE_PROFILE="minimal"
 
 BUILD_CONF_DIR="$PROJECT_DIR/build/conf"
 PROJECT_SPEC_DIR="$PROJECT_DIR/project-spec"

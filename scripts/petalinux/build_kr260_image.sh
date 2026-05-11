@@ -14,7 +14,7 @@ Project creation/config options:
   --bsp BSP_PATH          Create the project from a BSP
   --template NAME        PetaLinux template when --bsp is not given
   --image-profile NAME   DAPHNE image profile: developer|minimal
-                         (default: developer)
+                         (default: minimal)
   --output-dir DIR       Firmware xilinx/output directory for overlay staging
   --runtime-bundle TGZ   Qualified DAPHNE runtime bundle for image staging
   --skip-stage-overlay   Do not stage overlay artifacts

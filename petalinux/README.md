@@ -21,7 +21,7 @@ Current contents:
   stable bundle.
 - `docs/kr260-petalinux-build-guide.md` for the current written build and
   staging procedure, updated against the proven `015` findings.
-- a default-on `packagegroup-daphne-server-build` that stages the target-side
+- an optional `packagegroup-daphne-server-build` that stages the target-side
   development dependencies needed by `daphne-server` / `daphneZMQ`
 
 Still missing before this repo can be considered a full Petalinux deliverable:
@@ -58,9 +58,13 @@ profiles are:
   - `daphne-services`
 
 The `developer` packagegroup is meant to make on-target `daphne-server` /
-`daphneZMQ` builds practical by default. It pulls in the core toolchain plus
+`daphneZMQ` builds practical when explicitly requested. It pulls in the core toolchain plus
 the upstream dependency families called out by `daphneZMQ`: ZeroMQ / cppzmq,
 protobuf, abseil, CLI11, Python 3, and the Python client packages.
+
+The repo now defaults fresh KR260 projects to `minimal`. That keeps the
+current `petalinux-initramfs-image` build under the initramfs size limit. Use
+`developer` only when you intentionally want the extra on-target build stack.
 
 To select the smaller profile during project setup:
 

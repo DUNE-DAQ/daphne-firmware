@@ -15,7 +15,7 @@ Options:
   --template NAME        PetaLinux template to use when --bsp is not given
                           (default: zynqMP)
   --image-profile NAME   DAPHNE image profile: developer|minimal
-                         (default: developer)
+                         (default: minimal)
   --output-dir DIR       Stage overlay artifacts from this firmware output dir
   --runtime-bundle TGZ   Stage this qualified DAPHNE runtime bundle
   --skip-stage-overlay   Do not stage overlay artifacts
@@ -50,7 +50,7 @@ RUNTIME_BUNDLE=""
 STAGE_OVERLAY=1
 STAGE_RUNTIME=1
 LAYER_MODE="symlink"
-IMAGE_PROFILE="developer"
+IMAGE_PROFILE="minimal"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
