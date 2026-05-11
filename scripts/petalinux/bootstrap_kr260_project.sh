@@ -205,6 +205,12 @@ replacements = {
         'CONFIG_YOCTO_MACHINE_NAME="xilinx-k26-kr"',
     r'^CONFIG_YOCTO_INCLUDE_MACHINE_NAME=.*$':
         'CONFIG_YOCTO_INCLUDE_MACHINE_NAME="k26-smk-kr"',
+    r'^(# )?CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL(=.*| is not set)?$':
+        'CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=y',
+    r'^(# )?CONFIG_SUBSYSTEM_UBOOT_EXT_DTB(=.*| is not set)?$':
+        'CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=y',
+    r'^CONFIG_UBOOT_DTB_PACKAGE_NAME=.*$':
+        'CONFIG_UBOOT_DTB_PACKAGE_NAME="u-boot.dtb"',
 }
 
 for pattern, replacement in replacements.items():
@@ -213,6 +219,23 @@ for pattern, replacement in replacements.items():
         if text and not text.endswith("\n"):
             text += "\n"
         text += replacement + "\n"
+
+dedupe_prefixes = (
+    "CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=",
+    "CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=",
+    "CONFIG_UBOOT_DTB_PACKAGE_NAME=",
+)
+
+lines = text.splitlines()
+seen = set()
+filtered = []
+for line in reversed(lines):
+    if any(line.startswith(prefix) for prefix in dedupe_prefixes):
+        if line in seen:
+            continue
+        seen.add(line)
+    filtered.append(line)
+text = "\n".join(reversed(filtered)) + "\n"
 
 dst.write_text(text)
 PY
@@ -255,6 +278,9 @@ Pinned KR260 machine settings:
   CONFIG_SUBSYSTEM_INITRAMFS_IMAGE_NAME="petalinux-initramfs-image"
   CONFIG_YOCTO_MACHINE_NAME="xilinx-k26-kr"
   CONFIG_YOCTO_INCLUDE_MACHINE_NAME="k26-smk-kr"
+  CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=y
+  CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=y
+  CONFIG_UBOOT_DTB_PACKAGE_NAME="u-boot.dtb"
 
 Next manual steps:
   1. Run petalinux-config --silentconfig to regenerate build/conf/ with the KR260 machine if you are not using init_kr260_project.sh.

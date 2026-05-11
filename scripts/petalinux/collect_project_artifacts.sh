@@ -76,6 +76,7 @@ copy_glob_matches() {
 copy_if_exists "$IMAGES_DIR/BOOT.BIN" "$BOOT_DIR/BOOT.BIN"
 copy_if_exists "$IMAGES_DIR/Image" "$BOOT_DIR/Image"
 copy_if_exists "$IMAGES_DIR/boot.scr" "$BOOT_DIR/boot.scr"
+copy_if_exists "$IMAGES_DIR/imgsel.elf" "$BOOT_DIR/imgsel.elf"
 copy_if_exists "$IMAGES_DIR/system.dtb" "$BOOT_DIR/system.dtb"
 copy_if_exists "$IMAGES_DIR/image.ub" "$BOOT_DIR/image.ub"
 copy_if_exists "$IMAGES_DIR/ramdisk.cpio.gz.u-boot" "$BOOT_DIR/ramdisk.cpio.gz.u-boot"

@@ -231,6 +231,7 @@ At minimum, check for:
 
 ```text
 boot/BOOT.BIN
+boot/imgsel.elf
 boot/qspi-primary/BOOT.primary.BIN
 boot/qspi-primary/PRIMARY-BOOT-BANKS.txt
 boot/qspi-primary/PRIMARY-BOOT-METADATA.txt
@@ -251,6 +252,17 @@ artifact and its matching `bootgen.primary.bif`. When `bootgen` is available,
 the build now also validates that `BOOT.primary.BIN` resolves to the expected
 primary image headers and records that result in
 `boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt`.
+
+The project bootstrap now also pins two KR260 boot-firmware settings that were
+present in the older DAPHNE flow and line up with AMD's documented ZynqMP/Kria
+A/B firmware path:
+
+- `CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=y`
+- `CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=y`
+
+So a repo-built project should now explicitly own `imgsel.elf` generation and
+the separate U-Boot DTB path, instead of leaving both as implicit or manual
+menuconfig choices.
 
 The repo-owned helper for staging that artifact onto a live board is:
 
