@@ -21,6 +21,7 @@ The helper script:
 uses the fragments here to:
 
 - add `project-spec/meta-daphne`
+- sync repo-owned `project-spec/meta-user/recipes-bsp/u-boot` fragments
 - append the DAPHNE layer to `build/conf/bblayers.conf`
 - append the DAPHNE package set to `build/conf/local.conf`
 - pin the project config to the KR260 machine
@@ -53,3 +54,17 @@ but that is not the long-term fleet contract. The intended remote-operations
 boot model is documented in:
 
 - `docs/remote-boot-deployment-plan.md`
+
+The repo now also owns the KR260 U-Boot fragment used for DAPHNE A/B work:
+
+- `project-spec/meta-user/recipes-bsp/u-boot/files/bsp.cfg`
+
+That fragment enables the environment-backed boot counter:
+
+- `CONFIG_BOOTCOUNT_LIMIT=y`
+- `CONFIG_BOOTCOUNT_ENV=y`
+- `CONFIG_BOOTCOUNT_BOOTLIMIT=3`
+
+This matters because the upstream KR260 U-Boot defconfig does not enable any
+bootcount backend by default. Without that fragment, the DAPHNE slot-failover
+logic only works when `bootcount` is seeded manually in the environment.

@@ -46,6 +46,7 @@ IMAGE_PROFILE="developer"
 
 BUILD_CONF_DIR="$PROJECT_DIR/build/conf"
 PROJECT_SPEC_DIR="$PROJECT_DIR/project-spec"
+META_USER_DIR="$PROJECT_SPEC_DIR/meta-user"
 META_LAYER_DST="$PROJECT_SPEC_DIR/meta-daphne"
 BBLAYERS_FILE="$BUILD_CONF_DIR/bblayers.conf"
 LOCAL_CONF_FILE="$BUILD_CONF_DIR/local.conf"
@@ -107,6 +108,18 @@ install_meta_layer() {
       exit 2
       ;;
   esac
+}
+
+sync_project_spec_overlay() {
+  local src="$1"
+  local dst="$2"
+
+  if [[ ! -d "$src" ]]; then
+    return 0
+  fi
+
+  mkdir -p "$dst"
+  cp -R "$src"/. "$dst"/
 }
 
 append_once() {
@@ -206,6 +219,9 @@ PY
 }
 
 install_meta_layer
+sync_project_spec_overlay \
+  "$CONFIG_DIR/project-spec/meta-user" \
+  "$META_USER_DIR"
 
 append_once \
   "$CONFIG_DIR/bblayers.conf.append" \

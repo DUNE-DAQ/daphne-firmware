@@ -41,7 +41,9 @@ Important current status:
   - move from the current single-slot boot/update flow to the intended A/B
     eMMC plus QSPI rescue model
   - qualify BOOT.BIN/U-Boot ownership and rollback policy on top of this now
-    working repo-built kernel/DT/rootfs path
+    working repo-built kernel/DT/rootfs path; the repo now owns the KR260
+    `BOOTCOUNT_ENV` U-Boot fragment, but the rebuilt QSPI payload still needs
+    to be rolled out and tested on hardware
 
 So this is now a real bring-up and deployment guide, but not yet the final
 fleet-grade remote-update guide. The longer-term boot contract is documented
