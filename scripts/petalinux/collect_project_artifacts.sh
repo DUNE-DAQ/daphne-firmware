@@ -26,9 +26,14 @@ BUNDLE_DIR_INPUT="${2:-$ROOT_DIR/petalinux/output/$PROJECT_NAME}"
 BUNDLE_DIR="$BUNDLE_DIR_INPUT"
 
 IMAGES_DIR="$PROJECT_DIR/images/linux"
+IMAGES_REAL_DIR="$(readlink -f "$IMAGES_DIR")"
+DEPLOY_IMAGES_ROOT="$PROJECT_DIR/build/tmp/deploy/images"
+QSPI_MACHINE_DIR=""
+MACHINE_NAME=""
 STAGED_DIR="$PROJECT_DIR/project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged"
 BOOT_DIR="$BUNDLE_DIR/boot"
 QSPI_DIR="$BOOT_DIR/qspi-primary"
+QSPI_SOM_DIR="$BOOT_DIR/qspi-som"
 ROOTFS_DIR="$BUNDLE_DIR/rootfs"
 OVERLAY_DIR="$BUNDLE_DIR/overlay"
 META_DIR="$BUNDLE_DIR/meta"
@@ -54,13 +59,26 @@ if [[ ! -d "$IMAGES_DIR" ]]; then
   exit 2
 fi
 
-mkdir -p "$BOOT_DIR" "$QSPI_DIR" "$ROOTFS_DIR" "$OVERLAY_DIR" "$META_DIR"
+if [[ -d "$DEPLOY_IMAGES_ROOT" ]]; then
+  while read -r candidate; do
+    if find "$candidate" -maxdepth 1 \( -type f -o -type l \) -name 'kria-qspi-*.bin' -print -quit | grep -q .; then
+      QSPI_MACHINE_DIR="$candidate"
+      break
+    fi
+  done < <(find "$DEPLOY_IMAGES_ROOT" -mindepth 1 -maxdepth 1 -type d | sort)
+fi
+
+if [[ -n "$QSPI_MACHINE_DIR" ]]; then
+  MACHINE_NAME="$(basename "$QSPI_MACHINE_DIR")"
+fi
+
+mkdir -p "$BOOT_DIR" "$QSPI_DIR" "$QSPI_SOM_DIR" "$ROOTFS_DIR" "$OVERLAY_DIR" "$META_DIR"
 
 copy_if_exists() {
   local src="$1"
   local dst="$2"
-  if [[ -f "$src" ]]; then
-    cp -f "$src" "$dst"
+  if [[ -f "$src" || -L "$src" ]]; then
+    cp -fL "$src" "$dst"
   fi
 }
 
@@ -68,8 +86,8 @@ copy_glob_matches() {
   local src_dir="$1"
   local pattern="$2"
   local dst_dir="$3"
-  find "$src_dir" -maxdepth 1 -type f -name "$pattern" -print | sort | while read -r path; do
-    cp -f "$path" "$dst_dir/$(basename "$path")"
+  find "$src_dir" -maxdepth 1 \( -type f -o -type l \) -name "$pattern" -print | sort | while read -r path; do
+    cp -fL "$path" "$dst_dir/$(basename "$path")"
   done
 }
 
@@ -84,6 +102,17 @@ copy_if_exists "$IMAGES_DIR/rootfs.cpio.gz.u-boot" "$BOOT_DIR/rootfs.cpio.gz.u-b
 
 copy_glob_matches "$IMAGES_DIR" "*.dtb" "$BOOT_DIR"
 copy_glob_matches "$IMAGES_DIR" "*.dtbo" "$BOOT_DIR"
+
+if [[ -n "$QSPI_MACHINE_DIR" ]]; then
+  copy_if_exists "$QSPI_MACHINE_DIR/kria-qspi-$MACHINE_NAME.bin" "$QSPI_SOM_DIR/kria-qspi.bin"
+  copy_if_exists "$QSPI_MACHINE_DIR/kria-qspi-$MACHINE_NAME.manifest" "$QSPI_SOM_DIR/kria-qspi.manifest"
+  copy_if_exists "$QSPI_MACHINE_DIR/imgsel-$MACHINE_NAME.elf" "$QSPI_SOM_DIR/imgsel.elf"
+  copy_if_exists "$QSPI_MACHINE_DIR/imgsel-$MACHINE_NAME.bin" "$QSPI_SOM_DIR/imgsel.bin"
+  copy_if_exists "$QSPI_MACHINE_DIR/imgsel-$MACHINE_NAME.manifest" "$QSPI_SOM_DIR/imgsel.manifest"
+  copy_if_exists "$QSPI_MACHINE_DIR/imgrcry-$MACHINE_NAME.bin" "$QSPI_SOM_DIR/imgrcry.bin"
+  copy_if_exists "$QSPI_MACHINE_DIR/imgrcry-$MACHINE_NAME.manifest" "$QSPI_SOM_DIR/imgrcry.manifest"
+  copy_if_exists "$QSPI_MACHINE_DIR/imgrcry_web.img" "$QSPI_SOM_DIR/imgrcry_web.img"
+fi
 
 if command -v bootgen >/dev/null 2>&1; then
   qspi_required=(
@@ -125,6 +154,10 @@ cat > "$META_DIR/COLLECT-METADATA.txt" <<EOF
 project_dir=$PROJECT_DIR
 project_name=$PROJECT_NAME
 images_dir=$IMAGES_DIR
+images_real_dir=$IMAGES_REAL_DIR
+deploy_images_root=$DEPLOY_IMAGES_ROOT
+qspi_machine_dir=$QSPI_MACHINE_DIR
+machine_name=$MACHINE_NAME
 staged_overlay_dir=$STAGED_DIR
 collected_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOF

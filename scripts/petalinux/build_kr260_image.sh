@@ -23,6 +23,7 @@ Project creation/config options:
 
 Build/package options:
   --bundle-dir DIR       Repo-owned collection directory for resulting images
+  --skip-build-kria-qspi Do not build the KR260 full QSPI image wrapper
   --skip-package-boot    Do not run petalinux-package --boot
   --skip-collect         Do not collect artifacts after the build
   -h, --help             Show this help
@@ -53,6 +54,7 @@ BUNDLE_DIR="$ROOT_DIR/petalinux/output/$PROJECT_NAME"
 
 INIT_ARGS=("$PROJECT_ARG" "$HW_HANDOFF_ARG")
 STAGE_OVERLAY=1
+BUILD_KRIA_QSPI=1
 PACKAGE_BOOT=1
 COLLECT=1
 BUILD_ARGS="${DAPHNE_PETALINUX_BUILD_ARGS:-}"
@@ -71,6 +73,10 @@ while [[ $# -gt 0 ]]; do
     --bundle-dir)
       BUNDLE_DIR="$2"
       shift 2
+      ;;
+    --skip-build-kria-qspi)
+      BUILD_KRIA_QSPI=0
+      shift
       ;;
     --skip-package-boot)
       PACKAGE_BOOT=0
@@ -122,6 +128,13 @@ if (( PACKAGE_BOOT )); then
   )
 fi
 
+if (( BUILD_KRIA_QSPI )); then
+  (
+    cd "$PROJECT_DIR"
+    petalinux-build -c kria-qspi
+  )
+fi
+
 if (( COLLECT )); then
   "$ROOT_DIR/scripts/petalinux/collect_project_artifacts.sh" "$PROJECT_DIR" "$BUNDLE_DIR"
 fi
@@ -139,6 +152,17 @@ if (( COLLECT )) && command -v bootgen >/dev/null 2>&1; then
     "boot/qspi-primary/PRIMARY-BOOT-BANKS.txt" \
     "boot/qspi-primary/PRIMARY-BOOT-METADATA.txt" \
     "boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt"
+  do
+    if [[ ! -f "$BUNDLE_DIR/$rel" ]]; then
+      missing+=("$rel")
+    fi
+  done
+fi
+
+if (( COLLECT )) && (( BUILD_KRIA_QSPI )); then
+  for rel in \
+    "boot/qspi-som/kria-qspi.bin" \
+    "boot/qspi-som/kria-qspi.manifest"
   do
     if [[ ! -f "$BUNDLE_DIR/$rel" ]]; then
       missing+=("$rel")

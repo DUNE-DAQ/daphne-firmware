@@ -220,6 +220,7 @@ Collected output lands in:
 petalinux/output/<project-name>/
   boot/
     qspi-primary/
+    qspi-som/
   rootfs/
   overlay/
   meta/
@@ -236,6 +237,8 @@ boot/qspi-primary/BOOT.primary.BIN
 boot/qspi-primary/PRIMARY-BOOT-BANKS.txt
 boot/qspi-primary/PRIMARY-BOOT-METADATA.txt
 boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt
+boot/qspi-som/kria-qspi.bin
+boot/qspi-som/kria-qspi.manifest
 boot/Image
 boot/system.dtb
 boot/boot.scr
@@ -246,11 +249,24 @@ overlay/daphne-overlay.bin
 overlay/shell.json
 ```
 
-`boot/BOOT.BIN` remains the stock PetaLinux package output. The long-term
-repo-owned QSPI-primary target is the explicit `boot/qspi-primary/BOOT.primary.BIN`
-artifact and its matching `bootgen.primary.bif`. When `bootgen` is available,
-the build now also validates that `BOOT.primary.BIN` resolves to the expected
-primary image headers and records that result in
+The collected boot artifacts now split into three tiers:
+
+- `boot/BOOT.BIN`
+  the stock PetaLinux package output
+- `boot/qspi-primary/BOOT.primary.BIN`
+  the narrower repo-owned primary-bank payload used for focused bank-level
+  boot-chain experiments
+- `boot/qspi-som/kria-qspi.bin`
+  the AMD/KR260 full-SOM QSPI image wrapper that includes Image Selector,
+  persistent registers, dual BOOT.BIN banks, and the recovery image
+
+That distinction matters. `BOOT.primary.BIN` is still useful for bank-level
+debug on an already-partitioned live QSPI layout, but the long-term
+AMD-compatible whole-flash artifact is `boot/qspi-som/kria-qspi.bin`.
+
+When `bootgen` is available, the build still validates that
+`boot/qspi-primary/BOOT.primary.BIN` resolves to the expected primary image
+headers and records that result in
 `boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt`.
 
 The project bootstrap now also pins two KR260 boot-firmware settings that were
@@ -263,6 +279,22 @@ A/B firmware path:
 So a repo-built project should now explicitly own `imgsel.elf` generation and
 the separate U-Boot DTB path, instead of leaving both as implicit or manual
 menuconfig choices.
+
+The full KR260 wrapper now also gets built explicitly with:
+
+```bash
+petalinux-build -c kria-qspi
+```
+
+That recipe is what emits the complete `kria-qspi.bin` SOM image around
+`imgsel`, recovery, and the duplicated boot banks.
+
+Relevant AMD references:
+
+- [KR260 Boot Devices and Firmware Overview (UG1092)](https://docs.amd.com/r/en-US/ug1092-kr260-starter-kit/Boot-Devices-and-Firmware-Overview)
+- [KR260 Board Reset, Firmware Update, and Recovery (UG1092)](https://docs.amd.com/r/en-US/ug1092-kr260-starter-kit/Board-Reset-Firmware-Update-and-Recovery)
+- [PetaLinux Image Selector (UG1144)](https://docs.amd.com/r/en-US/ug1144-petalinux-tools-reference-guide/Image-Selector)
+- [Building a Separate U-Boot DTB (UG1144)](https://docs.amd.com/r/2021.2-English/ug1144-petalinux-tools-reference-guide/Building-a-Separate-U-Boot-DTB)
 
 The repo-owned helper for staging that artifact onto a live board is:
 
