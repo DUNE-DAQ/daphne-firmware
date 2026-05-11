@@ -137,6 +137,8 @@ That wrapper:
 - runs `petalinux-package --boot --u-boot --force`,
 - preserves explicit QSPI-primary boot candidates under `boot/qspi-primary/`,
 - validates `BOOT.primary.BIN` with `bootgen -read` when `bootgen` is available,
+- emits `PRIMARY-BOOT-BANKS.txt` so the remote staging helper can target the
+  right QSPI image bank deterministically,
 - collects the resulting artifacts into:
 
 ```text

@@ -18,6 +18,7 @@ Outputs:
   bootgen.no-system-dtb.bif
   bootgen.u-boot-dtb.bif
   bootgen.primary.bif
+  PRIMARY-BOOT-BANKS.txt
   PRIMARY-BOOT-METADATA.txt
   *.read.txt
 EOF
@@ -126,6 +127,17 @@ expected_image_headers=zynqmp_fsbl.elf,bl31.elf,u-boot-dtb.elf
 unexpected_image_headers=system.dtb,u-boot.elf
 validation_method=bootgen-read-grep
 validated_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+EOF
+
+cat > "$OUT_DIR/PRIMARY-BOOT-BANKS.txt" <<EOF
+bank_a_label=Image A (FSBL, PMU, ATF, U-Boot)
+bank_a_mtd_default=mtd5
+bank_a_offset_hex=0x00200000
+bank_a_multiboot_hex=0x40
+bank_b_label=Image B (FSBL, PMU, ATF, U-Boot)
+bank_b_mtd_default=mtd7
+bank_b_offset_hex=0x00f80000
+bank_b_multiboot_hex=0x1f0
 EOF
 
 cat > "$OUT_DIR/PRIMARY-BOOT-METADATA.txt" <<EOF

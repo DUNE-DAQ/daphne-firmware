@@ -136,6 +136,7 @@ done
 if (( COLLECT )) && command -v bootgen >/dev/null 2>&1; then
   for rel in \
     "boot/qspi-primary/BOOT.primary.BIN" \
+    "boot/qspi-primary/PRIMARY-BOOT-BANKS.txt" \
     "boot/qspi-primary/PRIMARY-BOOT-METADATA.txt" \
     "boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt"
   do

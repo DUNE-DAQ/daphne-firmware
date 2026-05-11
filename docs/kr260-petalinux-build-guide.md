@@ -232,6 +232,7 @@ At minimum, check for:
 ```text
 boot/BOOT.BIN
 boot/qspi-primary/BOOT.primary.BIN
+boot/qspi-primary/PRIMARY-BOOT-BANKS.txt
 boot/qspi-primary/PRIMARY-BOOT-METADATA.txt
 boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt
 boot/Image
@@ -250,6 +251,20 @@ artifact and its matching `bootgen.primary.bif`. When `bootgen` is available,
 the build now also validates that `BOOT.primary.BIN` resolves to the expected
 primary image headers and records that result in
 `boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt`.
+
+The repo-owned helper for staging that artifact onto a live board is:
+
+```bash
+./scripts/remote/stage_qspi_primary_over_ssh.sh \
+  <board-host> \
+  /path/to/petalinux/output/<project-name> \
+  --bank b
+```
+
+That helper uses `boot/qspi-primary/PRIMARY-BOOT-BANKS.txt`, copies
+`BOOT.primary.BIN` to the board, flashes the selected QSPI image bank with
+`flashcp`, verifies the readback prefix hash, and prints the matching temporary
+MultiBoot value for the later serial boot test.
 
 ## 6. Overlay generation notes
 
