@@ -133,6 +133,18 @@ for rel in "boot/BOOT.BIN" "boot/Image" "boot/system.dtb"; do
   fi
 done
 
+if (( COLLECT )) && command -v bootgen >/dev/null 2>&1; then
+  for rel in \
+    "boot/qspi-primary/BOOT.primary.BIN" \
+    "boot/qspi-primary/PRIMARY-BOOT-METADATA.txt" \
+    "boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt"
+  do
+    if [[ ! -f "$BUNDLE_DIR/$rel" ]]; then
+      missing+=("$rel")
+    fi
+  done
+fi
+
 if (( ${#missing[@]} > 0 )); then
   printf 'ERROR: build completed but the collected bundle is still missing expected artifacts:\n' >&2
   printf '  %s\n' "${missing[@]}" >&2

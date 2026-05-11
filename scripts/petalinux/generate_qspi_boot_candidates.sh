@@ -43,6 +43,7 @@ need_cmd() {
 }
 
 need_cmd bootgen
+need_cmd grep
 need_cmd sed
 
 required=(
@@ -79,6 +80,24 @@ build_candidate() {
   bootgen -arch zynqmp -read "$bin_path" > "$read_path"
 }
 
+assert_contains() {
+  local path="$1"
+  local pattern="$2"
+  if ! grep -Fq -- "$pattern" "$path"; then
+    echo "ERROR: expected pattern not found in $(basename "$path"): $pattern" >&2
+    exit 3
+  fi
+}
+
+assert_not_contains() {
+  local path="$1"
+  local pattern="$2"
+  if grep -Fq -- "$pattern" "$path"; then
+    echo "ERROR: unexpected pattern found in $(basename "$path"): $pattern" >&2
+    exit 3
+  fi
+}
+
 if [[ -f "$IMAGES_DIR/BOOT.BIN" ]]; then
   cp -f "$IMAGES_DIR/BOOT.BIN" "$OUT_DIR/BOOT.stock.BIN"
   bootgen -arch zynqmp -read "$IMAGES_DIR/BOOT.BIN" > "$OUT_DIR/BOOT.stock.read.txt"
@@ -94,6 +113,20 @@ build_candidate "BOOT.u-boot-dtb" "qspi-primary-u-boot-dtb.bif.in"
 cp -f "$OUT_DIR/BOOT.u-boot-dtb.BIN" "$OUT_DIR/BOOT.primary.BIN"
 cp -f "$OUT_DIR/BOOT.u-boot-dtb.read.txt" "$OUT_DIR/BOOT.primary.read.txt"
 cp -f "$OUT_DIR/BOOT.u-boot-dtb.bif" "$OUT_DIR/bootgen.primary.bif"
+
+assert_contains "$OUT_DIR/BOOT.primary.read.txt" "IMAGE HEADER (zynqmp_fsbl.elf)"
+assert_contains "$OUT_DIR/BOOT.primary.read.txt" "IMAGE HEADER (bl31.elf)"
+assert_contains "$OUT_DIR/BOOT.primary.read.txt" "IMAGE HEADER (u-boot-dtb.elf)"
+assert_not_contains "$OUT_DIR/BOOT.primary.read.txt" "IMAGE HEADER (system.dtb)"
+assert_not_contains "$OUT_DIR/BOOT.primary.read.txt" "IMAGE HEADER (u-boot.elf)"
+
+cat > "$OUT_DIR/PRIMARY-BOOT-VALIDATION.txt" <<EOF
+validated_image=BOOT.primary.BIN
+expected_image_headers=zynqmp_fsbl.elf,bl31.elf,u-boot-dtb.elf
+unexpected_image_headers=system.dtb,u-boot.elf
+validation_method=bootgen-read-grep
+validated_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+EOF
 
 cat > "$OUT_DIR/PRIMARY-BOOT-METADATA.txt" <<EOF
 intended_primary_boot_image=BOOT.primary.BIN

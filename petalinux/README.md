@@ -136,6 +136,7 @@ That wrapper:
 - runs `petalinux-build`,
 - runs `petalinux-package --boot --u-boot --force`,
 - preserves explicit QSPI-primary boot candidates under `boot/qspi-primary/`,
+- validates `BOOT.primary.BIN` with `bootgen -read` when `bootgen` is available,
 - collects the resulting artifacts into:
 
 ```text

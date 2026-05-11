@@ -233,6 +233,7 @@ At minimum, check for:
 boot/BOOT.BIN
 boot/qspi-primary/BOOT.primary.BIN
 boot/qspi-primary/PRIMARY-BOOT-METADATA.txt
+boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt
 boot/Image
 boot/system.dtb
 boot/boot.scr
@@ -245,7 +246,10 @@ overlay/shell.json
 
 `boot/BOOT.BIN` remains the stock PetaLinux package output. The long-term
 repo-owned QSPI-primary target is the explicit `boot/qspi-primary/BOOT.primary.BIN`
-artifact and its matching `bootgen.primary.bif`.
+artifact and its matching `bootgen.primary.bif`. When `bootgen` is available,
+the build now also validates that `BOOT.primary.BIN` resolves to the expected
+primary image headers and records that result in
+`boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt`.
 
 ## 6. Overlay generation notes
 
