@@ -266,6 +266,18 @@ That helper uses `boot/qspi-primary/PRIMARY-BOOT-BANKS.txt`, copies
 `flashcp`, verifies the readback prefix hash, and prints the matching temporary
 MultiBoot value for the later serial boot test.
 
+The matching serial-side bank test is:
+
+```bash
+./scripts/remote/test_qspi_primary_multiboot.sh \
+  /path/to/petalinux/output/<project-name> \
+  --bank b \
+  --device /dev/ttyUSB2
+```
+
+After a bank passes that temporary MultiBoot boot test, promotion is just a
+second run of `stage_qspi_primary_over_ssh.sh` against the other bank.
+
 ## 6. Overlay generation notes
 
 The manual `xsct` / `createdts` flow from the older notes is still useful for
