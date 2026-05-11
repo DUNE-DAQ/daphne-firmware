@@ -26,6 +26,10 @@ def parse_args() -> argparse.Namespace:
         default=" \r",
         help="Characters to spam once autoboot text appears",
     )
+    parser.add_argument(
+        "--initial-command",
+        help="Optional command to send immediately after opening the serial port",
+    )
     parser.add_argument("--log", help="Optional transcript path")
     return parser.parse_args()
 
@@ -48,6 +52,9 @@ def main() -> int:
 
     try:
         with serial.Serial(args.device, baudrate=args.baudrate, timeout=0) as ser:
+            if args.initial_command:
+                ser.write(args.initial_command.encode("ascii") + b"\r")
+                time.sleep(0.1)
             deadline = time.time() + args.timeout
             while time.time() < deadline:
                 waiting = ser.in_waiting

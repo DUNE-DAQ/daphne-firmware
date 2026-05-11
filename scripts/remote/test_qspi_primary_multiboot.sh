@@ -14,6 +14,8 @@ Options:
   --device PATH         Serial device path. Default: /dev/ttyUSB2
   --baudrate N          Serial baud rate. Default: 115200
   --timeout SEC         Per-command timeout. Default: 20
+  --catch-timeout SEC   Timeout for the post-reset U-Boot catch. Default: 180
+  --no-reset            Only program the MultiBoot register, do not reset/catch
   --log PATH            Serial transcript path
   --bank-map PATH       Override PRIMARY-BOOT-BANKS.txt location
   --dry-run             Print the resolved command sequence only
@@ -26,8 +28,10 @@ bank="b"
 device="/dev/ttyUSB2"
 baudrate="115200"
 timeout_s="20"
+catch_timeout_s="180"
 log_path=""
 bank_map=""
+do_reset=1
 dry_run=0
 
 while [[ $# -gt 0 ]]; do
@@ -47,6 +51,14 @@ while [[ $# -gt 0 ]]; do
     --timeout)
       timeout_s="$2"
       shift 2
+      ;;
+    --catch-timeout)
+      catch_timeout_s="$2"
+      shift 2
+      ;;
+    --no-reset)
+      do_reset=0
+      shift
       ;;
     --log)
       log_path="$2"
@@ -119,11 +131,10 @@ if [[ -z "$multiboot_hex" || -z "$offset_hex" || -z "$label" ]]; then
   exit 2
 fi
 
-commands=(
+program_commands=(
   "zynqmp mmio_read 0xFFCA0010"
   "zynqmp mmio_write 0xFFCA0010 0xfff $multiboot_hex"
   "zynqmp mmio_read 0xFFCA0010"
-  "reset"
 )
 
 cat <<EOF
@@ -134,11 +145,16 @@ MultiBoot value: $multiboot_hex
 Device:          $device
 Baudrate:        $baudrate
 Timeout:         $timeout_s
+Catch timeout:   $catch_timeout_s
 Bank map:        $bank_map
 EOF
 
-printf 'Commands:\n'
-printf '  %s\n' "${commands[@]}"
+printf 'Program commands:\n'
+printf '  %s\n' "${program_commands[@]}"
+if (( do_reset )); then
+  printf 'Reset/catch:\n'
+  printf '  reset\n'
+fi
 
 if (( dry_run )); then
   exit 0
@@ -156,6 +172,25 @@ if [[ -n "$log_path" ]]; then
   cmd+=(--log "$log_path")
 fi
 
-cmd+=("${commands[@]}")
+cmd+=("${program_commands[@]}")
 
 "${cmd[@]}"
+
+if (( ! do_reset )); then
+  exit 0
+fi
+
+catch_cmd=(
+  python3
+  "$ROOT_DIR/scripts/remote/serial_catch_uboot.py"
+  --device "$device"
+  --baudrate "$baudrate"
+  --timeout "$catch_timeout_s"
+  --initial-command "reset"
+)
+
+if [[ -n "$log_path" ]]; then
+  catch_cmd+=(--log "$log_path")
+fi
+
+"${catch_cmd[@]}"
