@@ -1,0 +1,32 @@
+Recent K26 SOM FRUs report product names such as:
+
+  SM-K26-XCL2GC-ED
+
+The image_update utility truncates the product-name token to seven characters
+with `%7s`, so that product becomes `SM-K26-`. The upstream whitelist only
+contains the older `SMK-K26` spelling, which causes `xmutil bootfw_update -i`
+to fail before it writes the inactive boot-firmware bank.
+
+Keep the existing `SMK-K26` entry and add the current `SM-K26-` prefix.
+
+diff --git a/image_update.c b/image_update.c
+index 7abaa8f..56a28d1 100644
+--- a/image_update.c
++++ b/image_update.c
+@@ -28,7 +28,7 @@
+ #define XBIU_QSPI_MFG_INFO_SIZE		(0x100U)
+ #define XBIU_IMG_REVISON_OFFSET		(0x70U)
+ #define XBIU_IMG_REVISON_SIZE		(0x24U)
+-#define XBIU_NUM_BRDS				(0x6U)
++#define XBIU_NUM_BRDS				(0x7U)
+ #define XBIU_NUM_BRD_REVS			(0x4U)
+ #define XBIU_BRD_NAM_STR_LEN		(0x8U)
+ #define XBIU_BRD_REV_STR_LEN		(0x4U)
+@@ -44,6 +44,7 @@ struct board_list brds[XBIU_NUM_BRDS] = {
+ 	{"VHK158", "A01", "B01", "B02", ""},
+ 	{"VEK280", "A01", "B01", "B02", "B03"},
+ 	{"SMK-K26", "A", "B", "1", "2"},
++	{"SM-K26-", "A", "B", "1", "2"},
+ 	{"SMK-K24", "A", "B", "1", ""}
+ };
+ 

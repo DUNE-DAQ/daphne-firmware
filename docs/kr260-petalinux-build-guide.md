@@ -324,6 +324,24 @@ expects a reboot or power-cycle followed immediately by:
   --verify-only
 ```
 
+Current DAPHNE-specific caveat:
+
+- some K26 SOM FRUs report product names such as `SM-K26-XCL2GC-ED`;
+- the Xilinx `image_update` backend in the 2024.1 stack truncates this to
+  `SM-K26-`;
+- the stock whitelist only accepted the older `SMK-K26` spelling, causing
+  `xmutil bootfw_update -i` to reject the board;
+- `petalinux/meta-daphne/recipes-apps/image-update` patches the whitelist so
+  repo-built images accept the current `SM-K26-*` FRU prefix.
+
+On the recovered `DAPHNE-15` slot-B rootfs, `xmutil` is not installed directly.
+Until that rootfs is rebuilt with the tool, boot-firmware status is checked via
+the p2-mounted backend:
+
+```bash
+sudo -n /run/media/root-mmcblk0p2/usr/bin/image_update -p
+```
+
 Relevant AMD references:
 
 - [KR260 Boot Devices and Firmware Overview (UG1092)](https://docs.amd.com/r/en-US/ug1092-kr260-starter-kit/Boot-Devices-and-Firmware-Overview)
@@ -468,10 +486,14 @@ ss -ltnp | grep 40001
 
 For `015`, a successful runtime bring-up now means:
 
-- `/dev/mmcblk0p2` mounted as `/`
+- the expected eMMC slot mounted as `/`
 - FPGA state `operating`
 - PL timing path present
 - service chain active
+
+After the May 12 recovery, the active autonomous boot is QSPI Image B into
+`/dev/mmcblk0p4`, and QSPI persistent state reports Image B as both requested
+and last booted.
 
 ## 10. Proven DAPHNE-15 flash workflow
 
