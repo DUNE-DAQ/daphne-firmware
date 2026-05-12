@@ -306,6 +306,54 @@ petalinux-build -c kria-qspi
 That recipe is what emits the complete `kria-qspi.bin` SOM image around
 `imgsel`, recovery, and the duplicated boot banks.
 
+## 5.1 Deployment Host Topologies
+
+The normal documented setup is general: a Linux/Vivado/PetaLinux host connected
+directly to a DAPHNE board. That host owns the build workspace, can reach the
+board's management SSH address, and has serial/JTAG access when recovery is
+needed.
+
+For a directly connected host, deploy the collected bundle with:
+
+```bash
+./scripts/deploy/daphne_deploy.sh \
+  --board daphne-15 \
+  --host 10.73.137.16 \
+  --bundle petalinux/output/<project-name> \
+  --emmc inactive-slot \
+  --dry-run
+```
+
+Remove `--dry-run` only after the preflight reports the expected active and
+target slots.
+
+Running from ONL is the same direct-host workflow if the repo and bundle are on
+ONL:
+
+```bash
+./scripts/deploy/daphne_deploy.sh \
+  --board daphne-15 \
+  --host 10.73.137.16 \
+  --bundle /path/to/petalinux/output/<project-name> \
+  --emmc inactive-slot
+```
+
+The workstation-to-ONL-to-DAPHNE arrangement used during the May 2026 recovery
+is a relay topology, not a separate deployment architecture. Use
+`--control-host` only when the bundle is local to the workstation but the board
+is reachable/trusted from ONL:
+
+```bash
+./scripts/deploy/daphne_deploy.sh \
+  --board daphne-15 \
+  --host 10.73.137.16 \
+  --bundle petalinux/output/<project-name> \
+  --emmc inactive-slot \
+  --control-host marroyav@np04-onl-004.cern.ch \
+  --ssh-option StrictHostKeyChecking=no \
+  --ssh-option UserKnownHostsFile=/dev/null
+```
+
 For a healthy board, the preferred QSPI boot-firmware update helper is:
 
 ```bash
