@@ -51,6 +51,16 @@ separately in:
 
 - `docs/remote-boot-deployment-plan.md`
 
+The production-oriented plan is:
+
+- use PetaLinux to reproducibly build repo-owned artifacts;
+- deploy runtime Linux to the inactive eMMC slot;
+- update QSPI boot firmware through the Kria `xmutil bootfw_update` A/B
+  mechanism whenever Linux is healthy enough to do so;
+- reserve direct MTD/QSPI writes for lab diagnostics, factory recovery, or
+  cases where the supported Kria update utility cannot be used;
+- verify boot health before marking a slot good.
+
 ## Host requirements
 
 Use a Linux-capable build host for the real PetaLinux build.
@@ -156,6 +166,12 @@ This wrapper:
 - stages overlay payload
 - applies the repo-owned image profile and board-config hooks
 
+Current default:
+
+- fresh KR260 projects now default to `--image-profile minimal`
+- use `--image-profile developer` only when you explicitly want the on-target
+  build stack and are prepared to carry a larger image footprint
+
 If you already have a project and only need to attach the repo-owned layer:
 
 ```bash
@@ -239,6 +255,7 @@ boot/qspi-primary/PRIMARY-BOOT-METADATA.txt
 boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt
 boot/qspi-som/kria-qspi.bin
 boot/qspi-som/kria-qspi.manifest
+boot/qspi-som/QSPI-SOM-LAYOUT.txt
 boot/Image
 boot/system.dtb
 boot/boot.scr
@@ -289,14 +306,52 @@ petalinux-build -c kria-qspi
 That recipe is what emits the complete `kria-qspi.bin` SOM image around
 `imgsel`, recovery, and the duplicated boot banks.
 
+For a healthy board, the preferred QSPI boot-firmware update helper is:
+
+```bash
+./scripts/remote/stage_bootfw_update_over_ssh.sh \
+  <board-host> \
+  /path/to/petalinux/output/<project-name>
+```
+
+That helper copies the repo-built boot-firmware image to the board as
+`BOOT.BIN`, runs `xmutil bootfw_update -i`, records `xmutil bootfw_status`, and
+expects a reboot or power-cycle followed immediately by:
+
+```bash
+./scripts/remote/stage_bootfw_update_over_ssh.sh \
+  <board-host> \
+  --verify-only
+```
+
 Relevant AMD references:
 
 - [KR260 Boot Devices and Firmware Overview (UG1092)](https://docs.amd.com/r/en-US/ug1092-kr260-starter-kit/Boot-Devices-and-Firmware-Overview)
 - [KR260 Board Reset, Firmware Update, and Recovery (UG1092)](https://docs.amd.com/r/en-US/ug1092-kr260-starter-kit/Board-Reset-Firmware-Update-and-Recovery)
+- [Kria SOM Boot Firmware Update](https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/3020685316/Kria%2BSOM%2BBoot%2BFirmware%2BUpdate)
+- [Moving from AMD Software Stacks to Production Deployment](https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/2741928025/Moving%2Bfrom%2BAMD%2BSoftware%2BStacks%2Bto%2BProduction%2BDeployment)
 - [PetaLinux Image Selector (UG1144)](https://docs.amd.com/r/en-US/ug1144-petalinux-tools-reference-guide/Image-Selector)
 - [Building a Separate U-Boot DTB (UG1144)](https://docs.amd.com/r/2021.2-English/ug1144-petalinux-tools-reference-guide/Building-a-Separate-U-Boot-DTB)
 
-The repo-owned helper for staging that artifact onto a live board is:
+The repo-owned full-SOM staging helper is a factory/recovery helper:
+
+```bash
+./scripts/remote/stage_kria_qspi_som_over_ssh.sh \
+  <board-host> \
+  /path/to/petalinux/output/<project-name>
+```
+
+That helper uses `boot/qspi-som/QSPI-SOM-LAYOUT.txt` to flash KR260 boot
+firmware partitions from `kria-qspi.bin` while deliberately leaving:
+
+- `U-Boot storage variables`
+- `U-Boot storage variables backup`
+- `Secure OS Storage`
+- `User`
+
+untouched on the live board.
+
+The repo-owned direct bank helper for controlled diagnostics is:
 
 ```bash
 ./scripts/remote/stage_qspi_primary_over_ssh.sh \
@@ -319,8 +374,10 @@ The matching serial-side bank test is:
   --device /dev/ttyUSB2
 ```
 
-After a bank passes that temporary MultiBoot boot test, promotion is just a
-second run of `stage_qspi_primary_over_ssh.sh` against the other bank.
+After a bank passes that temporary MultiBoot boot test, promotion may be a
+second run of `stage_qspi_primary_over_ssh.sh` against the other bank, but only
+as a deliberate lab/factory action. Normal remote updates should use
+`stage_bootfw_update_over_ssh.sh`.
 
 ## 6. Overlay generation notes
 

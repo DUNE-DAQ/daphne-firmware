@@ -26,6 +26,9 @@ fusesoc_libraries/
 .cache/
 .fusesoc/
 
+# Local board recovery/deployment captures and generated payloads.
+/deploy/
+
 # Local GHDL and lightweight simulation outputs
 *.o
 e~*.o

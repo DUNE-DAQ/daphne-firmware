@@ -162,7 +162,8 @@ fi
 if (( COLLECT )) && (( BUILD_KRIA_QSPI )); then
   for rel in \
     "boot/qspi-som/kria-qspi.bin" \
-    "boot/qspi-som/kria-qspi.manifest"
+    "boot/qspi-som/kria-qspi.manifest" \
+    "boot/qspi-som/QSPI-SOM-LAYOUT.txt"
   do
     if [[ ! -f "$BUNDLE_DIR/$rel" ]]; then
       missing+=("$rel")

@@ -112,6 +112,22 @@ if [[ -n "$QSPI_MACHINE_DIR" ]]; then
   copy_if_exists "$QSPI_MACHINE_DIR/imgrcry-$MACHINE_NAME.bin" "$QSPI_SOM_DIR/imgrcry.bin"
   copy_if_exists "$QSPI_MACHINE_DIR/imgrcry-$MACHINE_NAME.manifest" "$QSPI_SOM_DIR/imgrcry.manifest"
   copy_if_exists "$QSPI_MACHINE_DIR/imgrcry_web.img" "$QSPI_SOM_DIR/imgrcry_web.img"
+  cat > "$QSPI_SOM_DIR/QSPI-SOM-LAYOUT.txt" <<'EOF'
+# part_id|action|mtd_default|mtd_label|offset_hex|size_hex
+image_selector_a|flash|mtd0|Image Selector|0x000000|0x080000
+image_selector_b|flash|mtd1|Image Selector Golden|0x080000|0x080000
+persistent_register_a|flash|mtd2|Persistent Register|0x100000|0x020000
+persistent_register_b|flash|mtd3|Persistent Register Backup|0x120000|0x020000
+open_1|erase|mtd4|Open_1|0x140000|0x0c0000
+image_a|flash|mtd5|Image A (FSBL, PMU, ATF, U-Boot)|0x200000|0x0d00000
+imgsel_image_a_catch|flash|mtd6|ImgSel Image A Catch|0x0f00000|0x080000
+image_b|flash|mtd7|Image B (FSBL, PMU, ATF, U-Boot)|0x0f80000|0x0d00000
+imgsel_image_b_catch|flash|mtd8|ImgSel Image B Catch|0x1c80000|0x080000
+open_2|erase|mtd9|Open_2|0x1d00000|0x100000
+recovery_a|flash|mtd10|Recovery Image|0x1e00000|0x200000
+recovery_b|flash|mtd11|Recovery Image Backup|0x2000000|0x200000
+sha256_region|flash|mtd14|SHA256|0x2240000|0x040000
+EOF
 fi
 
 if command -v bootgen >/dev/null 2>&1; then
