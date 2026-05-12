@@ -1,7 +1,7 @@
 [Unit]
 Description=Program DAPHNE firmware app
-After=local-fs.target dfx-mgrd.service
-Wants=dfx-mgrd.service
+After=local-fs.target dfx-mgr.service dfx-mgrd.service
+Wants=dfx-mgr.service
 Before=clockchip.service endpoint.service hermes.service daphne.service
 
 [Service]

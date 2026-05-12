@@ -21,9 +21,12 @@ RDEPENDS:${PN} += " \
     bash \
     daphne-overlay \
     daphne-server \
+    dfx-mgr \
     fpga-manager-script \
     i2c-tools \
+    iproute2-ss \
     python3-core \
+    xmutil \
 "
 
 SYSTEMD_SERVICE:${PN} = " \

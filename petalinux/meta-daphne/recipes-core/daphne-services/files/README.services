@@ -2,8 +2,8 @@ This package is the repo-owned hook point for DAPHNE bring-up service
 ownership inside the image.
 
 Intended service chain:
-- clockchip.service
 - firmware.service
+- clockchip.service
 - endpoint.service
 - hermes.service
 - daphne.service
@@ -26,6 +26,9 @@ Current implementation notes:
 
 - `firmware.service`, `hermes.service`, and `daphne.service` are based on the
   verified `015` service contract.
+- `firmware.service` prefers the AMD/Kria DFX application path
+  (`dfx-mgr-client`, then `xmutil`) before falling back to raw `fpgautil`, and
+  fails the boot chain if FPGA manager state does not become `operating`.
 - `endpoint.service` performs the known endpoint MMIO bring-up from the
   `daphneZMQ` register map through `/dev/mem`, but now does it through a
   shell-native `devmem` helper rather than a Python `mmap` dependency.

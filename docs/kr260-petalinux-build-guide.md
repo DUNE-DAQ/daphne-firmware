@@ -593,10 +593,24 @@ On `NP04-DAPHNE-015`:
   `firmware`, `clockchip`, `endpoint`, `hermes`, and `daphne` chain active
 - the early DT-related `rcu_sched` stall is gone
 
+2026-05-12 update:
+
+- the remote-only eMMC A/B deployment path is now proven through
+  `scripts/deploy/daphne_deploy.sh` from this workstation via
+  `np04-onl-004`;
+- the corrected repo-built image was written to inactive slot A, booted,
+  marked healthy by `daphne-boot-ok.service`, and survived a plain reboot with
+  `/dev/mmcblk0p2` as `/`;
+- `dfx-mgr`, `firmware`, `clockchip`, `endpoint`, `hermes`, and `daphne`
+  services were active, FPGA manager state was `operating`, and
+  `daphneServer` was reachable on `10.73.137.16:40001`.
+
 What is still not fully proven:
 
-- the final remote-only A/B boot and recovery model from
-  `docs/remote-boot-deployment-plan.md`
+- the repo-built QSPI boot-firmware update path through
+  `xmutil bootfw_update` / `stage_bootfw_update_over_ssh.sh`;
+- fully unattended rollback after a genuinely broken boot attempt with the
+  rebuilt U-Boot payload.
 
 ## Where this guide differs from the older notes
 
