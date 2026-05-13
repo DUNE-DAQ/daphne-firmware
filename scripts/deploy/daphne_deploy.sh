@@ -23,7 +23,7 @@ Options:
   --user USER             SSH user. Default: petalinux.
   --emmc inactive-slot    Deploy to the inactive slot. Default.
   --emmc a|b              Force a target slot.
-  --remote-dir DIR        Target-board staging dir. Default: /home/petalinux/daphne-deploy.
+  --remote-dir DIR        Target-board staging dir. Default: /tmp/daphne-deploy.
   --ssh-option OPT        Extra ssh/scp -o option. May be repeated.
   --control-host HOST     Optional SSH host that can reach the board.
   --control-dir DIR       Control-host staging dir. Default: /tmp/daphne-deploy-control.
@@ -46,7 +46,7 @@ host=""
 bundle_dir=""
 ssh_user="petalinux"
 emmc_mode="inactive-slot"
-remote_dir="/home/petalinux/daphne-deploy"
+remote_dir="/tmp/daphne-deploy"
 control_host=""
 control_dir="/tmp/daphne-deploy-control"
 reboot_after=0
@@ -296,6 +296,14 @@ for cmd in /bin/dd /bin/cp /bin/mkdir /bin/sync /bin/umount /sbin/e2fsck /usr/bi
   fi
 done
 
+resize_cmd=""
+for cmd in /sbin/resize2fs /usr/sbin/resize2fs; do
+  if [[ -x "$cmd" ]]; then
+    resize_cmd="$cmd"
+    break
+  fi
+done
+
 if [[ "$dry_run" == "1" ]]; then
   echo "== dry-run: no remote writes =="
   exit 0
@@ -339,6 +347,13 @@ set -e
 if (( e2fsck_rc > 3 )); then
   echo "ERROR: e2fsck failed with rc=$e2fsck_rc" >&2
   exit "$e2fsck_rc"
+fi
+if [[ -n "$resize_cmd" ]]; then
+  echo "Growing rootfs on $target_root with $resize_cmd"
+  as_root "$resize_cmd" "$target_root"
+  as_root /bin/sync
+else
+  echo "WARNING: resize2fs not available on active runtime; $target_root keeps image filesystem size." >&2
 fi
 
 if [[ ! -d "$target_boot_mount" ]]; then

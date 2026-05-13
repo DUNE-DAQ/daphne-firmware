@@ -30,6 +30,8 @@ uses the fragments here to:
   `CONFIG_YOCTO_INCLUDE_MACHINE_NAME="k26-smk-kr"`,
   `CONFIG_SUBSYSTEM_MACHINE_NAME="AUTO"`)
 - record `DAPHNE_IMAGE_PROFILE` in the project `local.conf`
+- inherit the repo-owned image postprocess hooks for access policy and
+  runtime-service cleanup
 
 Two profiles are currently supported:
 

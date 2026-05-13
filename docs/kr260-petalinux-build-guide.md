@@ -38,12 +38,13 @@ Important current status:
 - the shared DAPHNE DT now makes `gem0` explicitly boot as the management
   `sgmii` fixed-link, following the proven `daphne-14` contract
 - the remaining boot gap is narrower:
-  - move from the current single-slot boot/update flow to the intended A/B
-    eMMC plus QSPI rescue model
-  - qualify BOOT.BIN/U-Boot ownership and rollback policy on top of this now
-    working repo-built kernel/DT/rootfs path; the repo now owns the KR260
-    `BOOTCOUNT_ENV` U-Boot fragment, but the rebuilt QSPI payload still needs
-    to be rolled out and tested on hardware
+  - the repo-built runtime has now been deployed to both eMMC rootfs slots on
+    `DAPHNE-15`
+  - the accepted runtime boot currently lands on slot B with clean systemd
+    health and the DAPHNE service chain active
+  - QSPI boot-firmware image qualification remains open; the repo owns the
+    artifacts and helpers, but the current `BOOT.primary.BIN` candidate has
+    not yet produced a clean autonomous temporary-bank boot on `015`
 
 So this is now a real bring-up and deployment guide, but not yet the final
 fleet-grade remote-update guide. The longer-term boot contract is documented
@@ -327,6 +328,11 @@ For a directly connected host, deploy the collected bundle with:
 Remove `--dry-run` only after the preflight reports the expected active and
 target slots.
 
+The deploy helper stages transient files on the target under
+`/tmp/daphne-deploy` by default, not under the small root filesystem. If the
+active runtime provides `resize2fs`, the helper grows the inactive ext4 rootfs
+after writing the compact `rootfs.ext4` payload.
+
 Running from ONL is the same direct-host workflow if the repo and bundle are on
 ONL:
 
@@ -382,13 +388,18 @@ Current DAPHNE-specific caveat:
 - `petalinux/meta-daphne/recipes-apps/image-update` patches the whitelist so
   repo-built images accept the current `SM-K26-*` FRU prefix.
 
-On the recovered `DAPHNE-15` slot-B rootfs, `xmutil` is not installed directly.
-Until that rootfs is rebuilt with the tool, boot-firmware status is checked via
-the p2-mounted backend:
+Historical recovery caveat: during the May 12 recovery, the temporary slot-B
+rootfs did not have `xmutil` installed directly, so boot-firmware status was
+checked through the p2-mounted backend:
 
 ```bash
 sudo -n /run/media/root-mmcblk0p2/usr/bin/image_update -p
 ```
+
+That is no longer the normal `DAPHNE-15` state after the May 13 rebuilt runtime
+deployment. Both runtime slots now contain `xmutil`; use normal
+`xmutil bootfw_status` checks unless the board has regressed into the older
+recovery image.
 
 Relevant AMD references:
 
@@ -539,9 +550,9 @@ For `015`, a successful runtime bring-up now means:
 - PL timing path present
 - service chain active
 
-After the May 12 recovery, the active autonomous boot is QSPI Image B into
-`/dev/mmcblk0p4`, and QSPI persistent state reports Image B as both requested
-and last booted.
+After the May 13 runtime redeployment, the active autonomous boot is QSPI Image
+B into eMMC slot B (`/dev/mmcblk0p4`). QSPI persistent state reports Image B as
+both requested and last booted.
 
 ## 10. Proven DAPHNE-15 flash workflow
 
@@ -605,10 +616,29 @@ On `NP04-DAPHNE-015`:
   services were active, FPGA manager state was `operating`, and
   `daphneServer` was reachable on `10.73.137.16:40001`.
 
+2026-05-13 update:
+
+- the runtime image was rebuilt with unused NFS/rpcbind runtime packages
+  removed so non-DAPHNE service failures do not hide the real board state;
+- `e2fsprogs-resize2fs` is included in the runtime image;
+- `scripts/deploy/daphne_deploy.sh` now stages through `/tmp/daphne-deploy`
+  by default and grows the inactive ext4 rootfs when `resize2fs` is available;
+- the cleaned runtime generation was deployed to both slot A
+  (`/dev/mmcblk0p2`) and slot B (`/dev/mmcblk0p4`);
+- both rootfs filesystems are grown to the full rootfs partition size;
+- the final accepted boot is slot B with `active_slot=b`, `last_good_slot=b`,
+  `upgrade_available=0`, and `bootcount=0`;
+- `dfx-mgr`, `firmware`, `clockchip`, `endpoint`, `hermes`, and `daphne`
+  are active, `daphne-boot-ok.service` completed successfully, FPGA manager is
+  `operating`, `systemctl --failed` reports no failed units, and
+  `daphneServer` is reachable on `10.73.137.16:40001`.
+
 What is still not fully proven:
 
 - the repo-built QSPI boot-firmware update path through
-  `xmutil bootfw_update` / `stage_bootfw_update_over_ssh.sh`;
+  `xmutil bootfw_update` / `stage_bootfw_update_over_ssh.sh`, because the
+  helper selects the same `BOOT.primary.BIN` candidate that previously staged
+  and verified but failed a temporary-bank boot on `015`;
 - fully unattended rollback after a genuinely broken boot attempt with the
   rebuilt U-Boot payload.
 

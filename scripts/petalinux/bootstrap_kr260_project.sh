@@ -53,6 +53,7 @@ META_USER_DIR="$PROJECT_SPEC_DIR/meta-user"
 META_LAYER_DST="$PROJECT_SPEC_DIR/meta-daphne"
 BBLAYERS_FILE="$BUILD_CONF_DIR/bblayers.conf"
 LOCAL_CONF_FILE="$BUILD_CONF_DIR/local.conf"
+ROOTFS_CONFIG_FILE="$PROJECT_SPEC_DIR/configs/rootfs_config"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -279,6 +280,44 @@ dst.write_text(text)
 PY
 }
 
+upsert_rootfs_settings() {
+  local dst="$1"
+
+  if [[ ! -f "$dst" ]]; then
+    echo "INFO: rootfs config not found yet, skipping DAPHNE rootfs package overrides: $dst"
+    return 0
+  fi
+
+  python3 - "$dst" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+dst = Path(sys.argv[1])
+text = dst.read_text()
+
+replacements = {
+    r'^(# )?CONFIG_nfs-utils(=.*| is not set)?$':
+        '# CONFIG_nfs-utils is not set',
+    r'^(# )?CONFIG_nfs-utils-client(=.*| is not set)?$':
+        '# CONFIG_nfs-utils-client is not set',
+    r'^(# )?CONFIG_rpcbind(=.*| is not set)?$':
+        '# CONFIG_rpcbind is not set',
+    r'^(# )?CONFIG_e2fsprogs-resize2fs(=.*| is not set)?$':
+        'CONFIG_e2fsprogs-resize2fs=y',
+}
+
+for pattern, replacement in replacements.items():
+    text, count = re.subn(pattern, replacement, text, flags=re.MULTILINE)
+    if count == 0:
+        if text and not text.endswith("\n"):
+            text += "\n"
+        text += replacement + "\n"
+
+dst.write_text(text)
+PY
+}
+
 install_meta_layer
 sync_project_spec_overlay \
   "$CONFIG_DIR/project-spec/meta-user" \
@@ -299,6 +338,7 @@ append_once \
 upsert_profile_setting "$LOCAL_CONF_FILE"
 upsert_board_id_setting "$LOCAL_CONF_FILE"
 upsert_project_machine_settings "$PROJECT_SPEC_DIR/configs/config"
+upsert_rootfs_settings "$ROOTFS_CONFIG_FILE"
 
 cat <<EOF
 Attached meta-daphne to:
@@ -323,6 +363,12 @@ Pinned KR260 machine settings:
   CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=y
   CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=y
   CONFIG_UBOOT_DTB_PACKAGE_NAME="u-boot.dtb"
+
+DAPHNE rootfs package overrides:
+  CONFIG_nfs-utils is not set
+  CONFIG_nfs-utils-client is not set
+  CONFIG_rpcbind is not set
+  CONFIG_e2fsprogs-resize2fs=y
 
 Next manual steps:
   1. Run petalinux-config --silentconfig to regenerate build/conf/ with the KR260 machine if you are not using init_kr260_project.sh.
