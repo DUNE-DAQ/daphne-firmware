@@ -124,11 +124,30 @@ run_stage() {
   stage_name="$1"
   log_path="$2"
   shift 2
+  status_path="$RUN_DIR/.${stage_name}.status.$$"
+  rm -f "$status_path"
 
   (
-    cd "$ROOT_DIR"
+    set +e
+    if ! cd "$ROOT_DIR"; then
+      printf '%s\n' 125 >"$status_path"
+      exit 0
+    fi
     "$@"
+    printf '%s\n' "$?" >"$status_path"
   ) 2>&1 | tee "$log_path"
+
+  if [ -f "$status_path" ]; then
+    stage_status="$(cat "$status_path")"
+    rm -f "$status_path"
+  else
+    stage_status=125
+  fi
+
+  if [ "$stage_status" -ne 0 ]; then
+    echo "ERROR: stage '$stage_name' failed with exit status $stage_status; see $log_path." >&2
+    return "$stage_status"
+  fi
 }
 
 if [ "$PREFLIGHT_REQUIRED" = "1" ]; then

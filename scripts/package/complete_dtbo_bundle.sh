@@ -307,9 +307,13 @@ fi
 echo "INFO: xsa        = $latest_xsa"
 echo "INFO: bin        = $bin_input_file"
 
-pl_dtsi_path="$(
-  find "$XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}" -type f -name 'pl.dtsi' 2>/dev/null | sort | head -n 1
-)"
+pl_dtsi_dir="$XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}"
+pl_dtsi_path=""
+if [[ -d "$pl_dtsi_dir" ]]; then
+  pl_dtsi_path="$(
+    find "$pl_dtsi_dir" -type f -name 'pl.dtsi' 2>/dev/null | sort | head -n 1 || true
+  )"
+fi
 
 if [[ -n "$pl_dtsi_path" ]]; then
   echo "INFO: reusing existing pl.dtsi at $pl_dtsi_path"
@@ -317,7 +321,7 @@ else
   xsct "$DTBO_GEN_TCL" "$latest_xsa" "$XSCT_OUTPUT_DIR" "$git_sha" "$artifact_prefix" "$overlay_prefix"
 
   pl_dtsi_path="$(
-    find "$XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}" -type f -name 'pl.dtsi' | sort | head -n 1
+    find "$pl_dtsi_dir" -type f -name 'pl.dtsi' 2>/dev/null | sort | head -n 1 || true
   )"
 fi
 

@@ -34,6 +34,163 @@ if [ "$ETH_MODE" = "vendored_hdl" ]; then
   exit 2
 fi
 
+append_unique_path() {
+  current="$1"
+  candidate="$2"
+  [ -n "$candidate" ] || {
+    printf '%s' "$current"
+    return 0
+  }
+  case ";$current;" in
+    *";$candidate;"*)
+      printf '%s' "$current"
+      ;;
+    "")
+      printf '%s' "$candidate"
+      ;;
+    *)
+      printf '%s;%s' "$current" "$candidate"
+      ;;
+  esac
+}
+
+running_under_wsl() {
+  [ -n "${WSL_DISTRO_NAME-}" ] || [ -n "${WSL_INTEROP-}" ]
+}
+
+vivado_requires_windows_paths() {
+  case "${DAPHNE_HOST_PATH_STYLE:-auto}" in
+    windows)
+      return 0
+      ;;
+    linux|native)
+      return 1
+      ;;
+    auto)
+      ;;
+    *)
+      echo "ERROR: unsupported DAPHNE_HOST_PATH_STYLE=$DAPHNE_HOST_PATH_STYLE; use auto, linux, native, or windows." >&2
+      exit 2
+      ;;
+  esac
+
+  running_under_wsl || return 1
+
+  vivado_path="$(command -v vivado 2>/dev/null || true)"
+  [ -n "$vivado_path" ] || return 1
+
+  case "$vivado_path" in
+    "${DAPHNE_WSL_XILINX_WRAPPER_DIR:-__unset__}"/*|*.bat|*.cmd|*.exe)
+      return 0
+      ;;
+  esac
+
+  if [ -f "$vivado_path" ] && grep -Fq "run_windows_batch_tool.sh" "$vivado_path" 2>/dev/null; then
+    return 0
+  fi
+
+  return 1
+}
+
+resolve_platform_path() {
+  raw_path="$1"
+  case "$raw_path" in
+    "")
+      return 0
+      ;;
+    /*|[A-Za-z]:/*|[A-Za-z]:\\*)
+      printf '%s\n' "$raw_path"
+      ;;
+    *)
+      printf '%s\n' "$ROOT_DIR/$raw_path"
+      ;;
+  esac
+}
+
+convert_host_path() {
+  raw_path="$1"
+  [ -n "$raw_path" ] || return 0
+
+  if vivado_requires_windows_paths && command -v wslpath >/dev/null 2>&1; then
+    case "$raw_path" in
+      /*)
+        if converted_path=$(wslpath -w "$raw_path" 2>/dev/null); then
+          printf '%s\n' "$converted_path"
+          return 0
+        fi
+        ;;
+    esac
+  fi
+
+  printf '%s\n' "$raw_path"
+}
+
+resolve_host_path() {
+  resolved_path="$(resolve_platform_path "$1")"
+  convert_host_path "$resolved_path"
+}
+
+convert_semicolon_path_list() {
+  raw_list="$1"
+  converted_list=""
+  old_ifs="$IFS"
+  IFS=';'
+  set -- $raw_list
+  IFS="$old_ifs"
+  for path_item in "$@"; do
+    trimmed_item="$(printf '%s' "$path_item" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+    [ -n "$trimmed_item" ] || continue
+    converted_item="$(resolve_host_path "$trimmed_item")"
+    converted_list="$(append_unique_path "$converted_list" "$converted_item")"
+  done
+  printf '%s\n' "$converted_list"
+}
+
+if [ -z "${DAPHNE_IP_REPO_ROOT-}" ] && [ -d "$ROOT_DIR/ip_repo/daphne_ip" ]; then
+  DAPHNE_IP_REPO_ROOT="$ROOT_DIR/ip_repo/daphne_ip"
+fi
+
+if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -z "${DAPHNE_USER_IP_REPO_PARENT-}" ]; then
+  DAPHNE_USER_IP_REPO_PARENT="$(dirname "$DAPHNE_IP_REPO_ROOT")"
+fi
+
+if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
+  auto_extra_roots=""
+  for candidate_dir in \
+    "$ROOT_DIR/rtl/isolated/common" \
+    "$ROOT_DIR/rtl/isolated/common/primitives" \
+    "$ROOT_DIR/rtl/isolated/subsystems/control" \
+    "$ROOT_DIR/rtl/isolated/subsystems/frontend" \
+    "$ROOT_DIR/rtl/isolated/subsystems/readout" \
+    "$ROOT_DIR/rtl/isolated/subsystems/spy" \
+    "$ROOT_DIR/rtl/isolated/subsystems/timing" \
+    "$ROOT_DIR/rtl/isolated/subsystems/trigger"
+  do
+    if [ -d "$candidate_dir" ]; then
+      auto_extra_roots="$(append_unique_path "$auto_extra_roots" "$candidate_dir")"
+    fi
+  done
+  if [ -n "$auto_extra_roots" ]; then
+    DAPHNE_IP_EXTRA_SOURCE_ROOTS="$auto_extra_roots"
+  fi
+fi
+
+if [ -n "${DAPHNE_IP_TOP_HDL_FILE-}" ]; then
+  DAPHNE_IP_TOP_HDL_FILE="$(resolve_host_path "$DAPHNE_IP_TOP_HDL_FILE")"
+fi
+if [ -n "${DAPHNE_PUBLIC_TOP_HDL_FILE-}" ]; then
+  DAPHNE_PUBLIC_TOP_HDL_FILE="$(resolve_host_path "$DAPHNE_PUBLIC_TOP_HDL_FILE")"
+fi
+if [ -n "${DAPHNE_IP_REPO_ROOT-}" ]; then
+  DAPHNE_IP_REPO_ROOT="$(resolve_host_path "$DAPHNE_IP_REPO_ROOT")"
+fi
+if [ -n "${DAPHNE_USER_IP_REPO_PARENT-}" ]; then
+  DAPHNE_USER_IP_REPO_PARENT="$(resolve_host_path "$DAPHNE_USER_IP_REPO_PARENT")"
+fi
+if [ -n "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
+  DAPHNE_IP_EXTRA_SOURCE_ROOTS="$(convert_semicolon_path_list "$DAPHNE_IP_EXTRA_SOURCE_ROOTS")"
+fi
+
 export DAPHNE_FPGA_PART
 export DAPHNE_BOARD_PART
 export DAPHNE_PFM_NAME
@@ -68,8 +225,19 @@ append_env_tcl DAPHNE_BOARD
 append_env_tcl DAPHNE_ETH_MODE
 append_env_tcl DAPHNE_GIT_SHA
 append_env_tcl DAPHNE_OUTPUT_DIR
+append_env_tcl DAPHNE_USER_IP_VLNV
+append_env_tcl DAPHNE_IP_TOP_HDL_FILE
+append_env_tcl DAPHNE_IP_TOP_MODULE
 append_env_tcl DAPHNE_IP_CELL_NAME
+append_env_tcl DAPHNE_IP_COMPONENT_IDENTIFIER
+append_env_tcl DAPHNE_IP_DISPLAY_NAME
+append_env_tcl DAPHNE_IP_XGUI_FILE
 append_env_tcl DAPHNE_IP_CELL_BIND_ROOT
+append_env_tcl DAPHNE_PUBLIC_TOP_HDL_FILE
+append_env_tcl DAPHNE_PUBLIC_TOP_MODULE
+append_env_tcl DAPHNE_IP_EXTRA_SOURCE_ROOTS
+append_env_tcl DAPHNE_IP_REPO_ROOT
+append_env_tcl DAPHNE_USER_IP_REPO_PARENT
 printf 'set script_dir [file dirname [file normalize [info script]]]\n' >>"$shim_tcl"
 printf 'source -notrace [file join $script_dir "daphne_ip_gen.tcl"]\n' >>"$shim_tcl"
 printf 'exit\n' >>"$shim_tcl"

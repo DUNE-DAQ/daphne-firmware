@@ -2,9 +2,8 @@
 # this code must run inside the XSCT Vitis environment
 # call for this specific process to run first
 
-# Normalize WSL/Windows path strings for XSCT on Windows.
-# In particular, createdts is stricter than hsi::open_hw_design about UNC
-# paths with backslashes, so canonicalize everything to forward-slash form.
+# Normalize WSL/Windows path strings for XSCT. In particular, createdts is
+# stricter than HSI about path spelling, so canonicalize backslashes.
 set script_dir [file dirname [file normalize [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
 source [file join $script_dir "daphne_board_env.tcl"]
@@ -58,11 +57,12 @@ if {![file exists $hw_xsa_open]} {
 
 set hw_xsa_createdts [daphne_createdts_hw_path $hw_xsa_open]
 
-# generate the device tree using the generated XSA
+# Generate the device tree using the generated XSA. Do not call
+# hsi::open_hw_design first; Vitis 2024.1 createdts opens the XSA internally
+# and fails if the same design is already open in the XSCT process.
 if {$hw_arg ne "" && $hw_arg ne $hw_xsa_open} {
     puts "INFO: normalized HW path differs from argv; using canonical XSA path $hw_xsa_open"
 }
-hsi::open_hw_design $hw_xsa_open
 createdts -hw $hw_xsa_createdts -zocl -platform-name ${artifact_prefix}_$git_sha -git-branch $dtg_git_branch -overlay -out [file join $out_dir ${artifact_prefix}_$git_sha]
  
 # exit the process once done

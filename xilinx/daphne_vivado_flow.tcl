@@ -364,7 +364,7 @@ proc daphne_export_dt_windows {cfg_name} {
     }
 
     puts "INFO: Generating Device Tree files."
-    if {[catch {exec $xsct_exe -eval "hsi::open_hw_design [file join $cfg(output_dir) ${cfg(build_name)}.xsa]; createdts -hw [file join $cfg(output_dir) ${cfg(build_name)}.xsa] -zocl -platform-name $cfg(build_name) -git-branch $cfg(dtg_git_branch) -overlay -out [file join $cfg(output_dir) $cfg(build_name)]; exit" 2>@1} result]} {
+    if {[catch {exec $xsct_exe -eval "createdts -hw [file join $cfg(output_dir) ${cfg(build_name)}.xsa] -zocl -platform-name $cfg(build_name) -git-branch $cfg(dtg_git_branch) -overlay -out [file join $cfg(output_dir) $cfg(build_name)]; exit" 2>@1} result]} {
         error "ERROR: xsct command failed:\n$result"
     }
     puts "INFO: Device Tree files have been generated."

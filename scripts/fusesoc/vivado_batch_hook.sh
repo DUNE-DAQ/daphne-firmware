@@ -33,6 +33,40 @@ running_under_wsl() {
   [ -n "${WSL_DISTRO_NAME-}" ] || [ -n "${WSL_INTEROP-}" ]
 }
 
+vivado_requires_windows_paths() {
+  case "${DAPHNE_HOST_PATH_STYLE:-auto}" in
+    windows)
+      return 0
+      ;;
+    linux|native)
+      return 1
+      ;;
+    auto)
+      ;;
+    *)
+      echo "ERROR: unsupported DAPHNE_HOST_PATH_STYLE=$DAPHNE_HOST_PATH_STYLE; use auto, linux, native, or windows." >&2
+      exit 2
+      ;;
+  esac
+
+  running_under_wsl || return 1
+
+  vivado_path="$(command -v vivado 2>/dev/null || true)"
+  [ -n "$vivado_path" ] || return 1
+
+  case "$vivado_path" in
+    "${DAPHNE_WSL_XILINX_WRAPPER_DIR:-__unset__}"/*|*.bat|*.cmd|*.exe)
+      return 0
+      ;;
+  esac
+
+  if [ -f "$vivado_path" ] && grep -Fq "run_windows_batch_tool.sh" "$vivado_path" 2>/dev/null; then
+    return 0
+  fi
+
+  return 1
+}
+
 is_windows_style_path() {
   case "$1" in
     [A-Za-z]:/*|[A-Za-z]:\\*) return 0 ;;
@@ -62,7 +96,7 @@ convert_host_path() {
   raw_path="$1"
   [ -n "$raw_path" ] || return 0
 
-  if running_under_wsl && command -v wslpath >/dev/null 2>&1; then
+  if vivado_requires_windows_paths && command -v wslpath >/dev/null 2>&1; then
     case "$raw_path" in
       /*)
         if converted_path=$(wslpath -w "$raw_path" 2>/dev/null); then
