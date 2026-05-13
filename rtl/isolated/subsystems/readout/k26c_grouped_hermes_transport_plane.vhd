@@ -5,8 +5,8 @@ use work.grouped_transport_pkg.all;
 
 entity k26c_grouped_hermes_transport_plane is
   generic (
-    SOURCE_COUNT_G        : positive := 10;
-    HERMES_IN_BUF_DEPTH_G : natural  := 1024
+    SOURCE_COUNT_G        : positive := 5;
+    HERMES_IN_BUF_DEPTH_G : natural  := 2048
   );
   port (
     clock              : in  std_logic;

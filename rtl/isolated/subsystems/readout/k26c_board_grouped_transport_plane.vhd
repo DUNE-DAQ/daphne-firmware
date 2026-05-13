@@ -6,9 +6,9 @@ use work.grouped_transport_pkg.all;
 
 entity k26c_board_grouped_transport_plane is
   generic (
-    SOURCE_COUNT_G        : positive := 10;
-    HERMES_IN_BUF_DEPTH_G : natural := 1024;
-    ENABLE_OUTBUFFER_G    : boolean  := true
+    SOURCE_COUNT_G        : positive := 5;
+    HERMES_IN_BUF_DEPTH_G : natural := 2048;
+    ENABLE_OUTBUFFER_G    : boolean  := false
   );
   port (
     clock               : in  std_logic;

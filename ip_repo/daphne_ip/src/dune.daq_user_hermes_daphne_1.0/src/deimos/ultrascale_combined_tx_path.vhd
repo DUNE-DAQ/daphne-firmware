@@ -27,7 +27,8 @@ entity ultrascale_combined_tx_path is
     generic(
         N_SRC               : integer := 4;
         N_MGT               : positive range 1 to 4 := 2;
-        IN_BUF_DEPTH        : natural
+        IN_BUF_DEPTH        : natural;
+        READY_AWARE_G       : boolean := false
     );
     port(
         ipb_clk             : in  std_logic;
@@ -55,6 +56,7 @@ entity ultrascale_combined_tx_path is
         rst_156_25_array     : in std_logic_vector(N_MGT-1 downto 0);
  
         d : in array_of_src_d_arrays(N_MGT-1 downto 0) (N_SRC-1 downto 0);
+        source_ready : out array_of_src_ready_arrays(N_MGT-1 downto 0) (N_SRC-1 downto 0);
         
         ext_mac_addr    : in mac_addr_array(N_MGT-1 downto 0);
         ext_ip_addr     : in ip_addr_array(N_MGT-1 downto 0); 
@@ -267,7 +269,8 @@ mux: entity work.tx_mux
 generic map(
     N_SRC => N_SRC,
     IFACE_ID => i,
-    IN_BUF_DEPTH => IN_BUF_DEPTH
+    IN_BUF_DEPTH => IN_BUF_DEPTH,
+    READY_AWARE_G => READY_AWARE_G
 )
 port map(
     ipb_clk => ipb_clk,
@@ -278,6 +281,7 @@ port map(
     src_rst => data_clk_rst,
     ts => ts,
     d => d_array((i*N_SRC)+N_SRC - 1 downto (i*N_SRC)),
+    source_ready => source_ready(i),
     samp => samp,
     mark => mark,
     eth_clk => ref_clk_156_in,

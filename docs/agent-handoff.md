@@ -1,12 +1,12 @@
 # Agent Handoff: Grouped Hermes Architecture Branch
 
-Date: 2026-05-12
+Date: 2026-05-13
 
 This handoff is for the active DAPHNE firmware development branch in:
 
 - Repository: `~/repo/daphne-firmware`
 - Branch: `marroyav/grouped-hermes-arch-draft`
-- RTL tip when this note was written: `963e4ae` (`Reduce grouped Hermes input FIFO depth`)
+- Branch tip before this working-tree update: `963e4ae` (`Reduce grouped Hermes input FIFO depth`)
 - Remote status at handoff time: local branch matched `origin/marroyav/grouped-hermes-arch-draft`
 
 No push was performed while writing this handoff. If this file is still
@@ -25,7 +25,10 @@ The working design direction is:
 - queue compact descriptors rather than large waveform payloads,
 - assemble packets late,
 - expose real grouped sources to Hermes,
-- study `10` grouped producers first (`4` channels per grouped source),
+- use `5` grouped producers by default (`8` channels per grouped source, one
+  producer per AFE),
+- keep `10` grouped producers (`4` channels per grouped source) as an explicit
+  measurement override when the extra Hermes buffers are justified,
 - keep the production-visible transport contract stable until the resource and
   dead-time tradeoff is measured.
 
@@ -75,7 +78,14 @@ FuseSoC/build integration:
 
 Resource-reduction work already staged:
 
-- grouped Hermes input FIFO depth lowered to `1024` at the current tip
+- grouped Hermes input FIFO depth is kept at the legacy `2048` words per source
+  for the launch candidate
+- grouped Deimos/Hermes input buffers now expose source-side ready in
+  `READY_AWARE_G` mode, and the grouped bridge threads that ready back to the
+  serializers
+- grouped self-trigger defaults now disable the dynamic AFE compensator and
+  dynamic signal inverter, use a fixed CFD, and reduce synthetic trigger latency
+  from `64` clocks to `4` clocks
 - optional grouped outbuffer path can be disabled through `ENABLE_OUTBUFFER_G`
 - arithmetic/register-bank cleanup and xcorr DSP-reduction notes are tracked in
   `docs/xcorr-dsp-reduction.md`
@@ -86,9 +96,12 @@ The current grouped board path computes:
 
 - `AFE_COUNT_G = 5`
 - `CHANNELS_PER_AFE_G = 8`
-- `CHANNELS_PER_PRODUCER_G = 4`
-- `SOURCE_COUNT_C = 10`
-- `HERMES_IN_BUF_DEPTH_G = 1024`
+- `CHANNELS_PER_PRODUCER_G = 8`
+- `SOURCE_COUNT_C = 5`
+- `HERMES_IN_BUF_DEPTH_G = 2048`
+
+To reproduce the previous `10`-source study point, override
+`CHANNELS_PER_PRODUCER_G` back to `4`.
 
 The grouped Hermes bridge converts grouped streams to the imported Hermes
 `src_d` record shape and drives one MGT:
@@ -96,9 +109,10 @@ The grouped Hermes bridge converts grouped streams to the imported Hermes
 - `N_MGT = 1`
 - `N_SRC = SOURCE_COUNT_G`
 
-The current bridge ties grouped readout ready high because the imported Hermes
-`src_d` boundary exposes `d/valid/last` but no per-source ready signal. Treat
-backpressure closure as unfinished.
+The current bridge no longer ties grouped readout ready high. It enables the new
+Deimos `READY_AWARE_G` mode and drives grouped readout ready from each Hermes
+source buffer, so the grouped serializer only advances on a real `valid &&
+ready` transfer.
 
 ## Known Build History And Blockers
 
@@ -125,12 +139,14 @@ Do not hand-wave these away:
 
 - `10` grouped Hermes sources spend BRAM because Hermes allocates per-source
   input buffering.
-- `5` per-AFE producers are area-attractive but likely too coarse for dead time
-  because channels block behind shared serializers.
+- `5` per-AFE producers are area-attractive and are now the default candidate,
+  but dead-time/queue-reject measurements must prove the contention is
+  acceptable.
 - `40` per-channel producers preserve independence but replicate too much
   packet/control/FIFO machinery.
-- The current grouped bridge has no real per-source Hermes ready/backpressure
-  feedback.
+- The current grouped bridge has real per-source Hermes ready/backpressure
+  feedback, but it still needs hardware-rate validation under link and UDP
+  backpressure.
 - The grouped outbuffer is a debug/continuity aid, not the final transport
   contract.
 - The branch has not produced a routed-clean K26 result yet.
@@ -196,7 +212,8 @@ Inspect first:
 Do not immediately rewrite the transport plane again. First isolate the
 resource driver:
 
-1. compare `SOURCE_COUNT_G = 5` vs `10` if the build target makes that easy,
+1. compare the default `SOURCE_COUNT_G = 5` against the `10`-source override if
+   the build target makes that easy,
 2. test lower `HERMES_IN_BUF_DEPTH_G` only if Hermes behavior still makes
    sense,
 3. disable `ENABLE_OUTBUFFER_G` for resource-only measurement,
@@ -216,15 +233,15 @@ The key question is not "can we reduce resources somehow?" The key question is:
 
 The next agent should focus on one narrow loop:
 
-1. Verify the current `963e4ae` tip with local non-Vivado checks.
+1. Verify the current working tip with local non-Vivado checks.
 2. Launch or prepare a short-path native-Linux Vivado build if access exists.
 3. If it fails on BRAM again, measure the three biggest toggles:
    - `SOURCE_COUNT_G`,
    - `HERMES_IN_BUF_DEPTH_G`,
    - `ENABLE_OUTBUFFER_G`.
 4. Update `docs/grouped-hermes-transport-plan.md` with the measured result.
-5. Only after that, decide whether to add real backpressure at the grouped
-   source seam.
+5. Exercise the new Hermes ready path under UDP/link backpressure and confirm
+   there is no word duplication or packet truncation at the grouped source seam.
 
 Do not spend a week refining RTL around a source count that is already
 resource-impossible.

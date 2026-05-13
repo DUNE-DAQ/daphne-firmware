@@ -20,7 +20,8 @@ entity tx_mux is
     generic(
         N_SRC: positive;
         IFACE_ID: integer;
-        IN_BUF_DEPTH: natural
+        IN_BUF_DEPTH: natural;
+        READY_AWARE_G: boolean := false
     );
     port(
         ipb_clk: in std_logic;
@@ -31,6 +32,7 @@ entity tx_mux is
         src_rst: in std_logic; -- DUNE base clock sync reset (src_clk)
         ts: in std_logic_vector(63 downto 0);
         d: in src_d_array(N_SRC - 1 downto 0); -- Data from sources (src_clk)
+        source_ready: out src_ready_array(N_SRC - 1 downto 0); -- Backpressure to sources (src_clk)
         samp: in std_logic; -- Sample flag
         mark: in std_logic; -- Timeslice marker
         eth_clk: in std_logic; -- Ethernet clock (156.25MHz / 250MHz)
@@ -174,7 +176,8 @@ begin
 
         ibuf: entity work.tx_mux_ibuf
             generic map(
-                IN_BUF_DEPTH => IN_BUF_DEPTH
+                IN_BUF_DEPTH => IN_BUF_DEPTH,
+                READY_AWARE_G => READY_AWARE_G
             )
             port map(
                 ipb_clk => ipb_clk,
@@ -189,6 +192,7 @@ begin
                 eth_rst => rst,
                 re => re(i),
                 q => q(i),
+                ready => source_ready(i),
                 samp => samp,
                 err => err_buf(i)
             );

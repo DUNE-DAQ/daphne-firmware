@@ -5,7 +5,11 @@ use work.daphne_subsystem_pkg.all;
 
 entity afe_trigger_bank is
   generic (
-    CHANNEL_COUNT_G : positive := 8
+    CHANNEL_COUNT_G             : positive := 8;
+    ENABLE_AFE_COMPENSATOR_G    : boolean := true;
+    ENABLE_INVERT_CONTROL_G     : boolean := true;
+    FIXED_CFD_G                 : boolean := false;
+    TRIGGER_LATENCY_G           : natural := 64
   );
   port (
     clock_i               : in  std_logic;
@@ -27,6 +31,12 @@ architecture rtl of afe_trigger_bank is
 begin
   gen_channel : for idx in 0 to CHANNEL_COUNT_G - 1 generate
     trigger_inst : entity work.self_trigger_xcorr_channel
+      generic map (
+        ENABLE_AFE_COMPENSATOR_G => ENABLE_AFE_COMPENSATOR_G,
+        ENABLE_INVERT_CONTROL_G  => ENABLE_INVERT_CONTROL_G,
+        FIXED_CFD_G              => FIXED_CFD_G,
+        TRIGGER_LATENCY_G        => TRIGGER_LATENCY_G
+      )
       port map (
         clock_i     => clock_i,
         reset_i     => reset_i,

@@ -9,9 +9,9 @@ entity k26c_board_grouped_selftrigger_plane is
   generic (
     AFE_COUNT_G             : positive range 1 to 5 := 5;
     CHANNELS_PER_AFE_G      : positive := 8;
-    CHANNELS_PER_PRODUCER_G : positive := 4;
-    HERMES_IN_BUF_DEPTH_G   : natural  := 1024;
-    ENABLE_OUTBUFFER_G      : boolean  := true
+    CHANNELS_PER_PRODUCER_G : positive := 8;
+    HERMES_IN_BUF_DEPTH_G   : natural  := 2048;
+    ENABLE_OUTBUFFER_G      : boolean  := false
   );
   port (
     link_id                : in  std_logic_vector(5 downto 0);

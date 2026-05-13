@@ -72,8 +72,31 @@ a very large DSP reduction. If CLB growth is too high, the next cut should move
 from this exact transposed replacement to a grouped direct-form adder tree that
 shares coefficient groups before weighting.
 
+## Grouped-Path Optional Cuts
+
+The grouped Hermes branch now carries resource generics around the xcorr wrapper:
+
+- `ENABLE_AFE_COMPENSATOR_G`
+- `ENABLE_INVERT_CONTROL_G`
+- `FIXED_CFD_G`
+- `TRIGGER_LATENCY_G`
+
+Legacy defaults preserve the old behavior. The grouped fabric opts into:
+
+- no dynamic AFE compensator, which removes the remaining IIR compensator
+  instance from the grouped candidate path,
+- no dynamic signal-inversion control, using the fixed polarity that matches the
+  previous `invert_enable = '0'` behavior,
+- fixed-delay CFD at delay `26`, replacing the configurable delay-line bank,
+- `4` clocks of synthetic trigger latency instead of `64`.
+
+These cuts are intended for the grouped resource candidate only. They still need
+a post-synthesis utilization comparison against the legacy defaults.
+
 ## Verification Performed
 
 - `ghdl -a --std=08 ip_repo/daphne_ip/rtl/selftrig/eia_selftrig/st_xc.vhd`
 - `make st_xc_sim` in `../daphne_mezz_xc_sim`
 - precision sweep summary generated in `../daphne_mezz_xc_sim/data/output/analysis/xcorr_precision/summary.csv`
+- `fusesoc run --tool ghdl --setup --build dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0`
+  after adding the grouped-path resource generics

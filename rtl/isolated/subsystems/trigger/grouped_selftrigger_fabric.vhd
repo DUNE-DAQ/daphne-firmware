@@ -9,7 +9,11 @@ entity grouped_selftrigger_fabric is
     AFE_COUNT_G             : positive range 1 to 5 := 5;
     CHANNELS_PER_AFE_G      : positive := 8;
     CHANNEL_ID_BASE_G       : natural  := 0;
-    CHANNELS_PER_PRODUCER_G : positive := 4
+    CHANNELS_PER_PRODUCER_G : positive := 8;
+    ENABLE_AFE_COMPENSATOR_G: boolean  := false;
+    ENABLE_INVERT_CONTROL_G : boolean  := false;
+    FIXED_CFD_G             : boolean  := true;
+    TRIGGER_LATENCY_G       : natural  := 4
   );
   port (
     clock_i             : in  std_logic;
@@ -87,7 +91,11 @@ begin
       generic map (
         CHANNELS_PER_AFE_G      => CHANNELS_PER_AFE_G,
         CHANNEL_ID_BASE_G       => CHANNEL_ID_BASE_G + CHANNEL_BASE_C,
-        CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G
+        CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G,
+        ENABLE_AFE_COMPENSATOR_G=> ENABLE_AFE_COMPENSATOR_G,
+        ENABLE_INVERT_CONTROL_G => ENABLE_INVERT_CONTROL_G,
+        FIXED_CFD_G             => FIXED_CFD_G,
+        TRIGGER_LATENCY_G       => TRIGGER_LATENCY_G
       )
       port map (
         clock_i             => clock_i,

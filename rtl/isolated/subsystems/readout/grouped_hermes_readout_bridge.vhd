@@ -13,7 +13,7 @@ use work.tx_mux_decl.all;
 entity grouped_hermes_readout_bridge is
   generic (
     SOURCE_COUNT_G : positive := 5;
-    IN_BUF_DEPTH_G : natural := 1024;
+    IN_BUF_DEPTH_G : natural := 2048;
     REF_FREQ_G     : t_freq := f156_25
   );
   port (
@@ -83,7 +83,8 @@ architecture rtl of grouped_hermes_readout_bridge is
       N_SRC        : positive;
       N_MGT        : positive;
       IN_BUF_DEPTH : natural;
-      REF_FREQ     : t_freq := f156_25
+      REF_FREQ     : t_freq := f156_25;
+      READY_AWARE_G: boolean := false
     );
     port(
       ipb_clk       : in  std_logic;
@@ -105,6 +106,7 @@ architecture rtl of grouped_hermes_readout_bridge is
       data_clk      : in  std_logic;
       data_clk_rst  : in  std_logic;
       d             : in  array_of_src_d_arrays(N_MGT - 1 downto 0)(N_SRC - 1 downto 0);
+      source_ready  : out array_of_src_ready_arrays(N_MGT - 1 downto 0)(N_SRC - 1 downto 0);
       ext_mac_addr  : in  mac_addr_array(N_MGT - 1 downto 0);
       ext_ip_addr   : in  ip_addr_array(N_MGT - 1 downto 0);
       ext_port_addr : in  udp_port_array(N_MGT - 1 downto 0)
@@ -121,6 +123,7 @@ architecture rtl of grouped_hermes_readout_bridge is
   signal soft_rst_s: std_logic;
 
   signal hermes_sources_s : array_of_src_d_arrays(0 downto 0)(SOURCE_COUNT_G - 1 downto 0);
+  signal hermes_ready_s   : array_of_src_ready_arrays(0 downto 0)(SOURCE_COUNT_G - 1 downto 0);
   signal ext_mac_addr_s   : mac_addr_array(0 downto 0);
   signal ext_ip_addr_s    : ip_addr_array(0 downto 0);
   signal ext_port_addr_s  : udp_port_array(0 downto 0);
@@ -172,7 +175,10 @@ begin
   ext_mac_addr_s(0)   <= ext_mac_addr_i;
   ext_ip_addr_s(0)    <= ext_ip_addr_i;
   ext_port_addr_s(0)  <= ext_port_addr_i;
-  readout_ready_o     <= (others => '1');
+
+  gen_readout_ready : for idx in 0 to SOURCE_COUNT_G - 1 generate
+    readout_ready_o(idx) <= hermes_ready_s(0)(idx);
+  end generate;
 
   ipb_ctrl_inst : ipb_axi4_lite_ctrl
     port map (
@@ -193,7 +199,8 @@ begin
       N_SRC        => SOURCE_COUNT_G,
       N_MGT        => 1,
       IN_BUF_DEPTH => IN_BUF_DEPTH_G,
-      REF_FREQ     => REF_FREQ_G
+      REF_FREQ     => REF_FREQ_G,
+      READY_AWARE_G=> true
     )
     port map (
       ipb_clk       => ipb_clk_s,
@@ -215,6 +222,7 @@ begin
       data_clk      => data_clk_i,
       data_clk_rst  => data_clk_rst_i,
       d             => hermes_sources_s,
+      source_ready  => hermes_ready_s,
       ext_mac_addr  => ext_mac_addr_s,
       ext_ip_addr   => ext_ip_addr_s,
       ext_port_addr => ext_port_addr_s

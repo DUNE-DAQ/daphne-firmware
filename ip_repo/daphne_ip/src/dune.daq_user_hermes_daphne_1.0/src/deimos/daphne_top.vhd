@@ -155,6 +155,7 @@ begin
             d(0)(1).d              => d1,
             d(0)(1).valid          => d1_valid,
             d(0)(1).last           => d1_last,
+            source_ready           => open,
             
             ext_mac_addr(0)        => ext_mac_addr,
             ext_ip_addr(0)         => ext_ip_addr,

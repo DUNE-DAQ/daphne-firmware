@@ -20,6 +20,8 @@ package tx_mux_decl is
 
     type src_d_array is array(natural range <>) of src_d;
     type array_of_src_d_arrays is array(natural range <>) of src_d_array;
+    type src_ready_array is array(natural range <>) of std_logic;
+    type array_of_src_ready_arrays is array(natural range <>) of src_ready_array;
     
     constant SRC_D_NULL: src_d := ((others => '0'), '0', '0');
 
@@ -37,5 +39,4 @@ package tx_mux_decl is
     constant RATE_M: integer := 0; -- Parameter M for rate control
 
 end tx_mux_decl;
-
 

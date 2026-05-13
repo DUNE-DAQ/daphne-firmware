@@ -94,9 +94,11 @@ The preferred architecture direction is:
 
 Current working hypothesis:
 
-- `4` channels per grouped source is the first architecture point worth serious
-  study,
-- for `40` channels that gives `10` grouped packet sources.
+- the default board candidate should be conservative on Hermes BRAM and use
+  `8` channels per grouped source,
+- for `40` channels that gives `5` grouped packet sources, one source per AFE,
+- `4` channels per grouped source remains the explicit `10`-source experiment
+  when dead-time or queue-reject measurements justify the extra Hermes buffers.
 
 This is meant to avoid both extremes:
 
@@ -237,14 +239,18 @@ From direct inspection of the current transport:
 The main scaling cost comes from
 [tx_mux_ibuf.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_ibuf.vhd),
 which allocates one private source buffer per Hermes source. Each additional
-source adds one `2048 x 64` async block FIFO at the current top-level
-configuration.
+source adds one async 64-bit input FIFO; the current grouped board default keeps
+the legacy `2048` words per source.
 
-Working estimate:
+Historical OOC estimate before the FIFO-depth reduction:
 
 - `N_SRC 2 -> 5`: about `+12` BRAM36-equivalents,
 - `N_SRC 2 -> 10`: about `+32` BRAM36-equivalents,
 - LUT growth is expected to be secondary and roughly linear.
+
+The legacy `2048`-word default preserves the previous packet-buffering
+assumption, so Hermes input-buffer BRAM still scales directly with source
+count.
 
 Working expectation to validate:
 
@@ -274,7 +280,9 @@ Additional resource observation:
   are essential diagnostics.
 
 That means `10` grouped Hermes sources are structurally attractive but must be
-budgeted against a BRAM-constrained baseline from the outset.
+budgeted against a BRAM-constrained baseline from the outset. The branch default
+now chooses `5` Hermes sources; `10` is a measurement override, not the default
+build candidate.
 
 ## Measured Evidence So Far
 
@@ -340,11 +348,13 @@ New grouped self-trigger/export modules:
 
 - [afe_grouped_selftrigger_island.vhd](../rtl/isolated/subsystems/trigger/afe_grouped_selftrigger_island.vhd)
   - `8` channel-local `stc3_frame_source` instances,
-  - `2` grouped serializers at `4` channels each,
+  - default `1` grouped serializer at `8` channels per AFE,
+  - optional `2` grouped serializers at `4` channels each for the `10`-source
+    study point,
   - continuous grouped stream export as a branch-local draft seam.
 - [grouped_selftrigger_fabric.vhd](../rtl/isolated/subsystems/trigger/grouped_selftrigger_fabric.vhd)
   - `5` grouped AFE islands,
-  - `10` grouped producer streams total.
+  - default `5` grouped producer streams total.
 - [grouped_selftrigger_fabric_bridge.vhd](../rtl/isolated/subsystems/control/grouped_selftrigger_fabric_bridge.vhd)
   - legacy frontend/control inputs in,
   - grouped producer streams out.
@@ -416,11 +426,26 @@ Current readout-pressure contract:
   only drains a serializer when both the serializer has a word ready and the
   matching grouped readout slot is ready,
 - [grouped_hermes_readout_bridge.vhd](../rtl/isolated/subsystems/readout/grouped_hermes_readout_bridge.vhd)
-  currently ties that ready vector high because the imported Hermes `src_d`
-  boundary exposes `d/valid/last` but no per-source ready,
-- this does not yet add measured Hermes backpressure, but it removes the
-  hidden unconditional-drain assumption from the grouped self-trigger path and
-  leaves one explicit seam for a later credit/backpressure adapter.
+  now drives that ready vector from the imported Deimos/Hermes input buffers,
+- [tx_mux_ibuf.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_ibuf.vhd)
+  has a `READY_AWARE_G` mode that starts ready, drops ready near input FIFO
+  full, and accepts source words only while ready is asserted,
+- the grouped path enables `READY_AWARE_G`, while legacy Deimos instantiations
+  keep the old always-ready behavior by default,
+- this turns the grouped stream seam into a real `valid && ready` boundary and
+  prevents the serializer-held word from being duplicated when Hermes
+  backpressures a source.
+
+Current resource-reduction defaults:
+
+- [grouped_selftrigger_fabric.vhd](../rtl/isolated/subsystems/trigger/grouped_selftrigger_fabric.vhd)
+  defaults to `CHANNELS_PER_PRODUCER_G = 8`, so the board candidate exposes
+  `5` Hermes logical sources,
+- the grouped xcorr path disables the dynamic AFE compensator and dynamic signal
+  inverter through generics, preserving legacy defaults elsewhere,
+- the grouped xcorr path uses a fixed-delay CFD instead of the configurable CFD,
+- the grouped xcorr trigger latency generic defaults to `4` clocks in the
+  grouped fabric, while the reusable/legacy defaults remain `64` clocks.
 
 Branch-local verification status:
 
@@ -428,7 +453,8 @@ Branch-local verification status:
 - `fusesoc run --tool ghdl --setup dune-daq:daphne:grouped-selftrigger-fabric-bridge:0.1.0`
   resolves dependencies and sets up cleanly,
 - `fusesoc run --tool ghdl --setup --build dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0`
-  builds cleanly with the grouped ready and descriptor-release contracts,
+  builds cleanly with the grouped ready, descriptor-release, and self-trigger
+  resource-reduction generics,
 - `fusesoc run --tool ghdl --setup dune-daq:daphne:k26c-board-grouped-outbuffer-plane:0.1.0`
   should resolve independently of Hermes collateral because it depends only on
   grouped stream types and the existing outbuffer sink,
@@ -436,8 +462,8 @@ Branch-local verification status:
   provides the correct source-only dependency-resolution path for the grouped
   board draft when generated Hermes IP collateral is absent locally,
 - `fusesoc run --tool ghdl --setup --build dune-daq:daphne:grouped-selftrigger-board-srccheck:0.1.0`
-  still stops in imported Hermes collateral at
-  `wib_eth_readout.vhd:82`, before board-level grouped elaboration can finish;
+  still stops in imported Hermes collateral at the conditional constant in
+  `wib_eth_readout.vhd`, before board-level grouped elaboration can finish;
   that is a Hermes/GHDL compatibility limitation, not a grouped self-trigger
   datapath failure,
 - `k26c-board-grouped-selftrigger-plane` inherits that same transport

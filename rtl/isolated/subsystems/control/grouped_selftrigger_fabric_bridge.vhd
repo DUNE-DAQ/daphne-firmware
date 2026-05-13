@@ -8,7 +8,7 @@ use work.grouped_transport_pkg.all;
 entity grouped_selftrigger_fabric_bridge is
   generic (
     AFE_COUNT_G             : positive range 1 to 5 := 5;
-    CHANNELS_PER_PRODUCER_G : positive := 4
+    CHANNELS_PER_PRODUCER_G : positive := 8
   );
   port (
     clock_i                   : in  std_logic;

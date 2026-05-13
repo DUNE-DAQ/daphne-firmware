@@ -9,7 +9,11 @@ entity afe_grouped_selftrigger_island is
   generic (
     CHANNELS_PER_AFE_G      : positive := 8;
     CHANNEL_ID_BASE_G       : natural  := 0;
-    CHANNELS_PER_PRODUCER_G : positive := 4
+    CHANNELS_PER_PRODUCER_G : positive := 8;
+    ENABLE_AFE_COMPENSATOR_G: boolean  := true;
+    ENABLE_INVERT_CONTROL_G : boolean  := true;
+    FIXED_CFD_G             : boolean  := false;
+    TRIGGER_LATENCY_G       : natural  := 64
   );
   port (
     clock_i             : in  std_logic;
@@ -64,7 +68,11 @@ begin
 
   trigger_bank_inst : entity work.afe_trigger_bank
     generic map (
-      CHANNEL_COUNT_G => CHANNELS_PER_AFE_G
+      CHANNEL_COUNT_G          => CHANNELS_PER_AFE_G,
+      ENABLE_AFE_COMPENSATOR_G => ENABLE_AFE_COMPENSATOR_G,
+      ENABLE_INVERT_CONTROL_G  => ENABLE_INVERT_CONTROL_G,
+      FIXED_CFD_G              => FIXED_CFD_G,
+      TRIGGER_LATENCY_G        => TRIGGER_LATENCY_G
     )
     port map (
       clock_i              => clock_i,

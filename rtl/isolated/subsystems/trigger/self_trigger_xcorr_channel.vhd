@@ -10,6 +10,12 @@ use ieee.std_logic_1164.all;
 use work.daphne_subsystem_pkg.all;
 
 entity self_trigger_xcorr_channel is
+  generic (
+    ENABLE_AFE_COMPENSATOR_G : boolean := true;
+    ENABLE_INVERT_CONTROL_G  : boolean := true;
+    FIXED_CFD_G              : boolean := false;
+    TRIGGER_LATENCY_G        : natural := 64
+  );
   port (
     clock_i     : in  std_logic;
     reset_i     : in  std_logic;
@@ -22,6 +28,12 @@ end entity self_trigger_xcorr_channel;
 
 architecture rtl of self_trigger_xcorr_channel is
   component trig_xc is
+    generic (
+      ENABLE_AFE_COMPENSATOR_G : boolean := true;
+      ENABLE_INVERT_CONTROL_G  : boolean := true;
+      FIXED_CFD_G              : boolean := false;
+      TRIGGER_LATENCY_G        : natural := 64
+    );
     port (
       clock                  : in  std_logic;
       reset                  : in  std_logic;
@@ -52,6 +64,12 @@ architecture rtl of self_trigger_xcorr_channel is
   signal trigger_pulse_s     : std_logic;
 begin
   trig_xc_inst : trig_xc
+    generic map (
+      ENABLE_AFE_COMPENSATOR_G => ENABLE_AFE_COMPENSATOR_G,
+      ENABLE_INVERT_CONTROL_G  => ENABLE_INVERT_CONTROL_G,
+      FIXED_CFD_G              => FIXED_CFD_G,
+      TRIGGER_LATENCY_G        => TRIGGER_LATENCY_G
+    )
     port map (
       clock                  => clock_i,
       reset                  => reset_i,

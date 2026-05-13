@@ -22,7 +22,8 @@ use work.tx_mux_decl.all;
 
 entity tx_mux_ibuf is
     generic(
-        IN_BUF_DEPTH: natural:= 2048
+        IN_BUF_DEPTH: natural:= 2048;
+        READY_AWARE_G: boolean := false
     );
     port(
         ipb_clk: in std_logic;
@@ -38,12 +39,26 @@ entity tx_mux_ibuf is
         eth_rst: in std_logic; -- Output clock sync reset (eth_clk)
         re: in std_logic; -- Read enable (eth_clk)
         q: out src_d; -- Data to mux (eth_clk)
+        ready: out std_logic; -- Source-side backpressure (src_clk)
         err: out std_logic -- Error flag (eth_clk)
     );
 
 end entity tx_mux_ibuf;
 
 architecture rtl of tx_mux_ibuf is
+
+    function prog_full_threshold(depth_i : natural) return natural is
+    begin
+        if depth_i > 32 then
+            return depth_i - 16;
+        elsif depth_i > 8 then
+            return depth_i - 4;
+        else
+            return depth_i - 1;
+        end if;
+    end function;
+
+    constant FIFO_PROG_FULL_THRESH_C: natural := prog_full_threshold(IN_BUF_DEPTH);
 
     signal ctrl: ipb_reg_v(0 downto 0);
     signal stat: ipb_reg_v(15 downto 0);
@@ -57,6 +72,7 @@ architecture rtl of tx_mux_ibuf is
     type rx_state_t is (ST_INIT, ST_DISC, ST_RUN);
     signal rx_state: rx_state_t;
     signal lfifo_busy_rx, fifo_busy_rx, lfifo_full, fifo_full, lfifo_we, fifo_we: std_logic;
+    signal fifo_prog_full, lfifo_near_full, ready_i, accept_i, rx_last: std_logic;
     signal rx_run, oflow: std_logic;
     signal rx_ctr: unsigned(11 downto 0);
     signal lfifo_d, lfifo_q: std_logic_vector(12 downto 0);
@@ -154,10 +170,16 @@ begin
                 case rx_state is
                 when ST_INIT =>  -- Starting state
                     if fifo_busy_rx = '0' and lfifo_busy_rx = '0' then
-                        rx_state <= ST_DISC;
+                        if READY_AWARE_G then
+                            rx_state <= ST_RUN;
+                        else
+                            rx_state <= ST_DISC;
+                        end if;
                     end if;
                 when ST_DISC => -- Discard packets
-                    if di.last = '1' and fifo_full = '0' and lfifo_full = '0' then
+                    if READY_AWARE_G and fifo_full = '0' and lfifo_full = '0' then
+                        rx_state <= ST_RUN;
+                    elsif di.last = '1' and fifo_full = '0' and lfifo_full = '0' then
                         rx_state <= ST_RUN;
                     end if;
                 when ST_RUN => -- Operating
@@ -170,13 +192,19 @@ begin
     end process;
 
     rx_run <= '1' when rx_state = ST_RUN else '0';
+    lfifo_near_full <= '1' when unsigned(lfifo_c) >= to_unsigned(LBUF_DEPTH - 2, lfifo_c'length) else '0';
+    ready_i <= '1' when rx_state = ST_RUN and fifo_prog_full = '0' and lfifo_near_full = '0' and
+        fifo_busy_rx = '0' and lfifo_busy_rx = '0' else '0';
+    accept_i <= ready_i when READY_AWARE_G else '1';
+    ready <= ready_i when READY_AWARE_G else '1';
+    rx_last <= (di.last and di.valid and accept_i) when READY_AWARE_G else di.last;
 
 -- Length buffer
 
     process(src_clk)
     begin
         if rising_edge(src_clk) then
-            if src_rst = '1' or di.last = '1' then
+            if src_rst = '1' or rx_last = '1' then
                 rx_ctr <= to_unsigned(1, rx_ctr'length);
             elsif fifo_we = '1' then
                 rx_ctr <= rx_ctr + 1;
@@ -185,7 +213,7 @@ begin
     end process;
 
     oflow <= '1' when rx_ctr = MAX_BLK_SIZE + 1 else '0';
-    lfifo_we <= rx_run and (di.last or (fifo_full or oflow));
+    lfifo_we <= rx_run and (rx_last or (fifo_full or oflow));
     lfifo_d <= (fifo_full or oflow) & std_logic_vector(rx_ctr);
 
     lfifo: xpm_fifo_async
@@ -222,14 +250,14 @@ begin
 
 -- Main buffer
 
-    fifo_we <= di.valid and rx_run;
+    fifo_we <= di.valid and rx_run and accept_i;
 
     fifo: xpm_fifo_async
         generic map(
             FIFO_MEMORY_TYPE => "block",
             FIFO_READ_LATENCY => 0,
             FIFO_WRITE_DEPTH => IN_BUF_DEPTH,
-            PROG_FULL_THRESH => 16,
+            PROG_FULL_THRESH => FIFO_PROG_FULL_THRESH_C,
             RD_DATA_COUNT_WIDTH => 8,
             WR_DATA_COUNT_WIDTH => 8,
             READ_DATA_WIDTH => 64,
@@ -242,6 +270,7 @@ begin
             data_valid => fifo_valid,
             dout => fifo_q,
             full => fifo_full,
+            prog_full => fifo_prog_full,
             rd_data_count => fifo_cw,
             wr_data_count => fifo_c,
             rd_rst_busy => fifo_busy_tx,

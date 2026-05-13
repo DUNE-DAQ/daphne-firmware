@@ -7,7 +7,7 @@ use work.grouped_transport_pkg.all;
 
 entity k26c_board_grouped_outbuffer_plane is
   generic (
-    SOURCE_COUNT_G : positive := 10
+    SOURCE_COUNT_G : positive := 5
   );
   port (
     clock                : in  std_logic;

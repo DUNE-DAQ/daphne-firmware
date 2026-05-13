@@ -29,6 +29,11 @@ use ieee.numeric_std.all;
 --use UNISIM.VComponents.all;
 
 entity hpf_pedestal_recovery_filter_trigger is
+    generic (
+        ENABLE_AFE_COMPENSATOR_G : boolean := true;
+        ENABLE_INVERT_CONTROL_G  : boolean := true;
+        FIXED_CFD_G              : boolean := false
+    );
     port ( 
         clk : in std_logic;
         reset : in std_logic;
@@ -59,6 +64,14 @@ signal suma_out: signed(15 downto 0);
 signal internal_afe_comp_enable: std_logic;
 signal triggered_xc: std_logic;
 signal xcorr_calc: signed(27 downto 0);
+signal fixed_cfd_din_reg, fixed_cfd_din_delay: std_logic_vector(27 downto 0);
+signal fixed_cfd_din_divided, fixed_cfd_din_divided_reg: std_logic_vector(27 downto 0);
+signal fixed_cfd_y, fixed_cfd_y_reg: std_logic_vector(27 downto 0);
+signal fixed_cfd_y_sign, fixed_cfd_y_sign_delay: std_logic;
+signal fixed_cfd_reset_reg, fixed_cfd_enable_reg: std_logic;
+signal fixed_cfd_threshold_reg: std_logic;
+signal fixed_cfd_counter, fixed_cfd_counter_aux: std_logic_vector(6 downto 0);
+signal fixed_cfd_trigger_aux: std_logic;
 
 component k_low_pass_filter
     port (
@@ -127,6 +140,8 @@ begin
             y => lpf_out
         ); 
         
+    gen_afe_compensator: if ENABLE_AFE_COMPENSATOR_G generate
+    begin
     hpf: IIRFilter_afe_integrator_optimized
         port map (
             clk => clk,
@@ -135,6 +150,12 @@ begin
             x => resta_out,
             y => hpf_out
         ); 
+    end generate gen_afe_compensator;
+
+    gen_no_afe_compensator: if not ENABLE_AFE_COMPENSATOR_G generate
+    begin
+        hpf_out <= resta_out;
+    end generate gen_no_afe_compensator;
         
 --    movmean: moving_integrator_filter
 --        port map (
@@ -157,6 +178,8 @@ begin
             xcorr_calc => xcorr_calc
         );
         
+    gen_configurable_cfd: if not FIXED_CFD_G generate
+    begin
     cfd: Configurable_CFD
         port map (
             clock => clk,  
@@ -168,6 +191,86 @@ begin
             din => std_logic_vector(xcorr_calc), 
             trigger => trigger_output
         );
+    end generate gen_configurable_cfd;
+
+    gen_fixed_cfd: if FIXED_CFD_G generate
+    begin
+        fixed_cfd_register_proc: process(clk)
+        begin
+            if rising_edge(clk) then
+                fixed_cfd_reset_reg  <= reset;
+                fixed_cfd_enable_reg <= enable;
+                fixed_cfd_din_reg    <= std_logic_vector(xcorr_calc);
+            end if;
+        end process fixed_cfd_register_proc;
+
+        fixed_cfd_delay_inst : entity work.fixed_delay_line
+            generic map (
+                WIDTH_G => 28,
+                DELAY_G => 26
+            )
+            port map (
+                clock_i => clk,
+                din_i   => fixed_cfd_din_reg,
+                dout_o  => fixed_cfd_din_delay
+            );
+
+        fixed_cfd_din_divided <= fixed_cfd_din_reg(27) & fixed_cfd_din_reg(27 downto 1);
+
+        fixed_cfd_divided_proc: process(clk)
+        begin
+            if rising_edge(clk) then
+                fixed_cfd_din_divided_reg <= fixed_cfd_din_divided;
+            end if;
+        end process fixed_cfd_divided_proc;
+
+        fixed_cfd_y <= std_logic_vector(signed(fixed_cfd_din_divided_reg) - signed(fixed_cfd_din_delay));
+
+        fixed_cfd_crossing_proc: process(clk)
+        begin
+            if rising_edge(clk) then
+                fixed_cfd_y_reg        <= fixed_cfd_y;
+                fixed_cfd_y_sign_delay <= fixed_cfd_y_sign;
+                fixed_cfd_y_sign       <= fixed_cfd_y_reg(27);
+            end if;
+        end process fixed_cfd_crossing_proc;
+
+        fixed_cfd_threshold_proc: process(clk)
+        begin
+            if rising_edge(clk) then
+                if fixed_cfd_reset_reg = '1' then
+                    fixed_cfd_threshold_reg <= '0';
+                elsif fixed_cfd_enable_reg = '1' then
+                    if triggered_xc = '1' then
+                        fixed_cfd_threshold_reg <= '1';
+                    elsif fixed_cfd_trigger_aux = '1' or signed(fixed_cfd_counter) > 100 then
+                        fixed_cfd_threshold_reg <= '0';
+                    end if;
+                else
+                    fixed_cfd_threshold_reg <= '0';
+                end if;
+            end if;
+        end process fixed_cfd_threshold_proc;
+
+        fixed_cfd_counter_aux <= std_logic_vector(unsigned(fixed_cfd_counter) + to_unsigned(1, 7));
+
+        fixed_cfd_counter_proc: process(clk)
+        begin
+            if rising_edge(clk) then
+                if fixed_cfd_threshold_reg = '1' then
+                    fixed_cfd_counter <= fixed_cfd_counter_aux;
+                else
+                    fixed_cfd_counter <= (others => '0');
+                end if;
+            end if;
+        end process fixed_cfd_counter_proc;
+
+        fixed_cfd_trigger_aux <= fixed_cfd_threshold_reg and
+            (fixed_cfd_counter(6) or fixed_cfd_counter(5) or fixed_cfd_counter(4) or fixed_cfd_counter(3) or fixed_cfd_counter(2)) and
+            (not fixed_cfd_y_sign_delay and fixed_cfd_y_sign);
+
+        trigger_output <= fixed_cfd_trigger_aux;
+    end generate gen_fixed_cfd;
         
     enable_proc: process(enable, x_i, lpf_out, hpf_out)
     begin
@@ -184,6 +287,8 @@ begin
         end case;
     end process enable_proc;    
     
+    gen_invert_control: if ENABLE_INVERT_CONTROL_G generate
+    begin
     invert_enable_proc: process(invert_enable, hpf_out, lpf_out)
     begin
         case(invert_enable) is
@@ -201,6 +306,14 @@ begin
                 baseline_aux <= (others => 'X');
         end case;
     end process invert_enable_proc;
+    end generate gen_invert_control;
+
+    gen_fixed_polarity: if not ENABLE_INVERT_CONTROL_G generate
+    begin
+        hpf_out_aux   <= hpf_out;
+        hpf_out_xcorr <= (not(hpf_out) + to_signed(1,16));
+        baseline_aux  <= lpf_out;
+    end generate gen_fixed_polarity;
     
     output_selector_proc: process(output_selector, suma_out, baseline_aux, hpf_out_aux, lpf_out, xcorr_calc, x_i)
     begin

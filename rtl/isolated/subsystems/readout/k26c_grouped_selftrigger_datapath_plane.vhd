@@ -10,7 +10,7 @@ entity k26c_grouped_selftrigger_datapath_plane is
   generic (
     AFE_COUNT_G             : positive range 1 to 5 := 5;
     CHANNELS_PER_AFE_G      : positive := 8;
-    CHANNELS_PER_PRODUCER_G : positive := 4
+    CHANNELS_PER_PRODUCER_G : positive := 8
   );
   port (
     version                : in  std_logic_vector(5 downto 0);

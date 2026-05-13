@@ -32,7 +32,8 @@ entity eth_readout is
         N_SRC: positive;
         N_MGT: positive;
         IN_BUF_DEPTH: natural;
-        REF_FREQ: t_freq := f156_25
+        REF_FREQ: t_freq := f156_25;
+        READY_AWARE_G: boolean := false
     );
     port(
         ipb_clk: in std_logic;
@@ -57,6 +58,7 @@ entity eth_readout is
         data_clk: in std_logic; 
         data_clk_rst: in std_logic; 
         d: in array_of_src_d_arrays(N_MGT-1 downto 0)(N_SRC-1 downto 0); -- Data from sources
+        source_ready: out array_of_src_ready_arrays(N_MGT-1 downto 0)(N_SRC-1 downto 0);
         
         ext_mac_addr    : in mac_addr_array(N_MGT-1 downto 0);
         ext_ip_addr     : in ip_addr_array(N_MGT-1 downto 0);
@@ -164,7 +166,8 @@ begin
       generic map(
         N_SRC  => N_SRC,
         N_MGT  => N_MGT,
-        IN_BUF_DEPTH => IN_BUF_DEPTH
+        IN_BUF_DEPTH => IN_BUF_DEPTH,
+        READY_AWARE_G => READY_AWARE_G
         )
 
       port map(
@@ -188,6 +191,7 @@ begin
         phy_ready_array     => txpath_ready_array,
         rst_156_25_array    => rst_156_25_array,
         d => d,
+        source_ready => source_ready,
         ext_mac_addr    => ext_mac_addr,  
         ext_ip_addr     => ext_ip_addr,   
         ext_port_addr   => ext_port_addr, 
