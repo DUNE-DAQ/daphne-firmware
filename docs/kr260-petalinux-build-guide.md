@@ -365,7 +365,8 @@ For a healthy board, the preferred QSPI boot-firmware update helper is:
 ```bash
 ./scripts/remote/stage_bootfw_update_over_ssh.sh \
   <board-host> \
-  /path/to/petalinux/output/<project-name>
+  /path/to/petalinux/output/<project-name> \
+  --dry-run
 ```
 
 That helper copies the repo-built boot-firmware image to the board as
@@ -377,6 +378,9 @@ expects a reboot or power-cycle followed immediately by:
   <board-host> \
   --verify-only
 ```
+
+The install step is intentionally gated. After the dry-run and recovery
+preflight are complete, pass `--force-install` for a real install/update.
 
 Current DAPHNE-specific caveat:
 
@@ -636,9 +640,13 @@ On `NP04-DAPHNE-015`:
 What is still not fully proven:
 
 - the repo-built QSPI boot-firmware update path through
-  `xmutil bootfw_update` / `stage_bootfw_update_over_ssh.sh`, because the
-  helper selects the same `BOOT.primary.BIN` candidate that previously staged
-  and verified but failed a temporary-bank boot on `015`;
+  `xmutil bootfw_update` / `stage_bootfw_update_over_ssh.sh`; on May 13 the
+  helper's current `BOOT.primary.BIN` payload was accepted by `xmutil` and
+  written to Image A, but `015` did not boot it and did not recover with a
+  normal cold cycle;
+- the confirmed QSPI recovery path for that failed install was legacy XSCT
+  `boot.tcl`, followed by U-Boot `sf` restore of pre-attempt QSPI backups for
+  Image Selector, persistent registers, Image A, and the SHA256 region;
 - fully unattended rollback after a genuinely broken boot attempt with the
   rebuilt U-Boot payload.
 
