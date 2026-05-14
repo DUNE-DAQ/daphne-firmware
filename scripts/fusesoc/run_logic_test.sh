@@ -11,6 +11,7 @@ list_suite() {
 dune-daq:daphne:config-control:0.1.0
 dune-daq:daphne:selftrigger:0.1.0
 dune-daq:daphne:frontend-control:0.1.0
+dune-daq:daphne:peak-descriptor-compact-smoke:0.1.0
 EOF
       ;;
     composable)

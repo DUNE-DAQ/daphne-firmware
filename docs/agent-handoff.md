@@ -1,13 +1,13 @@
 # Agent Handoff: Grouped Hermes Architecture Branch
 
-Date: 2026-05-13
+Date: 2026-05-14
 
 This handoff is for the active DAPHNE firmware development branch in:
 
 - Repository: `~/repo/daphne-firmware`
-- Branch: `marroyav/grouped-hermes-arch-draft`
-- Branch tip before this working-tree update: `963e4ae` (`Reduce grouped Hermes input FIFO depth`)
-- Remote status at handoff time: local branch matched `origin/marroyav/grouped-hermes-arch-draft`
+- Branch: `marroyav/grouped-hermes-resource-build-candidate`
+- Branch tip before this working-tree update: `333e35f` (`Move grouped Hermes buffers to URAM`)
+- Remote status at handoff time: local branch matched `origin/marroyav/grouped-hermes-resource-build-candidate`
 
 No push was performed while writing this handoff. If this file is still
 uncommitted, commit and push only if explicitly requested by the user.
@@ -25,10 +25,10 @@ The working design direction is:
 - queue compact descriptors rather than large waveform payloads,
 - assemble packets late,
 - expose real grouped sources to Hermes,
-- use `5` grouped producers by default (`8` channels per grouped source, one
-  producer per AFE),
-- keep `10` grouped producers (`4` channels per grouped source) as an explicit
-  measurement override when the extra Hermes buffers are justified,
+- use `10` grouped producers by default in this resource candidate (`4`
+  channels per grouped source),
+- keep `5` grouped producers (`8` channels per grouped source, one producer
+  per AFE) as the lower-resource comparison/retreat point,
 - keep the production-visible transport contract stable until the resource and
   dead-time tradeoff is measured.
 
@@ -89,6 +89,9 @@ Resource-reduction work already staged:
 - grouped self-trigger defaults now disable the dynamic AFE compensator and
   dynamic signal inverter, use a fixed CFD, and reduce synthetic trigger latency
   from `64` clocks to `4` clocks
+- grouped self-trigger defaults now select the compact repo-owned peak
+  descriptor implementation through `USE_COMPACT_DESCRIPTOR_G`, while legacy
+  self-trigger wrappers keep the imported descriptor by default
 - optional grouped outbuffer path can be disabled through `ENABLE_OUTBUFFER_G`
 - arithmetic/register-bank cleanup and xcorr DSP-reduction notes are tracked in
   `docs/xcorr-dsp-reduction.md`
@@ -104,6 +107,7 @@ The current grouped board path computes:
 - `HERMES_IN_BUF_DEPTH_G = 2048`
 - `HERMES_IN_BUF_MEMORY_TYPE_G = "ultra"`
 - `RING_MEMORY_PRIMITIVE_G = "ultra"`
+- `USE_COMPACT_DESCRIPTOR_G = true`
 
 To reproduce the previous routed `5`-source study point, override
 `CHANNELS_PER_PRODUCER_G` back to `8`.
@@ -225,8 +229,9 @@ resource driver:
 2. test lower `HERMES_IN_BUF_DEPTH_G` only if Hermes behavior still makes
    sense,
 3. disable `ENABLE_OUTBUFFER_G` for resource-only measurement,
-4. identify whether BRAM is dominated by Hermes source buffers, debug/outbuffer
-   storage, record builders, or spy infrastructure,
+4. identify whether BRAM/LUT is dominated by Hermes source buffers,
+   debug/outbuffer storage, record builders, descriptor logic, or spy
+   infrastructure,
 5. only then decide whether to keep `10` grouped producers or retreat to a
    different grouping point.
 

@@ -1,4 +1,4 @@
--- ethernet_wib
+-- eth_readout
 --
 -- This block instantiates and connects the tx_path and the ultrascale_pcs_pma 
 --
@@ -12,7 +12,7 @@ library ipbus;
 use work.ipbus.all;
 use work.ipbus_reg_types.all;
 
-use work.ipbus_decode_wib_eth_readout.all;
+use work.ipbus_decode_eth_readout.all;
 
 use work.tx_mux_decl.all;
 
@@ -114,7 +114,7 @@ begin
         port map(
             ipb_in => ipb_in,
             ipb_out => ipb_out,
-            sel => ipbus_sel_wib_eth_readout(ipb_in.ipb_addr),
+            sel => ipbus_sel_eth_readout(ipb_in.ipb_addr),
             ipb_to_slaves => ipbw,
             ipb_from_slaves => ipbr
         );

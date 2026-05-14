@@ -94,11 +94,12 @@ The preferred architecture direction is:
 
 Current working hypothesis:
 
-- the default board candidate should be conservative on Hermes BRAM and use
-  `8` channels per grouped source,
-- for `40` channels that gives `5` grouped packet sources, one source per AFE,
-- `4` channels per grouped source remains the explicit `10`-source experiment
-  when dead-time or queue-reject measurements justify the extra Hermes buffers.
+- the active board candidate uses `4` channels per grouped source, giving `10`
+  grouped packet sources for `40` channels,
+- `8` channels per grouped source gives the lower-resource `5`-source
+  comparison point,
+- the final grouping should be chosen from routed resource results plus
+  backpressure-aware dead-time/queue-reject measurements.
 
 This is meant to avoid both extremes:
 
@@ -185,7 +186,7 @@ Modules that should survive largely intact:
 - [peak_descriptor_channel.vhd](../rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd)
 - [frontend_to_selftrigger_adapter.vhd](../rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd)
 - [trigger_control_adapter.vhd](../rtl/isolated/subsystems/control/trigger_control_adapter.vhd)
-- [wib_eth_readout.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/wib_eth_readout.vhd)
+- [eth_readout.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/eth_readout.vhd)
 - [tx_mux.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux.vhd)
 
 Modules that should be split:
@@ -230,7 +231,7 @@ From direct inspection of the current transport:
 - [k26c_board_hermes_transport_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_hermes_transport_plane.vhd)
   still presents a fixed two-source seam,
 - but the deeper transport in
-  [wib_eth_readout.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/wib_eth_readout.vhd),
+  [eth_readout.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/eth_readout.vhd),
   [tx_mux.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux.vhd),
   and
   [tx_mux_out.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_out.vhd)
@@ -451,10 +452,18 @@ Current resource-reduction defaults:
 - the grouped xcorr path uses a fixed-delay CFD instead of the configurable CFD,
 - the grouped xcorr trigger latency generic defaults to `4` clocks in the
   grouped fabric, while the reusable/legacy defaults remain `64` clocks.
+- the grouped descriptor path selects
+  [peak_descriptor_compact.vhd](../rtl/isolated/subsystems/trigger/peak_descriptor_compact.vhd)
+  through `USE_COMPACT_DESCRIPTOR_G`; legacy wrappers keep the imported
+  descriptor calculator by default.
 
 Branch-local verification status:
 
 - `fusesoc core-info` resolves for the new grouped cores,
+- `./scripts/fusesoc/run_logic_test.sh` includes
+  `dune-daq:daphne:peak-descriptor-compact-smoke:0.1.0`, which checks the
+  compact descriptor trailer-valid pulse, start-time packing, peak amplitude,
+  and integral sanity,
 - `fusesoc run --tool ghdl --setup dune-daq:daphne:grouped-selftrigger-fabric-bridge:0.1.0`
   resolves dependencies and sets up cleanly,
 - `fusesoc run --tool ghdl --setup --build dune-daq:daphne:k26c-grouped-selftrigger-datapath-plane:0.1.0`
@@ -468,7 +477,7 @@ Branch-local verification status:
   board draft when generated Hermes IP collateral is absent locally,
 - `fusesoc run --tool ghdl --setup --build dune-daq:daphne:grouped-selftrigger-board-srccheck:0.1.0`
   still stops in imported Hermes collateral at the conditional constant in
-  `wib_eth_readout.vhd`, before board-level grouped elaboration can finish;
+  `eth_readout.vhd`, before board-level grouped elaboration can finish;
   that is a Hermes/GHDL compatibility limitation, not a grouped self-trigger
   datapath failure,
 - `k26c-board-grouped-selftrigger-plane` inherits that same transport
@@ -496,6 +505,9 @@ The branch default K26C shell now instantiates the grouped self-trigger plane:
   shell exposes `10` logical Hermes sources,
 - grouped sample rings and grouped Hermes input buffers default to UltraRAM in
   this candidate while keeping the legacy `2048` samples/words per input,
+- the grouped path defaults to the compact descriptor implementation; set
+  `USE_COMPACT_DESCRIPTOR_G => false` only to compare against the imported
+  descriptor calculator,
 - its board-bring-up defaults keep legacy input spy capture and grouped output
   spy capture enabled; both can be explicitly disabled for a resource-only
   synthesis experiment while leaving the AXI-Lite windows responsive,
@@ -520,6 +532,12 @@ than place/route tuning.
 
 The first useful formal package for this redesign is seam-oriented, not
 full-path.
+
+Current formal gap: there is not yet a checked-in proof for the compact peak
+descriptor algorithm itself. The current protection is the focused GHDL smoke
+test plus the existing seam-oriented formal inventory; a future proof should
+cover trailer pulse/data pulse coincidence, bounded counter behavior, and stable
+trailer packing.
 
 Priority seam contracts:
 
@@ -671,7 +689,7 @@ Current local scaffold for this slice:
   bypasses the fixed two-source
   [daphne_top.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/daphne_top.vhd)
   wrapper and drives
-  [wib_eth_readout.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/wib_eth_readout.vhd)
+  [eth_readout.vhd](../ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/eth_readout.vhd)
   directly with generic `SOURCE_COUNT_G`,
 - [grouped-hermes-readout-bridge.core](../cores/features/grouped-hermes-readout-bridge.core)
   keeps that seam reusable without wiring it into the live K26 path.

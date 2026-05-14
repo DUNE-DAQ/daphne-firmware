@@ -12,14 +12,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-package ipbus_decode_wib_eth_readout is
+package ipbus_decode_eth_readout is
 
 -- START automatically generated VHDL (Thu Oct 12 14:54:30 2023)
   constant IPBUS_SEL_WIDTH: positive := 3;
 -- END automatically generated VHDL
 
   subtype ipbus_sel_t is std_logic_vector(IPBUS_SEL_WIDTH - 1 downto 0);
-  function ipbus_sel_wib_eth_readout(addr : in std_logic_vector(31 downto 0)) return ipbus_sel_t;
+  function ipbus_sel_eth_readout(addr : in std_logic_vector(31 downto 0)) return ipbus_sel_t;
 
 -- START automatically generated VHDL (Thu Oct 12 14:54:30 2023)
   constant N_SLV_INFO: integer := 0;
@@ -30,11 +30,11 @@ package ipbus_decode_wib_eth_readout is
   constant N_SLAVES: integer := 5;
 -- END automatically generated VHDL
 
-end ipbus_decode_wib_eth_readout;
+end ipbus_decode_eth_readout;
 
-package body ipbus_decode_wib_eth_readout is
+package body ipbus_decode_eth_readout is
 
-  function ipbus_sel_wib_eth_readout(addr : in std_logic_vector(31 downto 0)) return ipbus_sel_t is
+  function ipbus_sel_eth_readout(addr : in std_logic_vector(31 downto 0)) return ipbus_sel_t is
     variable sel: ipbus_sel_t;
   begin
 
@@ -56,8 +56,8 @@ package body ipbus_decode_wib_eth_readout is
 
     return sel;
 
-  end function ipbus_sel_wib_eth_readout;
+  end function ipbus_sel_eth_readout;
 
-end ipbus_decode_wib_eth_readout;
+end ipbus_decode_eth_readout;
 
 ---------------------------------------------------------------------------------

@@ -49,7 +49,7 @@ filesets:
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_tx_mux.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_ultrascale_combined_tx_path.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_ultrascale_pcs_pma.vhd
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_wib_eth_readout.vhd
+      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ipbus_decode_eth_readout.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_axi4s_shim.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_decl.vhd
@@ -61,7 +61,7 @@ filesets:
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ultrascale_combined_tx_path.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/ultrascale_pcs_pma.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/version_pkg.vhd
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/wib_eth_readout.vhd
+      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/eth_readout.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xgmii_pkg.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_clocking_wrapper.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_transport_axi4_lite_if.vhd

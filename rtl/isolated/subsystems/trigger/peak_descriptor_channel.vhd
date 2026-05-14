@@ -9,6 +9,9 @@ use ieee.std_logic_1164.all;
 use work.daphne_subsystem_pkg.all;
 
 entity peak_descriptor_channel is
+  generic (
+    USE_COMPACT_DESCRIPTOR_G : boolean := false
+  );
   port (
     clock_i   : in  std_logic;
     reset_i   : in  std_logic;
@@ -77,45 +80,83 @@ architecture rtl of peak_descriptor_channel is
   signal sending_s           : std_logic;
   signal info_previous_s     : std_logic;
   signal trailer_words_s     : peak_descriptor_trailer_t;
+  signal compact_result_s    : peak_descriptor_result_t;
 begin
-  descriptor_calc_inst : Peak_Descriptor_Calculation
-    port map (
-      clock                  => clock_i,
-      reset                  => reset_i,
-      din                    => trigger_i.descriptor_sample,
-      Config_Param           => control_i.config,
-      Ext_Self_Trigger       => trigger_i.trigger_pulse,
-      Match_with_Frame       => control_i.frame_match,
-      Self_trigger           => self_trigger_s,
-      Data_Available         => data_available_s,
-      Time_Peak              => time_peak_s,
-      Time_Over_Baseline     => time_over_s,
-      Time_Start             => time_start_s,
-      ADC_Peak               => adc_peak_s,
-      ADC_Integral           => adc_integral_s,
-      Number_Peaks           => number_peaks_s,
-      Baseline               => trigger_i.baseline,
-      Amplitude              => amplitude_s,
-      Peak_Current           => peak_current_s,
-      Slope_Current          => slope_current_s,
-      Slope_Threshold        => slope_threshold_s,
-      Detection              => detection_s,
-      Sending                => sending_s,
-      Info_Previous          => info_previous_s,
-      Data_Available_Trailer => trailer_available_s,
-      Trailer_Word_0         => trailer_words_s(0),
-      Trailer_Word_1         => trailer_words_s(1),
-      Trailer_Word_2         => trailer_words_s(2),
-      Trailer_Word_3         => trailer_words_s(3),
-      Trailer_Word_4         => trailer_words_s(4),
-      Trailer_Word_5         => trailer_words_s(5),
-      Trailer_Word_6         => trailer_words_s(6),
-      Trailer_Word_7         => trailer_words_s(7),
-      Trailer_Word_8         => trailer_words_s(8),
-      Trailer_Word_9         => trailer_words_s(9),
-      Trailer_Word_10        => trailer_words_s(10),
-      Trailer_Word_11        => trailer_words_s(11)
-    );
+  gen_imported_descriptor : if not USE_COMPACT_DESCRIPTOR_G generate
+  begin
+    descriptor_calc_inst : Peak_Descriptor_Calculation
+      port map (
+        clock                  => clock_i,
+        reset                  => reset_i,
+        din                    => trigger_i.descriptor_sample,
+        Config_Param           => control_i.config,
+        Ext_Self_Trigger       => trigger_i.trigger_pulse,
+        Match_with_Frame       => control_i.frame_match,
+        Self_trigger           => self_trigger_s,
+        Data_Available         => data_available_s,
+        Time_Peak              => time_peak_s,
+        Time_Over_Baseline     => time_over_s,
+        Time_Start             => time_start_s,
+        ADC_Peak               => adc_peak_s,
+        ADC_Integral           => adc_integral_s,
+        Number_Peaks           => number_peaks_s,
+        Baseline               => trigger_i.baseline,
+        Amplitude              => amplitude_s,
+        Peak_Current           => peak_current_s,
+        Slope_Current          => slope_current_s,
+        Slope_Threshold        => slope_threshold_s,
+        Detection              => detection_s,
+        Sending                => sending_s,
+        Info_Previous          => info_previous_s,
+        Data_Available_Trailer => trailer_available_s,
+        Trailer_Word_0         => trailer_words_s(0),
+        Trailer_Word_1         => trailer_words_s(1),
+        Trailer_Word_2         => trailer_words_s(2),
+        Trailer_Word_3         => trailer_words_s(3),
+        Trailer_Word_4         => trailer_words_s(4),
+        Trailer_Word_5         => trailer_words_s(5),
+        Trailer_Word_6         => trailer_words_s(6),
+        Trailer_Word_7         => trailer_words_s(7),
+        Trailer_Word_8         => trailer_words_s(8),
+        Trailer_Word_9         => trailer_words_s(9),
+        Trailer_Word_10        => trailer_words_s(10),
+        Trailer_Word_11        => trailer_words_s(11)
+      );
+  end generate gen_imported_descriptor;
+
+  gen_compact_descriptor : if USE_COMPACT_DESCRIPTOR_G generate
+  begin
+    descriptor_compact_inst : entity work.peak_descriptor_compact
+      generic map (
+        FRAME_SAMPLE_COUNT_G => 512,
+        PRETRIGGER_SAMPLES_G => 64
+      )
+      port map (
+        clock_i   => clock_i,
+        reset_i   => reset_i,
+        trigger_i => trigger_i,
+        control_i => control_i,
+        result_o  => compact_result_s,
+        trailer_o => trailer_words_s
+      );
+
+    self_trigger_s      <= compact_result_s.self_trigger;
+    data_available_s    <= compact_result_s.data_available;
+    trailer_available_s <= compact_result_s.trailer_available;
+    time_peak_s         <= compact_result_s.time_peak;
+    time_over_s         <= compact_result_s.time_over_baseline;
+    time_start_s        <= compact_result_s.time_start;
+    adc_peak_s          <= compact_result_s.adc_peak;
+    adc_integral_s      <= compact_result_s.adc_integral;
+    number_peaks_s      <= compact_result_s.number_peaks;
+    amplitude_s         <= compact_result_s.amplitude;
+    peak_current_s      <= compact_result_s.peak_current;
+    slope_current_s     <= compact_result_s.slope_current;
+    slope_threshold_s   <= compact_result_s.slope_threshold;
+    detection_s         <= compact_result_s.detection;
+    sending_s           <= compact_result_s.sending;
+    info_previous_s     <= compact_result_s.info_previous;
+  end generate gen_compact_descriptor;
 
   result_o <= (
     self_trigger       => self_trigger_s,

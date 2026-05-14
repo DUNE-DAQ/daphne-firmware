@@ -13,6 +13,7 @@ entity k26c_board_grouped_selftrigger_plane is
     HERMES_IN_BUF_DEPTH_G   : natural  := 2048;
     HERMES_IN_BUF_MEMORY_TYPE_G : string := "ultra";
     RING_MEMORY_PRIMITIVE_G : string   := "ultra";
+    USE_COMPACT_DESCRIPTOR_G : boolean  := true;
     ENABLE_OUTBUFFER_G      : boolean  := false
   );
   port (
@@ -134,6 +135,7 @@ begin
       AFE_COUNT_G             => AFE_COUNT_G,
       CHANNELS_PER_AFE_G      => CHANNELS_PER_AFE_G,
       CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G,
+      USE_COMPACT_DESCRIPTOR_G => USE_COMPACT_DESCRIPTOR_G,
       RING_MEMORY_PRIMITIVE_G => RING_MEMORY_PRIMITIVE_G
     )
     port map (

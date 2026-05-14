@@ -1421,7 +1421,7 @@
         <spirit:logicalName>deimos</spirit:logicalName>
       </spirit:file>
       <spirit:file>
-        <spirit:name>src/deimos/ipbus_decode_wib_eth_readout.vhd</spirit:name>
+        <spirit:name>src/deimos/ipbus_decode_eth_readout.vhd</spirit:name>
         <spirit:userFileType>vhdlSource-2008</spirit:userFileType>
         <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
         <spirit:logicalName>deimos</spirit:logicalName>
@@ -1733,7 +1733,7 @@
         <spirit:logicalName>deimos</spirit:logicalName>
       </spirit:file>
       <spirit:file>
-        <spirit:name>src/deimos/wib_eth_readout.vhd</spirit:name>
+        <spirit:name>src/deimos/eth_readout.vhd</spirit:name>
         <spirit:userFileType>vhdlSource-2008</spirit:userFileType>
         <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
         <spirit:logicalName>deimos</spirit:logicalName>
@@ -2097,7 +2097,7 @@
         <spirit:logicalName>deimos</spirit:logicalName>
       </spirit:file>
       <spirit:file>
-        <spirit:name>src/deimos/ipbus_decode_wib_eth_readout.vhd</spirit:name>
+        <spirit:name>src/deimos/ipbus_decode_eth_readout.vhd</spirit:name>
         <spirit:userFileType>vhdlSource-2008</spirit:userFileType>
         <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
         <spirit:logicalName>deimos</spirit:logicalName>
@@ -2409,7 +2409,7 @@
         <spirit:logicalName>deimos</spirit:logicalName>
       </spirit:file>
       <spirit:file>
-        <spirit:name>src/deimos/wib_eth_readout.vhd</spirit:name>
+        <spirit:name>src/deimos/eth_readout.vhd</spirit:name>
         <spirit:userFileType>vhdlSource-2008</spirit:userFileType>
         <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
         <spirit:logicalName>deimos</spirit:logicalName>

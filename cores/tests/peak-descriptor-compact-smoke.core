@@ -1,0 +1,28 @@
+CAPI=2:
+
+name: dune-daq:daphne:peak-descriptor-compact-smoke:0.1.0
+description: GHDL smoke test for the compact grouped peak-descriptor trailer contract
+provider:
+  name: local
+
+filesets:
+  tb:
+    depend:
+      - dune-daq:daphne:peak-descriptor-compact:0.1.0
+    files:
+      - ../../tests/logic/peak_descriptor_compact_smoke_tb.vhd
+    file_type: vhdlSource-2008
+
+targets:
+  sim:
+    filesets:
+      - tb
+    default_tool: ghdl
+    toplevel: peak_descriptor_compact_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us

@@ -9,6 +9,7 @@ entity grouped_selftrigger_fabric_bridge is
   generic (
     AFE_COUNT_G             : positive range 1 to 5 := 5;
     CHANNELS_PER_PRODUCER_G : positive := 8;
+    USE_COMPACT_DESCRIPTOR_G : boolean  := true;
     RING_MEMORY_PRIMITIVE_G : string   := "ultra"
   );
   port (
@@ -83,6 +84,7 @@ begin
       CHANNELS_PER_AFE_G      => 8,
       CHANNEL_ID_BASE_G       => 0,
       CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G,
+      USE_COMPACT_DESCRIPTOR_G => USE_COMPACT_DESCRIPTOR_G,
       RING_MEMORY_PRIMITIVE_G => RING_MEMORY_PRIMITIVE_G
     )
     port map (

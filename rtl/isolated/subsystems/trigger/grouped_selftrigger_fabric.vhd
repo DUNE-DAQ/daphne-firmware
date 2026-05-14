@@ -13,6 +13,7 @@ entity grouped_selftrigger_fabric is
     ENABLE_AFE_COMPENSATOR_G: boolean  := false;
     ENABLE_INVERT_CONTROL_G : boolean  := false;
     FIXED_CFD_G             : boolean  := true;
+    USE_COMPACT_DESCRIPTOR_G : boolean  := true;
     TRIGGER_LATENCY_G       : natural  := 4;
     RING_MEMORY_PRIMITIVE_G : string   := "ultra"
   );
@@ -96,6 +97,7 @@ begin
         ENABLE_AFE_COMPENSATOR_G=> ENABLE_AFE_COMPENSATOR_G,
         ENABLE_INVERT_CONTROL_G => ENABLE_INVERT_CONTROL_G,
         FIXED_CFD_G             => FIXED_CFD_G,
+        USE_COMPACT_DESCRIPTOR_G => USE_COMPACT_DESCRIPTOR_G,
         TRIGGER_LATENCY_G       => TRIGGER_LATENCY_G,
         RING_MEMORY_PRIMITIVE_G => RING_MEMORY_PRIMITIVE_G
       )

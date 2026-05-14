@@ -9,6 +9,7 @@ entity afe_trigger_bank is
     ENABLE_AFE_COMPENSATOR_G    : boolean := true;
     ENABLE_INVERT_CONTROL_G     : boolean := true;
     FIXED_CFD_G                 : boolean := false;
+    USE_COMPACT_DESCRIPTOR_G    : boolean := false;
     TRIGGER_LATENCY_G           : natural := 64
   );
   port (
@@ -47,6 +48,9 @@ begin
       );
 
     descriptor_inst : entity work.peak_descriptor_channel
+      generic map (
+        USE_COMPACT_DESCRIPTOR_G => USE_COMPACT_DESCRIPTOR_G
+      )
       port map (
         clock_i   => clock_i,
         reset_i   => reset_i,
