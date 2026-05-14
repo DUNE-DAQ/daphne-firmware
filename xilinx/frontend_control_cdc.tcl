@@ -23,6 +23,29 @@ proc daphne_collect_optional_hier_nets {patterns} {
     return [lsort -unique $matches]
 }
 
+proc daphne_collect_optional_hier_pins {patterns} {
+    set matches {}
+    foreach pattern $patterns {
+        foreach resolved_pin [get_pins -hier -quiet -filter "NAME =~ $pattern"] {
+            lappend matches $resolved_pin
+        }
+        foreach resolved_pin [get_pins -quiet $pattern] {
+            lappend matches $resolved_pin
+        }
+    }
+    return [lsort -unique $matches]
+}
+
+set frontend_first_sync_stage_pins [daphne_collect_optional_hier_pins {
+    *frontend_common_inst/idelayctrl_reset_500_meta_reg*/D
+    *frontend_common_inst/idelay_load_clk125_meta_reg*/D
+    *frontend_common_inst/trig_meta_reg*/D
+}]
+
+if {[llength $frontend_first_sync_stage_pins] > 0} {
+    set_false_path -to $frontend_first_sync_stage_pins
+}
+
 set frontend_sync_boundary_nets [daphne_collect_optional_hier_nets {
     *frontend_island_inst/idelayctrl_reset
     *frontend_island_inst/idelay_load

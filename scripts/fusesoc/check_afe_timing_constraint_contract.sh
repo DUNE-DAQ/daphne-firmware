@@ -114,6 +114,12 @@ require_fixed "    mmcm1_clkout0" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend bit clock in its async-group family."
 require_fixed "    clk125" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend byte clock in its async-group family."
+require_fixed "    clk125_1" "$TIMING_TCL" \
+  "AFE timing Tcl no longer carries Vivado's legacy local clk125 alias in its async-group family."
+require_fixed "set_false_path -to \$frontend_first_sync_stage_pins" "$CDC_TCL" \
+  "frontend control CDC Tcl no longer cuts the explicit frontend_common synchronizer first-stage pins."
+require_fixed "*frontend_common_inst/idelay_load_clk125_meta_reg*/D" "$CDC_TCL" \
+  "frontend control CDC Tcl no longer targets the idelay_load clk125 first-stage synchronizer pins."
 require_fixed "set_false_path -to \$endpoint_sync_stage1_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the explicit PDTS synchronizer first-stage pins."
 require_fixed "set_false_path -from \$rx_tmg_port -to \$endpoint_raw_rx_sample_pins" "$ENDPOINT_CDC_TCL" \

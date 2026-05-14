@@ -157,6 +157,14 @@ set frontend_clock_family {
     frontend_clock
     mmcm1_clkout0
     clk125
+    clk500_0
+    clock_0
+    clk125_0
+    mmcm1_clkfbout0
+    clk500_1
+    clock_1
+    clk125_1
+    mmcm1_clkfbout1
 }
 
 daphne_set_async_clock_groups_if_present {clk_pl_0} $frontend_clock_family
