@@ -35,6 +35,22 @@ proc daphne_write_matching_objects {output_file object_kind patterns} {
     close $fh
 }
 
+proc daphne_find_files_recursive {root pattern} {
+    set results {}
+    if {![file isdirectory $root]} {
+        return $results
+    }
+
+    foreach entry [glob -nocomplain -directory $root *] {
+        if {[file isdirectory $entry]} {
+            set results [concat $results [daphne_find_files_recursive $entry $pattern]]
+        } elseif {[string match $pattern [file tail $entry]]} {
+            lappend results $entry
+        }
+    }
+    return $results
+}
+
 proc daphne_dump_post_synth_debug {cfg_name} {
     upvar 1 $cfg_name cfg
 
@@ -320,7 +336,21 @@ proc daphne_package_overlay_linux {cfg_name} {
     }
     puts "INFO: Device Tree files have been generated."
 
-    set pl_dtsi_path [glob -nocomplain -types f [file join $cfg(output_dir) $cfg(build_name) "*" "*" "*" "*" "*" "*" "pl.dtsi"]]
+    set pl_dtsi_search_root [file join $cfg(output_dir) $cfg(build_name) $cfg(build_name)]
+    if {![file isdirectory $pl_dtsi_search_root]} {
+        set pl_dtsi_search_root [file join $cfg(output_dir) $cfg(build_name)]
+    }
+
+    set pl_dtsi_matches [lsort -unique [daphne_find_files_recursive $pl_dtsi_search_root "pl.dtsi"]]
+    if {[llength $pl_dtsi_matches] != 1} {
+        error "ERROR: expected exactly one generated pl.dtsi under $pl_dtsi_search_root, found [llength $pl_dtsi_matches]: $pl_dtsi_matches"
+    }
+
+    if {![file exists $cfg(axi_quad_spi_patch)]} {
+        error "ERROR: AXI Quad SPI device-tree patch not found at $cfg(axi_quad_spi_patch)"
+    }
+
+    set pl_dtsi_path [lindex $pl_dtsi_matches 0]
     puts "INFO: Adding missing lines for AXI Quad SPI module in the dtsi file."
     exec sed -i -f $cfg(axi_quad_spi_patch) $pl_dtsi_path
     puts "INFO: Finished adding missing lines for dtsi file."
