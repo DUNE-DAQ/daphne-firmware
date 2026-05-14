@@ -8,6 +8,7 @@ entity k26c_board_grouped_transport_plane is
   generic (
     SOURCE_COUNT_G        : positive := 5;
     HERMES_IN_BUF_DEPTH_G : natural := 2048;
+    HERMES_IN_BUF_MEMORY_TYPE_G : string := "ultra";
     ENABLE_OUTBUFFER_G    : boolean  := false
   );
   port (
@@ -82,7 +83,8 @@ begin
   hermes_transport_plane_inst : entity work.k26c_grouped_hermes_transport_plane
     generic map (
       SOURCE_COUNT_G        => SOURCE_COUNT_G,
-      HERMES_IN_BUF_DEPTH_G => HERMES_IN_BUF_DEPTH_G
+      HERMES_IN_BUF_DEPTH_G => HERMES_IN_BUF_DEPTH_G,
+      HERMES_IN_BUF_MEMORY_TYPE_G => HERMES_IN_BUF_MEMORY_TYPE_G
     )
     port map (
       clock               => clock,

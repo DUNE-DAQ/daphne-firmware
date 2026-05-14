@@ -32,6 +32,7 @@ entity eth_readout is
         N_SRC: positive;
         N_MGT: positive;
         IN_BUF_DEPTH: natural;
+        IN_BUF_MEMORY_TYPE_G: string := "block";
         REF_FREQ: t_freq := f156_25;
         READY_AWARE_G: boolean := false
     );
@@ -167,6 +168,7 @@ begin
         N_SRC  => N_SRC,
         N_MGT  => N_MGT,
         IN_BUF_DEPTH => IN_BUF_DEPTH,
+        IN_BUF_MEMORY_TYPE_G => IN_BUF_MEMORY_TYPE_G,
         READY_AWARE_G => READY_AWARE_G
         )
 

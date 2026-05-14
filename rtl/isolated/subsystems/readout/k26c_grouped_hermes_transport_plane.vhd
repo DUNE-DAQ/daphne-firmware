@@ -6,7 +6,8 @@ use work.grouped_transport_pkg.all;
 entity k26c_grouped_hermes_transport_plane is
   generic (
     SOURCE_COUNT_G        : positive := 5;
-    HERMES_IN_BUF_DEPTH_G : natural  := 2048
+    HERMES_IN_BUF_DEPTH_G : natural  := 2048;
+    HERMES_IN_BUF_MEMORY_TYPE_G : string := "ultra"
   );
   port (
     clock              : in  std_logic;
@@ -50,7 +51,8 @@ begin
   grouped_hermes_readout_bridge_inst : entity work.grouped_hermes_readout_bridge
     generic map (
       SOURCE_COUNT_G => SOURCE_COUNT_G,
-      IN_BUF_DEPTH_G => HERMES_IN_BUF_DEPTH_G
+      IN_BUF_DEPTH_G => HERMES_IN_BUF_DEPTH_G,
+      IN_BUF_MEMORY_TYPE_G => HERMES_IN_BUF_MEMORY_TYPE_G
     )
     port map (
       s_axi_aclk_i    => trirg_s_axi_aclk,

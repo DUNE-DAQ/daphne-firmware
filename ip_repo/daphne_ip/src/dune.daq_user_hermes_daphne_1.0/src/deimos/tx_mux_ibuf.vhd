@@ -23,6 +23,7 @@ use work.tx_mux_decl.all;
 entity tx_mux_ibuf is
     generic(
         IN_BUF_DEPTH: natural:= 2048;
+        IN_BUF_MEMORY_TYPE_G: string := "block";
         READY_AWARE_G: boolean := false
     );
     port(
@@ -254,7 +255,7 @@ begin
 
     fifo: xpm_fifo_async
         generic map(
-            FIFO_MEMORY_TYPE => "block",
+            FIFO_MEMORY_TYPE => IN_BUF_MEMORY_TYPE_G,
             FIFO_READ_LATENCY => 0,
             FIFO_WRITE_DEPTH => IN_BUF_DEPTH,
             PROG_FULL_THRESH => FIFO_PROG_FULL_THRESH_C,

@@ -10,7 +10,8 @@ entity k26c_grouped_selftrigger_datapath_plane is
   generic (
     AFE_COUNT_G             : positive range 1 to 5 := 5;
     CHANNELS_PER_AFE_G      : positive := 8;
-    CHANNELS_PER_PRODUCER_G : positive := 8
+    CHANNELS_PER_PRODUCER_G : positive := 8;
+    RING_MEMORY_PRIMITIVE_G : string   := "ultra"
   );
   port (
     version                : in  std_logic_vector(5 downto 0);
@@ -104,7 +105,8 @@ begin
   grouped_bridge_inst : entity work.grouped_selftrigger_fabric_bridge
     generic map (
       AFE_COUNT_G             => AFE_COUNT_G,
-      CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G
+      CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G,
+      RING_MEMORY_PRIMITIVE_G => RING_MEMORY_PRIMITIVE_G
     )
     port map (
       clock_i                  => clock,

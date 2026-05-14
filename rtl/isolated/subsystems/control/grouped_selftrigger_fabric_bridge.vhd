@@ -8,7 +8,8 @@ use work.grouped_transport_pkg.all;
 entity grouped_selftrigger_fabric_bridge is
   generic (
     AFE_COUNT_G             : positive range 1 to 5 := 5;
-    CHANNELS_PER_PRODUCER_G : positive := 8
+    CHANNELS_PER_PRODUCER_G : positive := 8;
+    RING_MEMORY_PRIMITIVE_G : string   := "ultra"
   );
   port (
     clock_i                   : in  std_logic;
@@ -81,7 +82,8 @@ begin
       AFE_COUNT_G             => AFE_COUNT_G,
       CHANNELS_PER_AFE_G      => 8,
       CHANNEL_ID_BASE_G       => 0,
-      CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G
+      CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G,
+      RING_MEMORY_PRIMITIVE_G => RING_MEMORY_PRIMITIVE_G
     )
     port map (
       clock_i             => clock_i,

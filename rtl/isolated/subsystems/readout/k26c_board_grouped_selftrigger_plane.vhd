@@ -9,8 +9,10 @@ entity k26c_board_grouped_selftrigger_plane is
   generic (
     AFE_COUNT_G             : positive range 1 to 5 := 5;
     CHANNELS_PER_AFE_G      : positive := 8;
-    CHANNELS_PER_PRODUCER_G : positive := 8;
+    CHANNELS_PER_PRODUCER_G : positive := 4;
     HERMES_IN_BUF_DEPTH_G   : natural  := 2048;
+    HERMES_IN_BUF_MEMORY_TYPE_G : string := "ultra";
+    RING_MEMORY_PRIMITIVE_G : string   := "ultra";
     ENABLE_OUTBUFFER_G      : boolean  := false
   );
   port (
@@ -131,7 +133,8 @@ begin
     generic map (
       AFE_COUNT_G             => AFE_COUNT_G,
       CHANNELS_PER_AFE_G      => CHANNELS_PER_AFE_G,
-      CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G
+      CHANNELS_PER_PRODUCER_G => CHANNELS_PER_PRODUCER_G,
+      RING_MEMORY_PRIMITIVE_G => RING_MEMORY_PRIMITIVE_G
     )
     port map (
       version                => version,
@@ -180,6 +183,7 @@ begin
     generic map (
       SOURCE_COUNT_G        => SOURCE_COUNT_C,
       HERMES_IN_BUF_DEPTH_G => HERMES_IN_BUF_DEPTH_G,
+      HERMES_IN_BUF_MEMORY_TYPE_G => HERMES_IN_BUF_MEMORY_TYPE_G,
       ENABLE_OUTBUFFER_G    => ENABLE_OUTBUFFER_G
     )
     port map (

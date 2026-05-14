@@ -7,9 +7,10 @@ use xpm.vcomponents.all;
 
 entity sample_ring_buffer is
   generic (
-    DATA_WIDTH_G : positive := 14;
-    DEPTH_G      : positive := 1024;
-    ADDR_WIDTH_G : positive := 10
+    DATA_WIDTH_G       : positive := 14;
+    DEPTH_G            : positive := 1024;
+    ADDR_WIDTH_G       : positive := 10;
+    MEMORY_PRIMITIVE_G : string   := "block"
   );
   port (
     clock_i   : in  std_logic;
@@ -38,7 +39,7 @@ begin
       MEMORY_INIT_FILE        => "none",
       MEMORY_INIT_PARAM       => "0",
       MEMORY_OPTIMIZATION     => "true",
-      MEMORY_PRIMITIVE        => "block",
+      MEMORY_PRIMITIVE        => MEMORY_PRIMITIVE_G,
       MEMORY_SIZE             => DATA_WIDTH_G * DEPTH_G,
       MESSAGE_CONTROL         => 0,
       READ_DATA_WIDTH_B       => DATA_WIDTH_G,

@@ -5,6 +5,9 @@ use ieee.numeric_std.all;
 use work.daphne_subsystem_pkg.all;
 
 entity stc3_frame_source is
+  generic (
+    RING_MEMORY_PRIMITIVE_G : string := "block"
+  );
   port (
     ch_id_i                : in  std_logic_vector(7 downto 0);
     version_i              : in  std_logic_vector(3 downto 0);
@@ -158,7 +161,8 @@ begin
     generic map (
       DATA_WIDTH_G => 14,
       DEPTH_G      => RING_DEPTH_C,
-      ADDR_WIDTH_G => RING_ADDR_WIDTH_C
+      ADDR_WIDTH_G => RING_ADDR_WIDTH_C,
+      MEMORY_PRIMITIVE_G => RING_MEMORY_PRIMITIVE_G
     )
     port map (
       clock_i   => clock_i,

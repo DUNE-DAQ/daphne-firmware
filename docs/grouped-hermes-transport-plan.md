@@ -249,8 +249,9 @@ Historical OOC estimate before the FIFO-depth reduction:
 - LUT growth is expected to be secondary and roughly linear.
 
 The legacy `2048`-word default preserves the previous packet-buffering
-assumption, so Hermes input-buffer BRAM still scales directly with source
-count.
+assumption. The current resource candidate keeps that depth but selects
+UltraRAM for grouped Hermes input buffers so the source-count scaling is moved
+out of BRAM.
 
 Working expectation to validate:
 
@@ -262,7 +263,7 @@ Working expectation to validate:
 
 Current resource-first order:
 
-1. budget Hermes `N_SRC` widening explicitly in BRAM,
+1. budget Hermes `N_SRC` widening explicitly in memory and routing,
 2. recover LUTs by removing per-channel packet serialization,
 3. avoid betting the architecture on `5` producers unless dead-time studies
    prove the contention is acceptable,
@@ -281,8 +282,8 @@ Additional resource observation:
 
 That means `10` grouped Hermes sources are structurally attractive but must be
 budgeted against a BRAM-constrained baseline from the outset. The branch default
-now chooses `5` Hermes sources; `10` is a measurement override, not the default
-build candidate.
+now chooses the `10`-source UltraRAM measurement point; `5` sources remains the
+routed reference override.
 
 ## Measured Evidence So Far
 
@@ -303,7 +304,9 @@ Interpretation:
 - BRAM scaling is close to linear and matches the source-buffer hypothesis,
 - LUT/FF scaling is also close to linear,
 - `N_SRC = 10` is not disqualified on transport-side soft logic grounds,
-- the main widening cost is still BRAM, not DSP or URAM.
+- the measured pre-URAM widening cost was BRAM; the current candidate shifts
+  the two largest storage classes into URAM, leaving LUT/routing as the next
+  signoff risk.
 
 ### RTL Grouped-Producer Smoke Study
 
@@ -439,8 +442,10 @@ Current readout-pressure contract:
 Current resource-reduction defaults:
 
 - [grouped_selftrigger_fabric.vhd](../rtl/isolated/subsystems/trigger/grouped_selftrigger_fabric.vhd)
-  defaults to `CHANNELS_PER_PRODUCER_G = 8`, so the board candidate exposes
-  `5` Hermes logical sources,
+  and the board grouped self-trigger plane now select the `10`-source
+  candidate by default through `CHANNELS_PER_PRODUCER_G = 4`,
+- the grouped ring and grouped Hermes input-buffer paths select UltraRAM by
+  default while reusable/legacy wrappers keep block RAM defaults,
 - the grouped xcorr path disables the dynamic AFE compensator and dynamic signal
   inverter through generics, preserving legacy defaults elsewhere,
 - the grouped xcorr path uses a fixed-delay CFD instead of the configurable CFD,
@@ -487,6 +492,10 @@ The branch default K26C shell now instantiates the grouped self-trigger plane:
 
 - [k26c_board_shell.vhd](../rtl/isolated/tops/k26c_board_shell.vhd)
   uses [k26c_board_grouped_selftrigger_plane.vhd](../rtl/isolated/subsystems/readout/k26c_board_grouped_selftrigger_plane.vhd),
+- the grouped plane defaults to `CHANNELS_PER_PRODUCER_G = 4`, so the full
+  shell exposes `10` logical Hermes sources,
+- grouped sample rings and grouped Hermes input buffers default to UltraRAM in
+  this candidate while keeping the legacy `2048` samples/words per input,
 - its board-bring-up defaults keep legacy input spy capture and grouped output
   spy capture enabled; both can be explicitly disabled for a resource-only
   synthesis experiment while leaving the AXI-Lite windows responsive,

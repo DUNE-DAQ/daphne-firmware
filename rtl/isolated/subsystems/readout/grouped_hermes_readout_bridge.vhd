@@ -14,6 +14,7 @@ entity grouped_hermes_readout_bridge is
   generic (
     SOURCE_COUNT_G : positive := 5;
     IN_BUF_DEPTH_G : natural := 2048;
+    IN_BUF_MEMORY_TYPE_G : string := "ultra";
     REF_FREQ_G     : t_freq := f156_25
   );
   port (
@@ -83,6 +84,7 @@ architecture rtl of grouped_hermes_readout_bridge is
       N_SRC        : positive;
       N_MGT        : positive;
       IN_BUF_DEPTH : natural;
+      IN_BUF_MEMORY_TYPE_G : string := "block";
       REF_FREQ     : t_freq := f156_25;
       READY_AWARE_G: boolean := false
     );
@@ -199,6 +201,7 @@ begin
       N_SRC        => SOURCE_COUNT_G,
       N_MGT        => 1,
       IN_BUF_DEPTH => IN_BUF_DEPTH_G,
+      IN_BUF_MEMORY_TYPE_G => IN_BUF_MEMORY_TYPE_G,
       REF_FREQ     => REF_FREQ_G,
       READY_AWARE_G=> true
     )

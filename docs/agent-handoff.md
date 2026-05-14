@@ -80,6 +80,9 @@ Resource-reduction work already staged:
 
 - grouped Hermes input FIFO depth is kept at the legacy `2048` words per source
   for the launch candidate
+- the grouped Hermes input buffers and grouped sample rings can now select XPM
+  memory primitives through generics; the current grouped build candidate uses
+  UltraRAM for both while the reusable primitive defaults remain block RAM
 - grouped Deimos/Hermes input buffers now expose source-side ready in
   `READY_AWARE_G` mode, and the grouped bridge threads that ready back to the
   serializers
@@ -96,12 +99,14 @@ The current grouped board path computes:
 
 - `AFE_COUNT_G = 5`
 - `CHANNELS_PER_AFE_G = 8`
-- `CHANNELS_PER_PRODUCER_G = 8`
-- `SOURCE_COUNT_C = 5`
+- `CHANNELS_PER_PRODUCER_G = 4`
+- `SOURCE_COUNT_C = 10`
 - `HERMES_IN_BUF_DEPTH_G = 2048`
+- `HERMES_IN_BUF_MEMORY_TYPE_G = "ultra"`
+- `RING_MEMORY_PRIMITIVE_G = "ultra"`
 
-To reproduce the previous `10`-source study point, override
-`CHANNELS_PER_PRODUCER_G` back to `4`.
+To reproduce the previous routed `5`-source study point, override
+`CHANNELS_PER_PRODUCER_G` back to `8`.
 
 The grouped Hermes bridge converts grouped streams to the imported Hermes
 `src_d` record shape and drives one MGT:
@@ -129,9 +134,12 @@ The last externally reported grouped-Hermes full build got past the old
 - `RAMB18` and `RAMB36/FIFO`: required `312`, device has `288`
 - `RAMB36/FIFO`: required `152`, device has `144`
 
-The current tip `963e4ae` reduces grouped Hermes input FIFO depth after that
-failure. It still needs a fresh Vivado run to prove whether that reduction is
-enough. Assume it may still fail resource closure until reports prove otherwise.
+The pre-URAM resource candidate at `77682da` routed cleanly for `5` sources with
+legacy `2048`-word Hermes buffers. A `10`-source build at `7647e8b` synthesized
+and placed but failed routing/bitgen with illegal routing. The current URAM
+candidate is intended to retest that `10`-source point by moving grouped rings
+and grouped Hermes input buffers out of BRAM. It still needs fresh OOC and full
+Vivado runs before any production claim.
 
 ## Known Architectural Limitations
 
@@ -212,7 +220,7 @@ Inspect first:
 Do not immediately rewrite the transport plane again. First isolate the
 resource driver:
 
-1. compare the default `SOURCE_COUNT_G = 5` against the `10`-source override if
+1. compare the default `SOURCE_COUNT_G = 10` against the `5`-source override if
    the build target makes that easy,
 2. test lower `HERMES_IN_BUF_DEPTH_G` only if Hermes behavior still makes
    sense,

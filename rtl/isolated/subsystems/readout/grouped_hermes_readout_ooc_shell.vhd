@@ -9,7 +9,8 @@ use work.tx_mux_decl.all;
 entity grouped_hermes_readout_ooc_shell is
   generic (
     SOURCE_COUNT_G : positive := 5;
-    IN_BUF_DEPTH_G : natural := 2048
+    IN_BUF_DEPTH_G : natural := 2048;
+    IN_BUF_MEMORY_TYPE_G : string := "ultra"
   );
   port (
     ipb_clk_i       : in  std_logic;
@@ -43,6 +44,7 @@ architecture rtl of grouped_hermes_readout_ooc_shell is
       N_SRC        : positive;
       IFACE_ID     : integer;
       IN_BUF_DEPTH : natural;
+      IN_BUF_MEMORY_TYPE_G : string := "block";
       READY_AWARE_G: boolean := false
     );
     port(
@@ -106,6 +108,7 @@ begin
       N_SRC        => SOURCE_COUNT_G,
       IFACE_ID     => 0,
       IN_BUF_DEPTH => IN_BUF_DEPTH_G,
+      IN_BUF_MEMORY_TYPE_G => IN_BUF_MEMORY_TYPE_G,
       READY_AWARE_G=> true
     )
     port map (

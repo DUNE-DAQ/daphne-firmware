@@ -28,6 +28,7 @@ entity ultrascale_combined_tx_path is
         N_SRC               : integer := 4;
         N_MGT               : positive range 1 to 4 := 2;
         IN_BUF_DEPTH        : natural;
+        IN_BUF_MEMORY_TYPE_G: string := "block";
         READY_AWARE_G       : boolean := false
     );
     port(
@@ -270,6 +271,7 @@ generic map(
     N_SRC => N_SRC,
     IFACE_ID => i,
     IN_BUF_DEPTH => IN_BUF_DEPTH,
+    IN_BUF_MEMORY_TYPE_G => IN_BUF_MEMORY_TYPE_G,
     READY_AWARE_G => READY_AWARE_G
 )
 port map(

@@ -13,7 +13,8 @@ entity afe_grouped_selftrigger_island is
     ENABLE_AFE_COMPENSATOR_G: boolean  := true;
     ENABLE_INVERT_CONTROL_G : boolean  := true;
     FIXED_CFD_G             : boolean  := false;
-    TRIGGER_LATENCY_G       : natural  := 64
+    TRIGGER_LATENCY_G       : natural  := 64;
+    RING_MEMORY_PRIMITIVE_G : string   := "ultra"
   );
   port (
     clock_i             : in  std_logic;
@@ -94,6 +95,9 @@ begin
     descriptor_control_s(idx).frame_match <= frame_match_s(idx);
 
     frame_source_inst : entity work.stc3_frame_source
+      generic map (
+        RING_MEMORY_PRIMITIVE_G => RING_MEMORY_PRIMITIVE_G
+      )
       port map (
         ch_id_i                => CHANNEL_ID_C,
         version_i              => version_i,

@@ -21,6 +21,7 @@ entity tx_mux is
         N_SRC: positive;
         IFACE_ID: integer;
         IN_BUF_DEPTH: natural;
+        IN_BUF_MEMORY_TYPE_G: string := "block";
         READY_AWARE_G: boolean := false
     );
     port(
@@ -177,6 +178,7 @@ begin
         ibuf: entity work.tx_mux_ibuf
             generic map(
                 IN_BUF_DEPTH => IN_BUF_DEPTH,
+                IN_BUF_MEMORY_TYPE_G => IN_BUF_MEMORY_TYPE_G,
                 READY_AWARE_G => READY_AWARE_G
             )
             port map(
