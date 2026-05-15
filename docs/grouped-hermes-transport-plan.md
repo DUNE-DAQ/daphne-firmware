@@ -344,6 +344,64 @@ Important limitation:
 - the useful signal today is acceptance-side behavior and relative comparison
   between grouped-source counts.
 
+### Full K26C 10-Source URAM Compact Build
+
+The `10 x 4` grouped-source candidate now has a complete K26C implementation
+result.
+
+Build point:
+
+- branch: `marroyav/grouped-hermes-resource-build-candidate`
+- commit: `79da1c9` (`Fix frontend control CDC timing cuts`)
+- build host/run: `/w/q`, run id `20260514-205854`
+- output directory: `/w/q/xilinx/output-79da1c9-src10-uram-compact`
+- synced evidence bundle:
+  `/nfs/home/marroyav/fnal-sync/grouped-hermes-resource-build-79da1c9-20260515`
+
+The full chain completed synthesis, placement, routing, bitstream generation,
+XSA export, and device-tree overlay packaging. Post-route timing is clean:
+
+- WNS: `+0.073 ns`
+- TNS: `0.000 ns`
+- WHS: `+0.010 ns`
+- THS: `0.000 ns`
+- failing setup/hold endpoints: `0`
+
+Post-route utilization:
+
+| Resource | Used | Available | Utilization |
+| --- | ---: | ---: | ---: |
+| CLB LUTs | 84,408 | 117,120 | 72.07% |
+| CLB registers | 141,374 | 234,240 | 60.35% |
+| BRAM tiles | 48 | 144 | 33.33% |
+| RAMB36/FIFO | 43 | 144 | 29.86% |
+| RAMB18 | 10 | 288 | 3.47% |
+| URAM | 40 | 64 | 62.50% |
+| DSP | 0 | 1,248 | 0.00% |
+
+Interpretation:
+
+- moving grouped sample rings and grouped Hermes input buffers to UltraRAM
+  cleared the previous BRAM pressure,
+- compact descriptors and grouped resource defaults reduced LUT pressure enough
+  for legal routing and positive timing slack,
+- the frontend control CDC constraint fix at `79da1c9` resolved the previous
+  `clk_pl_0 -> clk125_1` timing failure without changing the architecture,
+- the current blocker is no longer FPGA fit or route legality; it is board
+  smoke validation.
+
+Residual warnings to track:
+
+- `timing_endpoint_cdc.tcl:88` still produces an empty false-path startpoint
+  warning for one endpoint completion flag,
+- the XXV Ethernet generated IP still reports the expected evaluation-license
+  critical warning,
+- post-route methodology still reports TIMING-6, TIMING-7, TIMING-17, plus
+  lower-priority TIMING-9/18/26/30 warnings.
+
+These warnings should be classified and cleaned up, but they do not invalidate
+the reported timing closure.
+
 ## Current Draft Implementation
 
 This branch now carries a first real grouped alternative to the live path.
@@ -527,6 +585,11 @@ This makes the normal full implementation command the grouped candidate:
 The first useful Vivado result is post-synthesis utilization. If post-synthesis
 already exceeds K26 resources, the next action is RTL/resource reduction rather
 than place/route tuning.
+
+The `79da1c9` implementation clears this resource gate for the `10 x 4` URAM
+compact point: full bitstream, XSA, and overlay generation completed with
+positive post-route timing. The next action is board smoke testing, not further
+resource surgery.
 
 ## Formal / Contract Plan
 
@@ -729,12 +792,12 @@ This order is deliberate:
 
 Current status:
 
-- step 1 is now done locally in this draft branch,
-- the OOC measurement lane for `N_SRC = 2, 5, 10` is now staged locally at
-  the grouped-source `tx_mux` seam,
-- the next concrete action is to run those three measurements on the Vivado
-  server,
-- no live readout-plane wiring has been changed yet.
+- step 1 is complete in this draft branch,
+- the OOC measurement lane for `N_SRC = 2, 5, 10` has measured the grouped
+  transport scaling point,
+- the full K26C `10 x 4` URAM compact point at `79da1c9` builds, routes,
+  packages, and closes timing,
+- the next concrete action is board smoke testing of the artifact bundle.
 
 Measurement scope of the current OOC lane:
 

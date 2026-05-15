@@ -1,16 +1,13 @@
 # Agent Handoff: Grouped Hermes Architecture Branch
 
-Date: 2026-05-14
+Date: 2026-05-15
 
 This handoff is for the active DAPHNE firmware development branch in:
 
 - Repository: `~/repo/daphne-firmware`
 - Branch: `marroyav/grouped-hermes-resource-build-candidate`
-- Branch tip before this working-tree update: `333e35f` (`Move grouped Hermes buffers to URAM`)
+- Current routed-clean candidate tip: `79da1c9` (`Fix frontend control CDC timing cuts`)
 - Remote status at handoff time: local branch matched `origin/marroyav/grouped-hermes-resource-build-candidate`
-
-No push was performed while writing this handoff. If this file is still
-uncommitted, commit and push only if explicitly requested by the user.
 
 ## Primary Objective
 
@@ -32,9 +29,9 @@ The working design direction is:
 - keep the production-visible transport contract stable until the resource and
   dead-time tradeoff is measured.
 
-Do not treat this as a production-ready replacement yet. It is a buildable
-architecture draft candidate that still needs resource closure and better
-backpressure/dead-time validation.
+Do not treat this as a production-ready replacement yet. It is now a
+routed-clean, timing-clean architecture candidate that still needs board smoke
+testing and backpressure/dead-time validation.
 
 ## Baselines To Preserve
 
@@ -123,7 +120,7 @@ Deimos `READY_AWARE_G` mode and drives grouped readout ready from each Hermes
 source buffer, so the grouped serializer only advances on a real `valid &&
 ready` transfer.
 
-## Known Build History And Blockers
+## Known Build History And Current Build Point
 
 The branch has already cleared several launch/elaboration blockers:
 
@@ -132,18 +129,48 @@ The branch has already cleared several launch/elaboration blockers:
   helper,
 - RTL elaboration and opt-design progressed after those fixes.
 
-The last externally reported grouped-Hermes full build got past the old
-`to_src_d_array` error and failed at placement due to BRAM overuse:
+Important measured points:
 
-- `RAMB18` and `RAMB36/FIFO`: required `312`, device has `288`
-- `RAMB36/FIFO`: required `152`, device has `144`
+- the pre-URAM resource candidate at `77682da` routed cleanly for `5` sources
+  with legacy `2048`-word Hermes buffers,
+- a `10`-source build at `7647e8b` synthesized and placed but failed
+  routing/bitgen with illegal routing,
+- the compact `10`-source URAM candidate at `a34bd80` routed and generated a
+  bitstream, but failed setup timing on a frontend control CDC path,
+- `79da1c9` fixed that CDC timing exception and produced the first complete
+  `10 x 4` grouped-source K26C implementation with clean post-route timing.
 
-The pre-URAM resource candidate at `77682da` routed cleanly for `5` sources with
-legacy `2048`-word Hermes buffers. A `10`-source build at `7647e8b` synthesized
-and placed but failed routing/bitgen with illegal routing. The current URAM
-candidate is intended to retest that `10`-source point by moving grouped rings
-and grouped Hermes input buffers out of BRAM. It still needs fresh OOC and full
-Vivado runs before any production claim.
+Current routed-clean artifact point:
+
+- branch: `marroyav/grouped-hermes-resource-build-candidate`
+- commit: `79da1c9`
+- build host/run: `/w/q`, run id `20260514-205854`
+- output directory: `/w/q/xilinx/output-79da1c9-src10-uram-compact`
+- synced evidence bundle:
+  `/nfs/home/marroyav/fnal-sync/grouped-hermes-resource-build-79da1c9-20260515`
+
+The full Vivado chain completed synthesis, placement, routing, bitstream, XSA,
+and device-tree overlay packaging. Post-route timing is clean:
+
+- WNS `+0.073 ns`
+- TNS `0.000 ns`
+- WHS `+0.010 ns`
+- THS `0.000 ns`
+
+Post-route resources:
+
+- CLB LUTs: `84,408 / 117,120 = 72.07%`
+- CLB registers: `141,374 / 234,240 = 60.35%`
+- BRAM tiles: `48 / 144 = 33.33%`
+- URAM: `40 / 64 = 62.50%`
+- DSP: `0 / 1,248 = 0.00%`
+
+Residual warnings:
+
+- `timing_endpoint_cdc.tcl:88` has an empty false-path startpoint warning,
+- XXV Ethernet generated IP reports the expected evaluation-license critical
+  warning,
+- post-route methodology reports TIMING-6/7/17, plus TIMING-9/18/26/30.
 
 ## Known Architectural Limitations
 
@@ -161,7 +188,8 @@ Do not hand-wave these away:
   backpressure.
 - The grouped outbuffer is a debug/continuity aid, not the final transport
   contract.
-- The branch has not produced a routed-clean K26 result yet.
+- The branch has produced a routed-clean K26 result at `79da1c9`, but it has
+  not yet completed board smoke testing.
 
 ## Where To Read Before Editing
 
@@ -246,18 +274,18 @@ The key question is not "can we reduce resources somehow?" The key question is:
 
 The next agent should focus on one narrow loop:
 
-1. Verify the current working tip with local non-Vivado checks.
-2. Launch or prepare a short-path native-Linux Vivado build if access exists.
-3. If it fails on BRAM again, measure the three biggest toggles:
-   - `SOURCE_COUNT_G`,
-   - `HERMES_IN_BUF_DEPTH_G`,
-   - `ENABLE_OUTBUFFER_G`.
-4. Update `docs/grouped-hermes-transport-plan.md` with the measured result.
-5. Exercise the new Hermes ready path under UDP/link backpressure and confirm
+1. Board-smoke the `79da1c9` artifact bundle.
+2. Confirm overlay load, AXI register access, timing/frontend status, and
+   Hermes/10Gb link bring-up.
+3. Run a short self-trigger/readout capture.
+4. Exercise the new Hermes ready path under UDP/link backpressure and confirm
    there is no word duplication or packet truncation at the grouped source seam.
+5. Classify the residual methodology warnings and clean the
+   `timing_endpoint_cdc.tcl:88` empty-startpoint warning.
 
 Do not spend a week refining RTL around a source count that is already
-resource-impossible.
+resource-impossible. That stop condition has been cleared for the current
+`10 x 4` URAM compact candidate; the next risk is board behavior.
 
 ## Do Not Do
 

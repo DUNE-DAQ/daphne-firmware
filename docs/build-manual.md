@@ -152,6 +152,28 @@ Logs go under:
 build/remote-vivado/<timestamp>/
 ```
 
+### Current Grouped-Architecture Candidate
+
+The grouped self-trigger resource branch has a native Linux build point that is
+useful as the current 10-source URAM compact candidate:
+
+- branch: `marroyav/grouped-hermes-resource-build-candidate`
+- commit: `79da1c9`
+- output naming: `daphne_grouped_selftrigger_*`
+- source grouping: `10 x 4` logical grouped sources
+- grouped Hermes input buffers: legacy `2048` words per source
+- grouped rings and Hermes input buffers: UltraRAM
+
+The successful evidence bundle is archived on `np04-srv-017` at:
+
+```text
+/nfs/home/marroyav/fnal-sync/grouped-hermes-resource-build-79da1c9-20260515
+```
+
+Post-route timing for that point is clean (`WNS +0.073 ns`, `TNS 0`), and the
+build produced bitstream, XSA, and overlay zip artifacts. This is not yet the
+qualified `main` deploy path; it still needs board smoke validation.
+
 ## 5. Packaging From Existing `.xsa` / `.bin`
 
 If the main implementation already produced:
