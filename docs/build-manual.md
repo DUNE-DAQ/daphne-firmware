@@ -163,6 +163,9 @@ useful as the current 10-source URAM compact candidate:
 - source grouping: `10 x 4` logical grouped sources
 - grouped Hermes input buffers: legacy `2048` words per source
 - grouped rings and Hermes input buffers: UltraRAM
+- input spy capture: restored by default in the current source tip after the
+  `79da1c9` smoke test exposed that the routed artifact likely used the
+  disabled/null spy-buffer window
 
 The successful evidence bundle is archived on `np04-srv-017` at:
 
@@ -175,11 +178,18 @@ build produced bitstream, XSA, and overlay zip artifacts. The `79da1c9` PL
 payload has also completed initial DAPHNE-15 smoke: the board loaded the
 legacy-named active app slot with the grouped `.bin`/`.dtbo`, services came
 up, the V2 control client reached the test register and software-trigger
-command path, and an 8-sample channel-0 spy-buffer dump returned successfully.
+command path, and the spy-buffer AXI window returned data.
+
+Important correction: `79da1c9` defaulted `ENABLE_SPY_CAPTURE_G` to `false`.
+Therefore that spy-buffer read should be treated as a server/AXI-window check,
+not proof that live AFE spy buffers were present. Build the current branch tip
+for frontend alignment work; it restores the legacy input spy-buffer plane by
+default while leaving the grouped output buffer disabled.
 
 This is not yet the qualified `main` deploy path. Hermes UDP output,
 ready/backpressure behavior, real self-trigger counters, and packet-format
-checks still need board validation.
+checks still need board validation. The restored input spy buffers should be
+used first to verify AFE FCLK/channel data before trusting delay/bitslip scans.
 
 ## 5. Packaging From Existing `.xsa` / `.bin`
 

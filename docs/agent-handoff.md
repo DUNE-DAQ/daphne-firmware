@@ -7,6 +7,8 @@ This handoff is for the active DAPHNE firmware development branch in:
 - Repository: `~/repo/daphne-firmware`
 - Branch: `marroyav/grouped-hermes-resource-build-candidate`
 - Current routed-clean candidate tip: `79da1c9` (`Fix frontend control CDC timing cuts`)
+- Current source tip is expected to move past `79da1c9` for a diagnostic
+  rebuild with input spy capture restored.
 - Remote status at handoff time: local branch matched `origin/marroyav/grouped-hermes-resource-build-candidate`
 
 ## Primary Objective
@@ -182,6 +184,9 @@ Initial DAPHNE-15 board smoke:
 - ControlEnvelopeV2 checks from `/nfs/home/marroyav/repo/daphne-server`
   succeeded for `READ_TEST_REG`, `DO_SOFTWARE_TRIGGER`, and
   `DUMP_SPYBUFFER` channel 0 with 8 returned samples,
+- later source review found that `79da1c9` defaulted
+  `ENABLE_SPY_CAPTURE_G` to `false`, so the `DUMP_SPYBUFFER` result should be
+  treated as server/AXI-window evidence, not proof of live AFE spy capture,
 - `READ_CURRENT_MONITOR` responded with `success=false` because current-monitor
   support is not implemented in the firmware drivers,
 - the older local `daphneZMQ` V1 client timed out because the deployed server
@@ -213,8 +218,9 @@ Do not hand-wave these away:
 - The grouped outbuffer is a debug/continuity aid, not the final transport
   contract.
 - The branch has produced a routed-clean K26 result at `79da1c9` and passed
-  initial DAPHNE-15 load/control/spy-buffer smoke, but it has not yet completed
-  data-path qualification under real trigger and Hermes UDP traffic.
+  initial DAPHNE-15 load/control smoke, but live input spy capture needs the
+  follow-up diagnostic rebuild, and the design has not yet completed data-path
+  qualification under real trigger and Hermes UDP traffic.
 
 ## Where To Read Before Editing
 
@@ -299,13 +305,15 @@ The key question is not "can we reduce resources somehow?" The key question is:
 
 The next agent should focus on one narrow loop:
 
-1. Board-smoke the `79da1c9` artifact bundle.
+1. Build and deploy the branch tip with `ENABLE_SPY_CAPTURE_G => true`.
 2. Confirm overlay load, AXI register access, timing/frontend status, and
    Hermes/10Gb link bring-up.
-3. Run a short self-trigger/readout capture.
-4. Exercise the new Hermes ready path under UDP/link backpressure and confirm
+3. Use the restored input spy buffers to verify AFE FCLK and channel data
+   before accepting any delay/bitslip alignment result.
+4. Run a short self-trigger/readout capture.
+5. Exercise the new Hermes ready path under UDP/link backpressure and confirm
    there is no word duplication or packet truncation at the grouped source seam.
-5. Classify the residual methodology warnings and clean the
+6. Classify the residual methodology warnings and clean the
    `timing_endpoint_cdc.tcl:88` empty-startpoint warning.
 
 Do not spend a week refining RTL around a source count that is already

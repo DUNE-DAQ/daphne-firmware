@@ -12,7 +12,7 @@ entity k26c_board_shell is
     crate_id    : std_logic_vector(9 downto 0)  := "0000000011";
     detector_id : std_logic_vector(5 downto 0)  := "000010";
     version_id  : std_logic_vector(5 downto 0)  := "000001";
-    ENABLE_SPY_CAPTURE_G : boolean := false;
+    ENABLE_SPY_CAPTURE_G : boolean := true;
     ENABLE_OUTBUFFER_G   : boolean := false
   );
   port (

@@ -278,8 +278,11 @@ Additional resource observation:
 - optional spy/debug paths remain the clearest first BRAM-release lever before
   transport architecture is widened aggressively,
 - this branch carries generic gates for input spy capture and grouped output spy
-  capture, but the normal board-bring-up defaults keep both enabled because they
-  are essential diagnostics.
+  capture,
+- after the `10 x 4` UltraRAM build point cleared BRAM pressure, the normal
+  board-bring-up default keeps input spy capture enabled again because it is
+  essential for frontend alignment diagnostics; grouped output spy capture stays
+  disabled unless explicitly requested.
 
 That means `10` grouped Hermes sources are structurally attractive but must be
 budgeted against a BRAM-constrained baseline from the outset. The branch default
@@ -448,7 +451,21 @@ Observed V2 checks:
 | `READ_TEST_REG` | `success=true`, message `ok` | Basic control read path responds. |
 | `READ_CURRENT_MONITOR` | response with `success=false` | Current monitor is not implemented in the firmware drivers. |
 | `DO_SOFTWARE_TRIGGER` | `success=true` | Software trigger command is accepted. |
-| `DUMP_SPYBUFFER`, channel 0, 8 samples | `success=true`, 8 samples returned | Spy-buffer read path responds through the deployed stack. |
+| `DUMP_SPYBUFFER`, channel 0, 8 samples | `success=true`, 8 samples returned | The server/AXI read path responds, but see the correction below. |
+
+Post-test correction: the `79da1c9` source default had
+`ENABLE_SPY_CAPTURE_G => false`, so the `SPY_BUF` AXI window was terminated by
+the null slave unless the packaged IP was manually overridden. Therefore the
+initial `DUMP_SPYBUFFER` success must not be treated as proof that live AFE
+spy capture was present. It proved that the deployed server and AXI transaction
+path could return data from the spy-buffer window.
+
+Follow-up diagnostic change: input spy capture is now restored as the normal
+board-bring-up default. The cost is the existing legacy spy-buffer bank: about
+`49` RAMB36 blocks for `5 x 9` AFE words plus timestamp stripes. From the
+`79da1c9` post-route point (`48 / 144` BRAM tiles), the first-order estimate is
+roughly `97 / 144` BRAM tiles before placer optimizations, still below the K26
+BRAM limit. This needs a fresh implementation build before deployment.
 
 The trigger counters for channel 0 did not increment across the software
 trigger command. Treat this as an open semantic/coverage item: this
@@ -457,10 +474,11 @@ the exercised path may not be the counter path that needs validation.
 
 Current interpretation:
 
-- initial board load, service startup, control-plane access, and one spy-buffer
-  read have passed,
+- initial board load, service startup, and control-plane access have passed,
 - the current-monitor failure is a known software/driver implementation gap,
   not a grouped PL fit/timing failure,
+- live spy-buffer capture was not proven by the `79da1c9` artifact because the
+  branch source default disabled the input spy-capture plane,
 - the candidate still needs data-path qualification under real trigger and
   Hermes UDP traffic before it can be called board-ready.
 
@@ -642,9 +660,10 @@ The branch default K26C shell now instantiates the grouped self-trigger plane:
 - the grouped path defaults to the compact descriptor implementation; set
   `USE_COMPACT_DESCRIPTOR_G => false` only to compare against the imported
   descriptor calculator,
-- its board-bring-up defaults keep legacy input spy capture and grouped output
-  spy capture enabled; both can be explicitly disabled for a resource-only
-  synthesis experiment while leaving the AXI-Lite windows responsive,
+- its board-bring-up defaults keep legacy input spy capture enabled and grouped
+  output spy capture disabled; both paths are still generic-gated so resource
+  experiments can explicitly disable input spy capture or enable grouped output
+  capture,
 - [k26c-board-shell.core](../cores/features/k26c-board-shell.core)
   depends on the grouped board self-trigger plane,
 - [boards/k26c/board.yml](../boards/k26c/board.yml)
@@ -666,9 +685,10 @@ The `79da1c9` implementation clears this resource gate for the `10 x 4` URAM
 compact point: full bitstream, XSA, and overlay generation completed with
 positive post-route timing. Initial DAPHNE-15 smoke testing also confirms that
 the board loads the payload, services start, ControlEnvelopeV2 reads respond,
-software-trigger command dispatch responds, and the spy-buffer read path can
-return samples. The next action is readout/backpressure qualification, not
-further resource surgery.
+and software-trigger command dispatch responds. A later source review found
+that the `79da1c9` artifact probably did not include live input spy capture, so
+the next diagnostic build restores input spy buffers before continuing frontend
+alignment and readout/backpressure qualification.
 
 ## Formal / Contract Plan
 
@@ -876,7 +896,8 @@ Current status:
   transport scaling point,
 - the full K26C `10 x 4` URAM compact point at `79da1c9` builds, routes,
   packages, and closes timing,
-- the next concrete action is board smoke testing of the artifact bundle.
+- the next concrete action is a diagnostic rebuild with input spy capture
+  restored, followed by frontend alignment and board readout testing.
 
 Measurement scope of the current OOC lane:
 
