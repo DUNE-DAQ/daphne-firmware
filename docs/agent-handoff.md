@@ -30,8 +30,9 @@ The working design direction is:
   dead-time tradeoff is measured.
 
 Do not treat this as a production-ready replacement yet. It is now a
-routed-clean, timing-clean architecture candidate that still needs board smoke
-testing and backpressure/dead-time validation.
+routed-clean, timing-clean architecture candidate with initial DAPHNE-15 smoke
+evidence, but it still needs Hermes readout, backpressure, and dead-time
+validation.
 
 ## Baselines To Preserve
 
@@ -165,6 +166,29 @@ Post-route resources:
 - URAM: `40 / 64 = 62.50%`
 - DSP: `0 / 1,248 = 0.00%`
 
+Initial DAPHNE-15 board smoke:
+
+- deployed payloads:
+  `daphne_grouped_selftrigger_ol_79da1c9.bin` and
+  `daphne_grouped_selftrigger_ol_79da1c9.dtbo`,
+- staged into the active legacy-named app slot
+  `/lib/firmware/xilinx/daphne_selftrigger_ol_a389fcd/`,
+- `fpga_manager` reported `operating`, and `xmutil` reported the slot active,
+- services `firmware`, `clockchip`, `endpoint`, `hermes`, and `daphne` were
+  active after reboot,
+- `daphneServer` listened on TCP `40001`; `hermes_udp_srv` listened on UDP
+  `50001`,
+- `/dev/i2c-1` and `/dev/i2c-2` were present,
+- ControlEnvelopeV2 checks from `/nfs/home/marroyav/repo/daphne-server`
+  succeeded for `READ_TEST_REG`, `DO_SOFTWARE_TRIGGER`, and
+  `DUMP_SPYBUFFER` channel 0 with 8 returned samples,
+- `READ_CURRENT_MONITOR` responded with `success=false` because current-monitor
+  support is not implemented in the firmware drivers,
+- the older local `daphneZMQ` V1 client timed out because the deployed server
+  uses the newer V2 / `MT2_*` protocol,
+- channel 0 trigger counters did not increment across the software-trigger
+  check; real trigger/counter semantics still need validation.
+
 Residual warnings:
 
 - `timing_endpoint_cdc.tcl:88` has an empty false-path startpoint warning,
@@ -188,8 +212,9 @@ Do not hand-wave these away:
   backpressure.
 - The grouped outbuffer is a debug/continuity aid, not the final transport
   contract.
-- The branch has produced a routed-clean K26 result at `79da1c9`, but it has
-  not yet completed board smoke testing.
+- The branch has produced a routed-clean K26 result at `79da1c9` and passed
+  initial DAPHNE-15 load/control/spy-buffer smoke, but it has not yet completed
+  data-path qualification under real trigger and Hermes UDP traffic.
 
 ## Where To Read Before Editing
 

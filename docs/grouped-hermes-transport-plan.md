@@ -402,6 +402,82 @@ Residual warnings to track:
 These warnings should be classified and cleaned up, but they do not invalidate
 the reported timing closure.
 
+### DAPHNE-15 Initial Board Smoke
+
+The `79da1c9` PL payload has been loaded on DAPHNE-15 for first board smoke.
+The deployed payload files were:
+
+- `daphne_grouped_selftrigger_ol_79da1c9.bin`
+- `daphne_grouped_selftrigger_ol_79da1c9.dtbo`
+
+They were staged into the active legacy-named app slot:
+
+```text
+/lib/firmware/xilinx/daphne_selftrigger_ol_a389fcd/
+```
+
+The `xmutil` slot name therefore still reports
+`daphne_selftrigger_ol_a389fcd`, but the loaded PL payload is the grouped
+`79da1c9` candidate. The previous slot payload was backed up on the board at:
+
+```text
+/home/petalinux/backup-daphne_selftrigger_ol_a389fcd-20221110T110606Z
+```
+
+That backup timestamp is board-local time after reboot, not reliable wall-clock
+time.
+
+Post-reboot board state:
+
+- `fpga_manager`: `operating`
+- `xmutil`: `daphne_selftrigger_ol_a389fcd` active in slot 0
+- services active: `firmware`, `clockchip`, `endpoint`, `hermes`, `daphne`
+- `daphneServer` listening on TCP `40001`
+- `hermes_udp_srv` listening on UDP `50001`
+- `/dev/i2c-1` and `/dev/i2c-2` present
+
+Control-plane checks were run with the newer `ControlEnvelopeV2` / `MT2_*`
+client from `/nfs/home/marroyav/repo/daphne-server`. The older local
+`daphneZMQ` V1 client timed out, which is a protocol mismatch with the deployed
+server rather than evidence of a PL failure.
+
+Observed V2 checks:
+
+| Check | Result | Interpretation |
+| --- | --- | --- |
+| `READ_TEST_REG` | `success=true`, message `ok` | Basic control read path responds. |
+| `READ_CURRENT_MONITOR` | response with `success=false` | Current monitor is not implemented in the firmware drivers. |
+| `DO_SOFTWARE_TRIGGER` | `success=true` | Software trigger command is accepted. |
+| `DUMP_SPYBUFFER`, channel 0, 8 samples | `success=true`, 8 samples returned | Spy-buffer read path responds through the deployed stack. |
+
+The trigger counters for channel 0 did not increment across the software
+trigger command. Treat this as an open semantic/coverage item: this
+configuration may not count software triggers in the self-trigger counters, or
+the exercised path may not be the counter path that needs validation.
+
+Current interpretation:
+
+- initial board load, service startup, control-plane access, and one spy-buffer
+  read have passed,
+- the current-monitor failure is a known software/driver implementation gap,
+  not a grouped PL fit/timing failure,
+- the candidate still needs data-path qualification under real trigger and
+  Hermes UDP traffic before it can be called board-ready.
+
+Recommended next board tests:
+
+1. capture Hermes UDP output while issuing software and self-trigger stimuli,
+2. verify packet headers, source IDs, and frame/word counts against the grouped
+   frame format,
+3. exercise link-side backpressure or receive-side throttling and watch the
+   ready-aware grouped serializer/Hermes input-buffer seam,
+4. compare channel trigger counters using real self-trigger input, not only the
+   software-trigger command,
+5. dump spy buffers from several channels/producers to confirm the debug window
+   still covers the intended points in the grouped architecture,
+6. fix or annotate the board clock so future backup/deploy timestamps are
+   audit useful.
+
 ## Current Draft Implementation
 
 This branch now carries a first real grouped alternative to the live path.
@@ -588,8 +664,11 @@ than place/route tuning.
 
 The `79da1c9` implementation clears this resource gate for the `10 x 4` URAM
 compact point: full bitstream, XSA, and overlay generation completed with
-positive post-route timing. The next action is board smoke testing, not further
-resource surgery.
+positive post-route timing. Initial DAPHNE-15 smoke testing also confirms that
+the board loads the payload, services start, ControlEnvelopeV2 reads respond,
+software-trigger command dispatch responds, and the spy-buffer read path can
+return samples. The next action is readout/backpressure qualification, not
+further resource surgery.
 
 ## Formal / Contract Plan
 

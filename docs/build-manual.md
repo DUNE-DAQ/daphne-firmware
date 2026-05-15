@@ -171,8 +171,15 @@ The successful evidence bundle is archived on `np04-srv-017` at:
 ```
 
 Post-route timing for that point is clean (`WNS +0.073 ns`, `TNS 0`), and the
-build produced bitstream, XSA, and overlay zip artifacts. This is not yet the
-qualified `main` deploy path; it still needs board smoke validation.
+build produced bitstream, XSA, and overlay zip artifacts. The `79da1c9` PL
+payload has also completed initial DAPHNE-15 smoke: the board loaded the
+legacy-named active app slot with the grouped `.bin`/`.dtbo`, services came
+up, the V2 control client reached the test register and software-trigger
+command path, and an 8-sample channel-0 spy-buffer dump returned successfully.
+
+This is not yet the qualified `main` deploy path. Hermes UDP output,
+ready/backpressure behavior, real self-trigger counters, and packet-format
+checks still need board validation.
 
 ## 5. Packaging From Existing `.xsa` / `.bin`
 
