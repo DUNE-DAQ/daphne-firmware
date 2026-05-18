@@ -26,6 +26,10 @@ fusesoc_libraries/
 .cache/
 .fusesoc/
 
+# Generated Vivado/WebTalk session logs.
+*.jou
+*.log
+
 # Local board recovery/deployment captures and generated payloads.
 /deploy/
 
