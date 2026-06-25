@@ -107,6 +107,7 @@ typedef unsigned long long u64;
 #define AFE_SPI_IDLE_WORD 0x00000000U
 #define DAC_GO_BIT 1U
 #define DAC_BUSY_BIT 0U
+#define AFE_POWER_SETTLE_CYCLES 5000000U
 
 #define FRONTEND_DELAYCTRL_RESET_BIT 0U
 #define FRONTEND_SERDES_RESET_BIT 1U
@@ -128,6 +129,7 @@ typedef unsigned long long u64;
 #define RPU_ALIGN_STAGE_DELAY 3U
 #define RPU_ALIGN_STAGE_BITSLIP 4U
 #define RPU_ALIGN_STAGE_VTC 5U
+#define RPU_ALIGN_STAGE_FRAME_CLOCK 6U
 
 struct vring_desc {
 	u32 addr_lo;
@@ -718,6 +720,24 @@ static int set_mmio_bit(u32 offset, u8 bit_index, u8 asserted)
 	return 0;
 }
 
+static void delay_cycles(u32 cycles)
+{
+	u32 i;
+
+	for (i = 0U; i < cycles; ++i) {
+		cpu_relax();
+	}
+}
+
+static int set_afe_power_state_legacy(u8 enabled)
+{
+	if (set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_POWERSTATE_BIT, enabled) != 0) {
+		return -1;
+	}
+	delay_cycles(AFE_POWER_SETTLE_CYCLES);
+	return 0;
+}
+
 static u32 frontend_register_offset(u32 base, u8 afe_board)
 {
 	return base + FRONTEND_AFE_STRIDE * (u32)afe_board;
@@ -829,6 +849,27 @@ static int scan_frontend_word_after_write(u8 afe_board, u32 *word)
 	trigger_frontend_snapshot();
 	frontend_capture_settle();
 	return read_frame_clock(afe_board, word);
+}
+
+static int probe_frontend_frame_clocks(void)
+{
+	u8 afe_board;
+	u32 word;
+	int rc;
+
+	trigger_frontend_snapshot();
+	frontend_capture_settle();
+	for (afe_board = 0U; afe_board < AFE_COUNT; ++afe_board) {
+		rc = read_frame_clock(afe_board, &word);
+		if (rc != 0) {
+			return rc;
+		}
+		if (word == 0U || word == 0xFFFFFFFFU) {
+			set_alignment_failure(afe_board, RPU_ALIGN_STAGE_FRAME_CLOCK, word);
+			return -3;
+		}
+	}
+	return 0;
 }
 
 static int reset_frontend_delay_values(void)
@@ -987,6 +1028,14 @@ static int align_frontend(u32 *aligned_mask)
 	if (rc != 0) {
 		(void)set_frontend_delay_vtc(1U);
 		set_alignment_failure(0xFFU, RPU_ALIGN_STAGE_DELAYCTRL, mmio_read(FRONTEND_STATUS_OFFSET));
+		return rc;
+	}
+	rc = probe_frontend_frame_clocks();
+	if (rc != 0) {
+		(void)set_frontend_delay_vtc(1U);
+		if (alignment_failure_stage == 0U) {
+			set_alignment_failure(0xFFU, RPU_ALIGN_STAGE_FRAME_CLOCK, 0U);
+		}
 		return rc;
 	}
 
@@ -1408,12 +1457,13 @@ static int apply_configure_frontend(void)
 		return -2;
 	}
 
-	/* Power/reset sequencing wedged DAPHNE-15 during hardware testing. */
-	return -4;
-
-	if (set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_RESET_BIT, 1U) != 0 ||
-	    set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_RESET_BIT, 0U) != 0 ||
-	    set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_POWERSTATE_BIT, 1U) != 0) {
+	/*
+	 * The Linux/C++ server can pulse AFE reset before power-on, but the same
+	 * reset bit currently wedges DAPHNE-15 when driven from the RPU. Power-on
+	 * itself was observed to complete and raise the board current, so keep the
+	 * configure test on the narrower, recoverable path until reset is isolated.
+	 */
+	if (set_afe_power_state_legacy(1U) != 0) {
 		return -1;
 	}
 
@@ -1442,7 +1492,7 @@ static int apply_configure_frontend(void)
 		}
 	}
 
-	if (set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_POWERSTATE_BIT, 1U) != 0) {
+	if (set_afe_power_state_legacy(1U) != 0) {
 		return -1;
 	}
 	clear_staged_config();
