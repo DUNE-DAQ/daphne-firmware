@@ -1,0 +1,164 @@
+/*
+ * DAPHNE KR260 RPU bring-up for the Xilinx downstream 2024.1
+ * zynqmp_r5_remoteproc driver.
+ *
+ * DAPHNE-15 currently ships a 6.6.10-xilinx-v2024.1 kernel whose module
+ * matches "xlnx,zynqmp-r5-remoteproc" and parses:
+ *   - xlnx,cluster-mode on the parent
+ *   - sram phandles for the R5 TCM banks
+ *   - singular power-domain properties
+ *   - memory-region carveouts
+ *
+ * RPMsg uses the APU-side zynqmp_ipi mailbox controller. The RPU cores use
+ * dedicated mailbox children for Linux->RPU kicks and RPU->Linux callbacks.
+ */
+
+/ {
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		rproc_0_reserved: rproc@3ed00000 {
+			no-map;
+			reg = <0x0 0x3ed00000 0x0 0x40000>;
+		};
+
+		rpu0vdev0vring0: rpu0vdev0vring0@3ed40000 {
+			no-map;
+			reg = <0x0 0x3ed40000 0x0 0x4000>;
+		};
+
+		rpu0vdev0vring1: rpu0vdev0vring1@3ed44000 {
+			no-map;
+			reg = <0x0 0x3ed44000 0x0 0x4000>;
+		};
+
+		rpu0vdev0buffer: rpu0vdev0buffer@3ed48000 {
+			no-map;
+			reg = <0x0 0x3ed48000 0x0 0x100000>;
+		};
+
+		rproc_1_reserved: rproc@3ef00000 {
+			no-map;
+			reg = <0x0 0x3ef00000 0x0 0x40000>;
+		};
+
+		rpu1vdev0vring0: rpu1vdev0vring0@3ef40000 {
+			no-map;
+			reg = <0x0 0x3ef40000 0x0 0x4000>;
+		};
+
+		rpu1vdev0vring1: rpu1vdev0vring1@3ef44000 {
+			no-map;
+			reg = <0x0 0x3ef44000 0x0 0x4000>;
+		};
+
+		rpu1vdev0buffer: rpu1vdev0buffer@3ef48000 {
+			no-map;
+			reg = <0x0 0x3ef48000 0x0 0x100000>;
+		};
+	};
+
+	tcm_0a: tcm_0a@ffe00000 {
+		compatible = "mmio-sram";
+		no-map;
+		reg = <0x0 0xffe00000 0x0 0x10000>;
+		status = "okay";
+		power-domain = <&zynqmp_firmware 15>; /* PD_R5_0_ATCM */
+	};
+
+	tcm_0b: tcm_0b@ffe20000 {
+		compatible = "mmio-sram";
+		no-map;
+		reg = <0x0 0xffe20000 0x0 0x10000>;
+		status = "okay";
+		power-domain = <&zynqmp_firmware 16>; /* PD_R5_0_BTCM */
+	};
+
+	tcm_1a: tcm_1a@ffe90000 {
+		compatible = "mmio-sram";
+		no-map;
+		reg = <0x0 0xffe90000 0x0 0x10000>;
+		status = "okay";
+		power-domain = <&zynqmp_firmware 17>; /* PD_R5_1_ATCM */
+	};
+
+	tcm_1b: tcm_1b@ffeb0000 {
+		compatible = "mmio-sram";
+		no-map;
+		reg = <0x0 0xffeb0000 0x0 0x10000>;
+		status = "okay";
+		power-domain = <&zynqmp_firmware 18>; /* PD_R5_1_BTCM */
+	};
+
+	r5_remoteproc: r5fss@ff9a0000 {
+		compatible = "xlnx,zynqmp-r5-remoteproc";
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+		reg = <0x0 0xff9a0000 0x0 0x10000>;
+		xlnx,cluster-mode = <1>; /* split mode */
+		status = "okay";
+
+		r5f_0: r5f_0 {
+			compatible = "xilinx,r5f";
+			#address-cells = <2>;
+			#size-cells = <2>;
+			ranges;
+			sram = <&tcm_0a>, <&tcm_0b>;
+			memory-region = <&rproc_0_reserved>,
+					<&rpu0vdev0buffer>,
+					<&rpu0vdev0vring0>,
+					<&rpu0vdev0vring1>;
+			mboxes = <&ipi_mailbox_rpu0 0>,
+				 <&ipi_mailbox_rpu0 1>;
+			mbox-names = "tx", "rx";
+			power-domain = <&zynqmp_firmware 7>; /* PD_RPU_0 */
+		};
+
+		r5f_1: r5f_1 {
+			compatible = "xilinx,r5f";
+			#address-cells = <2>;
+			#size-cells = <2>;
+			ranges;
+			sram = <&tcm_1a>, <&tcm_1b>;
+			memory-region = <&rproc_1_reserved>,
+					<&rpu1vdev0buffer>,
+					<&rpu1vdev0vring0>,
+					<&rpu1vdev0vring1>;
+			mboxes = <&ipi_mailbox_rpu1 0>,
+				 <&ipi_mailbox_rpu1 1>;
+			mbox-names = "tx", "rx";
+			power-domain = <&zynqmp_firmware 8>; /* PD_RPU_1 */
+		};
+	};
+};
+
+&zynqmp_ipi {
+	ipi_mailbox_rpu0: mailbox@ff990400 {
+		reg = <0x0 0xff990400 0x0 0x20>,
+		      <0x0 0xff990420 0x0 0x20>,
+		      <0x0 0xff990080 0x0 0x20>,
+		      <0x0 0xff9900a0 0x0 0x20>;
+		reg-names = "local_request_region",
+			    "local_response_region",
+			    "remote_request_region",
+			    "remote_response_region";
+		#mbox-cells = <1>;
+		xlnx,ipi-id = <1>;
+	};
+
+	ipi_mailbox_rpu1: mailbox@ff990440 {
+		reg = <0x0 0xff990440 0x0 0x20>,
+		      <0x0 0xff990460 0x0 0x20>,
+		      <0x0 0xff990280 0x0 0x20>,
+		      <0x0 0xff9902a0 0x0 0x20>;
+		reg-names = "local_request_region",
+			    "local_response_region",
+			    "remote_request_region",
+			    "remote_response_region";
+		#mbox-cells = <1>;
+		xlnx,ipi-id = <2>;
+	};
+};
