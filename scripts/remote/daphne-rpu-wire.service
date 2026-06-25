@@ -1,0 +1,19 @@
+[Unit]
+Description=DAPHNE RPU RPMsg slow-control firmware
+After=endpoint.service firmware.service
+Requires=endpoint.service firmware.service
+PartOf=firmware.service
+Before=daphne-sc.service
+ConditionPathExists=/lib/firmware/daphne-rpu-wire-rpu0.elf
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/daphne-rpu.env
+ExecStart=/usr/local/bin/daphne-rpu-wire.sh
+ExecStop=/usr/local/bin/daphne-rpu-wire-stop.sh
+RemainAfterExit=yes
+TimeoutStartSec=30
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
