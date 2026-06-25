@@ -61,6 +61,7 @@ typedef unsigned long long u64;
 #define RPU_WIRE_OP_CONFIGURE_CHANNEL 19U
 #define RPU_WIRE_OP_APPLY_CONFIGURE_FRONTEND 20U
 #define RPU_WIRE_OP_WRITE_FUNCTION 21U
+#define RPU_WIRE_OP_READ_ALIGNMENT 22U
 
 #define RPU_WIRE_TARGET_NONE 0U
 #define RPU_WIRE_TARGET_AFE 1U
@@ -115,11 +116,18 @@ typedef unsigned long long u64;
 #define FRONTEND_DELAY_TAPS 512U
 #define FRONTEND_BITSLIP_TAPS 16U
 #define FRONTEND_VERIFY_READS 4U
+#define FRONTEND_CAPTURE_SETTLE_CYCLES 10000U
 #define FRONTEND_EXPECTED_FCLK_WORD 0x00FF00FFU
 
 #define RPU_FAULT_TIMEOUT 1U
 #define RPU_FAULT_MMIO 2U
-#define RPU_INTERLOCK_ALIGN_UNVALIDATED 1U
+#define RPU_FAULT_ALIGNMENT_FAILED 3U
+#define RPU_INTERLOCK_AFE_POWER_RESET_UNVALIDATED 2U
+#define RPU_ALIGN_STAGE_RESET 1U
+#define RPU_ALIGN_STAGE_DELAYCTRL 2U
+#define RPU_ALIGN_STAGE_DELAY 3U
+#define RPU_ALIGN_STAGE_BITSLIP 4U
+#define RPU_ALIGN_STAGE_VTC 5U
 
 struct vring_desc {
 	u32 addr_lo;
@@ -230,6 +238,12 @@ static u16 offset_halves[AFE_COUNT][CHANNELS_PER_AFE];
 static u16 vbias_control;
 static u8 vbias_enabled;
 static struct staged_config staged;
+static u32 aligned_delay[AFE_COUNT];
+static u32 aligned_bitslip[AFE_COUNT];
+static u32 alignment_valid_mask;
+static u32 alignment_failure_afe;
+static u32 alignment_failure_stage;
+static u32 alignment_failure_word;
 
 static const struct dac_route afe_gain_routes[AFE_COUNT] = {
 	{ 0U, 0U, 0U, 0U },
@@ -505,6 +519,24 @@ static struct command_result result_interlocked(u32 code)
 	return result;
 }
 
+static struct command_result result_fault(u32 code)
+{
+	struct command_result result = result_status(RPU_WIRE_STATUS_FAULT);
+
+	result.fault_code = code;
+	return result;
+}
+
+static struct command_result result_fault_detail(u32 code, u32 readback, u32 context)
+{
+	struct command_result result = result_fault(code);
+
+	result.readback = readback;
+	result.readback_valid = 1U;
+	result.interlock_code = context;
+	return result;
+}
+
 static u32 mmio_read(u32 offset)
 {
 	u32 value;
@@ -684,6 +716,324 @@ static int set_mmio_bit(u32 offset, u8 bit_index, u8 asserted)
 	}
 	mmio_write(offset, value);
 	return 0;
+}
+
+static u32 frontend_register_offset(u32 base, u8 afe_board)
+{
+	return base + FRONTEND_AFE_STRIDE * (u32)afe_board;
+}
+
+static void clear_alignment_failure(void)
+{
+	alignment_failure_afe = 0xFFU;
+	alignment_failure_stage = 0U;
+	alignment_failure_word = 0U;
+}
+
+static void set_alignment_failure(u8 afe_board, u32 stage, u32 word)
+{
+	alignment_failure_afe = (u32)afe_board;
+	alignment_failure_stage = stage;
+	alignment_failure_word = word;
+}
+
+static u32 alignment_failure_context(void)
+{
+	return ((alignment_failure_stage & 0xFFU) << 8) |
+	       (alignment_failure_afe & 0xFFU);
+}
+
+static void frontend_capture_settle(void)
+{
+	u32 i;
+
+	for (i = 0U; i < FRONTEND_CAPTURE_SETTLE_CYCLES; ++i) {
+		cpu_relax();
+	}
+}
+
+static u32 spy_buffer_frame_clock_offset(u8 afe_board)
+{
+	return SPY_BUFFER_BASE_OFFSET +
+	       SPY_BUFFER_AFE_STRIDE * (u32)afe_board +
+	       SPY_BUFFER_CHANNEL_STRIDE * SPY_BUFFER_FRAME_CLOCK_CHANNEL;
+}
+
+static int wait_frontend_delayctrl_ready(void)
+{
+	u32 i;
+
+	for (i = 0U; i < DEFAULT_SPIN_LIMIT; ++i) {
+		if (bit(mmio_read(FRONTEND_STATUS_OFFSET), FRONTEND_DELAYCTRL_READY_BIT) != 0U) {
+			return 0;
+		}
+	}
+	return -1;
+}
+
+static int pulse_frontend_control_bit(u8 bit_index)
+{
+	set_mmio_bit(FRONTEND_CONTROL_OFFSET, bit_index, 1U);
+	set_mmio_bit(FRONTEND_CONTROL_OFFSET, bit_index, 0U);
+	return 0;
+}
+
+static int set_frontend_delay_vtc(u8 enabled)
+{
+	return set_mmio_bit(FRONTEND_CONTROL_OFFSET, FRONTEND_DELAY_EN_VTC_BIT, enabled);
+}
+
+static int set_frontend_delay(u8 afe_board, u32 value)
+{
+	if (!validate_afe(afe_board) || value >= FRONTEND_DELAY_TAPS) {
+		return -2;
+	}
+	mmio_write(frontend_register_offset(FRONTEND_DELAY_BASE_OFFSET, afe_board), value);
+	return 0;
+}
+
+static int set_frontend_bitslip(u8 afe_board, u32 value)
+{
+	if (!validate_afe(afe_board) || value >= FRONTEND_BITSLIP_TAPS) {
+		return -2;
+	}
+	mmio_write(frontend_register_offset(FRONTEND_BITSLIP_BASE_OFFSET, afe_board), value);
+	return 0;
+}
+
+static int read_frontend_bitslip(u8 afe_board, u32 *value)
+{
+	if (!validate_afe(afe_board)) {
+		return -2;
+	}
+	*value = mmio_read(frontend_register_offset(FRONTEND_BITSLIP_BASE_OFFSET, afe_board)) & 0x0FU;
+	return 0;
+}
+
+static void trigger_frontend_snapshot(void)
+{
+	mmio_write(FRONTEND_TRIGGER_OFFSET, FRONTEND_TRIGGER_WORD);
+}
+
+static int read_frame_clock(u8 afe_board, u32 *word)
+{
+	if (!validate_afe(afe_board)) {
+		return -2;
+	}
+	*word = mmio_read(spy_buffer_frame_clock_offset(afe_board));
+	return 0;
+}
+
+static int scan_frontend_word_after_write(u8 afe_board, u32 *word)
+{
+	trigger_frontend_snapshot();
+	frontend_capture_settle();
+	return read_frame_clock(afe_board, word);
+}
+
+static int reset_frontend_delay_values(void)
+{
+	u8 afe_board;
+	int rc;
+
+	for (afe_board = 0U; afe_board < AFE_COUNT; ++afe_board) {
+		rc = set_frontend_bitslip(afe_board, 0U);
+		if (rc != 0) {
+			return rc;
+		}
+		rc = set_frontend_delay(afe_board, 0U);
+		if (rc != 0) {
+			return rc;
+		}
+	}
+	return 0;
+}
+
+static int set_best_frontend_delay(u8 afe_board, u32 *selected_delay)
+{
+	u32 best_start = 0U;
+	u32 best_len = 0U;
+	u32 current_start = 0U;
+	u32 current_len = 0U;
+	u32 previous_word = 0U;
+	u32 have_previous = 0U;
+	u32 tap;
+	u32 word;
+	u32 last_word = 0U;
+	int rc;
+
+	for (tap = 0U; tap < FRONTEND_DELAY_TAPS; ++tap) {
+		rc = set_frontend_delay(afe_board, tap);
+		if (rc != 0) {
+			return rc;
+		}
+		rc = scan_frontend_word_after_write(afe_board, &word);
+		if (rc != 0) {
+			return rc;
+		}
+		last_word = word;
+
+		if (have_previous != 0U && word == previous_word) {
+			++current_len;
+		} else {
+			if (current_len > best_len) {
+				best_start = current_start;
+				best_len = current_len;
+			}
+			current_start = tap;
+			current_len = 1U;
+			previous_word = word;
+			have_previous = 1U;
+		}
+	}
+
+	if (current_len > best_len) {
+		best_start = current_start;
+		best_len = current_len;
+	}
+	if (best_len == 0U) {
+		set_alignment_failure(afe_board, RPU_ALIGN_STAGE_DELAY, last_word);
+		return -3;
+	}
+	*selected_delay = best_start + ((best_len - 1U) / 2U);
+	return set_frontend_delay(afe_board, *selected_delay);
+}
+
+static int set_best_frontend_bitslip(u8 afe_board, u32 *selected_bitslip)
+{
+	u32 initial_bitslip;
+	u32 matched_bitslip = 0U;
+	u32 have_match = 0U;
+	u32 tap;
+	u32 word;
+	u32 last_word = 0U;
+	u32 i;
+	int rc;
+
+	rc = read_frontend_bitslip(afe_board, &initial_bitslip);
+	if (rc != 0) {
+		return rc;
+	}
+
+	for (tap = 0U; tap < FRONTEND_BITSLIP_TAPS; ++tap) {
+		rc = set_frontend_bitslip(afe_board, tap);
+		if (rc != 0) {
+			return rc;
+		}
+		rc = scan_frontend_word_after_write(afe_board, &word);
+		if (rc != 0) {
+			return rc;
+		}
+		last_word = word;
+		if (have_match == 0U && word == FRONTEND_EXPECTED_FCLK_WORD) {
+			matched_bitslip = tap;
+			have_match = 1U;
+		}
+	}
+
+	if (have_match == 0U) {
+		(void)set_frontend_bitslip(afe_board, initial_bitslip);
+		set_alignment_failure(afe_board, RPU_ALIGN_STAGE_BITSLIP, last_word);
+		return -3;
+	}
+
+	rc = set_frontend_bitslip(afe_board, matched_bitslip);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = scan_frontend_word_after_write(afe_board, &word);
+	if (rc != 0) {
+		return rc;
+	}
+	if (word != FRONTEND_EXPECTED_FCLK_WORD) {
+		set_alignment_failure(afe_board, RPU_ALIGN_STAGE_BITSLIP, word);
+		return -3;
+	}
+
+	for (i = 0U; i < FRONTEND_VERIFY_READS; ++i) {
+		rc = scan_frontend_word_after_write(afe_board, &word);
+		if (rc != 0) {
+			return rc;
+		}
+		if (word != FRONTEND_EXPECTED_FCLK_WORD) {
+			set_alignment_failure(afe_board, RPU_ALIGN_STAGE_BITSLIP, word);
+			return -3;
+		}
+	}
+
+	*selected_bitslip = matched_bitslip;
+	return 0;
+}
+
+static int align_frontend(u32 *aligned_mask)
+{
+	u8 afe_board;
+	u32 selected_delay;
+	u32 selected_bitslip;
+	int rc;
+
+	alignment_valid_mask = 0U;
+	clear_alignment_failure();
+	rc = reset_frontend_delay_values();
+	if (rc != 0) {
+		set_alignment_failure(0xFFU, RPU_ALIGN_STAGE_RESET, 0U);
+		return rc;
+	}
+	pulse_frontend_control_bit(FRONTEND_DELAYCTRL_RESET_BIT);
+	pulse_frontend_control_bit(FRONTEND_SERDES_RESET_BIT);
+	set_frontend_delay_vtc(0U);
+
+	rc = wait_frontend_delayctrl_ready();
+	if (rc != 0) {
+		(void)set_frontend_delay_vtc(1U);
+		set_alignment_failure(0xFFU, RPU_ALIGN_STAGE_DELAYCTRL, mmio_read(FRONTEND_STATUS_OFFSET));
+		return rc;
+	}
+
+	for (afe_board = 0U; afe_board < AFE_COUNT; ++afe_board) {
+		rc = set_best_frontend_delay(afe_board, &selected_delay);
+		if (rc != 0) {
+			(void)set_frontend_delay_vtc(1U);
+			if (alignment_failure_stage == 0U) {
+				set_alignment_failure(afe_board, RPU_ALIGN_STAGE_DELAY, 0U);
+			}
+			return rc;
+		}
+		rc = set_best_frontend_bitslip(afe_board, &selected_bitslip);
+		if (rc != 0) {
+			(void)set_frontend_delay_vtc(1U);
+			if (alignment_failure_stage == 0U) {
+				set_alignment_failure(afe_board, RPU_ALIGN_STAGE_BITSLIP, 0U);
+			}
+			return rc;
+		}
+		aligned_delay[afe_board] = selected_delay;
+		aligned_bitslip[afe_board] = selected_bitslip;
+		alignment_valid_mask |= 1U << afe_board;
+	}
+
+	rc = set_frontend_delay_vtc(1U);
+	if (rc != 0) {
+		set_alignment_failure(0xFFU, RPU_ALIGN_STAGE_VTC, 0U);
+		return rc;
+	}
+	*aligned_mask = alignment_valid_mask;
+	return 0;
+}
+
+static struct command_result read_alignment_state(u8 afe_board)
+{
+	u32 valid;
+	u32 readback;
+
+	if (!validate_afe(afe_board)) {
+		return result_status(RPU_WIRE_STATUS_REJECTED);
+	}
+	valid = (alignment_valid_mask >> afe_board) & 1U;
+	readback = (valid << 31) |
+	           ((aligned_bitslip[afe_board] & 0x0FU) << 16) |
+	           (aligned_delay[afe_board] & 0xFFFFU);
+	return result_readback(readback);
 }
 
 static int read_afe_register(u8 afe_pl, u16 reg, u32 *readback)
@@ -1058,6 +1408,9 @@ static int apply_configure_frontend(void)
 		return -2;
 	}
 
+	/* Power/reset sequencing wedged DAPHNE-15 during hardware testing. */
+	return -4;
+
 	if (set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_RESET_BIT, 1U) != 0 ||
 	    set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_RESET_BIT, 0U) != 0 ||
 	    set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_POWERSTATE_BIT, 1U) != 0) {
@@ -1205,20 +1558,29 @@ static struct command_result execute_wire_command(const u8 *cmd)
 		return result_readback((u32)value);
 	}
 	if (op == RPU_WIRE_OP_SET_RESET) {
-		set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_RESET_BIT, command.flags != 0U);
-		return result_status(RPU_WIRE_STATUS_APPLIED);
+		return result_interlocked(RPU_INTERLOCK_AFE_POWER_RESET_UNVALIDATED);
 	}
 	if (op == RPU_WIRE_OP_DO_RESET) {
-		set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_RESET_BIT, 1U);
-		set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_RESET_BIT, 0U);
-		return result_status(RPU_WIRE_STATUS_APPLIED);
+		return result_interlocked(RPU_INTERLOCK_AFE_POWER_RESET_UNVALIDATED);
 	}
 	if (op == RPU_WIRE_OP_SET_POWER_STATE) {
-		set_mmio_bit(AFE_GLOBAL_CONTROL_OFFSET, AFE_GLOBAL_POWERSTATE_BIT, command.flags != 0U);
-		return result_readback(command.flags != 0U ? 1U : 0U);
+		return result_interlocked(RPU_INTERLOCK_AFE_POWER_RESET_UNVALIDATED);
 	}
 	if (op == RPU_WIRE_OP_ALIGN) {
-		return result_interlocked(RPU_INTERLOCK_ALIGN_UNVALIDATED);
+		rc = align_frontend(&readback);
+		if (rc == 0) {
+			return result_readback(readback);
+		}
+		if (rc == -1) {
+			return result_timeout();
+		}
+		return result_fault_detail(
+			RPU_FAULT_ALIGNMENT_FAILED,
+			alignment_failure_word,
+			alignment_failure_context());
+	}
+	if (op == RPU_WIRE_OP_READ_ALIGNMENT) {
+		return read_alignment_state(command.afe_board);
 	}
 	if (op == RPU_WIRE_OP_BEGIN_CONFIGURE_FRONTEND) {
 		if (require_12bit(command.value, &value) != 0) {
@@ -1270,6 +1632,9 @@ static struct command_result execute_wire_command(const u8 *cmd)
 		rc = apply_configure_frontend();
 		if (rc == 0) {
 			return result_status(RPU_WIRE_STATUS_APPLIED);
+		}
+		if (rc == -4) {
+			return result_interlocked(RPU_INTERLOCK_AFE_POWER_RESET_UNVALIDATED);
 		}
 		return rc == -1 ? result_timeout() : result_status(RPU_WIRE_STATUS_REJECTED);
 	}
