@@ -80,13 +80,14 @@ set endpoint_regfile_done_source_pins [daphne_collect_optional_endpoint_pins $en
     */ep/regfile/adone_reg/Q
     */ep/regfile/ddone_reg/Q
 }]
+set endpoint_regfile_done_source_cells [get_cells -quiet -of_objects $endpoint_regfile_done_source_pins]
 
 set endpoint_state_machine_pins [daphne_collect_optional_endpoint_pins $endpoint_path {
     */ep/sm/state_reg[*]/D
 }]
 
-if {[llength $endpoint_regfile_done_source_pins] > 0 && [llength $endpoint_state_machine_pins] > 0} {
-    set_false_path -from $endpoint_regfile_done_source_pins -to $endpoint_state_machine_pins
+if {[llength $endpoint_regfile_done_source_cells] > 0 && [llength $endpoint_state_machine_pins] > 0} {
+    set_false_path -from $endpoint_regfile_done_source_cells -to $endpoint_state_machine_pins
 }
 
 set endpoint_state_machine_async_handoff_nets [daphne_collect_optional_endpoint_nets $endpoint_path {

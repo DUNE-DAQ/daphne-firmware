@@ -64,6 +64,7 @@ daphne_generated_hermes_ip_ready() {
   ip_repo_root="$(daphne_resolve_ip_repo_root "$root_dir")" || return 1
   component_xml="$ip_repo_root/component.xml"
   eth_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
+  eth_synth_hdl="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/hdl/xxv_ethernet_v5_1_rfs.sv"
   bram_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci"
   cell_bind_root="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_ip_cell_bind_root ip_cell_bind_root)"
   : "${cell_bind_root:=selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst}"
@@ -75,9 +76,14 @@ daphne_generated_hermes_ip_ready() {
   [ -f "$component_xml" ] || return 1
   [ -f "$bram_xci" ] || return 1
   [ -f "$eth_xci" ] || return 1
-  grep -Fq "$eth_xci_ref" "$component_xml" || return 1
+  [ -f "$eth_synth_hdl" ] || return 1
+  if grep -Fq "$eth_xci_ref" "$component_xml"; then
+    return 1
+  fi
   grep -Fq "$bram_xci_ref" "$component_xml" || return 1
-  grep -Fq "$eth_binding" "$component_xml" || return 1
+  if grep -Fq "$eth_binding" "$component_xml"; then
+    return 1
+  fi
   grep -Fq "$bram_binding" "$component_xml" || return 1
 
   for support_path in $(daphne_legacy_support_source_list "$root_dir"); do

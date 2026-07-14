@@ -63,7 +63,7 @@ begin
 
   idelayctrl_inst : IDELAYCTRL
     generic map (
-      SIM_DEVICE => "ULTRASCALE"
+      SIM_DEVICE => "ULTRASCALE_PLUS"
     )
     port map (
       REFCLK => clk500_i,

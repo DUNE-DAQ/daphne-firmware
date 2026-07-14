@@ -118,14 +118,9 @@ if {[file exists $bramFolDir]} {
 
 # delete the XXV Ethernet IP files only in create_ip mode
 if {$daphne_eth_mode eq "create_ip" && [file exists $ethFolDir]} {
-    if {[file exists $ethXCIDir]} {
-        puts "INFO: Reusing existing IP 'XXV Ethernet' from $ethXCIDir."
-    } else {
-        # check if the IP's folder already exists. If so, delete it
-        puts "INFO: IP 'XXV Ethernet' already exists at $ethFolDir."
-        puts "INFO: Deleting older version of IP XXV Ethernet..."
-        file delete -force $ethFolDir
-    }
+    puts "INFO: IP 'XXV Ethernet' already exists at $ethFolDir."
+    puts "INFO: Deleting older version of IP XXV Ethernet..."
+    file delete -force $ethFolDir
 }
 
 if {$daphne_eth_mode eq "vendored_hdl"} {
@@ -365,9 +360,9 @@ set xpgui_files [ipx::add_file_group xilinx_xpgui $daphne]
 # list IP VLNVs
 set ipVlnv [list $axi_bram_ctrl_vlnv]
 if {$daphne_eth_mode eq "create_ip"} {
-    lappend ipVlnv $xxv_ethernet_vlnv
+    puts "INFO: XXV Ethernet remains a project-level IP and will not be embedded as a DAPHNE subcore."
 } elseif {$daphne_eth_mode eq "seeded_xci"} {
-    puts "INFO: XXV Ethernet will be packaged from a seeded XCI."
+    puts "INFO: Seeded XXV Ethernet remains external to the packaged DAPHNE core."
 } else {
     puts "INFO: XXV Ethernet will be packaged from vendored HDL, not as a regeneratable subcore."
 }
@@ -426,6 +421,15 @@ set tbFilesVerilog [get_files_recursive $tbDir "*.v"]
 set vhdlDAQFiles [get_files_recursive $rtlDAQDir "*.vhd"]
 set verilogDAQFiles [get_files_recursive $rtlDAQDir "*.v"]
 set systemVerilogDAQFiles [get_files_recursive $rtlDAQDir "*.sv"]
+if {$daphne_eth_mode eq "create_ip"} {
+    # Generate XXV products while it is still an ordinary, unlocked project IP.
+    # Packaging the surrounding DAPHNE core can make Vivado re-evaluate the
+    # optional XXV feature licenses and lock the XCI even for the license-free
+    # PCS/PMA-only configuration. The source lists above were captured first so
+    # these generated products remain owned by the outer project, not component.xml.
+    puts "INFO: Generating project-level XXV Ethernet output products before DAPHNE packaging."
+    generate_target all [get_ips xxv_ethernet_0]
+}
 # define the vhdl sources that use vhdl Source by default as type, the rest use whdl source 2008 version
 set wibTypeExceptionList {
     "freq_ctr_div.vhd"
@@ -487,17 +491,7 @@ if {$daphne_eth_mode eq "create_ip" || $daphne_eth_mode eq "seeded_xci"} {
     if {![file exists $ethXCIDir]} {
         error "ERROR: DAPHNE_ETH_MODE=$daphne_eth_mode but XXV Ethernet XCI is missing at $ethXCIDir"
     }
-    # The deimos pcs/pma wrapper expects the Ethernet core as an IP-backed cell, so
-    # package the regenerated/seeded XCI explicitly in synth, sim, and impl groups.
-    ipx::add_file -name $ethXCIDir -file_group $lang_synth
-    ipx::add_file -name $ethXCIDir -file_group $lang_sim
-    ipx::add_file -name $ethXCIDir -file_group $impl_files
-    set ethFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anylanguageSynthFg]
-    set ethFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anybehavioralSynthFg]
-    set implFileObj [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $implFg]
-    set_property CELL_NAME ${daphne_ip_cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjLan
-    set_property CELL_NAME ${daphne_ip_cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjSim
-    set_property CELL_NAME ${daphne_ip_cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe $implFileObj
+    puts "INFO: Leaving XXV Ethernet XCI outside component.xml for project-level synthesis: $ethXCIDir"
 }
 set bramFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anylanguageSynthFg]
 set bramFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anybehavioralSynthFg]

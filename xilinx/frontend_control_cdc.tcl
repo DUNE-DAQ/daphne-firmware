@@ -23,14 +23,27 @@ proc daphne_collect_optional_hier_nets {patterns} {
     return [lsort -unique $matches]
 }
 
-set frontend_sync_boundary_nets [daphne_collect_optional_hier_nets {
-    *frontend_island_inst/idelayctrl_reset
-    *frontend_island_inst/idelay_load
-    *frontend_island_inst/trig_axi
+proc daphne_collect_optional_hier_pins {patterns} {
+    set matches {}
+    foreach pattern $patterns {
+        foreach resolved_pin [get_pins -hier -quiet -filter "NAME =~ $pattern"] {
+            lappend matches $resolved_pin
+        }
+    }
+    return [lsort -unique $matches]
+}
+
+# Cut only the asynchronous input to each first-stage synchronizer.  Binding
+# to the stage-one D pins survives hierarchy/net renaming across Vivado
+# versions while preserving timing between the two synchronizer stages.
+set frontend_sync_stage1_pins [daphne_collect_optional_hier_pins {
+    *frontend_common_inst/idelayctrl_reset_500_meta_reg/D
+    *frontend_common_inst/idelay_load_clk125_meta_reg*/D
+    *frontend_common_inst/trig_meta_reg/D
 }]
 
-if {[llength $frontend_sync_boundary_nets] > 0} {
-    set_false_path -through $frontend_sync_boundary_nets
+if {[llength $frontend_sync_stage1_pins] > 0} {
+    set_false_path -to $frontend_sync_stage1_pins
 }
 
 set frontend_async_control_nets [daphne_collect_optional_hier_nets {

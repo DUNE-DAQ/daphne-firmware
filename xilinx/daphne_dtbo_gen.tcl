@@ -1,5 +1,5 @@
 # simple TCL code to generate Device Tree Overlay for Petalinux
-# this code must run inside the XSCT Vitis environment
+# this code must run inside the legacy XSCT Vitis environment
 # call for this specific process to run first
 
 # Normalize WSL/Windows path strings for XSCT on Windows.
@@ -9,8 +9,8 @@ set script_dir [file dirname [file normalize [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
 source [file join $script_dir "daphne_board_env.tcl"]
 set daphne_board_profile [daphne_resolve_board_profile $repo_root]
-set default_vitis_version [daphne_get_env_or_default DAPHNE_VITIS_VERSION "2024.1"]
-set dtg_git_branch [daphne_get_env_or_default DAPHNE_DTG_GIT_BRANCH "xlnx_rel_v${default_vitis_version}"]
+set default_vitis_version [daphne_get_env_or_default DAPHNE_VITIS_VERSION "2026.1"]
+set dtg_git_branch [daphne_get_env_or_default DAPHNE_DTG_GIT_BRANCH ""]
 
 proc daphne_normalize_path {path_value} {
     return [file normalize [string map {\\ /} $path_value]]
@@ -63,7 +63,12 @@ set hw_xsa_createdts [daphne_createdts_hw_path $hw_xsa_open]
 if {$hw_arg ne "" && $hw_arg ne $hw_xsa_open} {
     puts "INFO: normalized HW path differs from argv; using canonical XSA path $hw_xsa_open"
 }
-createdts -hw $hw_xsa_createdts -zocl -platform-name ${artifact_prefix}_$git_sha -git-branch $dtg_git_branch -overlay -out [file join $out_dir ${artifact_prefix}_$git_sha]
+set createdts_args [list createdts -hw $hw_xsa_createdts -zocl -platform-name ${artifact_prefix}_$git_sha -overlay -out [file join $out_dir ${artifact_prefix}_$git_sha]]
+if {$dtg_git_branch ne ""} {
+    set insert_at [lsearch -exact $createdts_args "-overlay"]
+    set createdts_args [linsert $createdts_args $insert_at -git-branch $dtg_git_branch]
+}
+{*}$createdts_args
  
 # exit the process once done
 exit

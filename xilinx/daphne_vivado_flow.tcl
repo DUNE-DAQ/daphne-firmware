@@ -88,7 +88,7 @@ proc daphne_resolve_config {script_dir} {
     set artifact_profile [daphne_resolve_artifact_profile $cfg(repo_root) $board_profile]
     set board_bd_name [daphne_board_profile_value_with_fallback $board_profile legacy_bd_name bd_name "daphne_selftrigger_bd"]
     set board_bd_wrapper_name [daphne_board_profile_value_with_fallback $board_profile legacy_bd_wrapper_name bd_wrapper_name "${board_bd_name}_wrapper"]
-    set cfg(vivado_version) 2024.1
+    set cfg(vivado_version) 2026.1
     set vitis_version [daphne_get_env_or_default DAPHNE_VITIS_VERSION $cfg(vivado_version)]
     set cfg(fpga_part) [daphne_get_env_or_default DAPHNE_FPGA_PART [dict get $board_profile fpga_part]]
     set cfg(board_part) [daphne_get_env_or_default DAPHNE_BOARD_PART [dict get $board_profile board_part]]
@@ -100,7 +100,7 @@ proc daphne_resolve_config {script_dir} {
     set cfg(post_place_physopt_directive) [daphne_get_env_or_default DAPHNE_POST_PLACE_PHYSOPT_DIRECTIVE "AggressiveFanoutOpt"]
     set cfg(route_directive) [daphne_get_env_or_default DAPHNE_ROUTE_DIRECTIVE "AlternateCLBRouting"]
     set cfg(post_route_physopt_directive) [daphne_get_env_or_default DAPHNE_POST_ROUTE_PHYSOPT_DIRECTIVE "AggressiveExplore"]
-    set cfg(dtg_git_branch) [daphne_get_env_or_default DAPHNE_DTG_GIT_BRANCH "xlnx_rel_v${vitis_version}"]
+    set cfg(dtg_git_branch) [daphne_get_env_or_default DAPHNE_DTG_GIT_BRANCH ""]
     set cfg(pre_place_power_opt) [daphne_get_env_or_default DAPHNE_PRE_PLACE_POWER_OPT "0"]
     set cfg(post_place_power_opt) [daphne_get_env_or_default DAPHNE_POST_PLACE_POWER_OPT "0"]
     set cfg(skip_post_place_checkpoint) [daphne_get_env_or_default DAPHNE_SKIP_POST_PLACE_CHECKPOINT "0"]
@@ -188,7 +188,11 @@ proc daphne_prepare_project {cfg_name} {
     puts "INFO: Running Vivado batch for part <$cfg(fpga_part)> board_part <$cfg(board_part)> pfm <$cfg(pfm_name)>."
     puts "INFO: Threads=$cfg(max_threads) synth=$cfg(synth_directive) opt=$cfg(opt_directive) place=$cfg(place_directive) route=$cfg(route_directive)."
     puts "INFO: Pre-place power opt=$cfg(pre_place_power_opt) post-place power opt=$cfg(post_place_power_opt)."
-    puts "INFO: Device-tree generator branch=$cfg(dtg_git_branch)."
+    if {$cfg(dtg_git_branch) ne ""} {
+        puts "INFO: Legacy device-tree generator branch=$cfg(dtg_git_branch)."
+    } else {
+        puts "INFO: Device-tree generator uses installed Vitis/SDT data."
+    }
     puts "INFO: Post-synth reports skipped=$cfg(skip_post_synth_reports) checkpoint skipped=$cfg(skip_post_synth_checkpoint)."
     puts "INFO: Post-place checkpoint skipped=$cfg(skip_post_place_checkpoint)."
     puts "INFO: Stop after synth=$cfg(stop_after_synth)."
@@ -336,14 +340,31 @@ proc daphne_export_dt_windows {cfg_name} {
 
     set vitis_path $::env(XILINX_VITIS)
     puts "INFO: Found Vitis at $vitis_path."
+    set sdtgen_exe [file join $vitis_path "bin" "sdtgen.bat"]
+    if {![file exists $sdtgen_exe]} {
+        set sdtgen_exe [file join $vitis_path "bin" "sdtgen"]
+    }
     set xsct_exe [file join $vitis_path "bin" "xsct.bat"]
     if {![file exists $xsct_exe]} {
         set xsct_exe [file join $vitis_path "bin" "xsct"]
     }
 
     puts "INFO: Generating Device Tree files."
-    if {[catch {exec $xsct_exe -eval "hsi::open_hw_design [file join $cfg(output_dir) ${cfg(build_name)}.xsa]; createdts -hw [file join $cfg(output_dir) ${cfg(build_name)}.xsa] -zocl -platform-name $cfg(build_name) -git-branch $cfg(dtg_git_branch) -overlay -out [file join $cfg(output_dir) $cfg(build_name)]; exit" 2>@1} result]} {
-        error "ERROR: xsct command failed:\n$result"
+    if {[file exists $sdtgen_exe]} {
+        if {[catch {exec $sdtgen_exe -xsa [file join $cfg(output_dir) ${cfg(build_name)}.xsa] -dir [file join $cfg(output_dir) $cfg(build_name)] -zocl enable 2>@1} result]} {
+            error "ERROR: sdtgen command failed:\n$result"
+        }
+    } elseif {[file exists $xsct_exe]} {
+        set createdts_cmd "createdts -hw [file join $cfg(output_dir) ${cfg(build_name)}.xsa] -zocl -platform-name $cfg(build_name)"
+        if {$cfg(dtg_git_branch) ne ""} {
+            append createdts_cmd " -git-branch $cfg(dtg_git_branch)"
+        }
+        append createdts_cmd " -overlay -out [file join $cfg(output_dir) $cfg(build_name)]; exit"
+        if {[catch {exec $xsct_exe -eval $createdts_cmd 2>@1} result]} {
+            error "ERROR: xsct command failed:\n$result"
+        }
+    } else {
+        error "ERROR: neither sdtgen nor xsct was found under $vitis_path/bin"
     }
     puts "INFO: Device Tree files have been generated."
     puts "INFO: Please make sure to edit .dtsi file with the proper lines for AXI Quad SPI Module, and run the dtc command to compile the design."

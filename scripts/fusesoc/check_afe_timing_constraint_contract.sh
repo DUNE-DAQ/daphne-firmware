@@ -114,6 +114,10 @@ require_fixed "    mmcm1_clkout0" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend bit clock in its async-group family."
 require_fixed "    clk125" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend byte clock in its async-group family."
+require_fixed "set_false_path -to \$frontend_sync_stage1_pins" "$CDC_TCL" \
+  "frontend CDC Tcl no longer cuts the explicit frontend synchronizer first-stage pins."
+require_fixed "*frontend_common_inst/idelay_load_clk125_meta_reg*/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the idelay-load synchronizer first stage."
 require_fixed "set_false_path -to \$endpoint_sync_stage1_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the explicit PDTS synchronizer first-stage pins."
 require_fixed "set_false_path -from \$rx_tmg_port -to \$endpoint_raw_rx_sample_pins" "$ENDPOINT_CDC_TCL" \
@@ -124,7 +128,7 @@ require_fixed "*/ep/regfile/ddone_reg/Q" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS deskew_done completion flag crossing."
 require_fixed "*/ep/sm/state_reg[*]/D" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer targets the PDTS state-machine destination pins for async completion flags."
-require_fixed "set_false_path -from \$endpoint_regfile_done_source_pins -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
+require_fixed "set_false_path -from \$endpoint_regfile_done_source_cells -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the PDTS regfile completion flags into the sys_clk state machine."
 require_fixed "*/ep/sm/addr_done" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS addr_done handoff net into the sys_clk state machine."
@@ -150,4 +154,4 @@ require_regex "sync_stat:[[:space:]]*entity work\\.pdts_synchro" "$ENDPOINT_CORE
 require_regex "stat[[:space:]]*=>[[:space:]]*stati_clk" "$ENDPOINT_CORE_RTL" \
   "pdts_ep_core.vhd no longer feeds the register file with the synchronised status bus."
 
-echo "INFO: AFE timing constraint contract matches the live endpoint clocking and the Vivado 2024.1 unmanaged-Tcl flow."
+echo "INFO: AFE timing constraint contract matches the live endpoint clocking and the Vivado unmanaged-Tcl flow."

@@ -67,6 +67,14 @@ end entity eth_readout;
 
 architecture rtl of eth_readout is
 
+    function refclk_info(freq: t_freq) return std_logic_vector is
+    begin
+        case freq is
+            when f156_25 => return X"1";
+            when f125    => return X"2";
+        end case;
+    end function;
+
     signal ipbw: ipb_wbus_array(N_SLAVES - 1 downto 0);
     signal ipbr: ipb_rbus_array(N_SLAVES - 1 downto 0);
     signal ctrl: ipb_reg_v(0 downto 0);
@@ -78,10 +86,7 @@ architecture rtl of eth_readout is
     constant N_INFO_REG: positive := 4;
     constant BOARD_DESIGN_ID : std_logic_vector(7 downto 0) := X"07";
 
-    constant REFCLK_INFO_C: std_logic_vector(3 downto 0) :=
-        X"1" when REF_FREQ = f156_25 else
-        X"2" when REF_FREQ = f125 else
-        X"0";
+    constant REFCLK_INFO_C: std_logic_vector(3 downto 0) := refclk_info(REF_FREQ);
     constant INFO_VEC_C: std_logic_vector(N_INFO_REG*32-1 downto 0) :=
         X"000" & REFCLK_INFO_C & std_logic_vector(to_unsigned(N_MGT, 8)) & std_logic_vector(to_unsigned(N_SRC, 8)) &
         X"00" & C_HERMES_VERSION_HEX &

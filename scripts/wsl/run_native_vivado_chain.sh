@@ -37,7 +37,7 @@ Environment:
 
 Notes:
   - This wrapper intentionally ignores Windows install roots such as /mnt/c/Xilinx.
-  - This repo's native Linux Tcl flow expects both Vivado and Vitis/XSCT.
+  - This repo's native Linux flow expects Vivado and a Vitis device-tree generator.
 EOF
 }
 
@@ -72,12 +72,21 @@ detect_settings_script() {
   local settings_path
 
   for root in "${SEARCH_ROOTS[@]}"; do
-    [ -d "$root/$product" ] || continue
-    settings_path="$(
-      find "$root/$product" -mindepth 2 -maxdepth 2 -type f -name settings64.sh 2>/dev/null |
-      sort -V |
-      tail -n 1
-    )"
+    settings_path=""
+    if [ -d "$root/$product" ]; then
+      settings_path="$(
+        find "$root/$product" -mindepth 2 -maxdepth 2 -type f -name settings64.sh 2>/dev/null |
+        sort -V |
+        tail -n 1
+      )"
+    fi
+    if [ -z "$settings_path" ]; then
+      settings_path="$(
+        find "$root" -mindepth 3 -maxdepth 3 -type f -path "*/$product/settings64.sh" 2>/dev/null |
+        sort -V |
+        tail -n 1
+      )"
+    fi
     if [ -n "$settings_path" ]; then
       printf '%s\n' "$settings_path"
       return 0
@@ -252,11 +261,15 @@ VIVADO_BIN_EXPECTED="$(dirname "$XILINX_SETTINGS_SH")/bin/vivado"
 VIVADO_BIN_RESOLVED="$(command -v vivado || true)"
 ensure_native_tool "vivado" "$VIVADO_BIN_RESOLVED" "$VIVADO_BIN_EXPECTED"
 
-XSCT_BIN_EXPECTED=""
-XSCT_BIN_RESOLVED=""
-XSCT_BIN_EXPECTED="$(dirname "$XILINX_VITIS_SETTINGS_SH")/bin/xsct"
-XSCT_BIN_RESOLVED="$(command -v xsct || true)"
-ensure_native_tool "xsct" "$XSCT_BIN_RESOLVED" "$XSCT_BIN_EXPECTED"
+SDTGEN_BIN_EXPECTED="$(dirname "$XILINX_VITIS_SETTINGS_SH")/bin/sdtgen"
+SDTGEN_BIN_RESOLVED="$(command -v sdtgen || true)"
+if [ -n "$SDTGEN_BIN_RESOLVED" ]; then
+  ensure_native_tool "sdtgen" "$SDTGEN_BIN_RESOLVED" "$SDTGEN_BIN_EXPECTED"
+else
+  XSCT_BIN_EXPECTED="$(dirname "$XILINX_VITIS_SETTINGS_SH")/bin/xsct"
+  XSCT_BIN_RESOLVED="$(command -v xsct || true)"
+  ensure_native_tool "xsct" "$XSCT_BIN_RESOLVED" "$XSCT_BIN_EXPECTED"
+fi
 
 if [ "$DRY_RUN" = "1" ]; then
   printf 'root_dir=%s\n' "$ROOT_DIR"
@@ -265,7 +278,8 @@ if [ "$DRY_RUN" = "1" ]; then
   printf 'vivado_settings=%s\n' "$XILINX_SETTINGS_SH"
   printf 'vitis_settings=%s\n' "${XILINX_VITIS_SETTINGS_SH:-}"
   printf 'vivado=%s\n' "$VIVADO_BIN_RESOLVED"
-  printf 'xsct=%s\n' "$XSCT_BIN_RESOLVED"
+  printf 'sdtgen=%s\n' "${SDTGEN_BIN_RESOLVED:-}"
+  printf 'xsct=%s\n' "${XSCT_BIN_RESOLVED:-}"
   printf 'platform_core=%s\n' "${DAPHNE_PLATFORM_CORE:-}"
   printf 'platform_target=%s\n' "${DAPHNE_PLATFORM_TARGET:-}"
   printf 'max_threads=%s\n' "${DAPHNE_MAX_THREADS:-}"

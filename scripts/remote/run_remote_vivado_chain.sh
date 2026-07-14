@@ -37,8 +37,8 @@ if ! command -v vivado >/dev/null 2>&1; then
   exit 2
 fi
 
-if ! command -v xsct >/dev/null 2>&1; then
-  echo "WARNING: xsct is not on PATH. The build may succeed, but dtbo generation will fail later." >&2
+if ! command -v sdtgen >/dev/null 2>&1 && ! command -v xsct >/dev/null 2>&1; then
+  echo "WARNING: neither sdtgen nor xsct is on PATH. The build may succeed, but dtbo generation will fail later." >&2
 fi
 
 branch_name="$(git -C "$ROOT_DIR" rev-parse --abbrev-ref HEAD)"
@@ -111,6 +111,7 @@ FLOW_WORK_DIR="${DAPHNE_FUSESOC_WORK_ROOT:-$(daphne_platform_flow_work_dir "$ROO
   echo "flow_work_dir=$FLOW_WORK_DIR"
   echo "package_dtbo=$PACKAGE_DTBO"
   echo "vivado=$(command -v vivado)"
+  echo "sdtgen=$(command -v sdtgen || true)"
   echo "xsct=$(command -v xsct || true)"
 } >"$RUN_DIR/run.env"
 

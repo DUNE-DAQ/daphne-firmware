@@ -83,6 +83,7 @@ ip_repo_root="$(daphne_resolve_ip_repo_root "$ROOT_DIR")" || {
 }
 component_xml="$ip_repo_root/component.xml"
 eth_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
+eth_synth_hdl="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/hdl/xxv_ethernet_v5_1_rfs.sv"
 bram_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci"
 cell_bind_root="${DAPHNE_IP_CELL_BIND_ROOT:-selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst}"
 eth_binding="CELL_NAME_${cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe"
@@ -100,13 +101,18 @@ if [ ! -f "$eth_xci" ]; then
   exit 2
 fi
 
+if [ ! -f "$eth_synth_hdl" ]; then
+  echo "ERROR: Expected project-level Ethernet synthesis output at $eth_synth_hdl" >&2
+  exit 2
+fi
+
 if [ ! -f "$bram_xci" ]; then
   echo "ERROR: Expected AXI BRAM XCI at $bram_xci" >&2
   exit 2
 fi
 
-if ! grep -Fq "$eth_xci_ref" "$component_xml"; then
-  echo "ERROR: component.xml is missing Ethernet XCI reference: $eth_xci_ref" >&2
+if grep -Fq "$eth_xci_ref" "$component_xml"; then
+  echo "ERROR: component.xml still embeds the project-level Ethernet XCI: $eth_xci_ref" >&2
   exit 2
 fi
 
@@ -115,8 +121,8 @@ if ! grep -Fq "$bram_xci_ref" "$component_xml"; then
   exit 2
 fi
 
-if ! grep -Fq "$eth_binding" "$component_xml"; then
-  echo "ERROR: component.xml is missing Ethernet cell binding: $eth_binding" >&2
+if grep -Fq "$eth_binding" "$component_xml"; then
+  echo "ERROR: component.xml still contains the project-level Ethernet cell binding: $eth_binding" >&2
   exit 2
 fi
 
@@ -134,4 +140,4 @@ for support_path in $(daphne_legacy_support_source_list "$ROOT_DIR"); do
 done
 
 echo "INFO: Preflight passed."
-echo "INFO: Ethernet XCI, legacy transport/BRAM bindings, and extracted support sources are present in component.xml."
+echo "INFO: Ethernet XCI is project-level; BRAM binding and extracted support sources are present in component.xml."
