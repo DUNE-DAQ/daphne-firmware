@@ -15,6 +15,7 @@ SRC_URI += " \
   file://daphne-fw-stop.sh \
   file://daphne-clockchip.sh \
   file://daphne-endpoint-init.py \
+  file://daphne-runtime.defaults \
 "
 
 RDEPENDS:${PN} += " \
@@ -42,9 +43,12 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
     install -d ${D}/usr/local/bin
     install -d ${D}${datadir}/daphne-services
+    install -d ${D}${sysconfdir}/default
 
     install -m 0644 ${WORKDIR}/README.services \
         ${D}${datadir}/daphne-services/README.services
+    install -m 0644 ${WORKDIR}/daphne-runtime.defaults \
+        ${D}${sysconfdir}/default/firmware
 
     for unit in firmware.service clockchip.service endpoint.service hermes.service daphne.service; do
         install -m 0644 ${WORKDIR}/${unit} ${D}${systemd_system_unitdir}/${unit}
@@ -66,4 +70,7 @@ FILES:${PN} += " \
     /usr/local/bin/daphne-clockchip.sh \
     /usr/local/bin/daphne-endpoint-init.py \
     ${datadir}/daphne-services/README.services \
+    ${sysconfdir}/default/firmware \
 "
+
+CONFFILES:${PN} += "${sysconfdir}/default/firmware"

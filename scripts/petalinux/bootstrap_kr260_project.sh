@@ -13,7 +13,6 @@ This script:
   2. appends the DAPHNE layer entry to build/conf/bblayers.conf
   3. appends the DAPHNE package set to build/conf/local.conf
   4. records the requested DAPHNE image profile in build/conf/local.conf
-  5. records DAPHNE_BOARD_ID in build/conf/local.conf when provided
 
 Options:
   --image-profile NAME   DAPHNE image profile: developer|minimal
@@ -22,7 +21,6 @@ Options:
 
 Environment:
   DAPHNE_META_LAYER_MODE=symlink|copy   default: symlink
-  DAPHNE_BOARD_ID                       optional board inventory ID
 EOF
 }
 
@@ -45,7 +43,6 @@ META_LAYER_SRC="$ROOT_DIR/petalinux/meta-daphne"
 CONFIG_DIR="$ROOT_DIR/petalinux/config/kr260"
 LAYER_MODE="${DAPHNE_META_LAYER_MODE:-symlink}"
 IMAGE_PROFILE="minimal"
-BOARD_ID="${DAPHNE_BOARD_ID:-}"
 
 BUILD_CONF_DIR="$PROJECT_DIR/build/conf"
 PROJECT_SPEC_DIR="$PROJECT_DIR/project-spec"
@@ -90,6 +87,7 @@ fi
 if [[ ! -d "$PROJECT_SPEC_DIR" || ! -d "$BUILD_CONF_DIR" ]]; then
   echo "ERROR: $PROJECT_DIR does not look like an initialized PetaLinux project." >&2
   echo "Expected: $PROJECT_SPEC_DIR and $BUILD_CONF_DIR" >&2
+  echo "Run scripts/petalinux/init_kr260_project.sh with a hardware handoff, or run petalinux-config --get-hw-description first." >&2
   exit 2
 fi
 
@@ -189,41 +187,6 @@ dst.write_text(text)
 PY
 }
 
-upsert_board_id_setting() {
-  local dst="$1"
-  local marker_begin="# >>> DAPHNE board identity >>>"
-  local marker_end="# <<< DAPHNE board identity <<<"
-
-  if [[ -z "$BOARD_ID" ]]; then
-    return 0
-  fi
-
-  python3 - "$dst" "$marker_begin" "$marker_end" "$BOARD_ID" <<'PY'
-from pathlib import Path
-import sys
-
-dst = Path(sys.argv[1])
-begin = sys.argv[2]
-end = sys.argv[3]
-board_id = sys.argv[4]
-block = f"{begin}\nDAPHNE_BOARD_ID = \"{board_id}\"\n{end}\n"
-text = dst.read_text()
-
-if begin in text and end in text:
-    start = text.index(begin)
-    finish = text.index(end, start) + len(end)
-    if finish < len(text) and text[finish:finish + 1] == "\n":
-        finish += 1
-    text = text[:start] + block + text[finish:]
-else:
-    if text and not text.endswith("\n"):
-        text += "\n"
-    text += "\n" + block
-
-dst.write_text(text)
-PY
-}
-
 upsert_project_machine_settings() {
   local dst="$1"
 
@@ -243,7 +206,7 @@ replacements = {
     r'^CONFIG_YOCTO_MACHINE_NAME=.*$':
         'CONFIG_YOCTO_MACHINE_NAME="xilinx-k26-kr"',
     r'^CONFIG_YOCTO_INCLUDE_MACHINE_NAME=.*$':
-        'CONFIG_YOCTO_INCLUDE_MACHINE_NAME="k26-smk-kr"',
+        'CONFIG_YOCTO_INCLUDE_MACHINE_NAME="daphne-k26c-xsa"',
     r'^(# )?CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL(=.*| is not set)?$':
         'CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=y',
     r'^(# )?CONFIG_SUBSYSTEM_UBOOT_EXT_DTB(=.*| is not set)?$':
@@ -336,7 +299,6 @@ append_once \
   "# <<< DAPHNE image packages <<<"
 
 upsert_profile_setting "$LOCAL_CONF_FILE"
-upsert_board_id_setting "$LOCAL_CONF_FILE"
 upsert_project_machine_settings "$PROJECT_SPEC_DIR/configs/config"
 upsert_rootfs_settings "$ROOTFS_CONFIG_FILE"
 
@@ -352,14 +314,11 @@ Updated:
 Selected DAPHNE image profile:
   $IMAGE_PROFILE
 
-Selected DAPHNE board identity:
-  ${BOARD_ID:-<unset>}
-
 Pinned KR260 machine settings:
   CONFIG_SUBSYSTEM_MACHINE_NAME="AUTO"
   CONFIG_SUBSYSTEM_INITRAMFS_IMAGE_NAME="petalinux-initramfs-image"
   CONFIG_YOCTO_MACHINE_NAME="xilinx-k26-kr"
-  CONFIG_YOCTO_INCLUDE_MACHINE_NAME="k26-smk-kr"
+  CONFIG_YOCTO_INCLUDE_MACHINE_NAME="daphne-k26c-xsa"
   CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=y
   CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=y
   CONFIG_UBOOT_DTB_PACKAGE_NAME="u-boot.dtb"

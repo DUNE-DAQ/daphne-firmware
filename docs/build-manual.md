@@ -7,7 +7,7 @@ All commands below run from the **repo root** unless a section says otherwise.
 
 The architectural build-flow view is maintained separately in:
 
-- [architecture-reference.md](/Users/marroyav/repo/daphne-firmware/docs/architecture-reference.md)
+- [architecture-reference.md](architecture-reference.md)
 
 ![daphne-firmware build flow](figures/architecture/build_flow.svg)
 
@@ -16,14 +16,16 @@ The architectural build-flow view is maintained separately in:
 The currently qualified hardware build path is:
 
 - board: `k26c`
-- branch: `main`
-- routed-clean hardware baseline: `a389fcd`
-- current `main` tip carrying that baseline plus the repo-owned DTBO packaging
-  fixes
-- qualified host/tool arrangement:
+- Vivado 2026.1 handover branch: `marroyav/vivado_2026`
+- last historical routed-clean hardware baseline: `a389fcd` on the older
+  qualified tool flow
+- the 2026.1 branch remains a migration candidate until a license-backed clean
+  build at its exact tip passes synthesis, implementation, timing, and artifact
+  packaging
+- migration target host/tool arrangement:
   - WSL2 shell
-  - Windows Vivado 2024.1
-  - Windows Vitis 2024.1
+  - Windows Vivado 2026.1
+  - Windows Vitis 2026.1
 
 The repo also supports a native Linux remote-Vivado path. The macOS workspace
 is useful for local smoke tests and documentation work, but not as the
@@ -61,9 +63,9 @@ Run in WSL:
 
 ```bash
 mkdir -p /mnt/c/w
-git clone git@github.com:DUNE-DAQ/daphne-firmware.git /mnt/c/w/d
+git clone --branch marroyav/vivado_2026 --single-branch \
+  git@github.com:DUNE-DAQ/daphne-firmware.git /mnt/c/w/d
 cd /mnt/c/w/d
-git checkout main
 git pull --ff-only
 ```
 
@@ -73,9 +75,9 @@ Run on the remote Linux host:
 
 ```bash
 mkdir -p ~/w
-git clone git@github.com:DUNE-DAQ/daphne-firmware.git ~/w/d
+git clone --branch marroyav/vivado_2026 --single-branch \
+  git@github.com:DUNE-DAQ/daphne-firmware.git ~/w/d
 cd ~/w/d
-git checkout main
 git pull --ff-only
 ```
 
@@ -91,7 +93,7 @@ Run from the repo root on any host with the local HDL tools installed:
 These are not the hardware build. They only sanity-check the checked-in smoke
 and formal targets.
 
-## 3. Full Qualified Build From WSL
+## 3. Full WSL Build
 
 Run in WSL from `/mnt/c/w/d`:
 
@@ -131,8 +133,8 @@ Run on the Linux host from `~/w/d`:
 
 ```bash
 cd ~/w/d
-export XILINX_SETTINGS_SH=/path/to/Vivado/2024.1/settings64.sh
-export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2024.1/settings64.sh
+export XILINX_SETTINGS_SH=/path/to/Vivado/2026.1/settings64.sh
+export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2026.1/settings64.sh
 export DAPHNE_BOARD=k26c
 export DAPHNE_ETH_MODE=create_ip
 export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
@@ -154,7 +156,7 @@ build/remote-vivado/<timestamp>/
 
 ## 5. Packaging From Existing `.xsa` / `.bin`
 
-If the main implementation already produced:
+If Vivado implementation already produced:
 
 - `daphne_selftrigger_<gitsha>.xsa`
 - `daphne_selftrigger_<gitsha>.bin`
@@ -180,7 +182,8 @@ cd C:\w\d
 
 That helper runs the known-good two-stage sequence:
 
-- Windows `xsct.bat` generates `pl.dtsi` from the existing `.xsa`
+- Windows `sdtgen.bat`, or legacy `xsct.bat`, generates `pl.dtsi` from the
+  existing `.xsa`
 - WSL `complete_dtbo_bundle.sh` compiles the `.dtbo` and overlay zip
 
 Use `-OutputDir` instead of `-GitSha` if you want to package a nonstandard
@@ -208,19 +211,20 @@ For a successful qualified build, expect at least:
   - `post_route_methodology.rpt`
   - `post_route_util.rpt`
 
-## 7. Current Hardware-Proven Boundary
+## 7. Hardware-Proven Boundary
 
-The current repo-owned build and deployment boundary is now proven through:
+The historical repo-owned build and deployment boundary was proven through:
 
 - routed-clean firmware baseline `a389fcd`
-- current `main` tip for DTBO packaging
 - overlay load on target
 - clock-client bring-up
 - `daphne-server` start
 - oscilloscope-mode signal visibility on hardware
 
-That means the repo now owns a real build-to-overlay artifact flow. It does
-not yet own the full boot-image/PetaLinux deliverable.
+That proves the shape of the build-to-overlay flow. It does not qualify the
+current 2026.1 branch tip or the full PetaLinux deliverable; both require the
+validation gates listed in
+[toolchain-upgrade-2026.1.md](toolchain-upgrade-2026.1.md).
 
 ## 8. What Is Still Outside This Manual
 
@@ -235,7 +239,7 @@ Still outside this scope:
 
 For those next steps, see:
 
-- [petalinux/README.md](/Users/marroyav/repo/daphne-firmware/petalinux/README.md)
-- [docs/firmware-delivery.md](/Users/marroyav/repo/daphne-firmware/docs/firmware-delivery.md)
-- [docs/remote-vivado.md](/Users/marroyav/repo/daphne-firmware/docs/remote-vivado.md)
-- [docs/wsl-windows-vivado.md](/Users/marroyav/repo/daphne-firmware/docs/wsl-windows-vivado.md)
+- [petalinux/README.md](../petalinux/README.md)
+- [docs/firmware-delivery.md](firmware-delivery.md)
+- [docs/remote-vivado.md](remote-vivado.md)
+- [docs/wsl-windows-vivado.md](wsl-windows-vivado.md)

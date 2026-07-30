@@ -5,8 +5,8 @@ usage() {
   cat <<'EOF'
 Usage: collect_project_artifacts.sh PETALINUX_PROJECT_DIR [BUNDLE_DIR]
 
-Collect boot, DT, rootfs, and staged overlay artifacts from a built PetaLinux
-project into a stable repo-owned bundle directory.
+Collect the boot, DT, rootfs, and overlay artifacts used by the supported
+inactive-eMMC-slot deployment path.
 
 Default bundle directory:
   petalinux/output/<project-name>
@@ -23,17 +23,22 @@ ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && 
 PROJECT_DIR="$(CDPATH= cd -- "$1" && pwd)"
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
 BUNDLE_DIR_INPUT="${2:-$ROOT_DIR/petalinux/output/$PROJECT_NAME}"
-BUNDLE_DIR="$BUNDLE_DIR_INPUT"
+BUNDLE_PARENT_INPUT="$(dirname -- "$BUNDLE_DIR_INPUT")"
+mkdir -p "$BUNDLE_PARENT_INPUT"
+BUNDLE_PARENT="$(CDPATH= cd -- "$BUNDLE_PARENT_INPUT" && pwd)"
+FINAL_BUNDLE_DIR="$BUNDLE_PARENT/$(basename -- "$BUNDLE_DIR_INPUT")"
+BUNDLE_DIR="$(mktemp -d "$BUNDLE_PARENT/.${PROJECT_NAME}.tmp.XXXXXX")"
+
+cleanup_staging_bundle() {
+  if [[ -n "${BUNDLE_DIR:-}" && -d "$BUNDLE_DIR" ]]; then
+    rm -rf -- "$BUNDLE_DIR"
+  fi
+}
+trap cleanup_staging_bundle EXIT
 
 IMAGES_DIR="$PROJECT_DIR/images/linux"
-IMAGES_REAL_DIR="$(readlink -f "$IMAGES_DIR")"
-DEPLOY_IMAGES_ROOT="$PROJECT_DIR/build/tmp/deploy/images"
-QSPI_MACHINE_DIR=""
-MACHINE_NAME=""
 STAGED_DIR="$PROJECT_DIR/project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged"
 BOOT_DIR="$BUNDLE_DIR/boot"
-QSPI_DIR="$BOOT_DIR/qspi-primary"
-QSPI_SOM_DIR="$BOOT_DIR/qspi-som"
 ROOTFS_DIR="$BUNDLE_DIR/rootfs"
 OVERLAY_DIR="$BUNDLE_DIR/overlay"
 META_DIR="$BUNDLE_DIR/meta"
@@ -59,20 +64,7 @@ if [[ ! -d "$IMAGES_DIR" ]]; then
   exit 2
 fi
 
-if [[ -d "$DEPLOY_IMAGES_ROOT" ]]; then
-  while read -r candidate; do
-    if find "$candidate" -maxdepth 1 \( -type f -o -type l \) -name 'kria-qspi-*.bin' -print -quit | grep -q .; then
-      QSPI_MACHINE_DIR="$candidate"
-      break
-    fi
-  done < <(find "$DEPLOY_IMAGES_ROOT" -mindepth 1 -maxdepth 1 -type d | sort)
-fi
-
-if [[ -n "$QSPI_MACHINE_DIR" ]]; then
-  MACHINE_NAME="$(basename "$QSPI_MACHINE_DIR")"
-fi
-
-mkdir -p "$BOOT_DIR" "$QSPI_DIR" "$QSPI_SOM_DIR" "$ROOTFS_DIR" "$OVERLAY_DIR" "$META_DIR"
+mkdir -p "$BOOT_DIR" "$ROOTFS_DIR" "$OVERLAY_DIR" "$META_DIR"
 
 copy_if_exists() {
   local src="$1"
@@ -103,53 +95,6 @@ copy_if_exists "$IMAGES_DIR/rootfs.cpio.gz.u-boot" "$BOOT_DIR/rootfs.cpio.gz.u-b
 copy_glob_matches "$IMAGES_DIR" "*.dtb" "$BOOT_DIR"
 copy_glob_matches "$IMAGES_DIR" "*.dtbo" "$BOOT_DIR"
 
-if [[ -n "$QSPI_MACHINE_DIR" ]]; then
-  copy_if_exists "$QSPI_MACHINE_DIR/kria-qspi-$MACHINE_NAME.bin" "$QSPI_SOM_DIR/kria-qspi.bin"
-  copy_if_exists "$QSPI_MACHINE_DIR/kria-qspi-$MACHINE_NAME.manifest" "$QSPI_SOM_DIR/kria-qspi.manifest"
-  copy_if_exists "$QSPI_MACHINE_DIR/imgsel-$MACHINE_NAME.elf" "$QSPI_SOM_DIR/imgsel.elf"
-  copy_if_exists "$QSPI_MACHINE_DIR/imgsel-$MACHINE_NAME.bin" "$QSPI_SOM_DIR/imgsel.bin"
-  copy_if_exists "$QSPI_MACHINE_DIR/imgsel-$MACHINE_NAME.manifest" "$QSPI_SOM_DIR/imgsel.manifest"
-  copy_if_exists "$QSPI_MACHINE_DIR/imgrcry-$MACHINE_NAME.bin" "$QSPI_SOM_DIR/imgrcry.bin"
-  copy_if_exists "$QSPI_MACHINE_DIR/imgrcry-$MACHINE_NAME.manifest" "$QSPI_SOM_DIR/imgrcry.manifest"
-  copy_if_exists "$QSPI_MACHINE_DIR/imgrcry_web.img" "$QSPI_SOM_DIR/imgrcry_web.img"
-  cat > "$QSPI_SOM_DIR/QSPI-SOM-LAYOUT.txt" <<'EOF'
-# part_id|action|mtd_default|mtd_label|offset_hex|size_hex
-image_selector_a|flash|mtd0|Image Selector|0x000000|0x080000
-image_selector_b|flash|mtd1|Image Selector Golden|0x080000|0x080000
-persistent_register_a|flash|mtd2|Persistent Register|0x100000|0x020000
-persistent_register_b|flash|mtd3|Persistent Register Backup|0x120000|0x020000
-open_1|erase|mtd4|Open_1|0x140000|0x0c0000
-image_a|flash|mtd5|Image A (FSBL, PMU, ATF, U-Boot)|0x200000|0x0d00000
-imgsel_image_a_catch|flash|mtd6|ImgSel Image A Catch|0x0f00000|0x080000
-image_b|flash|mtd7|Image B (FSBL, PMU, ATF, U-Boot)|0x0f80000|0x0d00000
-imgsel_image_b_catch|flash|mtd8|ImgSel Image B Catch|0x1c80000|0x080000
-open_2|erase|mtd9|Open_2|0x1d00000|0x100000
-recovery_a|flash|mtd10|Recovery Image|0x1e00000|0x200000
-recovery_b|flash|mtd11|Recovery Image Backup|0x2000000|0x200000
-sha256_region|flash|mtd14|SHA256|0x2240000|0x040000
-EOF
-fi
-
-if command -v bootgen >/dev/null 2>&1; then
-  qspi_required=(
-    "$IMAGES_DIR/zynqmp_fsbl.elf"
-    "$IMAGES_DIR/pmufw.elf"
-    "$IMAGES_DIR/bl31.elf"
-    "$IMAGES_DIR/u-boot.elf"
-    "$IMAGES_DIR/u-boot-dtb.elf"
-  )
-  qspi_ready=1
-  for path in "${qspi_required[@]}"; do
-    if [[ ! -f "$path" ]]; then
-      qspi_ready=0
-      break
-    fi
-  done
-  if (( qspi_ready )); then
-    "$ROOT_DIR/scripts/petalinux/generate_qspi_boot_candidates.sh" "$IMAGES_DIR" "$QSPI_DIR"
-  fi
-fi
-
 copy_if_exists "$IMAGES_DIR/rootfs.ext4" "$ROOTFS_DIR/rootfs.ext4"
 copy_if_exists "$IMAGES_DIR/rootfs.ext4.gz" "$ROOTFS_DIR/rootfs.ext4.gz"
 copy_if_exists "$IMAGES_DIR/rootfs.tar.gz" "$ROOTFS_DIR/rootfs.tar.gz"
@@ -167,15 +112,10 @@ if [[ -d "$STAGED_DIR" ]]; then
 fi
 
 cat > "$META_DIR/COLLECT-METADATA.txt" <<EOF
-project_dir=$PROJECT_DIR
 project_name=$PROJECT_NAME
-images_dir=$IMAGES_DIR
-images_real_dir=$IMAGES_REAL_DIR
-deploy_images_root=$DEPLOY_IMAGES_ROOT
-qspi_machine_dir=$QSPI_MACHINE_DIR
-machine_name=$MACHINE_NAME
-staged_overlay_dir=$STAGED_DIR
-collected_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+machine=xilinx-k26-kr
+machine_include=daphne-k26c-xsa
+deployment_scope=inactive-emmc-slot-only
 EOF
 
 (
@@ -195,13 +135,31 @@ fi
 if (( ${#checksum_cmd[@]} > 0 )); then
   (
     cd "$BUNDLE_DIR"
-    find . -type f ! -name SHA256SUMS | sort | xargs "${checksum_cmd[@]}" > SHA256SUMS
-  )
+    while IFS= read -r -d '' path; do
+      "${checksum_cmd[@]}" "$path"
+    done < <(find . -type f ! -name SHA256SUMS -print0 | sort -z)
+  ) > "$BUNDLE_DIR/SHA256SUMS"
 fi
+
+if [[ -e "$FINAL_BUNDLE_DIR" ]]; then
+  if [[ ! -f "$FINAL_BUNDLE_DIR/meta/COLLECT-METADATA.txt" ]]; then
+    echo "ERROR: refusing to replace an output directory not created by this collector: $FINAL_BUNDLE_DIR" >&2
+    exit 2
+  fi
+  rm -rf -- "$FINAL_BUNDLE_DIR"
+fi
+mv -- "$BUNDLE_DIR" "$FINAL_BUNDLE_DIR"
+BUNDLE_DIR=""
+trap - EXIT
+
+BOOT_DIR="$FINAL_BUNDLE_DIR/boot"
+ROOTFS_DIR="$FINAL_BUNDLE_DIR/rootfs"
+OVERLAY_DIR="$FINAL_BUNDLE_DIR/overlay"
+META_DIR="$FINAL_BUNDLE_DIR/meta"
 
 cat <<EOF
 Collected PetaLinux artifacts into:
-  $BUNDLE_DIR
+  $FINAL_BUNDLE_DIR
 
 Boot dir:
   $BOOT_DIR

@@ -7,9 +7,12 @@ Installed payload:
 - private runtime libraries under `/usr/lib/daphne-server`
 - `BUILD-METADATA.txt` describing the staged source bundle
 
-Source of truth today:
-- a staged runtime tarball harvested from a working board
-- `scripts/petalinux/stage_runtime_into_project.sh`
+Provenance status:
+- the checked-in payload is a legacy external binary import
+- its digest is verified, but it is not reproducible from this repository
+- production release therefore requires a separately qualified runtime bundle
+- `scripts/petalinux/stage_runtime_into_project.sh` is the only staging entry
+  point
 
 Design intent:
 - keep the package layout independent of `/home/petalinux`

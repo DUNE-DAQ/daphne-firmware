@@ -217,34 +217,6 @@ ensure_dtgen() {
   fi
 }
 
-prepare_sdtgen_compat_libs() {
-  local compat_dir
-  local ncurses6
-  local tinfo6
-
-  [[ "${DTGEN_KIND:-}" == "sdtgen" ]] || return 0
-
-  if "$DTGEN_CMD" -eval "package require sdtgen; exit" >/dev/null 2>&1; then
-    return 0
-  fi
-
-  ncurses6="/usr/lib/x86_64-linux-gnu/libncurses.so.6"
-  tinfo6="/usr/lib/x86_64-linux-gnu/libtinfo.so.6"
-  if [[ ! -e "$ncurses6" || ! -e "$tinfo6" ]]; then
-    return 0
-  fi
-
-  compat_dir="${DAPHNE_XILINX_COMPAT_LIB_DIR:-$ROOT_DIR/build/xilinx-compat-libs}"
-  mkdir -p "$compat_dir"
-  ln -sf "$ncurses6" "$compat_dir/libncurses.so.5"
-  ln -sf "$tinfo6" "$compat_dir/libtinfo.so.5"
-  export LD_LIBRARY_PATH="$compat_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-
-  if "$DTGEN_CMD" -eval "package require sdtgen; exit" >/dev/null 2>&1; then
-    echo "INFO: enabled Xilinx ncurses compatibility libs at $compat_dir"
-  fi
-}
-
 generate_pl_dtsi() {
   local hw_xsa="$1"
   local dtgen_output_dir="$2"
@@ -304,7 +276,6 @@ else
 fi
 
 ensure_dtgen
-prepare_sdtgen_compat_libs
 need_cmd dtc
 need_cmd zip
 need_cmd python3

@@ -3,14 +3,14 @@
 Use this when:
 
 - you are running inside WSL2;
-- Vivado 2024.1 and Vitis 2024.1 are installed on Windows;
+- Vivado 2026.1 and Vitis 2026.1 are installed on Windows;
 - the repo scripts should call the Windows tools from WSL.
 
 This is different from `docs/remote-vivado.md`, which assumes a native Linux
 host with Xilinx tools installed directly on that host.
 
 For the full clone-to-products runbook, see
-[build-manual.md](/Users/marroyav/repo/daphne-firmware/docs/build-manual.md).
+[build-manual.md](build-manual.md).
 
 ## Default assumptions
 
@@ -27,15 +27,15 @@ generated IP/DTG trees become deep quickly.
 
 The helper scripts assume:
 
-- Vivado lives at `/mnt/c/Xilinx/Vivado/2024.1`
-- Vitis lives at `/mnt/c/Xilinx/Vitis/2024.1`
+- Vivado lives at `/mnt/c/Xilinx/2026.1/Vivado`
+- Vitis lives at `/mnt/c/Xilinx/2026.1/Vitis`
 
 Override these if needed:
 
 ```bash
 export DAPHNE_WINDOWS_XILINX_ROOT=/mnt/c/Xilinx
-export DAPHNE_VIVADO_VERSION=2024.1
-export DAPHNE_VITIS_VERSION=2024.1
+export DAPHNE_VIVADO_VERSION=2026.1
+export DAPHNE_VITIS_VERSION=2026.1
 ```
 
 ## Tool sanity check
@@ -49,14 +49,14 @@ cd /mnt/c/w/d
 
 That script:
 
-- creates WSL-local `vivado` and `xsct` wrappers that point at the Windows
-  `.bat` launchers;
+- creates WSL-local `vivado`, `sdtgen`, and legacy `xsct` wrappers that point
+  at the Windows `.bat` launchers when present;
 - launches those tools through `cmd.exe /c call ...` while converting any Tcl
   or artifact paths to absolute Windows or UNC paths first;
-- exports `XILINX_VITIS` in Windows path form so the Tcl flow can find XSCT
-  inside the Windows Vivado process;
-- verifies that Vivado is callable from WSL and reports whether XSCT is also
-  available.
+- exports `XILINX_VITIS` in Windows path form so the Tcl flow can find Vitis
+  device-tree tools inside the Windows Vivado process;
+- verifies that Vivado is callable from WSL and reports whether SDTGen or
+  legacy XSCT is also available.
 
 ## Full WSL chain
 
@@ -129,12 +129,12 @@ artifacts do not appear under the repo directory you expected.
 
 - `create_ip` is the currently qualified Ethernet mode for the WSL/Windows
   Vivado path.
-- `xsct` is optional for the core build. It is only needed for the
-  Vitis/device-tree helper path.
+- `sdtgen` or legacy `xsct` is optional for the core build. It is only needed
+  for the Vitis/device-tree helper path.
 - The Tcl flow detects `Windows NT` inside Vivado and does not attempt the full
   Linux-side dtbo compilation flow there. That behavior is expected.
 - The wrapper sets `XILINX_VITIS` to a Windows-style path such as
-  `C:\Xilinx\Vitis\2024.1`, because the Windows Vivado process consumes that
+  `C:\Xilinx\2026.1\Vitis`, because the Windows Vivado process consumes that
   variable.
 
 ## Expected outputs
@@ -168,15 +168,16 @@ or, for a commit-specific run:
 ./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
-When this script runs under WSL and `xsct` is not already on `PATH`, it
-automatically sources [setup_windows_xilinx.sh](/Users/marroyav/repo/daphne-firmware/scripts/wsl/setup_windows_xilinx.sh)
+When this script runs under WSL and no device-tree generator is already on
+`PATH`, it automatically sources
+[setup_windows_xilinx.sh](../scripts/wsl/setup_windows_xilinx.sh)
 to activate the Windows Vitis wrapper for the current process.
 
 ## Windows PowerShell recovery helper
 
 When the implementation artifacts already exist under `C:\w\d\xilinx\output-<gitsha>`
-but the direct WSL packaging step still trips over Windows/WSL `createdts`
-path handling, use the repo-owned PowerShell wrapper instead of typing the
+but the direct WSL packaging step still trips over Windows/WSL path handling,
+use the repo-owned PowerShell wrapper instead of typing the
 manual two-stage fallback by hand:
 
 ```powershell
@@ -188,11 +189,11 @@ This script does the qualified recovery flow:
 
 1. locate `daphne_selftrigger_<gitsha>.xsa` and `.bin` under the selected
    output directory;
-2. run Windows `xsct.bat` from that directory using the artifact basename as
-   the `createdts -hw` argument;
+2. run Windows `sdtgen.bat`, or legacy `xsct.bat` if SDTGen is unavailable,
+   against the XSA;
 3. generate or regenerate `pl.dtsi` when needed;
 4. call the normal WSL-side
-   [complete_dtbo_bundle.sh](/Users/marroyav/repo/daphne-firmware/scripts/package/complete_dtbo_bundle.sh)
+   [complete_dtbo_bundle.sh](../scripts/package/complete_dtbo_bundle.sh)
    with `DAPHNE_FIRMWARE_ROOT` fixed explicitly.
 
 Useful parameters:
@@ -208,7 +209,7 @@ Useful parameters:
 The defaults are:
 
 - repo root: script-relative, intended for `C:\w\d`
-- Vitis root: `C:\Xilinx\Vitis\2024.1`
+- Vitis root: `C:\Xilinx\2026.1\Vitis`
 - WSL distro: `Debian`
 - board: `k26c`
 

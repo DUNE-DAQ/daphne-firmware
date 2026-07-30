@@ -11,6 +11,7 @@ meta-daphne layer inside an initialized PetaLinux project.
 The staged canonical filenames are:
   - daphne-server-runtime-minimal.tgz
   - BUILD-METADATA.txt
+  - SHA256SUMS
 EOF
 }
 
@@ -46,10 +47,15 @@ mkdir -p "$STAGED_DIR"
 cp -f "$RUNTIME_BUNDLE" "$STAGED_DIR/daphne-server-runtime-minimal.tgz"
 
 cat > "$STAGED_DIR/BUILD-METADATA.txt" <<EOF
-source_bundle=${RUNTIME_BUNDLE}
-source_bundle_sha256=$(sha256sum "$RUNTIME_BUNDLE" | awk '{print $1}')
-staged_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+artifact=daphne-server-runtime-minimal.tgz
+sha256=$(sha256sum "$RUNTIME_BUNDLE" | awk '{print $1}')
+provenance=external-qualified-input
 EOF
+
+(
+  cd "$STAGED_DIR"
+  sha256sum daphne-server-runtime-minimal.tgz > SHA256SUMS
+)
 
 cat <<EOF
 Staged runtime bundle into:
@@ -58,4 +64,5 @@ Staged runtime bundle into:
 Files:
   $STAGED_DIR/daphne-server-runtime-minimal.tgz
   $STAGED_DIR/BUILD-METADATA.txt
+  $STAGED_DIR/SHA256SUMS
 EOF

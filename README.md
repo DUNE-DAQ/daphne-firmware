@@ -58,6 +58,14 @@ For the current clone-to-products manual, including which host/shell to use,
 path-length guidance, and where the final products land, see
 `docs/build-manual.md`.
 
+For safe local-desktop and server-side control of the upstream Raritan PX4 PDU
+and Kontron/WIENER PL5xx, CML, MARATON, and MPOD power systems, see
+`docs/kontron-wiener-power-control.md`.
+
+For the handover scope covering identity-safe firmware deployment
+and generated runtime/register configuration across the 200-board campaign,
+see `docs/200-board-firmware-deployment-handover.md`.
+
 For the high-level project philosophy, module map, scope, stable baseline, and
 current TODO list, see `docs/project-overview.md`.
 
@@ -219,7 +227,7 @@ repo-local runbook and wrapper:
 ./scripts/remote/run_remote_vivado_chain.sh
 ```
 
-If you are in WSL2 and Vivado/Vitis 2024.1 are installed on Windows, use:
+If you are in WSL2 and Vivado/Vitis 2026.1 are installed on Windows, use:
 
 ```bash
 ./scripts/wsl/check_windows_xilinx.sh
@@ -279,8 +287,8 @@ artifact directory:
 ./scripts/package/complete_dtbo_bundle.sh <work-root>/xilinx/output-$DAPHNE_GIT_SHA
 ```
 
-On WSL, this packaging script now auto-loads the Windows `xsct` wrapper if it
-is not already on `PATH`.
+On WSL, this packaging script now auto-loads the Windows `sdtgen` wrapper, or
+the legacy `xsct` wrapper if needed, when the tool is not already on `PATH`.
 
 See `docs/remote-vivado.md`, `docs/wsl-windows-vivado.md`, and
 `docs/agent-handoff.md`.

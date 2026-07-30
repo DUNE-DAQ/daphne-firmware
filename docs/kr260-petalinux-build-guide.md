@@ -10,45 +10,38 @@ match the current repo state and the May 9, 2026 bring-up findings on
 
 ## Scope and current status
 
-Current baseline:
+Current 2026.1 handover target:
 
 - board family: KR260 / ZynqMP
-- PetaLinux release: `2024.1`
-- Yocto codename: `langdale`
-- current repo-owned board inventory:
-  - `petalinux/meta-daphne/recipes-core/daphne-board-config/files/ff0b_board_inventory.csv`
+- PetaLinux release: `2026.1`
+- Yocto codename: `scarthgap`
+- image policy: board-neutral common image
+- deployment scope: inactive eMMC slot only
+- board inventory and assignment authority: companion `hardware-database`
+  branch `marroyav/daphne-production-qa`
 
 Important current status:
 
-- the repo now owns real overlay, service, board-config, and runtime packaging
-  paths; `meta-daphne` is no longer only empty scaffolding
-- `015` is proven with:
+- the repo owns overlay, service, board-config rendering, runtime packaging,
+  and inactive-slot deployment paths
+- the local 2026.1 PetaLinux attempt is not yet complete; the known blockers
+  are the overlay `/lib` usrmerge package check and the PMU/FSBL configuration
+  path that still reaches disabled XSCT/obsolete BSP settings
+- no PetaLinux 2026.1 eMMC bundle is qualified until the build produces and
+  checksums `Image`, `system.dtb`, the ramdisk, and `rootfs.ext4`
+- the staged `daphneServer` payload remains a checksum-verified legacy
+  external binary and is not reproducible from this repository
+
+Historical bring-up on `DAPHNE-015` proved the older flow with:
+
   - repo-built `Image`
   - repo-built `system.dtb`
   - repo-built `rootfs.ext4`
   - repo-built tiny switch-root ramdisk
   - full repo-owned runtime service chain
-- board-stamped images now also carry first-step U-Boot ownership artifacts:
-  - `/etc/daphne-uboot.env`
-  - `/etc/fw_env.config`
-- the original repo-built DTB failure on `015` has been traced and fixed by
-  removing the generated base `pl-bus` from the non-overlay DT
-- that fixed repo-owned DTB is now also proven in the persistent default boot
-  path on `015`, together with the repo-built `Image`
-- the shared DAPHNE DT now makes `gem0` explicitly boot as the management
-  `sgmii` fixed-link, following the proven `daphne-14` contract
-- the remaining boot gap is narrower:
-  - the repo-built runtime has now been deployed to both eMMC rootfs slots on
-    `DAPHNE-15`
-  - the accepted runtime boot currently lands on slot B with clean systemd
-    health and the DAPHNE service chain active
-  - QSPI boot-firmware image qualification remains open; the repo owns the
-    artifacts and helpers, but the current `BOOT.primary.BIN` candidate has
-    not yet produced a clean autonomous temporary-bank boot on `015`
 
-So this is now a real bring-up and deployment guide, but not yet the final
-fleet-grade remote-update guide. The longer-term boot contract is documented
-separately in:
+Those observations prove hardware feasibility, not the current 2026.1 build.
+The longer-term boot contract is documented separately in:
 
 - `docs/remote-boot-deployment-plan.md`
 
@@ -56,11 +49,9 @@ The production-oriented plan is:
 
 - use PetaLinux to reproducibly build repo-owned artifacts;
 - deploy runtime Linux to the inactive eMMC slot;
-- update QSPI boot firmware through the Kria `xmutil bootfw_update` A/B
-  mechanism whenever Linux is healthy enough to do so;
-- reserve direct MTD/QSPI writes for lab diagnostics, factory recovery, or
-  cases where the supported Kria update utility cannot be used;
 - verify boot health before marking a slot good.
+- keep QSPI firmware changes outside the production campaign until separately
+  qualified.
 
 ## Host requirements
 
@@ -73,7 +64,7 @@ petalinux-create
 petalinux-config
 petalinux-build
 petalinux-package
-xsct
+sdtgen
 dtc
 zip
 sha256sum
@@ -82,7 +73,7 @@ sha256sum
 On this workspace, the active PetaLinux settings file is:
 
 ```bash
-source /opt/Xilinx/PetaLinux/2024.1/tools/settings.sh
+source /opt/Xilinx/2026.1/PetaLinux/settings.sh
 ```
 
 Keep the checkout path short. Recommended:
@@ -236,10 +227,15 @@ Collected output lands in:
 ```text
 petalinux/output/<project-name>/
   boot/
-    qspi-primary/
-    qspi-som/
+    Image
+    system.dtb
+    ramdisk.cpio.gz.u-boot
   rootfs/
+    rootfs.ext4
   overlay/
+    daphne-overlay.dtbo
+    daphne-overlay.bin
+    shell.json
   meta/
   MANIFEST.txt
   SHA256SUMS
@@ -248,18 +244,8 @@ petalinux/output/<project-name>/
 At minimum, check for:
 
 ```text
-boot/BOOT.BIN
-boot/imgsel.elf
-boot/qspi-primary/BOOT.primary.BIN
-boot/qspi-primary/PRIMARY-BOOT-BANKS.txt
-boot/qspi-primary/PRIMARY-BOOT-METADATA.txt
-boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt
-boot/qspi-som/kria-qspi.bin
-boot/qspi-som/kria-qspi.manifest
-boot/qspi-som/QSPI-SOM-LAYOUT.txt
 boot/Image
 boot/system.dtb
-boot/boot.scr
 boot/ramdisk.cpio.gz.u-boot
 rootfs/rootfs.ext4
 overlay/daphne-overlay.dtbo
@@ -267,7 +253,18 @@ overlay/daphne-overlay.bin
 overlay/shell.json
 ```
 
-The collected boot artifacts now split into three tiers:
+`BOOT.BIN` is collected only when `build_kr260_image.sh --package-boot` is
+explicitly requested. It is not a qualified QSPI campaign artifact.
+
+## Historical QSPI Development Notes
+
+The remaining QSPI material in this document records the earlier 2024.1
+bring-up and recovery experiments. It is not an instruction to generate or
+write QSPI from the current 2026.1 handover branch. The 2026.1 custom machine
+removes `kria-qspi` from `EXTRA_IMAGEDEPENDS`, and the current collector emits
+only the inactive-eMMC deployment bundle.
+
+Historically, the collected boot artifacts were split into three tiers:
 
 - `boot/BOOT.BIN`
   the stock PetaLinux package output

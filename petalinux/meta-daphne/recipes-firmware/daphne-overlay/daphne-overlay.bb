@@ -4,6 +4,8 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 inherit allarch
 
+require daphne-overlay-version.inc
+
 SRC_URI += " \
   file://README.overlay \
   file://staged/BUILD-METADATA.txt \
@@ -13,9 +15,7 @@ SRC_URI += " \
   file://staged/SHA256SUMS \
 "
 
-DAPHNE_OVERLAY_APP ?= "daphne_selftrigger_ol_a389fcd"
-DAPHNE_LEGACY_OVERLAY_ALIASES ?= "MEZ_SELF_TRIG_V15_OL_UPGRADED MEZ_ALT_FW_TIMING_OL_UPGRADED"
-DAPHNE_OVERLAY_FIRMWARE_NAME ?= "daphne_selftrigger_7353a17.bit.bin"
+DAPHNE_OVERLAY_APP = "daphne"
 
 do_install() {
     app_dir="${D}/lib/firmware/xilinx/${DAPHNE_OVERLAY_APP}"
@@ -41,9 +41,6 @@ do_install() {
     ln -snf "xilinx/${DAPHNE_OVERLAY_APP}/${DAPHNE_OVERLAY_APP}.bin" \
         "${D}/lib/firmware/${DAPHNE_OVERLAY_FIRMWARE_NAME}"
 
-    for alias in ${DAPHNE_LEGACY_OVERLAY_ALIASES}; do
-        ln -snf ${DAPHNE_OVERLAY_APP} "${D}/lib/firmware/xilinx/${alias}"
-    done
 }
 
 FILES:${PN} += " \
@@ -51,6 +48,4 @@ FILES:${PN} += " \
     /lib/firmware/${DAPHNE_OVERLAY_FIRMWARE_NAME} \
     /lib/firmware/xilinx/${DAPHNE_OVERLAY_APP} \
     /lib/firmware/xilinx/${DAPHNE_OVERLAY_APP}/* \
-    /lib/firmware/xilinx/MEZ_SELF_TRIG_V15_OL_UPGRADED \
-    /lib/firmware/xilinx/MEZ_ALT_FW_TIMING_OL_UPGRADED \
 "

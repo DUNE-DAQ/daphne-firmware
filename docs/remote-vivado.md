@@ -27,8 +27,8 @@ If the remote host does not already source Vivado/Vitis globally, pass the
 settings scripts explicitly:
 
 ```bash
-export XILINX_SETTINGS_SH=/path/to/Vivado/2024.1/settings64.sh
-export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2024.1/settings64.sh
+export XILINX_SETTINGS_SH=/path/to/Vivado/2026.1/settings64.sh
+export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2026.1/settings64.sh
 ```
 
 Then run:

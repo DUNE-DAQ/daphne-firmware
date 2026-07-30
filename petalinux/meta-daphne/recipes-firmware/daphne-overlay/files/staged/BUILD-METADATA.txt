@@ -1,5 +1,2 @@
-git_sha=7353a17
-overlay_dir=/w/8/daphne_selftrigger_ol_7353a17
-overlay_zip=/w/8/daphne_selftrigger_ol_7353a17.zip
-source_output_dir=/w/8
-staged_at=2026-05-07T13:12:25Z
+git_sha=7115168
+firmware_name=daphne_selftrigger_7115168.bit.bin

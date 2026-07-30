@@ -1,0 +1,17 @@
+# Shared DAPHNE images are deliberately board-neutral. Hardware identity and
+# MAC address come from the K26 SOM EEPROM through U-Boot; per-board IP and
+# runtime assignments are provisioned after enrollment.
+
+DAPHNE_IMAGE_PROFILE ?= "minimal"
+
+IMAGE_INSTALL:append = " \
+    daphne-overlay \
+    daphne-server \
+    daphne-services \
+    daphne-boot-state \
+"
+
+IMAGE_INSTALL:append = " ${@bb.utils.contains('DAPHNE_IMAGE_PROFILE', 'developer', 'packagegroup-daphne-server-build', '', d)}"
+EXTRA_IMAGE_FEATURES:append = " ${@bb.utils.contains('DAPHNE_IMAGE_PROFILE', 'developer', 'dev-pkgs tools-sdk', '', d)}"
+
+INHERIT += "daphne-runtime-image"

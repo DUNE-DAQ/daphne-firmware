@@ -78,7 +78,7 @@ or explicitly:
 
 Expected tools on `PATH`:
 
-- `xsct`
+- `sdtgen`, or legacy `xsct`
 - `dtc`
 - `zip`
 - `sha256sum`
@@ -92,8 +92,9 @@ cd C:\w\d
 .\scripts\windows\package_dtbo_from_existing_xsa.ps1 -GitSha 176ee43
 ```
 
-That script bootstraps `pl.dtsi` with Windows `xsct.bat` and then hands the
-rest of the bundle generation back to the normal WSL packaging script.
+That script bootstraps `pl.dtsi` with Windows `sdtgen.bat`, or legacy
+`xsct.bat` if SDTGen is unavailable, and then hands the rest of the bundle
+generation back to the normal WSL packaging script.
 
 Expected outputs:
 

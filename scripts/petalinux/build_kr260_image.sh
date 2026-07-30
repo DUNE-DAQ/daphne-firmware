@@ -7,8 +7,7 @@ Usage: build_kr260_image.sh PETALINUX_PROJECT_DIR HW_HANDOFF_DIR [options]
 
 Create or reuse a KR260-compatible PetaLinux project, apply the hardware
 handoff, attach the repo-owned layer, optionally stage the overlay payload and
-runtime bundle, run petalinux-build, package BOOT.BIN, and collect the
-resulting artifacts.
+runtime bundle, run petalinux-build, and collect an eMMC deployment bundle.
 
 Project creation/config options:
   --bsp BSP_PATH          Create the project from a BSP
@@ -23,8 +22,7 @@ Project creation/config options:
 
 Build/package options:
   --bundle-dir DIR       Repo-owned collection directory for resulting images
-  --skip-build-kria-qspi Do not build the KR260 full QSPI image wrapper
-  --skip-package-boot    Do not run petalinux-package --boot
+  --package-boot         Also create BOOT.BIN for separate boot-firmware work
   --skip-collect         Do not collect artifacts after the build
   -h, --help             Show this help
 
@@ -53,9 +51,7 @@ PROJECT_NAME="$(basename "$PROJECT_ARG")"
 BUNDLE_DIR="$ROOT_DIR/petalinux/output/$PROJECT_NAME"
 
 INIT_ARGS=("$PROJECT_ARG" "$HW_HANDOFF_ARG")
-STAGE_OVERLAY=1
-BUILD_KRIA_QSPI=1
-PACKAGE_BOOT=1
+PACKAGE_BOOT=0
 COLLECT=1
 BUILD_ARGS="${DAPHNE_PETALINUX_BUILD_ARGS:-}"
 PACKAGE_ARGS="${DAPHNE_PETALINUX_PACKAGE_ARGS:-}"
@@ -74,12 +70,8 @@ while [[ $# -gt 0 ]]; do
       BUNDLE_DIR="$2"
       shift 2
       ;;
-    --skip-build-kria-qspi)
-      BUILD_KRIA_QSPI=0
-      shift
-      ;;
-    --skip-package-boot)
-      PACKAGE_BOOT=0
+    --package-boot)
+      PACKAGE_BOOT=1
       shift
       ;;
     --skip-collect)
@@ -128,42 +120,17 @@ if (( PACKAGE_BOOT )); then
   )
 fi
 
-if (( BUILD_KRIA_QSPI )); then
-  (
-    cd "$PROJECT_DIR"
-    petalinux-build -c kria-qspi
-  )
-fi
-
 if (( COLLECT )); then
   "$ROOT_DIR/scripts/petalinux/collect_project_artifacts.sh" "$PROJECT_DIR" "$BUNDLE_DIR"
 fi
 
 missing=()
-for rel in "boot/BOOT.BIN" "boot/Image" "boot/system.dtb"; do
-  if [[ ! -f "$BUNDLE_DIR/$rel" ]]; then
-    missing+=("$rel")
-  fi
-done
-
-if (( COLLECT )) && command -v bootgen >/dev/null 2>&1; then
+if (( COLLECT )); then
   for rel in \
-    "boot/qspi-primary/BOOT.primary.BIN" \
-    "boot/qspi-primary/PRIMARY-BOOT-BANKS.txt" \
-    "boot/qspi-primary/PRIMARY-BOOT-METADATA.txt" \
-    "boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt"
-  do
-    if [[ ! -f "$BUNDLE_DIR/$rel" ]]; then
-      missing+=("$rel")
-    fi
-  done
-fi
-
-if (( COLLECT )) && (( BUILD_KRIA_QSPI )); then
-  for rel in \
-    "boot/qspi-som/kria-qspi.bin" \
-    "boot/qspi-som/kria-qspi.manifest" \
-    "boot/qspi-som/QSPI-SOM-LAYOUT.txt"
+    "boot/Image" \
+    "boot/system.dtb" \
+    "boot/ramdisk.cpio.gz.u-boot" \
+    "rootfs/rootfs.ext4"
   do
     if [[ ! -f "$BUNDLE_DIR/$rel" ]]; then
       missing+=("$rel")
@@ -178,9 +145,9 @@ if (( ${#missing[@]} > 0 )); then
 fi
 
 cat <<EOF
-Full PetaLinux image bundle available under:
+PetaLinux eMMC deployment bundle available under:
   $BUNDLE_DIR
 
 Next validation step:
-  review boot/, rootfs/, and overlay/ against ~/golden/daphne14-2026-03-12/
+  run scripts/deploy/daphne_deploy.sh with --dry-run
 EOF

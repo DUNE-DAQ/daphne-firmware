@@ -64,8 +64,8 @@ export DAPHNE_BOARD=k26c
 If the Xilinx environment is not already sourced:
 
 ```bash
-export XILINX_SETTINGS_SH=/path/to/Vivado/2024.1/settings64.sh
-export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2024.1/settings64.sh
+export XILINX_SETTINGS_SH=/path/to/Vivado/2026.1/settings64.sh
+export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2026.1/settings64.sh
 ```
 
 ## WSL-specific status

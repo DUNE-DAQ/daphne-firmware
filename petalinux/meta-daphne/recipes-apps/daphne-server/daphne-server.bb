@@ -12,6 +12,7 @@ RDEPENDS:${PN} += " \
 SRC_URI += " \
   file://README.server \
   file://staged/BUILD-METADATA.txt \
+  file://staged/SHA256SUMS \
   file://staged/daphne-server-runtime-minimal.tgz \
 "
 
@@ -23,8 +24,18 @@ INSANE_SKIP:${PN} += "dev-so rpaths"
 DAPHNE_RUNTIME_LIBDIR = "${libdir}/daphne-server"
 
 do_install() {
+    expected_sha="$(awk '$2 == "daphne-server-runtime-minimal.tgz" {print $1}' ${WORKDIR}/staged/SHA256SUMS)"
+    actual_sha="$(sha256sum ${WORKDIR}/staged/daphne-server-runtime-minimal.tgz | awk '{print $1}')"
+    if [ -z "${expected_sha}" ] || [ "${actual_sha}" != "${expected_sha}" ]; then
+        bbfatal "DAPHNE runtime bundle checksum verification failed"
+    fi
+
     runtime_root="${WORKDIR}"
-    lib_src_dir="${runtime_root}/home/petalinux/daphne-server/build-petalinux/_deps/daphne-deps-petalinux2024/prefix/lib"
+    deps_root="${runtime_root}/home/petalinux/daphne-server/build-petalinux/_deps"
+    lib_src_dir="$(find "${deps_root}" -mindepth 3 -maxdepth 3 -type d -path '*/prefix/lib' | sort | head -n 1)"
+    if [ -z "${lib_src_dir}" ]; then
+        bbfatal "Could not locate daphne-server dependency lib directory under ${deps_root}"
+    fi
 
     install -d ${D}${bindir}
     install -d ${D}${DAPHNE_RUNTIME_LIBDIR}

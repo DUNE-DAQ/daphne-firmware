@@ -67,7 +67,7 @@
 <polygon fill="#e7e7e7" stroke="#5a5a5a" stroke-width="1.7" points="565,-79 458,-79 458,-75 454,-75 454,-71 458,-71 458,-47 454,-47 454,-43 458,-43 458,-39 565,-39 565,-79"/>
 <polyline fill="none" stroke="#5a5a5a" stroke-width="1.7" points="458,-75 462,-75 462,-71 458,-71"/>
 <polyline fill="none" stroke="#5a5a5a" stroke-width="1.7" points="458,-47 462,-47 462,-43 458,-43"/>
-<text text-anchor="middle" x="511.5" y="-62.4" font-family="Helvetica,sans-Serif" font-size="12.00">Vivado + XSCT</text>
+<text text-anchor="middle" x="511.5" y="-62.4" font-family="Helvetica,sans-Serif" font-size="12.00">Vivado + Vitis DT</text>
 <text text-anchor="middle" x="511.5" y="-49.4" font-family="Helvetica,sans-Serif" font-size="12.00">implementation</text>
 </g>
 <!-- linux_chain&#45;&gt;implementation_backend -->
