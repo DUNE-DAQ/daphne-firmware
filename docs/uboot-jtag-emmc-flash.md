@@ -13,7 +13,7 @@ operator installs SOM on DAPHNE carrier
   -> U-Boot prompt on serial
   -> read SOM EEPROM at 0x50
   -> database discover/allocate/render
-  -> TFTP block-aligned WIC chunks
+  -> XSDB loads block-aligned WIC chunks into DDR
   -> U-Boot mmc write to eMMC
   -> reboot into the installed image
 ```
@@ -25,12 +25,17 @@ it to a separate boot-firmware recovery lane.
 
 - JTAG adapter visible to `xsdb`.
 - Serial console connected to the U-Boot console.
-- TFTP server reachable from the DAPHNE management Ethernet port.
 - Power control or an operator-enforced power-cycle step.
-- Immutable WIC chunk manifest and chunk files in the TFTP root.
+- Immutable WIC chunk manifest and chunk files on the station.
 - Built boot components for the same release: `pmufw.elf`,
   `zynqmp_fsbl.elf`, `bl31.elf`, and `u-boot-dtb.elf`.
+- A `rootfs.wic.gz` image from that same release.
 - User Python environment with `pyserial`.
+
+The DAPHNE hardware handoff disables PS GEM0 through GEM3. Therefore the
+virgin-SOM path must not depend on DHCP, TFTP, or an Ethernet interface. JTAG
+loads U-Boot into RAM and then loads each WIC chunk into DDR; serial commands
+ask U-Boot to write and verify the chunk on eMMC.
 
 Set the station-specific paths once per lane. `DAPHNE_SERIAL` must be the port
 confirmed to carry the DAPHNE UART1 console; do not assume USB enumeration is
@@ -41,6 +46,7 @@ STATION_PYTHON="${STATION_PYTHON:-python3}"
 HARDWARE_DATABASE="${HARDWARE_DATABASE:-../hardware-database}"
 DAPHNE_SERIAL="${DAPHNE_SERIAL:-/dev/ttyUSB2}"
 DAPHNE_RELEASE="${DAPHNE_RELEASE:-$(git rev-parse --short HEAD)}"
+DAPHNE_RELEASE_ROOT="${DAPHNE_RELEASE_ROOT:-/controlled/releases}"
 ```
 
 ## One-Station Operator Loop
@@ -48,8 +54,8 @@ DAPHNE_RELEASE="${DAPHNE_RELEASE:-$(git rev-parse --short HEAD)}"
 Run one board at a time on a station lane:
 
 1. Scan or enter the DAPHNE asset ID.
-2. Install the K26 SOM on the DAPHNE carrier and connect JTAG, serial, Ethernet,
-   and power.
+2. Install the K26 SOM on the DAPHNE carrier and connect JTAG, serial, and
+   power.
 3. RAM-boot U-Boot over JTAG with `xsdb`.
 4. Catch the U-Boot prompt on serial.
 5. Dump the K26 SOM EEPROM over U-Boot I2C and decode it with the production
@@ -65,14 +71,13 @@ assignment conflicts with an existing board.
 
 ## Prepare WIC Chunks
 
-U-Boot normally loads a whole TFTP file into RAM. Split the WIC into
-block-aligned chunks so each chunk can be loaded, checked, and written without
-requiring enough RAM for the full image.
+Split the WIC into block-aligned chunks so each chunk can be loaded, checked,
+and written without requiring enough DDR for the full image.
 
 ```bash
 "${STATION_PYTHON}" scripts/remote/prepare_uboot_wic_chunks.py \
   --input petalinux/output/daphne-petalinux/rootfs/rootfs.wic.gz \
-  --output-dir "/srv/tftp/daphne/releases/${DAPHNE_RELEASE}/wic" \
+  --output-dir "${DAPHNE_RELEASE_ROOT}/${DAPHNE_RELEASE}/wic" \
   --name "daphne-image-${DAPHNE_RELEASE}" \
   --chunk-size 64MiB
 ```
@@ -136,16 +141,14 @@ product, revision, EEPROM SHA-256, and MAC ID 0. For the carrier-board
 production lane, this U-Boot dump replaces the Linux
 `/sys/bus/i2c/devices/1-0050/eeprom` capture.
 
-## Flash eMMC From U-Boot
+## Flash eMMC Over JTAG and U-Boot Serial
 
 Dry-run the exact command sequence first:
 
 ```bash
-"${STATION_PYTHON}" scripts/remote/uboot_flash_wic.py \
-  --manifest "/srv/tftp/daphne/releases/${DAPHNE_RELEASE}/wic/manifest.json" \
-  --tftp-prefix "daphne/releases/${DAPHNE_RELEASE}/wic" \
-  --serverip 192.0.2.1 \
-  --dhcp \
+"${STATION_PYTHON}" scripts/remote/uboot_flash_wic_jtag.py \
+  --manifest "${DAPHNE_RELEASE_ROOT}/${DAPHNE_RELEASE}/wic/manifest.json" \
+  --xsdb /tools/2026.1/Vivado/bin/xsdb \
   --mmc-dev 0 \
   --verify-readback \
   --dry-run
@@ -154,11 +157,9 @@ Dry-run the exact command sequence first:
 Run the flash:
 
 ```bash
-"${STATION_PYTHON}" scripts/remote/uboot_flash_wic.py \
-  --manifest "/srv/tftp/daphne/releases/${DAPHNE_RELEASE}/wic/manifest.json" \
-  --tftp-prefix "daphne/releases/${DAPHNE_RELEASE}/wic" \
-  --serverip 192.0.2.1 \
-  --dhcp \
+"${STATION_PYTHON}" scripts/remote/uboot_flash_wic_jtag.py \
+  --manifest "${DAPHNE_RELEASE_ROOT}/${DAPHNE_RELEASE}/wic/manifest.json" \
+  --xsdb /tools/2026.1/Vivado/bin/xsdb \
   --mmc-dev 0 \
   --verify-readback \
   --reset-after \
@@ -166,24 +167,14 @@ Run the flash:
   --log /evidence/RUN/flash.log
 ```
 
-For a static pilot network, replace `--dhcp` with explicit U-Boot variables:
+For every chunk, the flasher verifies the local SHA-256, halts the A53 at the
+U-Boot prompt, uses `xsdb dow -data` to fill DDR, resumes U-Boot, verifies the
+DDR CRC32, writes the eMMC blocks, and optionally reads them back for a second
+CRC32. The serial transcript and XSDB output share one evidence log.
 
-```bash
---ipaddr 192.0.2.101 --serverip 192.0.2.1 --netmask 255.255.255.0
-```
-
-If a privileged TFTP service on UDP port 69 is unavailable, validate that the
-built U-Boot honors `tftpdstp` and pass a high-port server setting:
-
-```bash
---tftp-dst-port 1069
-```
-
-For throughput tuning after the first board, the flasher can also set
-`tftpblocksize` and `tftpwindowsize`.
-
-Use `--ethaddr` only when U-Boot did not already load the expected K26 EEPROM
-MAC. A random U-Boot MAC is a quarantine condition.
+The existing `uboot_flash_wic.py` TFTP transport remains useful only on a
+future station/carrier combination whose U-Boot network path has been
+independently qualified. It is not the default DAPHNE virgin-SOM procedure.
 
 After a successful flash, record provisioning in the database using the rendered
 board snapshot hash and the release artifact manifest hash. Do not mark QA
@@ -192,7 +183,9 @@ passed until the post-boot QA recipe is complete.
 ## Pilot Constraints
 
 - Flash one powered board per station lane.
-- Keep the TFTP release directory immutable during a run.
+- Keep the release/chunk directory immutable during a run.
+- Do not leave `screen`, another serial program, or another XSDB session
+  holding the lane's serial/JTAG devices.
 - Use `--verify-readback` for the 10-board pilot. Disable it later only after
   measuring the time tradeoff and adding a separate post-boot image-integrity
   check.
@@ -200,4 +193,4 @@ passed until the post-boot QA recipe is complete.
   database operation IDs as evidence.
 - Confirm the station-specific values once with hardware before the 10-board
   pilot: serial port, JTAG target filters, U-Boot I2C bus, U-Boot MMC device,
-  and management Ethernet link speed.
+  and safe DDR load/verify addresses.

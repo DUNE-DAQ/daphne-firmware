@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare block-aligned WIC chunks for fast U-Boot TFTP/eMMC flashing."""
+"""Prepare block-aligned WIC chunks for U-Boot eMMC flashing."""
 
 from __future__ import annotations
 
@@ -47,7 +47,12 @@ def parse_size(value: str) -> int:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True, help="Input .wic or .wic.gz image")
-    parser.add_argument("--output-dir", type=Path, required=True, help="TFTP-visible output directory")
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        required=True,
+        help="Chunk/manifest directory (local for JTAG or server-visible for TFTP)",
+    )
     parser.add_argument(
         "--name",
         default=None,
