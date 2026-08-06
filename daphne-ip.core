@@ -185,9 +185,6 @@ filesets:
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lib/axi4lite_pkg.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lib/axi4s_pkg.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lib/axi4s_xpm_fifo.vhd
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/hdl/axi_bram_ctrl_v4_1_rfs.vhd
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/sim/axi4_lite_bram_ctrl_0.vhd
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/synth/axi4_lite_bram_ctrl_0.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/common_stfc_lib/common_stfc_pkg.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/common_stfc_lib/reset_sync.vhd
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/crc_lib/crc32_128_bytewise_lut_python.vhd
