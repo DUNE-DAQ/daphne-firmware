@@ -118,6 +118,12 @@ require_fixed "set_false_path -to \$frontend_sync_stage1_pins" "$CDC_TCL" \
   "frontend CDC Tcl no longer cuts the explicit frontend synchronizer first-stage pins."
 require_fixed "*frontend_common_inst/idelay_load_clk125_meta_reg*/D" "$CDC_TCL" \
   "frontend CDC Tcl no longer identifies the idelay-load synchronizer first stage."
+require_fixed "*frontend_common_inst/software_trig_meta_reg/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the software-trigger synchronizer first stage."
+require_fixed "*frontend_common_inst/external_trig_meta_reg/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the external-trigger synchronizer first stage."
+require_fixed "*frontend_common_inst/spy_trigger_control_meta_reg*/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the spy-trigger control synchronizer first stage."
 require_fixed "set_false_path -to \$endpoint_sync_stage1_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the explicit PDTS synchronizer first-stage pins."
 require_fixed "set_false_path -from \$rx_tmg_port -to \$endpoint_raw_rx_sample_pins" "$ENDPOINT_CDC_TCL" \

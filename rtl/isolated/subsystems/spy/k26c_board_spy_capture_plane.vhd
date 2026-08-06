@@ -7,14 +7,17 @@ use work.daphne_subsystem_pkg.all;
 
 entity k26c_board_spy_capture_plane is
   port (
-    clock_i            : in  std_logic;
-    reset_i            : in  std_logic;
-    frontend_trigger_i : in  std_logic;
-    afe_dout_i         : in  array_5x9x16_type;
-    timestamp_i        : in  std_logic_vector(63 downto 0);
-    adhoc_i            : in  std_logic_vector(7 downto 0);
-    ti_trigger_i       : in  std_logic_vector(7 downto 0);
-    ti_trigger_stbr_i  : in  std_logic;
+    clock_i             : in  std_logic;
+    reset_i             : in  std_logic;
+    software_trigger_i  : in  std_logic;
+    external_trigger_i  : in  std_logic;
+    trigger_source_i    : in  std_logic_vector(1 downto 0);
+    trigger_inhibit_i   : in  std_logic;
+    afe_dout_i          : in  array_5x9x16_type;
+    timestamp_i         : in  std_logic_vector(63 downto 0);
+    adhoc_i             : in  std_logic_vector(7 downto 0);
+    ti_trigger_i        : in  std_logic_vector(7 downto 0);
+    ti_trigger_stbr_i   : in  std_logic;
     s_axi_aclk         : in  std_logic;
     s_axi_aresetn      : in  std_logic;
     s_axi_awaddr       : in  std_logic_vector(31 downto 0);
@@ -46,7 +49,10 @@ begin
     port map (
       clock_i            => clock_i,
       reset_i            => reset_i,
-      frontend_trigger_i => frontend_trigger_i,
+      software_trigger_i => software_trigger_i,
+      external_trigger_i => external_trigger_i,
+      trigger_source_i   => trigger_source_i,
+      trigger_inhibit_i  => trigger_inhibit_i,
       adhoc_i            => adhoc_i,
       ti_trigger_i       => ti_trigger_i,
       ti_trigger_stbr_i  => ti_trigger_stbr_i,

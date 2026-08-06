@@ -10,8 +10,27 @@ filesets:
     files:
       - rtl/isolated/subsystems/spy/k26c_board_spy_trigger_plane.vhd
     file_type: vhdlSource-2008
+  tb_smoke:
+    files:
+      - tests/logic/k26c_board_spy_trigger_plane_smoke_tb.vhd
+    file_type: vhdlSource-2008
 
 targets:
   default:
     filesets:
       - rtl
+  sim:
+    description: GHDL smoke test for spy-buffer trigger selection and inhibit
+    filesets:
+      - rtl
+    default_tool: ghdl
+    filesets_append:
+      - tb_smoke
+    toplevel: k26c_board_spy_trigger_plane_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us

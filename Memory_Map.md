@@ -60,6 +60,7 @@ List of all the register addresses present in daphne_selftrigger_top/MEZZ's firm
 |  0x28   | 0x88000028 | iserdes_bitslip_reg(2) |  4b   |  R/W   |    0x0     |       AFE2 Bitslip register       |   Execute a defined amount of bitslip operations (0x0 - 0xF)    |
 |  0x2C   | 0x8800002C | iserdes_bitslip_reg(3) |  4b   |  R/W   |    0x0     |       AFE3 Bitslip register       |   Execute a defined amount of bitslip operations (0x0 - 0xF)    |
 |  0x30   | 0x88000030 | iserdes_bitslip_reg(4) |  4b   |  R/W   |    0x0     |       AFE4 Bitslip register       |   Execute a defined amount of bitslip operations (0x0 - 0xF)    |
+|  0x34   | 0x88000034 | spy_trigger_ctrl_reg(2:0) |  3b   |  R/W   |    0x3     | Spy-buffer trigger source/inhibit | (2) Inhibit all spy-buffer triggers. (1:0) Source: 0 software, 1 external, 2 timing/ad-hoc, 3 legacy OR/all. |
 
 ## SPI Master Control for DAC chips AXI-4 Lite Slave Interface: `SPI_DAC_S_AXI`
 **Base Address:** `0x8C00_0000`
