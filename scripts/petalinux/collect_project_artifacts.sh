@@ -5,8 +5,8 @@ usage() {
   cat <<'EOF'
 Usage: collect_project_artifacts.sh PETALINUX_PROJECT_DIR [BUNDLE_DIR]
 
-Collect the boot, DT, rootfs, and overlay artifacts used by the supported
-inactive-eMMC-slot deployment path.
+Collect the boot, DT, rootfs, and profile-qualified overlay artifacts used by
+whole-eMMC provisioning and inactive-slot updates.
 
 Default bundle directory:
   petalinux/output/<project-name>
@@ -38,6 +38,7 @@ trap cleanup_staging_bundle EXIT
 
 IMAGES_DIR="$PROJECT_DIR/images/linux"
 STAGED_DIR="$PROJECT_DIR/project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged"
+LOCAL_CONF="$PROJECT_DIR/build/conf/local.conf"
 BOOT_DIR="$BUNDLE_DIR/boot"
 ROOTFS_DIR="$BUNDLE_DIR/rootfs"
 OVERLAY_DIR="$BUNDLE_DIR/overlay"
@@ -63,6 +64,33 @@ if [[ ! -d "$IMAGES_DIR" ]]; then
   echo "Run petalinux-build first." >&2
   exit 2
 fi
+
+IMAGE_PROFILE="unknown"
+if [[ -f "$LOCAL_CONF" ]]; then
+  detected_profile="$({
+    sed -nE \
+      's/^[[:space:]]*DAPHNE_IMAGE_PROFILE[[:space:]]*(\?=|=)[[:space:]]*"([^"]+)".*$/\2/p' \
+      "$LOCAL_CONF" || true
+  } | tail -n 1)"
+  if [[ -n "$detected_profile" ]]; then
+    IMAGE_PROFILE="$detected_profile"
+  fi
+fi
+
+INCLUDE_STAGED_OVERLAY=0
+DEPLOYMENT_SCOPE="unclassified"
+OVERLAY_POLICY="excluded-unclassified-profile"
+case "$IMAGE_PROFILE" in
+  provisioning)
+    DEPLOYMENT_SCOPE="virgin-som-whole-emmc"
+    OVERLAY_POLICY="excluded-for-provisioning"
+    ;;
+  minimal|developer)
+    INCLUDE_STAGED_OVERLAY=1
+    DEPLOYMENT_SCOPE="whole-emmc-and-inactive-slot"
+    OVERLAY_POLICY="included-from-staged-artifacts"
+    ;;
+esac
 
 mkdir -p "$BOOT_DIR" "$ROOTFS_DIR" "$OVERLAY_DIR" "$META_DIR"
 
@@ -108,7 +136,7 @@ copy_if_exists "$IMAGES_DIR/rootfs.wic.gz" "$ROOTFS_DIR/rootfs.wic.gz"
 copy_if_exists "$IMAGES_DIR/rootfs.cpio.gz" "$ROOTFS_DIR/rootfs.cpio.gz"
 copy_if_exists "$IMAGES_DIR/rootfs.manifest" "$ROOTFS_DIR/rootfs.manifest"
 
-if [[ -d "$STAGED_DIR" ]]; then
+if (( INCLUDE_STAGED_OVERLAY == 1 )) && [[ -d "$STAGED_DIR" ]]; then
   copy_if_exists "$STAGED_DIR/daphne-overlay.dtbo" "$OVERLAY_DIR/daphne-overlay.dtbo"
   copy_if_exists "$STAGED_DIR/daphne-overlay.bin" "$OVERLAY_DIR/daphne-overlay.bin"
   copy_if_exists "$STAGED_DIR/shell.json" "$OVERLAY_DIR/shell.json"
@@ -116,11 +144,26 @@ if [[ -d "$STAGED_DIR" ]]; then
   copy_if_exists "$STAGED_DIR/BUILD-METADATA.txt" "$OVERLAY_DIR/BUILD-METADATA.txt"
 fi
 
+FIRMWARE_GIT_COMMIT="unknown"
+FIRMWARE_GIT_DIRTY="unknown"
+if command -v git >/dev/null 2>&1 && git -C "$ROOT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  FIRMWARE_GIT_COMMIT="$(git -C "$ROOT_DIR" rev-parse HEAD)"
+  if [[ -n "$(git -C "$ROOT_DIR" status --porcelain)" ]]; then
+    FIRMWARE_GIT_DIRTY="true"
+  else
+    FIRMWARE_GIT_DIRTY="false"
+  fi
+fi
+
 cat > "$META_DIR/COLLECT-METADATA.txt" <<EOF
 project_name=$PROJECT_NAME
 machine=xilinx-k26-kr
 machine_include=daphne-k26c-xsa
-deployment_scope=inactive-emmc-slot-only
+image_profile=$IMAGE_PROFILE
+deployment_scope=$DEPLOYMENT_SCOPE
+overlay_policy=$OVERLAY_POLICY
+firmware_git_commit=$FIRMWARE_GIT_COMMIT
+firmware_git_dirty=$FIRMWARE_GIT_DIRTY
 EOF
 
 (
