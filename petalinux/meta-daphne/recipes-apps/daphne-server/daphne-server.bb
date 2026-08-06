@@ -13,7 +13,7 @@ SRC_URI += " \
   file://README.server \
   file://staged/BUILD-METADATA.txt \
   file://staged/SHA256SUMS \
-  file://staged/daphne-server-runtime-minimal.tgz \
+  file://staged/daphne-server-runtime-minimal.tgz;unpack=0 \
 "
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
@@ -30,7 +30,11 @@ do_install() {
         bbfatal "DAPHNE runtime bundle checksum verification failed"
     fi
 
-    runtime_root="${WORKDIR}"
+    runtime_root="${WORKDIR}/runtime-root"
+    rm -rf "${runtime_root}"
+    install -d "${runtime_root}"
+    tar -xzf "${WORKDIR}/staged/daphne-server-runtime-minimal.tgz" \
+        -C "${runtime_root}"
     deps_root="${runtime_root}/home/petalinux/daphne-server/build-petalinux/_deps"
     lib_src_dir="$(find "${deps_root}" -mindepth 3 -maxdepth 3 -type d -path '*/prefix/lib' | sort | head -n 1)"
     if [ -z "${lib_src_dir}" ]; then

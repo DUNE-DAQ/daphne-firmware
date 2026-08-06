@@ -18,7 +18,8 @@ SRC_URI += " \
 DAPHNE_OVERLAY_APP = "daphne"
 
 do_install() {
-    app_dir="${D}/lib/firmware/xilinx/${DAPHNE_OVERLAY_APP}"
+    firmware_dir="${D}${nonarch_base_libdir}/firmware"
+    app_dir="${firmware_dir}/xilinx/${DAPHNE_OVERLAY_APP}"
 
     install -d "${app_dir}"
     install -d ${D}${datadir}/daphne-firmware
@@ -39,13 +40,13 @@ do_install() {
     ln -snf daphne-overlay.bin "${app_dir}/${DAPHNE_OVERLAY_APP}.bin"
     ln -snf daphne-overlay.dtbo "${app_dir}/${DAPHNE_OVERLAY_APP}.dtbo"
     ln -snf "xilinx/${DAPHNE_OVERLAY_APP}/${DAPHNE_OVERLAY_APP}.bin" \
-        "${D}/lib/firmware/${DAPHNE_OVERLAY_FIRMWARE_NAME}"
+        "${firmware_dir}/${DAPHNE_OVERLAY_FIRMWARE_NAME}"
 
 }
 
 FILES:${PN} += " \
     ${datadir}/daphne-firmware/README.overlay \
-    /lib/firmware/${DAPHNE_OVERLAY_FIRMWARE_NAME} \
-    /lib/firmware/xilinx/${DAPHNE_OVERLAY_APP} \
-    /lib/firmware/xilinx/${DAPHNE_OVERLAY_APP}/* \
+    ${nonarch_base_libdir}/firmware/${DAPHNE_OVERLAY_FIRMWARE_NAME} \
+    ${nonarch_base_libdir}/firmware/xilinx/${DAPHNE_OVERLAY_APP} \
+    ${nonarch_base_libdir}/firmware/xilinx/${DAPHNE_OVERLAY_APP}/* \
 "
