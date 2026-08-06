@@ -157,6 +157,7 @@ Dry-run the exact command sequence first:
 ```bash
 "${STATION_PYTHON}" scripts/remote/uboot_flash_wic_jtag.py \
   --manifest "${DAPHNE_RELEASE_ROOT}/${DAPHNE_RELEASE}/wic/manifest.json" \
+  --device "${DAPHNE_SERIAL}" \
   --xsdb /tools/2026.1/Vivado/bin/xsdb \
   --mmc-dev 0 \
   --verify-readback \
