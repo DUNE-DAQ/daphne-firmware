@@ -227,11 +227,18 @@ Collected output lands in:
 ```text
 petalinux/output/<project-name>/
   boot/
+    BOOT.BIN
+    zynqmp_fsbl.elf
+    pmufw.elf
+    bl31.elf
+    u-boot.elf
+    u-boot-dtb.elf
     Image
     system.dtb
     ramdisk.cpio.gz.u-boot
   rootfs/
     rootfs.ext4
+    rootfs.wic.gz
   overlay/
     daphne-overlay.dtbo
     daphne-overlay.bin
@@ -246,8 +253,13 @@ At minimum, check for:
 ```text
 boot/Image
 boot/system.dtb
+boot/zynqmp_fsbl.elf
+boot/pmufw.elf
+boot/bl31.elf
+boot/u-boot-dtb.elf
 boot/ramdisk.cpio.gz.u-boot
 rootfs/rootfs.ext4
+rootfs/rootfs.wic.gz
 overlay/daphne-overlay.dtbo
 overlay/daphne-overlay.bin
 overlay/shell.json

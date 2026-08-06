@@ -84,6 +84,11 @@ copy_glob_matches() {
 }
 
 copy_if_exists "$IMAGES_DIR/BOOT.BIN" "$BOOT_DIR/BOOT.BIN"
+copy_if_exists "$IMAGES_DIR/zynqmp_fsbl.elf" "$BOOT_DIR/zynqmp_fsbl.elf"
+copy_if_exists "$IMAGES_DIR/pmufw.elf" "$BOOT_DIR/pmufw.elf"
+copy_if_exists "$IMAGES_DIR/bl31.elf" "$BOOT_DIR/bl31.elf"
+copy_if_exists "$IMAGES_DIR/u-boot.elf" "$BOOT_DIR/u-boot.elf"
+copy_if_exists "$IMAGES_DIR/u-boot-dtb.elf" "$BOOT_DIR/u-boot-dtb.elf"
 copy_if_exists "$IMAGES_DIR/Image" "$BOOT_DIR/Image"
 copy_if_exists "$IMAGES_DIR/boot.scr" "$BOOT_DIR/boot.scr"
 copy_if_exists "$IMAGES_DIR/imgsel.elf" "$BOOT_DIR/imgsel.elf"

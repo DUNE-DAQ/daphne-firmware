@@ -209,7 +209,18 @@ the collected output shape:
 ```text
 petalinux/output/<project-name>/
   boot/
+    BOOT.BIN
+    zynqmp_fsbl.elf
+    pmufw.elf
+    bl31.elf
+    u-boot.elf
+    u-boot-dtb.elf
+    Image
+    system.dtb
+    ramdisk.cpio.gz.u-boot
   rootfs/
+    rootfs.ext4
+    rootfs.wic.gz
   overlay/
   meta/
   MANIFEST.txt
