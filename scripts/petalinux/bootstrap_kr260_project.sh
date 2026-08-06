@@ -15,7 +15,7 @@ This script:
   4. records the requested DAPHNE image profile in build/conf/local.conf
 
 Options:
-  --image-profile NAME   DAPHNE image profile: developer|minimal
+  --image-profile NAME   DAPHNE image profile: provisioning|minimal|developer
                          (default: minimal)
   -h, --help             Show this help
 
@@ -71,7 +71,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$IMAGE_PROFILE" in
-  developer|minimal)
+  provisioning|developer|minimal)
     ;;
   *)
     echo "ERROR: unsupported --image-profile: $IMAGE_PROFILE" >&2
@@ -208,11 +208,35 @@ replacements = {
     r'^CONFIG_YOCTO_INCLUDE_MACHINE_NAME=.*$':
         'CONFIG_YOCTO_INCLUDE_MACHINE_NAME="daphne-k26c-xsa"',
     r'^(# )?CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL(=.*| is not set)?$':
-        'CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=y',
+        '# CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL is not set',
     r'^(# )?CONFIG_SUBSYSTEM_UBOOT_EXT_DTB(=.*| is not set)?$':
         'CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=y',
     r'^CONFIG_UBOOT_DTB_PACKAGE_NAME=.*$':
         'CONFIG_UBOOT_DTB_PACKAGE_NAME="u-boot.dtb"',
+    r'^(# )?CONFIG_SUBSYSTEM_PMUFW_SERIAL_PSU_UART_1_SELECT(=.*| is not set)?$':
+        'CONFIG_SUBSYSTEM_PMUFW_SERIAL_PSU_UART_1_SELECT=y',
+    r'^(# )?CONFIG_SUBSYSTEM_PMUFW_SERIAL_MANUAL_SELECT(=.*| is not set)?$':
+        '# CONFIG_SUBSYSTEM_PMUFW_SERIAL_MANUAL_SELECT is not set',
+    r'^(# )?CONFIG_SUBSYSTEM_FSBL_SERIAL_PSU_UART_1_SELECT(=.*| is not set)?$':
+        'CONFIG_SUBSYSTEM_FSBL_SERIAL_PSU_UART_1_SELECT=y',
+    r'^(# )?CONFIG_SUBSYSTEM_FSBL_SERIAL_PSU_CORESIGHT_0_SELECT(=.*| is not set)?$':
+        '# CONFIG_SUBSYSTEM_FSBL_SERIAL_PSU_CORESIGHT_0_SELECT is not set',
+    r'^(# )?CONFIG_SUBSYSTEM_FSBL_SERIAL_MANUAL_SELECT(=.*| is not set)?$':
+        '# CONFIG_SUBSYSTEM_FSBL_SERIAL_MANUAL_SELECT is not set',
+    r'^(# )?CONFIG_SUBSYSTEM_TF-A_SERIAL_PSU_UART_1_SELECT(=.*| is not set)?$':
+        'CONFIG_SUBSYSTEM_TF-A_SERIAL_PSU_UART_1_SELECT=y',
+    r'^(# )?CONFIG_SUBSYSTEM_TF-A_SERIAL_PSU_CORESIGHT_0_SELECT(=.*| is not set)?$':
+        '# CONFIG_SUBSYSTEM_TF-A_SERIAL_PSU_CORESIGHT_0_SELECT is not set',
+    r'^(# )?CONFIG_SUBSYSTEM_TF-A_SERIAL_MANUAL_SELECT(=.*| is not set)?$':
+        '# CONFIG_SUBSYSTEM_TF-A_SERIAL_MANUAL_SELECT is not set',
+    r'^(# )?CONFIG_SUBSYSTEM_SERIAL_PSU_UART_1_SELECT(=.*| is not set)?$':
+        'CONFIG_SUBSYSTEM_SERIAL_PSU_UART_1_SELECT=y',
+    r'^(# )?CONFIG_SUBSYSTEM_SERIAL_PSU_CORESIGHT_0_SELECT(=.*| is not set)?$':
+        '# CONFIG_SUBSYSTEM_SERIAL_PSU_CORESIGHT_0_SELECT is not set',
+    r'^(# )?CONFIG_SUBSYSTEM_SERIAL_MANUAL_SELECT(=.*| is not set)?$':
+        '# CONFIG_SUBSYSTEM_SERIAL_MANUAL_SELECT is not set',
+    r'^(# )?CONFIG_SUBSYSTEM_SERIAL_PSU_UART_1_BAUDRATE_115200(=.*| is not set)?$':
+        'CONFIG_SUBSYSTEM_SERIAL_PSU_UART_1_BAUDRATE_115200=y',
 }
 
 for pattern, replacement in replacements.items():
@@ -222,20 +246,25 @@ for pattern, replacement in replacements.items():
             text += "\n"
         text += replacement + "\n"
 
-dedupe_prefixes = (
-    "CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=",
-    "CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=",
-    "CONFIG_UBOOT_DTB_PACKAGE_NAME=",
+dedupe_symbols = (
+    "CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL",
+    "CONFIG_SUBSYSTEM_UBOOT_EXT_DTB",
+    "CONFIG_UBOOT_DTB_PACKAGE_NAME",
 )
 
 lines = text.splitlines()
 seen = set()
 filtered = []
 for line in reversed(lines):
-    if any(line.startswith(prefix) for prefix in dedupe_prefixes):
-        if line in seen:
+    symbol = next((
+        candidate for candidate in dedupe_symbols
+        if line.startswith(candidate + "=")
+        or line == f"# {candidate} is not set"
+    ), None)
+    if symbol:
+        if symbol in seen:
             continue
-        seen.add(line)
+        seen.add(symbol)
     filtered.append(line)
 text = "\n".join(reversed(filtered)) + "\n"
 
@@ -319,9 +348,13 @@ Pinned KR260 machine settings:
   CONFIG_SUBSYSTEM_INITRAMFS_IMAGE_NAME="petalinux-initramfs-image"
   CONFIG_YOCTO_MACHINE_NAME="xilinx-k26-kr"
   CONFIG_YOCTO_INCLUDE_MACHINE_NAME="daphne-k26c-xsa"
-  CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=y
+  # CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL is not set
   CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=y
   CONFIG_UBOOT_DTB_PACKAGE_NAME="u-boot.dtb"
+
+Pinned DAPHNE console settings:
+  PMUFW, FSBL, TF-A, U-Boot, and Linux use psu_uart_1
+  UART1 baud rate is 115200
 
 DAPHNE rootfs package overrides:
   CONFIG_nfs-utils is not set

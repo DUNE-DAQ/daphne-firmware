@@ -46,6 +46,12 @@ When `scripts/petalinux/bootstrap_kr260_project.sh` attaches `meta-daphne`, the
 project-local config now records a `DAPHNE_IMAGE_PROFILE`. The supported
 profiles are:
 
+- `provisioning`
+  - no `daphne-overlay`, `daphne-server`, or auto-start runtime services
+  - intended for JTAG RAM boot and first eMMC installation on a virgin SOM
+  - emits `rootfs.wic.gz` with a 128 MiB boot partition to reduce the raw JTAG
+    write size compared with AMD's generic 512 MiB boot layout
+
 - `developer`
   - `daphne-overlay`
   - `daphne-server`
@@ -64,7 +70,12 @@ protobuf, abseil, CLI11, Python 3, and the Python client packages.
 
 The repo now defaults fresh KR260 projects to `minimal`. That keeps the
 current `petalinux-initramfs-image` build under the initramfs size limit. Use
+`provisioning` when no qualified FPGA overlay is available, and use
 `developer` only when you intentionally want the extra on-target build stack.
+
+All XSA-based image profiles disable the optional QSPI Image Selector. The
+2026.1 QSPI A/B firmware is a separate SDT build and qualification stream;
+rootfs package selection does not implicitly change boot firmware.
 
 To select the smaller profile during project setup:
 

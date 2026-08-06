@@ -16,19 +16,27 @@ Current 2026.1 handover target:
 - PetaLinux release: `2026.1`
 - Yocto codename: `scarthgap`
 - image policy: board-neutral common image
-- deployment scope: inactive eMMC slot only
+- deployment scope: whole-eMMC provisioning for virgin SOMs, then inactive
+  eMMC slot updates for enrolled boards
 - board inventory and assignment authority: companion `hardware-database`
   branch `marroyav/daphne-production-qa`
 
 Important current status:
 
-- the repo owns overlay, service, board-config rendering, runtime packaging,
-  and inactive-slot deployment paths
-- the local 2026.1 PetaLinux attempt is not yet complete; the known blockers
-  are the overlay `/lib` usrmerge package check and the PMU/FSBL configuration
-  path that still reaches disabled XSCT/obsolete BSP settings
-- no PetaLinux 2026.1 eMMC bundle is qualified until the build produces and
-  checksums `Image`, `system.dtb`, the ramdisk, and `rootfs.ext4`
+- the repo owns whole-eMMC JTAG provisioning, overlay, service, board-config
+  rendering, runtime packaging, and inactive-slot update paths
+- the PetaLinux 2026.1 XSA-flow provisioning image builds successfully with
+  UART1 at 115200 through PMUFW, FSBL, TF-A, U-Boot, and Linux
+- the build emits and checksums `BOOT.BIN`, the JTAG boot ELFs, `Image`,
+  `system.dtb`, the ramdisk, `rootfs.ext4`, and a compact `rootfs.wic.gz`
+- the WIC layout has a 128 MiB FAT `boot` partition and an ext4 `root`
+  partition; both labels have been verified from the generated image
+- hardware qualification is still pending the first JTAG/UART/eMMC pilot on
+  the DAPHNE carrier
+- QSPI A/B firmware is a separate 2026.1 SDT deliverable; it is deliberately
+  excluded from the XSA/eMMC image build
+- the current FPGA overlay is excluded from provisioning and remains
+  unqualified until the XXV license and post-route methodology gates close
 - the staged `daphneServer` payload remains a checksum-verified legacy
   external binary and is not reproducible from this repository
 
@@ -40,7 +48,8 @@ Historical bring-up on `DAPHNE-015` proved the older flow with:
   - repo-built tiny switch-root ramdisk
   - full repo-owned runtime service chain
 
-Those observations prove hardware feasibility, not the current 2026.1 build.
+Those observations prove hardware feasibility. The current 2026.1 build is
+software-validated but has not yet completed the first-board pilot.
 The longer-term boot contract is documented separately in:
 
 - `docs/remote-boot-deployment-plan.md`
@@ -73,14 +82,14 @@ sha256sum
 On this workspace, the active PetaLinux settings file is:
 
 ```bash
-source /opt/Xilinx/2026.1/PetaLinux/settings.sh
+source /tools/petalinux/settings.sh
 ```
 
-Keep the checkout path short. Recommended:
+Keep the checkout path short. On Cooper, keep all task data below the assigned
+workspace:
 
 ```text
-/mnt/c/w/d
-~/w/d
+/tmp/arroyave/work/current
 ```
 
 ## 1. Build the firmware handoff
@@ -161,6 +170,9 @@ This wrapper:
 Current default:
 
 - fresh KR260 projects now default to `--image-profile minimal`
+- use `--image-profile provisioning` for virgin-SOM JTAG/eMMC bootstrap when
+  no qualified FPGA overlay has been staged; this profile omits the overlay
+  and DAPHNE runtime services
 - use `--image-profile developer` only when you explicitly want the on-target
   build stack and are prepared to carry a larger image footprint
 
@@ -274,7 +286,7 @@ The remaining QSPI material in this document records the earlier 2024.1
 bring-up and recovery experiments. It is not an instruction to generate or
 write QSPI from the current 2026.1 handover branch. The 2026.1 custom machine
 removes `kria-qspi` from `EXTRA_IMAGEDEPENDS`, and the current collector emits
-only the inactive-eMMC deployment bundle.
+the whole-eMMC provisioning image plus the inactive-slot update payload.
 
 Historically, the collected boot artifacts were split into three tiers:
 
@@ -296,25 +308,21 @@ When `bootgen` is available, the build still validates that
 headers and records that result in
 `boot/qspi-primary/PRIMARY-BOOT-VALIDATION.txt`.
 
-The project bootstrap now also pins two KR260 boot-firmware settings that were
-present in the older DAPHNE flow and line up with AMD's documented ZynqMP/Kria
-A/B firmware path:
+All three XSA-based image profiles pin:
 
-- `CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL=y`
+- `# CONFIG_SUBSYSTEM_COMPONENT_IMG_SEL is not set`
 - `CONFIG_SUBSYSTEM_UBOOT_EXT_DTB=y`
 
-So a repo-built project should now explicitly own `imgsel.elf` generation and
-the separate U-Boot DTB path, instead of leaving both as implicit or manual
-menuconfig choices.
+Image Selector is not part of the JTAG-to-U-Boot/eMMC staging path, and the
+legacy XSCT application template is unavailable in the installed 2026.1
+tools. The separate U-Boot DTB remains explicit. Treat the complete QSPI A/B
+image as a separate SDT-based, qualified boot-firmware deliverable; do not
+make it a prerequisite for recovering or provisioning a virgin SOM.
 
-The full KR260 wrapper now also gets built explicitly with:
-
-```bash
-petalinux-build -c kria-qspi
-```
-
-That recipe is what emits the complete `kria-qspi.bin` SOM image around
-`imgsel`, recovery, and the duplicated boot banks.
+Do not run `petalinux-build -c kria-qspi` in this XSA project. The equivalent
+`kria-qspi` target belongs in the separate K26 SDT boot-firmware project; that
+workstream must emit and qualify the complete `kria-qspi.bin` SOM image around
+Image Selector, recovery, and the duplicated boot banks.
 
 ## 5.1 Deployment Host Topologies
 

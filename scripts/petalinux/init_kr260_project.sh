@@ -14,7 +14,7 @@ Options:
                           zynqMP template
   --template NAME        PetaLinux template to use when --bsp is not given
                           (default: zynqMP)
-  --image-profile NAME   DAPHNE image profile: developer|minimal
+  --image-profile NAME   DAPHNE image profile: provisioning|minimal|developer
                          (default: minimal)
   --output-dir DIR       Stage overlay artifacts from this firmware output dir
   --runtime-bundle TGZ   Stage this qualified DAPHNE runtime bundle
@@ -105,7 +105,7 @@ CREATE_ARGS="${DAPHNE_PETALINUX_CREATE_ARGS:-}"
 CONFIG_ARGS="${DAPHNE_PETALINUX_CONFIG_ARGS:-}"
 
 case "$IMAGE_PROFILE" in
-  developer|minimal)
+  provisioning|developer|minimal)
     ;;
   *)
     echo "ERROR: unsupported --image-profile: $IMAGE_PROFILE" >&2

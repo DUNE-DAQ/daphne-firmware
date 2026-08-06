@@ -27,13 +27,18 @@ uses the fragments here to:
 - pin the project config to the KR260 machine
   (`CONFIG_SUBSYSTEM_INITRAMFS_IMAGE_NAME="petalinux-initramfs-image"`,
   `CONFIG_YOCTO_MACHINE_NAME="xilinx-k26-kr"`,
-  `CONFIG_YOCTO_INCLUDE_MACHINE_NAME="k26-smk-kr"`,
+  `CONFIG_YOCTO_INCLUDE_MACHINE_NAME="daphne-k26c-xsa"`,
   `CONFIG_SUBSYSTEM_MACHINE_NAME="AUTO"`)
 - record `DAPHNE_IMAGE_PROFILE` in the project `local.conf`
+- pin PMUFW, FSBL, TF-A, U-Boot, and Linux to `psu_uart_1` at 115200 baud
 - inherit the repo-owned image postprocess hooks for access policy and
   runtime-service cleanup
 
-Two profiles are currently supported:
+Three profiles are currently supported:
+
+- `provisioning`
+  omits the FPGA overlay and DAPHNE runtime services so a virgin SOM cannot
+  auto-load a stale or unqualified firmware payload
 
 - `developer`
   includes the on-target build stack for `daphne-server` / `daphneZMQ`
@@ -54,7 +59,18 @@ Example:
   --image-profile minimal
 ```
 
-This is still scaffolding, not a verified end-to-end PetaLinux image build.
+Use `--image-profile provisioning` for the JTAG/eMMC bootstrap image until a
+qualified overlay bundle has been staged. Use `minimal` for the production
+runtime image only after that overlay has passed the firmware release gates.
+All profiles restore `rootfs.wic.gz` generation with the repo-owned
+`daphne-emmc.wks`; its 128 MiB boot partition keeps whole-device JTAG flashing
+compact while retaining the `boot` and `root` labels expected by U-Boot.
+All XSA-based profiles disable the optional QSPI Image Selector. QSPI A/B
+firmware is built and qualified separately through the 2026.1 SDT flow.
+
+The provisioning profile has completed an end-to-end PetaLinux 2026.1 build.
+The generated WIC partition table and filesystem labels are verified; the
+first JTAG/UART/eMMC hardware pilot is still pending.
 
 The current KR260 repo build path still uses an initramfs-oriented experiment,
 but that is not the long-term fleet contract. The intended remote-operations
