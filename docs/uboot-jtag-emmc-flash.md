@@ -44,10 +44,19 @@ stable between cable reconnects.
 ```bash
 STATION_PYTHON="${STATION_PYTHON:-python3}"
 HARDWARE_DATABASE="${HARDWARE_DATABASE:-../hardware-database}"
-DAPHNE_SERIAL="${DAPHNE_SERIAL:-/dev/ttyUSB2}"
+DAPHNE_SERIAL="${DAPHNE_SERIAL:?set this to the verified /dev/serial/by-id console path}"
 DAPHNE_RELEASE="${DAPHNE_RELEASE:-$(git rev-parse --short HEAD)}"
 DAPHNE_RELEASE_ROOT="${DAPHNE_RELEASE_ROOT:-/controlled/releases}"
 ```
+
+List stable FTDI interface paths with:
+
+```bash
+ls -l /dev/serial/by-id/usb-Xilinx_DAPHNEMezz_*-if*-port0
+```
+
+The first hardware pilot must identify which interface carries PS UART1. Keep
+that by-ID path in the lane configuration; `/dev/ttyUSB<N>` numbers can move.
 
 ## One-Station Operator Loop
 

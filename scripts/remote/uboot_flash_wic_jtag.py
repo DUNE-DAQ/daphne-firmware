@@ -64,7 +64,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help="Directory containing manifest chunks. Default: manifest directory.",
     )
-    parser.add_argument("--device", default="/dev/ttyUSB2", help="Serial device path")
+    parser.add_argument(
+        "--device",
+        required=True,
+        help="Verified U-Boot serial device (prefer a stable /dev/serial/by-id path)",
+    )
     parser.add_argument("--baudrate", type=int, default=115200)
     parser.add_argument("--prompt", default=PROMPT_DEFAULT)
     parser.add_argument("--timeout", type=float, default=60.0, help="Per-U-Boot-command timeout")
