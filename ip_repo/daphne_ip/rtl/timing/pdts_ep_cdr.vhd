@@ -96,7 +96,9 @@ begin
 				s => '0'
 			);
 		clkin <= rclki;
-	else generate
+	end generate;
+
+	gen_local_clk: if USE_EXT_PLL = FALSE generate
 		clkin <= bclk;
 	end generate;
 
