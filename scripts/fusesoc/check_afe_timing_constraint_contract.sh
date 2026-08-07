@@ -134,12 +134,16 @@ require_fixed "*/ep/regfile/ddone_reg/Q" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS deskew_done completion flag crossing."
 require_fixed "*/ep/sm/state_reg[*]/D" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer targets the PDTS state-machine destination pins for async completion flags."
+require_fixed "*/ep/sm/FSM_onehot_state_reg[*]/CE" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer targets Vivado one-hot PDTS state-machine enable pins for async completion flags."
 require_fixed "set_false_path -from \$endpoint_regfile_done_source_cells -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the PDTS regfile completion flags into the sys_clk state machine."
 require_fixed "*/ep/sm/addr_done" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS addr_done handoff net into the sys_clk state machine."
 require_fixed "*/ep/sm/deskew_done" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS deskew_done handoff net into the sys_clk state machine."
+require_fixed "*/ep/sm/sync_sys_clk/deskew_done" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer identifies the optimized PDTS deskew_done handoff net into the sys_clk state machine."
 require_fixed "set_false_path -through \$endpoint_state_machine_async_handoff_nets -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the explicit PDTS addr_done/deskew_done handoff nets into the sys_clk state machine."
 require_fixed "post-place report_methodology" "$FLOW_TCL" \

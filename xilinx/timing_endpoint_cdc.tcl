@@ -75,7 +75,7 @@ if {[llength $rx_tmg_port] == 1 && [llength $endpoint_raw_rx_sample_pins] > 0} {
 # The PDTS register file raises addr_done/deskew_done in the recovered frontend
 # clock domain, while the endpoint state machine consumes them on sys_clk.
 # Treat these completion flags as asynchronous handoff signals rather than
-# synchronous timing requirements between frontend_word_clk and mmcm0_clkout2.
+# synchronous timing requirements into the sys_clk-domain state machine.
 set endpoint_regfile_done_source_pins [daphne_collect_optional_endpoint_pins $endpoint_path {
     */ep/regfile/adone_reg/Q
     */ep/regfile/ddone_reg/Q
@@ -84,6 +84,11 @@ set endpoint_regfile_done_source_cells [get_cells -quiet -of_objects $endpoint_r
 
 set endpoint_state_machine_pins [daphne_collect_optional_endpoint_pins $endpoint_path {
     */ep/sm/state_reg[*]/D
+    */ep/sm/state_reg[*]/CE
+    */ep/sm/FSM_onehot_state_reg[*]/D
+    */ep/sm/FSM_onehot_state_reg[*]/CE
+    */ep/sm/FSM_sequential_state_reg[*]/D
+    */ep/sm/FSM_sequential_state_reg[*]/CE
 }]
 
 if {[llength $endpoint_regfile_done_source_cells] > 0 && [llength $endpoint_state_machine_pins] > 0} {
@@ -93,6 +98,8 @@ if {[llength $endpoint_regfile_done_source_cells] > 0 && [llength $endpoint_stat
 set endpoint_state_machine_async_handoff_nets [daphne_collect_optional_endpoint_nets $endpoint_path {
     */ep/sm/addr_done
     */ep/sm/deskew_done
+    */ep/sm/sync_sys_clk/addr_done
+    */ep/sm/sync_sys_clk/deskew_done
 }]
 
 if {[llength $endpoint_state_machine_async_handoff_nets] > 0 && [llength $endpoint_state_machine_pins] > 0} {
