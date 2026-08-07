@@ -24,15 +24,18 @@ entity pdts_ep_cdr is
 		los: in std_logic; -- LOS input
 		rclko: out std_logic; -- Recovered clock output
 		rclki: in std_logic := '0'; -- Recovered clock return
-		rsti: in std_logic := '0'; -- Async reset
+		clk_rst: in std_logic := '0'; -- Async reset of PLL
+		clk_lock: out std_logic; -- PLL lock
+		cdr_rst: in std_logic; -- CDR rst (clko domain)
+		cdr_resync: in std_logic := '0'; -- CDR sampler resync (clko domain)
 		clko: out std_logic; -- Output clock
 		clko4x: out std_logic; -- Output sample clock
 		clko2x: out std_logic; -- 2x clock for user application
 		rsto: out std_logic; -- clko domain reset (clko domain)
-		cdr_rst: in std_logic; -- CDR block resync (clko domain)
 		q: out std_logic; -- Data stream (clko domain)
 		locked: out std_logic; -- Asserted when clko good (clko domain)
 		phase: in std_logic_vector(11 downto 0); -- Phase setting (clko domain)
+		phase_stb: in std_logic; -- CDR block phase resync (clko domain)
 		phase_done: out std_logic; -- Phase done flag (clko domain)
 		dbg: out std_logic_vector(11 downto 0) -- CDR debug information (clko domain)
 	);
@@ -43,20 +46,21 @@ architecture rtl of pdts_ep_cdr is
 
 	signal bclk, bclk_f, clkin, clkfb, clku, clku4x, clku2x: std_logic;
 	signal mlock, clk, clk4x, clk2x, psincdec, psen, psdone: std_logic;
-	signal rsta, rst, rstm: std_logic;
-	signal cphase: std_logic_vector(11 downto 0);
+	signal rsta, rst, rstm, cdr_rst_i: std_logic;
+	signal bphase, cphase: std_logic_vector(11 downto 0);
 	signal psact, psd: std_logic;
-	
+
 	attribute ASYNC_REG: string;
 	attribute ASYNC_REG of rsta, rst: signal is "yes";
-	
-	attribute MARK_DEBUG: string;
-	attribute MARK_DEBUG of los, mlock, rst, cdr_rst, rsti, phase, psincdec, psen, psdone, cphase, psact, psd: signal is "TRUE";
+
+	--attribute MARK_DEBUG: string;
+	--attribute MARK_DEBUG of clk_rst, rstm, mlock, los, rst, cdr_resync,
+	--cdr_rst_i, psd, phase, bphase, cphase, phase_stb
+	--: signal is "TRUE";
 
 begin
 
--- Clock divider
-
+    -- Clock divider (divide DCSK by 2 and get a clock... )
 	bufr0: BUFR
 		generic map(
 			BUFR_DIVIDE => "2"
@@ -68,32 +72,37 @@ begin
 			clr => '0'
 		);
 
--- Clock forwarding to PLL; user must instantiate an OBUFDS if differential clock output
-		
-	bufgb: BUFG -- Needed for case where clock-forwarding ODDR is not in the same bank as the BUFR
-		port map(
-			i => bclk,
-			o => bclk_f
-	);
-	
-	oddr_rclko: ODDRE1 -- Feedback clock, not through MMCM
-		port map(
-			q => rclko,
-			c => bclk_f,
---			ce => '1',
-			d1 => '0',
-			d2 => '1',
-			sr => '0'
---			r => '0',
---			s => '0'
-		);
+	-- Clock forwarding to PLL; user must instantiate an OBUFDS if differential clock output
+	-- N.B. experimental, mode not current supported by DTS
+	gen_ext_pll: if USE_EXT_PLL = TRUE generate
+		bufgb: BUFG -- Needed for case where clock-forwarding ODDR is not in the same bank as the BUFR
+			port map(
+				i => bclk,
+				o => bclk_f
+			);
 
--- PLL
+		oddr_rclko: ODDR -- Feedback clock, not through MMCM
+			generic map(
+				DDR_CLK_EDGE => "SAME_EDGE",
+				SRTYPE => "ASYNC" -- Needed for forward compatibility with ultrascale
+			)
+			port map(
+				q => rclko,
+				c => bclk_f,
+				ce => '1',
+				d1 => '0',
+				d2 => '1',
+				r => '0',
+				s => '0'
+			);
+		clkin <= rclki;
+	else generate
+		clkin <= bclk;
+	end generate;
 
+	-- PLL
+	rstm <= clk_rst or los;
 
-	clkin <= rclki when USE_EXT_PLL else bclk;
-	rstm <= rsti or los;
-		
 	mmcm: MMCME2_ADV
 		generic map(
 			CLKIN1_PERIOD => (1000.0 * real(EXT_PLL_DIV) / CLK_FREQ), -- Input clock (62.5MHz)
@@ -127,7 +136,7 @@ begin
 			psclk => clk,
 			psdone => psdone
 		);
-		
+
 	bufg0: BUFG
 		port map(
 			i => clku,
@@ -154,6 +163,7 @@ begin
 
 -- Reset
 
+	clk_lock <= mlock;
 	rsta <= not mlock when rising_edge(clk); -- CDC; different clocks
 	rst <= rsta when rising_edge(clk); -- Synchroniser FF
 	rsto <= rst;
@@ -164,9 +174,14 @@ begin
 	begin
 		if rising_edge(clk) then
 			if rst = '1' then
+				bphase <= X"000";
 				cphase <= X"000";
 				psact <= '0';
 			else
+				if phase_stb = '1' then
+					bphase <= phase;
+				end if;
+
 				if psact = '0' then
 					if psd = '0' then
 						psen <= '1';
@@ -177,20 +192,24 @@ begin
 							psincdec <= '0';
 						end if;
 					end if;
-				elsif psdone = '1' then
-					if psincdec = '1' then
-						cphase <= std_logic_vector(unsigned(cphase) + 1);
-					else
-						cphase <= std_logic_vector(unsigned(cphase) - 1);
+				else
+					psen <= '0';
+					if psdone = '1' then
+						if psincdec = '1' then
+							cphase <= std_logic_vector(unsigned(cphase) + 1);
+						else
+							cphase <= std_logic_vector(unsigned(cphase) - 1);
+						end if;
+						psact <= '0';
 					end if;
-					psact <= '0';
 				end if;
 			end if;
 		end if;
 	end process;
-	
-	psd <= '1' when cphase = phase else '0';
+
+	psd <= '1' when cphase = bphase else '0';
 	phase_done <= psd;
+	cdr_rst_i <= rst or cdr_rst or (not psd);
 
 -- Data sampler
 
@@ -198,8 +217,8 @@ begin
 		port map(
 			clk => clk,
 			clk4x => clk4x,
-			rst => rst,
-			resync => cdr_rst,
+			rst => cdr_rst_i,
+			resync => cdr_resync,
 			d => d,
 			q => q,
 			locked => locked,

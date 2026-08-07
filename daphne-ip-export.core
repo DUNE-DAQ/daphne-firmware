@@ -107,6 +107,7 @@ filesets:
       - ip_repo/daphne_ip/rtl/timing/outputlogic_crc16.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_acmd_arb.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_cdr_sampler.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_chklock.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_cksum.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_clock_defs.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_code8b10bpkg.vhd

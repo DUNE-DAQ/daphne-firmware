@@ -290,9 +290,6 @@ entity k26c_board_shell is
     clock_gen_debug : out std_logic;
     mmcm0_100MHZ_CLK_debug : out std_logic;
     ep_62p5MHZ_CLK_debug : out std_logic;
-    F_OK_DEBUG : out std_logic;
-    SCTR_DEBUG : out std_logic_vector(15 downto 0);
-    CCTR_DEBUG : out std_logic_vector(15 downto 0);
     Trigered_debug : out std_logic
   );
 end entity k26c_board_shell;
@@ -417,9 +414,6 @@ begin
       clock_gen_debug         => clock_gen_debug,
       mmcm0_100mhz_clk_debug  => mmcm0_100MHZ_CLK_debug,
       ep_62p5mhz_clk_debug    => ep_62p5MHZ_CLK_debug,
-      f_ok_debug              => F_OK_DEBUG,
-      sctr_debug              => SCTR_DEBUG,
-      cctr_debug              => CCTR_DEBUG,
       clock_o                 => clock,
       clk500_o                => clk500,
       clk125_o                => clk125,

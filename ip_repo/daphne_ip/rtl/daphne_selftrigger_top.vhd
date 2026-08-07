@@ -278,9 +278,6 @@ port(
     clock_gen_debug: out std_logic;
     mmcm0_100MHZ_CLK_debug: out std_logic;
     ep_62p5MHZ_CLK_debug: out std_logic;
-    F_OK_DEBUG: out std_logic;
-    SCTR_DEBUG: OUT std_logic_vector (15 downto 0);
-    CCTR_DEBUG: OUT std_logic_vector (15 downto 0);
     Trigered_debug: out std_logic
   );
 end daphne_selftrigger_top;
@@ -551,9 +548,6 @@ begin
       clock_gen_debug           => clock_gen_debug,
       mmcm0_100MHZ_CLK_debug    => mmcm0_100MHZ_CLK_debug,
       ep_62p5MHZ_CLK_debug      => ep_62p5MHZ_CLK_debug,
-      F_OK_DEBUG                => F_OK_DEBUG,
-      SCTR_DEBUG                => SCTR_DEBUG,
-      CCTR_DEBUG                => CCTR_DEBUG,
       Trigered_debug            => Trigered_debug
     );
 end architecture rtl;

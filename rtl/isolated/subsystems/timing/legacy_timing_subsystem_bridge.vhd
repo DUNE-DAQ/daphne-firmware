@@ -16,9 +16,6 @@ entity legacy_timing_subsystem_bridge is
     clock_gen_debug_o       : out std_logic;
     mmcm0_100mhz_clk_debug_o: out std_logic;
     ep_62p5mhz_clk_debug_o  : out std_logic;
-    f_ok_debug_o            : out std_logic;
-    sctr_debug_o            : out std_logic_vector(15 downto 0);
-    cctr_debug_o            : out std_logic_vector(15 downto 0);
     mclk_o                  : out std_logic;
     clock_o                 : out std_logic;
     clk500_o                : out std_logic;
@@ -76,9 +73,6 @@ begin
       timestamp               => timestamp_o,
       sync                    => sync_o,
       sync_stb                => sync_stb_o,
-      F_OK_DEBUG              => f_ok_debug_o,
-      SCTR_DEBUG              => sctr_debug_o,
-      CCTR_DEBUG              => cctr_debug_o,
       mmcm0_locked_o          => timing_status_s.mmcm0_locked,
       mmcm1_locked_o          => timing_status_s.mmcm1_locked,
       endpoint_ready_o        => timing_status_s.endpoint_ready,

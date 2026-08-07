@@ -120,7 +120,8 @@ begin
 			elsif sa = '1' and actr < 2 then
 				if d = X"ff" then
 					a_bcast(to_integer(actr)) <= '1';
-				elsif d = addr(8 * to_integer(actr) + 7 downto 8 * to_integer(actr)) then
+				end if;
+				if d = addr(8 * to_integer(actr) + 7 downto 8 * to_integer(actr)) then
 					a_ucast(to_integer(actr)) <= '1';
 				end if;
 			end if;

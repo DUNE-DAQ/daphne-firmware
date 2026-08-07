@@ -14,7 +14,7 @@ use work.pdts_clock_defs.all;
 
 entity pdts_endpoint is
 	generic(
-		SCLK_FREQ: real := 100.00; -- Frequency (MHz) of the system clock
+		SCLK_FREQ: real; -- Frequency (MHz) of the system clock
 		USE_EXT_PLL: boolean := false; -- Use external PLL or clock source
 		EXT_PLL_DIV: positive := 2; -- External PLL division ratio
 		FORCE_TX: boolean := false; -- Turn on transmit permanently
@@ -45,9 +45,6 @@ entity pdts_endpoint is
 		ready: out std_logic; -- Endpoint ready flag (clk domain)
 		tstamp: out std_logic_vector(63 downto 0); -- Timestamp (clk domain)
 		sync: out std_logic_vector(7 downto 0); -- Sync command output (clk domain)
-		F_OK_DEBUG: out std_logic ;
-		SCTR_DEBUG: OUT std_logic_vector (15 downto 0);
-		CCTR_DEBUG: OUT std_logic_vector (15 downto 0);
 		sync_stb: out std_logic -- Sync command strobe (clk domain)
 	);
 
@@ -55,10 +52,12 @@ end pdts_endpoint;
 
 architecture rtl of pdts_endpoint is
 
-	signal cdr_rst, clk_sel, clki, clk4xi, clk2xi, d, cdr_locked, rsti, q,f_ok: std_logic;
+	signal clk_lock, clk_rst, cdr_rst, phase_stb, clk_sel, clki, clk4xi, clk2xi, d, cdr_locked, rsti, q: std_logic;
 	signal phase: std_logic_vector(11 downto 0);
 	signal phase_done: std_logic;
-	signal sctr, cctr: std_logic_vector (15 downto 0);
+
+	--attribute MARK_DEBUG: string;
+    --attribute MARK_DEBUG of d , rxd , cdr_locked: signal is "TRUE";
 
 begin
 
@@ -74,18 +73,21 @@ begin
 			los => los,
 			rclko => pll_clko,
 			rclki => pll_clki,
+			clk_rst => clk_rst,
+			clk_lock => clk_lock,
+			cdr_rst => cdr_rst,
 			clko => clki,
 			clko4x => clk4xi,
 			clko2x => clk2xi,
 			rsto => rsti,
-			cdr_rst => cdr_rst,
 			q => d,
 			locked => cdr_locked,
 			phase => phase,
+			phase_stb => phase_stb,
 			phase_done => phase_done,
 			dbg => open
 		);
-		
+
 	clk <= clki;
 	rst <= rsti;
 	clk4x <= clk4xi;
@@ -114,7 +116,10 @@ begin
 			clk => clki,
 			rst => rsti,
 			phase => phase,
+			phase_stb => phase_stb,
 			phase_done => phase_done,
+			clk_rst => clk_rst,
+			clk_lock => clk_lock,
 			cdr_rst => cdr_rst,
 			locked => cdr_locked,
 			d => d,
@@ -123,9 +128,6 @@ begin
 			ready => ready,
 			tstamp => tstamp,
 			sync => sync,
-			F_OK_DEBUG => f_ok,
-		    SCTR_DEBUG=> sctr,
-		    CCTR_DEBUG => cctr,
 			sync_stb => sync_stb
 		);
 
@@ -138,7 +140,5 @@ begin
 			d => q,
 			q => txd
 		);
-F_OK_DEBUG <= f_ok;
-    SCTR_DEBUG <= sctr;
-    cCTR_DEBUG <= cctr;
+
 end rtl;
