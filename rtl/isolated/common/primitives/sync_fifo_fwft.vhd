@@ -35,7 +35,6 @@ architecture rtl of sync_fifo_fwft is
   signal ignored_empty_s        : std_logic;
   signal ignored_full_s         : std_logic;
   signal ignored_overflow_s     : std_logic;
-  signal ignored_rd_count_s     : std_logic_vector(COUNT_WIDTH_G - 1 downto 0);
   signal ignored_rd_busy_s      : std_logic;
   signal ignored_sbiterr_s      : std_logic;
   signal ignored_underflow_s    : std_logic;
@@ -46,7 +45,8 @@ begin
   -- vendor-neutral behavioral array used during early composable bring-up
   -- synthesizes into LUTRAM and over-utilizes the K26C device. Use the native
   -- XPM FIFO here so the implementation path recovers the intended URAM-backed
-  -- behavior.
+  -- behavior. Only prog_full/prog_empty are used by the record-builder, so
+  -- leave the unused count/overflow bookkeeping disabled.
   xpm_fifo_sync_inst : xpm_fifo_sync
     generic map (
       CASCADE_HEIGHT      => 0,
@@ -63,7 +63,7 @@ begin
       READ_DATA_WIDTH     => DATA_WIDTH_G,
       READ_MODE           => "fwft",
       SIM_ASSERT_CHK      => 0,
-      USE_ADV_FEATURES    => "0707",
+      USE_ADV_FEATURES    => "0202",
       WAKEUP_TIME         => 0,
       WRITE_DATA_WIDTH    => DATA_WIDTH_G,
       WR_DATA_COUNT_WIDTH => COUNT_WIDTH_G
@@ -79,7 +79,7 @@ begin
       overflow      => ignored_overflow_s,
       prog_empty    => prog_empty_o,
       prog_full     => prog_full_o,
-      rd_data_count => ignored_rd_count_s,
+      rd_data_count => open,
       rd_rst_busy   => ignored_rd_busy_s,
       sbiterr       => ignored_sbiterr_s,
       underflow     => ignored_underflow_s,
