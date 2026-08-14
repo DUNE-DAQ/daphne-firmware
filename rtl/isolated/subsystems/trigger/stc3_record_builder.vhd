@@ -41,7 +41,7 @@ end entity stc3_record_builder;
 architecture rtl of stc3_record_builder is
   constant LIVE_COUNTER_WIDTH_C        : positive := 16;
   constant PRETRIGGER_SAMPLES_C        : natural := 64;
-  constant FRAME_SAMPLE_COUNT_C        : natural := 512;
+  constant FRAME_SAMPLE_COUNT_C        : natural := 1024;
   constant FRAME_BLOCK_COUNT_C         : natural := FRAME_SAMPLE_COUNT_C / 32;
   constant FINAL_BLOCK_INDEX_C         : natural := FRAME_BLOCK_COUNT_C - 1;
   constant BLOCK_SAMPLE_COUNT_C        : natural := 32;

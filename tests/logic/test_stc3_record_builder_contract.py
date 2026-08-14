@@ -63,7 +63,7 @@ class Stc3RecordBuilderContractTest(unittest.TestCase):
         words_per_block = 7
         self.assertEqual(header_words + blocks * words_per_block, 232)
 
-    def test_current_builder_is_512_sample_2k_ring_contract(self) -> None:
+    def test_current_builder_is_1024_sample_2k_ring_contract(self) -> None:
         current = read_repo(BUILDER)
 
         frame_samples = natural_constant(current, "FRAME_SAMPLE_COUNT_C")
@@ -72,12 +72,12 @@ class Stc3RecordBuilderContractTest(unittest.TestCase):
             frame_blocks * natural_constant(current, "WORDS_PER_BLOCK_C")
         )
 
-        self.assertEqual(frame_samples, 512)
+        self.assertEqual(frame_samples, 1024)
         self.assertEqual(natural_constant(current, "PRETRIGGER_SAMPLES_C"), 64)
-        self.assertEqual(frame_blocks, 16)
-        self.assertEqual(frame_words, 120)
+        self.assertEqual(frame_blocks, 32)
+        self.assertEqual(frame_words, 232)
         self.assertEqual(natural_constant(current, "FIFO_READY_MARGIN_C"), 12)
-        self.assertEqual(frame_words - natural_constant(current, "FIFO_READY_MARGIN_C"), 108)
+        self.assertEqual(frame_words - natural_constant(current, "FIFO_READY_MARGIN_C"), 220)
         self.assertEqual(natural_constant(current, "RING_DEPTH_C"), 2048)
         self.assertEqual(natural_constant(current, "RING_ADDR_WIDTH_C"), 11)
         self.assertEqual(natural_constant(current, "FRAME_QUEUE_DEPTH_C"), 2)
@@ -147,8 +147,8 @@ class Stc3RecordBuilderContractTest(unittest.TestCase):
         frame_words = 8 + (natural_constant(current, "FRAME_SAMPLE_COUNT_C") // 32) * 7
         ready_threshold = frame_words - natural_constant(current, "FIFO_READY_MARGIN_C")
 
-        self.assertEqual(frame_words, 120)
-        self.assertEqual(ready_threshold, 108)
+        self.assertEqual(frame_words, 232)
+        self.assertEqual(ready_threshold, 220)
         self.assertLess(ready_threshold, frame_words)
         self.assertIn("if ready_i(CHANNEL_BASE_C + sel_s) = '1' then", mux)
         self.assertIn("state_s <= dump;", mux)
