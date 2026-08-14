@@ -50,6 +50,9 @@ architecture rtl of self_trigger_xcorr_channel is
   signal trigger_sample_s    : std_logic_vector(13 downto 0);
   signal trigger_ts_s        : std_logic_vector(63 downto 0);
   signal trigger_pulse_s     : std_logic;
+  signal timing_trigger_s    : std_logic;
+  signal calibration_tag_in_s : std_logic_vector(1 downto 0);
+  signal calibration_tag_s   : std_logic_vector(1 downto 0);
 begin
   trig_xc_inst : trig_xc
     port map (
@@ -73,6 +76,20 @@ begin
       trig                   => trigger_pulse_s
     );
 
+  timing_trigger_s <= '1' when (control_i.ti_trigger = control_i.adhoc and control_i.ti_trigger_stbr = '1') else '0';
+  calibration_tag_in_s <= CALIBRATION_TAG_TIMING_C when timing_trigger_s = '1' else CALIBRATION_TAG_NORMAL_C;
+
+  calibration_tag_delay_inst : entity work.fixed_delay_line
+    generic map (
+      WIDTH_G => 2,
+      DELAY_G => 64
+    )
+    port map (
+      clock_i   => clock_i,
+      din_i     => calibration_tag_in_s,
+      dout_o    => calibration_tag_s
+    );
+
   result_o <= (
     enabled           => control_i.enable,
     trigger_pulse     => trigger_pulse_s,
@@ -80,6 +97,7 @@ begin
     monitor_sample    => monitor_sample_s,
     descriptor_sample => descriptor_sample_s,
     trigger_sample    => trigger_sample_s,
-    trigger_timestamp => trigger_ts_s
+    trigger_timestamp => trigger_ts_s,
+    calibration_tag   => calibration_tag_s
   );
 end architecture rtl;

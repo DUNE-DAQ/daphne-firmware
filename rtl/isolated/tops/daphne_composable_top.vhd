@@ -69,6 +69,7 @@ entity daphne_composable_top is
     offset_sync_n_o       : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
     reset_st_counters_i   : in  std_logic;
     force_trigger_i       : in  std_logic;
+    force_calibration_tag_i : in std_logic_vector(1 downto 0);
     timestamp_i           : in  std_logic_vector(63 downto 0);
     version_i             : in  std_logic_vector(3 downto 0);
     signal_delay_i        : in  std_logic_vector(4 downto 0);
@@ -174,6 +175,7 @@ begin
       offset_sync_n_o           => offset_sync_n_o,
       reset_st_counters_i       => reset_st_counters_i,
       force_trigger_i           => force_trigger_i,
+      force_calibration_tag_i   => force_calibration_tag_i,
       timestamp_i               => timestamp_i,
       version_i                 => version_i,
       signal_delay_i            => signal_delay_i,

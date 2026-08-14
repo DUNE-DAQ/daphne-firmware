@@ -104,6 +104,11 @@ package daphne_subsystem_pkg is
     alignment_ready : std_logic;
   end record;
 
+  constant CALIBRATION_TAG_NORMAL_C   : std_logic_vector(1 downto 0) := "00";
+  constant CALIBRATION_TAG_BNC_C      : std_logic_vector(1 downto 0) := "01";
+  constant CALIBRATION_TAG_TIMING_C   : std_logic_vector(1 downto 0) := "10";
+  constant CALIBRATION_TAG_SOFTWARE_C : std_logic_vector(1 downto 0) := "11";
+
   type trigger_xcorr_control_t is record
     enable                 : std_logic;
     afe_comp_enable        : std_logic;
@@ -123,6 +128,7 @@ package daphne_subsystem_pkg is
     descriptor_sample : std_logic_vector(13 downto 0);
     trigger_sample    : std_logic_vector(13 downto 0);
     trigger_timestamp : std_logic_vector(63 downto 0);
+    calibration_tag   : std_logic_vector(1 downto 0);
   end record;
 
   type peak_descriptor_control_t is record
@@ -273,7 +279,8 @@ package daphne_subsystem_pkg is
     monitor_sample    => (others => '0'),
     descriptor_sample => (others => '0'),
     trigger_sample    => (others => '0'),
-    trigger_timestamp => (others => '0')
+    trigger_timestamp => (others => '0'),
+    calibration_tag   => CALIBRATION_TAG_NORMAL_C
   );
 
   constant PEAK_DESCRIPTOR_CONTROL_NULL : peak_descriptor_control_t := (

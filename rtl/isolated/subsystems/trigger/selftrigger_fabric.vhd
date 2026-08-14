@@ -18,6 +18,7 @@ entity selftrigger_fabric is
     signal_delay_i      : in  std_logic_vector(4 downto 0);
     descriptor_config_i : in  std_logic_vector(13 downto 0);
     force_trigger_i     : in  std_logic;
+    force_calibration_tag_i : in std_logic_vector(1 downto 0);
     din_i               : in  sample14_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     trigger_control_i   : in  trigger_xcorr_control_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     trigger_result_o    : out trigger_xcorr_result_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
@@ -82,9 +83,10 @@ begin
         timestamp_i         => timestamp_i,
         version_i           => version_i,
         signal_delay_i      => signal_delay_i,
-        descriptor_config_i => descriptor_config_i,
-        force_trigger_i     => force_trigger_i,
-        din_i               => din_afe_s,
+	        descriptor_config_i => descriptor_config_i,
+	        force_trigger_i     => force_trigger_i,
+	        force_calibration_tag_i => force_calibration_tag_i,
+	        din_i               => din_afe_s,
         trigger_control_i   => trigger_control_afe_s,
         trigger_result_o    => trigger_result_afe_s,
         descriptor_result_o => descriptor_result_afe_s,

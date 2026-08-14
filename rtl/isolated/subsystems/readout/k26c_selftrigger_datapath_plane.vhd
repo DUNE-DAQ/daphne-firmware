@@ -19,6 +19,7 @@ port(
     timestamp: in std_logic_vector(63 downto 0);
     enable: in std_logic_vector(39 downto 0);
     forcetrig: in std_logic;
+    force_calibration_tag: in std_logic_vector(1 downto 0);
     st_trigger_signal: out std_logic_vector(39 downto 0);
     adhoc: in std_logic_vector(7 downto 0);
     ti_trigger: in std_logic_vector(7 downto 0);
@@ -180,6 +181,7 @@ begin
       offset_sync_n_o           => offset_sync_n,
       reset_st_counters_i       => reset_st_counters,
       force_trigger_i           => forcetrig,
+      force_calibration_tag_i   => force_calibration_tag,
       timestamp_i               => timestamp,
       version_i                 => version(3 downto 0),
       signal_delay_i            => signal_delay,

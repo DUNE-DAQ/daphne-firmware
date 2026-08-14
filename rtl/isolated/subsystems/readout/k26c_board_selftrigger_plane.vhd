@@ -23,6 +23,7 @@ port(
     timestamp: in std_logic_vector(63 downto 0);
     enable: in std_logic_vector(39 downto 0);
     forcetrig: in std_logic;
+    force_calibration_tag: in std_logic_vector(1 downto 0);
     st_trigger_signal: out std_logic_vector(39 downto 0);
     adhoc: in std_logic_vector(7 downto 0);
     ti_trigger: in std_logic_vector(7 downto 0);
@@ -129,6 +130,7 @@ begin
       timestamp              => timestamp,
       enable                 => enable,
       forcetrig              => forcetrig,
+      force_calibration_tag  => force_calibration_tag,
       st_trigger_signal      => st_trigger_signal,
       adhoc                  => adhoc,
       ti_trigger             => ti_trigger,

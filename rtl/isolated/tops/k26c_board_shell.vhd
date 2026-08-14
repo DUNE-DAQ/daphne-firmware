@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 
 library work;
 use work.daphne_package.all;
+use work.daphne_subsystem_pkg.all;
 
 entity k26c_board_shell is
   generic (
@@ -316,7 +317,15 @@ architecture rtl of k26c_board_shell is
   signal reset_st_counters       : std_logic;
   signal din_debug_reg           : std_logic_vector(13 downto 0);
   signal out_buff_trig_s         : std_logic;
+  signal calibration_frame_trigger : std_logic;
+  signal force_calibration_tag   : std_logic_vector(1 downto 0);
 begin
+  calibration_frame_trigger <= FORCE_TRIG or software_spy_trigger or external_spy_trigger;
+
+  force_calibration_tag <= CALIBRATION_TAG_SOFTWARE_C when (FORCE_TRIG = '1' or software_spy_trigger = '1') else
+                           CALIBRATION_TAG_BNC_C when external_spy_trigger = '1' else
+                           CALIBRATION_TAG_NORMAL_C;
+
   frontend_plane_inst : entity work.k26c_board_frontend_plane
     port map (
       afe0_p         => afe0_p,
@@ -564,7 +573,8 @@ begin
       timestamp              => timestamp,
       din_core               => din_full_array,
       enable                 => core_chan_enable,
-      forcetrig              => FORCE_TRIG,
+      forcetrig              => calibration_frame_trigger,
+      force_calibration_tag  => force_calibration_tag,
       st_trigger_signal      => open,
       adhoc                  => adhoc,
       ti_trigger             => ti_trigger_reg,

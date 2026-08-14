@@ -15,6 +15,7 @@ entity stc3_record_builder is
     reset_st_counters_i      : in  std_logic;
     enable_i                 : in  std_logic;
     force_trigger_i          : in  std_logic;
+    force_calibration_tag_i  : in  std_logic_vector(1 downto 0);
     timestamp_i              : in  std_logic_vector(63 downto 0);
     din_i                    : in  std_logic_vector(13 downto 0);
     trigger_i                : in  trigger_xcorr_result_t;
@@ -66,6 +67,7 @@ architecture rtl of stc3_record_builder is
     baseline       : std_logic_vector(13 downto 0);
     trigger_sample : std_logic_vector(13 downto 0);
     threshold_lsb  : std_logic_vector(13 downto 0);
+    calibration_tag : std_logic_vector(1 downto 0);
   end record;
 
   type frame_meta_array_t is array (0 to FRAME_QUEUE_DEPTH_C - 1) of frame_meta_t;
@@ -75,7 +77,8 @@ architecture rtl of stc3_record_builder is
     sample0_ts     => (others => '0'),
     baseline       => (others => '0'),
     trigger_sample => (others => '0'),
-    threshold_lsb  => (others => '0')
+    threshold_lsb  => (others => '0'),
+    calibration_tag => CALIBRATION_TAG_NORMAL_C
   );
 
   function wrap_add(addr : ring_addr_t; offset : natural) return ring_addr_t is
@@ -155,6 +158,9 @@ architecture rtl of stc3_record_builder is
   signal prog_full_s              : std_logic;
   signal trailer_reg_s            : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
   signal event_pulse_s            : std_logic;
+  signal event_timestamp_s        : std_logic_vector(63 downto 0);
+  signal event_trigger_sample_s   : std_logic_vector(13 downto 0);
+  signal event_calibration_tag_s  : std_logic_vector(1 downto 0);
   signal overlap_samples_s        : natural range 0 to FRAME_SAMPLE_COUNT_C - 1 := 0;
   signal min_trigger_spacing_s    : natural range 1 to FRAME_SAMPLE_COUNT_C := FRAME_SAMPLE_COUNT_C;
   signal oldest_pending_valid_s   : std_logic;
@@ -184,6 +190,9 @@ begin
   -- overlap is configurable via signal_delay_i (16 samples per step).
   -- peak descriptor trailers are only fully trustworthy when overlap = 0.
   event_pulse_s <= trigger_i.trigger_pulse or force_trigger_i;
+  event_timestamp_s <= timestamp_i when force_trigger_i = '1' else trigger_i.trigger_timestamp;
+  event_trigger_sample_s <= din_i when force_trigger_i = '1' else trigger_i.trigger_sample;
+  event_calibration_tag_s <= force_calibration_tag_i when force_trigger_i = '1' else trigger_i.calibration_tag;
 
   overlap_samples_s     <= overlap_samples_cfg(signal_delay_i);
   min_trigger_spacing_s <= FRAME_SAMPLE_COUNT_C - overlap_samples_s;
@@ -273,7 +282,7 @@ begin
   fifo_wr_en_s <= '1' when (serializer_state_s = ser_header or serializer_state_s = ser_emit) else '0';
 
   fifo_din_s <= X"BE" & active_frame_s.sample0_ts when (serializer_state_s = ser_header and header_index_s = 0) else
-                X"00" & ch_id_i(7 downto 0) & version_i(3 downto 0) & "000000" &
+                X"00" & ch_id_i(7 downto 0) & version_i(3 downto 0) & "0000" & active_frame_s.calibration_tag &
                 active_frame_s.baseline & "00" & active_frame_s.threshold_lsb &
                 "00" & active_frame_s.trigger_sample when (serializer_state_s = ser_header and header_index_s = 1) else
                 X"00" & active_trailer_s(1) & active_trailer_s(0) when (serializer_state_s = ser_header and header_index_s = 2) else
@@ -390,16 +399,17 @@ begin
             if can_accept_frame_s = '1' then
               trigger_age_v := ring_distance(
                 unsigned(timestamp_i(RING_ADDR_WIDTH_C - 1 downto 0)),
-                unsigned(trigger_i.trigger_timestamp(RING_ADDR_WIDTH_C - 1 downto 0))
+                unsigned(event_timestamp_s(RING_ADDR_WIDTH_C - 1 downto 0))
               );
-              sample0_ts_v  := unsigned(trigger_i.trigger_timestamp) - to_unsigned(PRETRIGGER_SAMPLES_C, trigger_i.trigger_timestamp'length);
+              sample0_ts_v  := unsigned(event_timestamp_s) - to_unsigned(PRETRIGGER_SAMPLES_C, event_timestamp_s'length);
               start_ptr_v   := wrap_sub(write_ptr_s, trigger_age_v + PRETRIGGER_SAMPLES_C);
 
               queue_v(tail_v).start_ptr      := start_ptr_v;
               queue_v(tail_v).sample0_ts     := std_logic_vector(sample0_ts_v);
               queue_v(tail_v).baseline       := trigger_i.baseline;
-              queue_v(tail_v).trigger_sample := trigger_i.trigger_sample;
+              queue_v(tail_v).trigger_sample := event_trigger_sample_s;
               queue_v(tail_v).threshold_lsb  := threshold_xc_i(13 downto 0);
+              queue_v(tail_v).calibration_tag := event_calibration_tag_s;
 
               tail_v := next_queue_idx(tail_v);
               count_v := count_v + 1;

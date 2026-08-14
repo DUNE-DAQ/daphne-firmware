@@ -143,6 +143,7 @@ begin
       offset_sync_n_o       => offset_sync_n,
       reset_st_counters_i   => reset_st_counters,
       force_trigger_i       => forcetrig,
+      force_calibration_tag_i => CALIBRATION_TAG_NORMAL_C,
       timestamp_i           => timestamp,
       version_i             => version,
       signal_delay_i        => signal_delay,
