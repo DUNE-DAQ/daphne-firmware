@@ -17,6 +17,10 @@ entity frontend_island is
     clock          : in  std_logic;
     dout           : out array_5x9x16_type;
     trig           : out std_logic;
+    software_trig  : out std_logic;
+    external_trig  : out std_logic;
+    spy_trigger_source  : out std_logic_vector(1 downto 0);
+    spy_trigger_inhibit : out std_logic;
     trig_IN        : in  std_logic;
     S_AXI_ACLK     : in  std_logic;
     S_AXI_ARESETN  : in  std_logic;
@@ -46,7 +50,11 @@ architecture rtl of frontend_island is
 begin
   afe_clk_p <= clock;
   afe_clk_n <= not clock;
-  trig      <= trig_IN;
+  trig                <= trig_IN;
+  software_trig       <= '0';
+  external_trig       <= trig_IN;
+  spy_trigger_source  <= "11";
+  spy_trigger_inhibit <= '0';
 
   S_AXI_AWREADY <= '0';
   S_AXI_WREADY  <= '0';
