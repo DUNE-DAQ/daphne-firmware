@@ -1,0 +1,35 @@
+CAPI=2:
+
+name: dune-daq:daphne:fan-monitor:0.1.0
+description: Debounced fan tachometer monitor and RPM calculator
+provider:
+  name: local
+
+filesets:
+  rtl:
+    files:
+      - ip_repo/daphne_ip/rtl/config/fanmon.vhd
+    file_type: vhdlSource-2008
+  tb:
+    files:
+      - tests/logic/fanmon_smoke_tb.vhd
+    file_type: vhdlSource-2008
+
+targets:
+  default: &default_target
+    filesets:
+      - rtl
+  sim:
+    <<: *default_target
+    default_tool: ghdl
+    filesets_append:
+      - tb
+    toplevel: fanmon_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us
+

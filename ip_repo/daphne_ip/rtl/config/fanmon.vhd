@@ -1,154 +1,120 @@
--- fanmon.vhd
--- monitor the fan tach signal and report the fan speed in RPM
--- assume the tach signal makes two low pulses per revolution
-
--- jamieson olsen <jamieson@fnal.gov>
+-- Monitor one active-low, two-pulse-per-revolution fan tachometer.
+--
+-- At the default 100 MHz AXI clock, a 23,437,500-cycle measurement window is
+-- 234.375 ms. Two tach pulses per revolution therefore gives:
+--
+--   RPM = pulses * 60 / (2 * 0.234375) = pulses * 128
+--
+-- The five-bit pulse counter reports up to 3,968 RPM and saturates instead of
+-- wrapping. Adjust MEASUREMENT_WINDOW_CYCLES_G if this block is clocked at a
+-- frequency other than 100 MHz.
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity fanmon is
-port(
-    clock: in std_logic; -- 100MHz 
-    reset: in std_logic;
-    tach: in std_logic; -- active low
-    rpm: out std_logic_vector(11 downto 0) -- fan speed in RPM
-  );
-end fanmon;
+    generic (
+        MEASUREMENT_WINDOW_CYCLES_G : positive := 23_437_500;
+        DEBOUNCE_MAX_G              : positive := 255
+    );
+    port (
+        clock : in  std_logic;
+        reset : in  std_logic;
+        tach  : in  std_logic;
+        rpm   : out std_logic_vector(11 downto 0)
+    );
+end entity fanmon;
 
-architecture fanmon_arch of fanmon is
+architecture rtl of fanmon is
+    signal window_count_reg : natural range 0 to MEASUREMENT_WINDOW_CYCLES_G - 1 := 0;
+    signal window_tick_reg  : std_logic := '0';
 
-    signal count_reg: std_logic_vector(23 downto 0) := (others=>'0');
-    signal tick_reg: std_logic;
+    signal tach_meta_reg      : std_logic := '1';
+    signal tach_sync_reg      : std_logic := '1';
+    signal debounce_count_reg : natural range 0 to DEBOUNCE_MAX_G := DEBOUNCE_MAX_G;
+    signal debounced_tach_reg : std_logic := '1';
+    signal previous_tach_reg  : std_logic := '1';
 
-    signal tach_reg: std_logic;
-    signal debounce_reg: std_logic_vector(7 downto 0) := (others=>'0');
-
-    signal pulsecount_reg: std_logic_vector(4 downto 0) := (others=>'0');
-    signal rpm_reg: std_logic_vector(11 downto 0) := (others=>'0');
-
-    type state_type is (rst, idle, pulse1, pulse0, done);
-    signal state: state_type;
-
+    signal pulse_count_reg : unsigned(4 downto 0) := (others => '0');
+    signal rpm_reg         : std_logic_vector(11 downto 0) := (others => '0');
 begin
-
--- make a pulse every 234.375ms
--- 234.375ms is 23437500 (0x65A0BC) clocks at 100MHz
-
-slow_proc: process(clock)
-begin
-    if rising_edge(clock) then
-        if (reset='1') then
-            count_reg <= (others=>'0');
-            tick_reg <= '0';
-        else
-            if (count_reg = X"65A0BC") then
-                count_reg <= (others=>'0');
-                tick_reg <= '1';
+    -- Keep the asynchronous tach input out of the counting logic.
+    synchronize_tach_proc : process(clock)
+    begin
+        if rising_edge(clock) then
+            if reset = '1' then
+                tach_meta_reg <= '1';
+                tach_sync_reg <= '1';
             else
-                count_reg <= std_logic_vector( unsigned(count_reg) + 1 );
-                tick_reg <= '0';
+                tach_meta_reg <= tach;
+                tach_sync_reg <= tach_meta_reg;
             end if;
         end if;
-    end if;
-end process slow_proc;
+    end process synchronize_tach_proc;
 
--- the fan tach signal could be really nasty so debounce it!
--- when tach signal is high debounce_reg will count up to 0xFF
--- when tach signal is low debounce_reg will count down to 0x00
-
-debounce_proc: process(clock)
-begin
-    if rising_edge(clock) then
-        if (reset='1') then
-            --tach_reg <= '0';
-            debounce_reg <= (others=>'0');
-        else
-            tach_reg <= tach;
-            if (tach_reg='1') then
-                if (debounce_reg /= X"FF") then
-                    debounce_reg <= std_logic_vector( unsigned(debounce_reg) + 1 );
+    -- Change the stable tach value only after the integrator reaches an end.
+    debounce_tach_proc : process(clock)
+    begin
+        if rising_edge(clock) then
+            if reset = '1' then
+                debounce_count_reg <= DEBOUNCE_MAX_G;
+                debounced_tach_reg <= '1';
+            elsif tach_sync_reg = '1' then
+                if debounce_count_reg < DEBOUNCE_MAX_G then
+                    debounce_count_reg <= debounce_count_reg + 1;
+                end if;
+                if debounce_count_reg >= DEBOUNCE_MAX_G - 1 then
+                    debounced_tach_reg <= '1';
                 end if;
             else
-                if (debounce_reg /= X"00") then
-                    debounce_reg <= std_logic_vector( unsigned(debounce_reg) - 1 );
+                if debounce_count_reg > 0 then
+                    debounce_count_reg <= debounce_count_reg - 1;
+                end if;
+                if debounce_count_reg <= 1 then
+                    debounced_tach_reg <= '0';
                 end if;
             end if;
         end if;
-    end if;
-end process debounce_proc;
+    end process debounce_tach_proc;
 
--- count the number of low pulses in a 234ms window
--- then multiply by 256 to get RPM
+    measurement_window_proc : process(clock)
+    begin
+        if rising_edge(clock) then
+            if reset = '1' then
+                window_count_reg <= 0;
+                window_tick_reg <= '0';
+            elsif window_count_reg = MEASUREMENT_WINDOW_CYCLES_G - 1 then
+                window_count_reg <= 0;
+                window_tick_reg <= '1';
+            else
+                window_count_reg <= window_count_reg + 1;
+                window_tick_reg <= '0';
+            end if;
+        end if;
+    end process measurement_window_proc;
 
--- for example: fan is 3000 RPM
--- in one second that is 50 revolutions
--- in 234ms we expect ~12 revolutions or ~24 low pulses
+    count_pulses_proc : process(clock)
+    begin
+        if rising_edge(clock) then
+            if reset = '1' then
+                previous_tach_reg <= '1';
+                pulse_count_reg <= (others => '0');
+                rpm_reg <= (others => '0');
+            else
+                previous_tach_reg <= debounced_tach_reg;
 
--- work backwards:
--- RPM = # of rotations in 234ms window * 256
--- RPM = # of low pulses in 234ms window * 128
-
--- use 5 bit pulse counter, if this overflows that means fan speed > 8000 RPM and we have bigger problems!
-
-fsm_proc: process(clock)
-begin
-    if rising_edge(clock) then
-        if (reset='1') then
-            pulsecount_reg <= (others=>'0');
-            rpm_reg <= (others=>'0');
-        else
-            tach_reg <= tach;
-
-            case (state) is
-
-                when rst =>
-                    state <= idle;
-
-                when idle =>
-                    if (tick_reg='1') then -- window opens
-                        state <= pulse1;
-                        pulsecount_reg <= (others=>'0');
-                    else
-                        state <= idle;
+                if window_tick_reg = '1' then
+                    rpm_reg <= std_logic_vector(pulse_count_reg) & "0000000";
+                    pulse_count_reg <= (others => '0');
+                elsif previous_tach_reg = '1' and debounced_tach_reg = '0' then
+                    if pulse_count_reg /= "11111" then
+                        pulse_count_reg <= pulse_count_reg + 1;
                     end if;
-
-                when pulse1 => -- wait here looking for falling edge
-                    if (tick_reg='1') then
-                        state <= done;
-                    else
-                        if (debounce_reg = X"00") then -- falling edge seen, increment pulse count
-                            state <= pulse0;
-                            pulsecount_reg <= std_logic_vector( unsigned(pulsecount_reg) + 1 ); -- 5 bit counter
-                        else
-                            state <= pulse1;
-                        end if;                            
-                    end if;                    
-
-                when pulse0 => -- wait here looking for rising edge
-                    if (tick_reg='1') then
-                        state <= done;
-                    else
-                        if (debounce_reg = X"FF") then 
-                            state <= pulse1;
-                        else
-                            state <= pulse0;
-                        end if;                            
-                    end if;                    
-
-                when done => -- window closed, calc RPM, back to idle
-                    rpm_reg <= pulsecount_reg & "0000000"; -- rpm = # of low pulses x 128
-                    state <= idle;
-
-                when others =>
-                    state <= rst;
-
-            end case;
+                end if;
+            end if;
         end if;
-    end if;
-end process fsm_proc;
+    end process count_pulses_proc;
 
-rpm <= rpm_reg;
-
-end fanmon_arch;
+    rpm <= rpm_reg;
+end architecture rtl;

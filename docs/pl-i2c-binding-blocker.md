@@ -1,8 +1,12 @@
 # PL I2C Linux Binding Blocker
 
+Status: resolved as a general binding blocker on the tested boards by the May
+9, 2026 updates recorded at the end of this file. This is a historical incident
+record, not the current highest-priority issue. Keep it for recovery context.
+
 ## Priority
 
-This is the highest-priority firmware integration issue observed after the
+This was the highest-priority firmware integration issue observed after the
 March 31, 2026 board validation of `origin/marroyav/formal_verification` at
 commit `7f032ac`.
 

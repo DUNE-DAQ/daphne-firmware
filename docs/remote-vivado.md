@@ -5,20 +5,22 @@ executed on a remote Linux host with Xilinx tools installed.
 
 ## One-time remote setup
 
-Clone or update the repo on the remote host and switch to the migration branch:
+Clone or update the repo on the remote host. For a release build, check out the
+exact annotated tag named in the release notes:
 
 ```bash
 cd ~/repo/daphne-firmware
-git fetch
-git checkout marroyav/fusesoc-backports
-git pull --ff-only
+git fetch --tags origin
+git switch --detach <release-tag>
 ```
 
-If the branch does not exist locally yet:
+For development work, use the intended branch explicitly and update it without
+creating a merge commit:
 
 ```bash
-git fetch origin marroyav/fusesoc-backports
-git checkout -b marroyav/fusesoc-backports origin/marroyav/fusesoc-backports
+git fetch origin <branch>
+git switch <branch>
+git pull --ff-only
 ```
 
 ## Run the K26C chain

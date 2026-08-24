@@ -1,37 +1,27 @@
 # daphne-firmware
 
-Merged working area for the DAPHNE mezzanine firmware, starting from the
-current non-project Vivado flow and audited against the legacy project-mode
-snapshot.
+This repository builds, verifies, packages, and deploys the DAPHNE
+self-trigger firmware for the K26C platform.
 
-## Current status
+The firmware is not limited to one board. The same qualified image can run on
+many boards. For safety, each deployment command operates on one explicitly
+named board at a time; a production station or campaign controller repeats
+that operation for additional boards.
 
-- Imported the current firmware source tree under the original `ip_repo/` and
-  `xilinx/` layout so the Vivado batch flow remains usable.
-- Added board configuration indirection for the Kria build scripts through
-  `DAPHNE_FPGA_PART`, `DAPHNE_BOARD_PART`, and `DAPHNE_PFM_NAME`.
-- Added reusable FuseSoC module cores for common, feature, and platform layers
-  while preserving the original generated source manifest and Vivado batch path.
-- Added FuseSoC-ready smoke tests around the frontend trigger register block,
-  the self-trigger threshold AXI window, and the PL-side board-control
-  register block.
-- Added formal verification scaffolds for the AXI-Lite leaf blocks where a
-  proof has a realistic cost/benefit ratio during the migration.
-- Added vendor-neutral delay/FIFO primitives so the isolated self-trigger path
-  can be analyzed locally without Vivado `unisim` / `xpm`.
-- Recorded the PS-side deployment contract needed by `daphne-server`.
-- Qualified a WSL2-driven Windows Vivado/Vitis K26C hardware build flow and
-  captured a routed-clean hardware baseline at `a389fcd`.
-- Validated the repo-owned overlay load and board bring-up path through the
-  clock client, `daphne-server`, and oscilloscope-mode signal visibility on
-  hardware.
-- Started an additive `rtl/isolated/` scaffolding layer to prepare subsystem
-  contracts and future formal harnesses without disturbing the imported blob.
-- Started a repo-owned `petalinux/meta-daphne/` scaffold so `system.dtb`,
-  overlay install, and service packaging ownership can move into this repo.
-- Added terminal-driven PetaLinux project/build wrappers so the repo can create
-  a KR260 project, apply the `.xsa`, build the image, and collect the outputs
-  into a stable bundle layout.
+## What works today
+
+- Build the K26C FPGA image with the repo-owned FuseSoC/Vivado flow.
+- Produce `.bit`, `.bin`, `.xsa`, `.dtbo`, and Linux overlay ZIP artifacts.
+- Build and collect PetaLinux boot, kernel, device-tree, and rootfs artifacts.
+- Render per-board identity and runtime configuration.
+- Deploy to one board's inactive eMMC slot with dry-run, identity checks, and
+  post-boot verification.
+- Run GHDL smoke tests and bounded formal checks without Vivado.
+- Load the overlay and operate the clock, timing, `daphne-server`, and
+  oscilloscope-mode paths on the qualified K26C baseline.
+
+Release artifacts still require the board-level checks stated in their release
+notes. A successful build alone is not hardware qualification.
 
 ## Repository layout
 
@@ -44,10 +34,10 @@ snapshot.
   and formal targets.
 - `tests/logic/`: HDL smoke tests.
 - `boards/`: board metadata and support status.
-- `petalinux/`: deployment-side toolchain/dependency notes for the Kria Linux
-  environment, including the first `meta-daphne/` layer scaffold.
-- `docs/`: source audit, server contract, modular architecture, and gap
-  analysis.
+- `petalinux/`: the repo-owned PetaLinux layer, profiles, and runtime contract.
+- `scripts/petalinux/`: project setup, image build, staging, and collection.
+- `scripts/deploy/`: one-board-at-a-time configuration and eMMC deployment.
+- `docs/`: current operator guides, architecture, and verification records.
 - `formal/`: SymbiYosys scaffolds for leaf blocks that are suitable for formal.
 - `rtl/isolated/`: neutral subsystem wrapper shells and typed interfaces for the
   isolation/formal-prep phase.
@@ -62,9 +52,11 @@ For safe local-desktop and server-side control of the upstream Raritan PX4 PDU
 and Kontron/WIENER PL5xx, CML, MARATON, and MPOD power systems, see
 `docs/kontron-wiener-power-control.md`.
 
-For the handover scope covering identity-safe firmware deployment
-and generated runtime/register configuration across the 200-board campaign,
+For the campaign plan covering identity-safe firmware deployment and generated
+runtime/register configuration across many boards,
 see `docs/200-board-firmware-deployment-handover.md`.
+
+For a guide to current and deprecated documents, see `docs/README.md`.
 
 For the high-level project philosophy, module map, scope, stable baseline, and
 current TODO list, see `docs/project-overview.md`.
@@ -290,8 +282,7 @@ artifact directory:
 On WSL, this packaging script now auto-loads the Windows `sdtgen` wrapper, or
 the legacy `xsct` wrapper if needed, when the tool is not already on `PATH`.
 
-See `docs/remote-vivado.md`, `docs/wsl-windows-vivado.md`, and
-`docs/agent-handoff.md`.
+See `docs/remote-vivado.md` and `docs/wsl-windows-vivado.md`.
 
 To finish the DT overlay packaging from an existing `.xsa` / `.bin` pair:
 
@@ -428,8 +419,8 @@ recorded in `docs/source-audit.md`.
 
 ## Verification posture
 
-- `config-control`, `frontend-control`, and `selftrigger` expose `sim` targets
-  backed by GHDL smoke benches.
+- `config-control`, `fan-monitor`, `frontend-control`, `selftrigger`, and the
+  board spy/trigger plane expose `sim` targets backed by GHDL smoke benches.
 - `frontend-registers` and `afe-config-slice` expose smaller GHDL smoke targets
   for the isolated control primitives that future partial builds will reuse.
 - `afe-interface`, `dac-interface`, and `spy-buffer` expose `sim` targets that
@@ -455,19 +446,17 @@ recorded in `docs/source-audit.md`.
 - Timing, Hermes transport, and the full frontend datapath are documented as
   future formal candidates, not present-day proof targets.
 
-## What is still missing
+## Support boundaries
 
-This is still not a complete multi-board deployment repo. The main remaining
-gaps are:
-
-- full repo-owned boot-image generation:
-  - `BOOT.BIN`
-  - kernel/rootfs bundle
-  - full `system.dtb`
-- automated PetaLinux handoff from the generated firmware outputs into a
-  reproducible board image
-- validated carrier support beyond the current K26C baseline
-- deeper proof-carrying module contracts and formal coverage beyond the current
-  leaf-block scaffolds
-- additional regression discipline around future cleanup/refactor work so new
-  changes are always measured against the routed-clean `a389fcd` baseline
+- The FPGA image can be used on multiple boards; it is not a single-board
+  firmware.
+- Deployment is intentionally one board per command. Fleet scheduling,
+  database ownership, and campaign-wide evidence aggregation belong to the
+  production-station layer.
+- K26C is the qualified carrier baseline. Other carriers need their own pin,
+  clock, boot, and hardware validation.
+- Formal checks cover selected leaf blocks and explicit subsystem contracts;
+  they do not prove the complete imported frontend, timing, or Hermes
+  implementations.
+- Every release candidate still needs timing, DRC, CDC, power, configuration
+  readback, recovery, and on-board data-path evidence before production use.

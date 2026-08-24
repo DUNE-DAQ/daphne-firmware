@@ -1,191 +1,79 @@
-# Firmware Delivery
+# Firmware delivery
 
-## Current deliverable boundary
+The repository supports two delivery forms for K26C boards.
 
-The repository can now produce and validate a stable post-build firmware
-artifact set for the qualified K26C path:
+## FPGA overlay bundle
 
-- `.bit`
-- `.bin`
-- `.xsa`
-- `.dtbo`
-- overlay bundle zip
+After a successful Vivado build, the firmware output directory contains the
+FPGA image and hardware description:
 
-This is a real deployable overlay-style firmware package.
+```text
+daphne_selftrigger_<sha>.bit
+daphne_selftrigger_<sha>.bin
+daphne_selftrigger_<sha>.xsa
+```
 
-It is **not yet** the full bootable firmware image set.
-
-## Why this matters
-
-The repo now owns the hardware handoff and overlay bundle contract end to end:
-
-- implementation reports
-- `.bit`
-- `.bin`
-- `.xsa`
-- `.dtbo`
-- overlay bundle zip
-
-That boundary has already been exercised on target through:
-
-- overlay load
-- clock-client bring-up
-- `daphne-server`
-- oscilloscope-mode signal visibility
-
-For the Flow API implementation paths on
-`dune-daq:daphne:k26c-composable-platform:0.1.0`, there is now an explicit
-handoff step before DTBO packaging:
+Complete the Linux overlay bundle with:
 
 ```bash
-./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
+./scripts/package/complete_dtbo_bundle.sh \
+  ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
-For the supported default `impl` lane on
-`dune-daq:daphne:k26c-composable-platform:0.1.0`, the post-build
-export hook already emits the legacy-style
-`daphne_selftrigger_<gitsha>.bit/.bin/.xsa` contract into
-`xilinx/output-$DAPHNE_GIT_SHA/`, so only the DTBO bundler is required. If you
-need to re-export a Flow API implementation handoff from the work directory,
-use:
+This adds the `.dtbo`, overlay directory, overlay ZIP, and checksums. Use this
+form when the board already has a compatible Linux image.
+
+## PetaLinux image bundle
+
+The repo-owned PetaLinux wrapper consumes the Vivado hardware handoff, stages
+the overlay and optional runtime bundle, builds the image, and collects the
+deployment artifacts:
 
 ```bash
-./scripts/package/export_impl_bundle.sh
+./scripts/petalinux/build_kr260_image.sh \
+  /path/to/petalinux-project \
+  ./xilinx/output-$DAPHNE_GIT_SHA \
+  --output-dir ./xilinx/output-$DAPHNE_GIT_SHA \
+  --runtime-bundle /path/to/qualified-runtime.tgz \
+  --package-boot
 ```
 
-## Current repo-local packaging step
+The collected bundle includes the available boot, kernel, device-tree, and
+rootfs artifacts plus hashes and a manifest. `BOOT.BIN` is included only when
+`--package-boot` is requested.
 
-After a successful Vivado run, once `xilinx/output-$DAPHNE_GIT_SHA/` contains:
+See `kr260-petalinux-build-guide.md` for the complete build, recovery, and
+validation procedure.
 
-- `daphne_selftrigger_<gitsha>.xsa`
-- `daphne_selftrigger_<gitsha>.bin`
+## Deploy one board
 
-run:
+Render and review the per-board configuration first. Then use a dry run before
+any write:
 
 ```bash
-./scripts/package/complete_dtbo_bundle.sh
+./scripts/deploy/daphne_deploy.sh \
+  --board <board-id> \
+  --host <board-host-or-ip> \
+  --bundle /path/to/collected-bundle \
+  --board-config /path/to/rendered-board-config \
+  --host-key-sha256 <ed25519-fingerprint> \
+  --dry-run
 ```
 
-If `DAPHNE_GIT_SHA` is set, that now defaults to
-`./xilinx/output-$DAPHNE_GIT_SHA/` so the supported Flow-API export path can be
-packaged without an extra argument.
+Remove `--dry-run` only after the printed board, host, inactive slot, bundle,
+configuration, and hashes are correct. This command writes the inactive eMMC
+slot. It does not update QSPI, change the MAC, or change board identity.
 
-or explicitly:
+The same qualified image may be deployed to many boards by repeating the
+one-board command with each board's rendered configuration. Campaign-wide
+scheduling and evidence collection belong to the production-station layer.
 
-```bash
-./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
-```
+## Qualification boundary
 
-Expected tools on `PATH`:
+Generated artifacts are build products, not automatically qualified releases.
+Before production use, require the release's timing, DRC, CDC, power,
+configuration readback, recovery, and on-board data-path evidence. QSPI boot
+firmware is a separate update and qualification path.
 
-- `sdtgen`, or legacy `xsct`
-- `dtc`
-- `zip`
-- `sha256sum`
-
-On Windows hosts where the implementation already completed under `C:\w\d`
-but the separate WSL-only packaging step is still brittle, use the repo-owned
-PowerShell wrapper:
-
-```powershell
-cd C:\w\d
-.\scripts\windows\package_dtbo_from_existing_xsa.ps1 -GitSha 176ee43
-```
-
-That script bootstraps `pl.dtsi` with Windows `sdtgen.bat`, or legacy
-`xsct.bat` if SDTGen is unavailable, and then hands the rest of the bundle
-generation back to the normal WSL packaging script.
-
-Expected outputs:
-
-- `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_<gitsha>.dtbo`
-- `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_ol_<gitsha>/`
-- `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_ol_<gitsha>.zip`
-- `xilinx/output-$DAPHNE_GIT_SHA/SHA256SUMS`
-
-## Current validated baseline
-
-The current working reference line is:
-
-- routed-clean hardware commit: `a389fcd`
-- repo `main` tip carrying the DTBO packaging fixes: `eb5f971`
-
-That line has been validated on hardware:
-
-- overlay loads on target
-- the clock-service/client path works
-- `daphne-server` runs
-- oscilloscope mode sees signals
-
-## What the known-good golden bundle tells us
-
-The validated package under `~/golden/daphne14-2026-03-12/` is a **full boot
-image bundle**, not just an overlay zip. It includes:
-
-- `boot/BOOT.BIN`
-- `boot/Image`
-- `boot/boot.scr`
-- `boot/system.dtb`
-- `boot/system-zynqmp-sck-kr-g-revB.dtb`
-- `boot/running-fdt.dtb`
-- rootfs image payloads
-- QSPI image dumps
-
-That means the long-term stable-firmware goal is larger than the current
-overlay deliverable.
-
-## Device-tree ownership and network configuration
-
-The golden `system.dtb` shows that PS-side Ethernet identity and mode already
-live in the device tree:
-
-- `ethernet@ff0b0000`
-  - `phy-mode = "sgmii"`
-  - `mac-address`
-  - `local-mac-address`
-  - `fixed-link`
-- `ethernet@ff0c0000`
-  - `phy-mode = "rgmii-id"`
-
-This reinforces the intended ownership boundary:
-
-- do **not** move board MAC/IP ownership into PL refactors;
-- keep Hermes transport behavior unchanged;
-- standardize board identity at the device-tree / platform-software layer.
-
-## What is still missing for a full stable firmware package
-
-The repo still does **not** yet generate:
-
-- `BOOT.BIN`
-- `Image`
-- full `system.dtb`
-- boot scripts
-- rootfs image payloads
-- QSPI or eMMC staging images
-- a fully qualified repo-owned boot flow on target from those outputs
-
-That work belongs to the next packaging phase around PetaLinux and boot-image
-assembly, which now has a terminal-driven wrapper in
-`scripts/petalinux/build_kr260_image.sh`.
-
-The first repo-owned scaffold for that phase now lives under
-`petalinux/meta-daphne/`, and the current project wrappers live at:
-
-- `scripts/petalinux/bootstrap_kr260_project.sh`
-- `scripts/petalinux/init_kr260_project.sh`
-- `scripts/petalinux/build_kr260_image.sh`
-- `scripts/petalinux/collect_project_artifacts.sh`
-
-## Recommended next milestone
-
-Treat the stable overlay bundle as complete, then build outward toward the
-golden-package shape:
-
-1. stage the generated overlay bundle into the PetaLinux project through
-   `scripts/petalinux/stage_overlay_into_project.sh`
-2. build and collect the image into `petalinux/output/<project-name>/` through
-   `scripts/petalinux/build_kr260_image.sh`
-3. define the board-owned DT inputs for MAC/IP defaults and optional IP
-4. replace placeholder userspace/service recipes with real packages
-5. validate the resulting image bundle against the known-good golden image
+In this documentation, *hardware handoff* means the `.xsa` passed from Vivado
+to PetaLinux. It does not refer to the deprecated agent-session handoff notes.

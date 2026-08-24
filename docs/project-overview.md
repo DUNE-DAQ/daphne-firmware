@@ -74,23 +74,26 @@ What the repo owns today:
 - the K26C hardware build path
 - the Vivado/Vitis device-tree overlay packaging flow
 - the FuseSoC source graph and smoke/formal targets
-- the first repo-owned PetaLinux scaffolding
+- the repo-owned PetaLinux layer, image profiles, build wrappers, and artifact
+  collection
+- board-configuration rendering and one-board-at-a-time inactive-slot eMMC
+  deployment
 - the runtime contract needed by `daphne-server`
 
 What the repo does not fully own yet:
 
-- full boot-image assembly
-- complete PetaLinux/system image delivery
-- automated install/start of the full service stack
+- multi-board station scheduling, inventory authority, and campaign-wide
+  evidence aggregation
+- a fully reproducible 2026.1 `daphne-server` dependency/runtime release
 - validated support beyond the current K26C baseline
 
-## Current Stable Reference
+## Release and verification references
 
-- last routed-clean tested hardware commit: `a389fcd`
-- current `main` tip carrying the DTBO packaging fixes for that line:
-  `eb5f971`
+Use the annotated release tag, its release notes, and
+`verification-status.md` to identify a current candidate. Do not infer current
+status from an old development branch or handoff note.
 
-That baseline has already been validated through:
+The historical `a389fcd` hardware baseline was validated through:
 
 - bitstream generation
 - overlay generation
@@ -98,6 +101,8 @@ That baseline has already been validated through:
 - clock-client bring-up
 - `daphne-server`
 - oscilloscope-mode signal visibility
+
+It remains a regression reference, not the current release identifier.
 
 ## Developer Manifest
 
@@ -299,13 +304,14 @@ Expected products:
 
 The highest-value remaining work is:
 
-1. build and qualify the repo-owned PetaLinux/image path
-2. automate the handoff from firmware outputs into the image build
-3. preserve `a389fcd` as the hardware regression baseline for future cleanup
+1. qualify each immutable firmware/runtime bundle on the intended board setup
+2. complete deterministic runtime/register plans with readback evidence
+3. integrate the one-board deploy command into the production station and its
+   authoritative inventory
 4. extend verification deeper into timing, frontend, spy-buffer, and Hermes
    internals where bounded proofs are realistic
 5. continue modularization without breaking the proven K26C path
-6. expand validation beyond the current K26C baseline and current board
+6. expand validation beyond the current K26C baseline
 
 ## Related Documents
 
@@ -314,4 +320,4 @@ The highest-value remaining work is:
 - [firmware-delivery.md](firmware-delivery.md)
 - [remote-vivado.md](remote-vivado.md)
 - [wsl-windows-vivado.md](wsl-windows-vivado.md)
-- [gap-analysis.md](gap-analysis.md)
+- [README.md](README.md)

@@ -11,6 +11,23 @@ permissions:
   contents: read
 
 jobs:
+  logic-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-04-08'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install FuseSoC
+        run: python3 -m pip install --user 'fusesoc==2.4.3'
+
+      - name: Run GHDL smoke suite
+        run: ./scripts/fusesoc/run_logic_test.sh --suite all-local
+
   default-formal:
     runs-on: ubuntu-latest
     strategy:

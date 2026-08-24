@@ -79,7 +79,8 @@ legacy generated manifest protects the current K26C delivery path from churn.
 - Formal now covers the AXI-Lite leaf blocks plus the isolated subsystem
   boundary wrappers where reset and readiness contracts are explicit enough to
   prove cheaply during the migration.
-## What this does not do yet
+
+## Compatibility boundaries
 
 - It does not remove the legacy Tcl/IP packaging path from the repository.
 - It does not yet replace the legacy packaged-IP/export lane used by older
@@ -87,8 +88,9 @@ legacy generated manifest protects the current K26C delivery path from churn.
 - It does not move MAC/IP defaults into a board-specific software/device-tree
   layer. The imported PL package defaults remain in place until the transport
   path is reworked with software ownership in mind.
-- It does not provide a deployable Petalinux bundle, boot image recipe, or
-  `daphne-server` installation pipeline.
+- The RTL/FuseSoC graph intentionally does not build Linux artifacts. The
+  repo-owned PetaLinux and deployment scripts consume its generated hardware
+  outputs as a separate, testable stage.
 
 ## Active Impl Shape
 

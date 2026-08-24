@@ -104,15 +104,6 @@ architecture stuff_arch of stuff is
 	signal reg_data_out:std_logic_vector(31 downto 0);
 	signal aw_en: std_logic;
    
-    component fanmon is
-    port(
-        clock: in std_logic;
-        reset: in std_logic;
-        tach: in std_logic;
-        rpm: out std_logic_vector(11 downto 0)
-      );
-    end component;
-
     signal reset: std_logic;
     signal fan_count_reg: std_logic_vector(11 downto 0) := X"000";
     signal fan_speed_cfg_reg: std_logic_vector(7 downto 0);
@@ -194,10 +185,10 @@ end process fanspeed_proc;
 
 -- fan speed monitoring
 
-fanmon0_inst: fanmon
+fanmon0_inst: entity work.fanmon
 port map( clock => S_AXI_ACLK, reset => reset, tach => fan_tach(0), rpm => fan0_rpm );
 
-fanmon1_inst: fanmon
+fanmon1_inst: entity work.fanmon
 port map( clock => S_AXI_ACLK, reset => reset, tach => fan_tach(1), rpm => fan1_rpm );
 
 selftrigger_reg_bank_inst: entity work.legacy_stuff_selftrigger_register_bank

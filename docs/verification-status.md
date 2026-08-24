@@ -17,8 +17,10 @@ Verified locally with GHDL through `./scripts/fusesoc/run_logic_test.sh`:
 
 - default suite
   - `dune-daq:daphne:config-control:0.1.0`
+  - `dune-daq:daphne:fan-monitor:0.1.0`
   - `dune-daq:daphne:selftrigger:0.1.0`
   - `dune-daq:daphne:frontend-control:0.1.0`
+  - `dune-daq:daphne:k26c-board-spy-trigger-plane:0.1.0`
 - composable suite
   - `dune-daq:daphne:daphne-composable-core-top:0.1.0`
   - `dune-daq:daphne:daphne-composable-frontend-shell:0.1.0`
@@ -267,13 +269,15 @@ Current passing local inventory:
 - `./scripts/formal/run_formal.sh --suite composable-cover`
 - `./scripts/formal/run_formal.sh --suite all-local`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-control:0.1.0`
+- `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:fan-monitor:0.1.0`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:selftrigger:0.1.0`
 
 ## CI
 
 A lightweight GitHub Actions lane now lives at
 `.github/workflows/formal.yml`. It runs on `push` and `pull_request`, installs
-a pinned OSS CAD Suite toolchain, and executes:
+a pinned OSS CAD Suite toolchain, runs the GHDL smoke suite once, and executes
+the formal suites below:
 
 - `./scripts/formal/run_formal.sh --suite default`
 - `./scripts/formal/run_formal.sh --suite cover-fast`

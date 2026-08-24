@@ -9,8 +9,8 @@ Current contents:
   against a Petalinux SDK/sysroot.
 - `daphne-server-deps.lock.cmake` copied from the current `daphne-server`
   checkout so the firmware repo records the expected pinned runtime bundle.
-- `meta-daphne/` as the first repo-owned scaffold for future DT, firmware,
-  userspace, and service packaging ownership.
+- `meta-daphne/` as the repo-owned DT, firmware, userspace, and service
+  packaging layer.
 - `config/kr260/` and `scripts/petalinux/bootstrap_kr260_project.sh` for
   attaching that layer to an initialized KR260 PetaLinux project.
 - `scripts/petalinux/init_kr260_project.sh` for terminal-driven project
@@ -24,21 +24,12 @@ Current contents:
 - an optional `packagegroup-daphne-server-build` that stages the target-side
   development dependencies needed by `daphne-server` / `daphneZMQ`
 
-Still missing before this repo can be considered a full Petalinux deliverable:
-
-- a build-tested integration of `meta-daphne/` into a real KR260 PetaLinux
-  project;
-- an automated handoff from the firmware build outputs
-  (`xilinx/output/*.xsa`, `.bit`, `.dtbo`) to the board image build;
-- an automated handoff from a qualified `daphne-server` runtime bundle into the
-  board image build;
-- a validated target rootfs test on a Linux/Petalinux host.
-
-The modular FuseSoC split does not change these deploy-time gaps yet. The
-current deployable contract is anchored on the working K26C Vivado batch flow,
-the staged overlay bundle, and the staged `daphne-server` runtime bundle. The
-Yocto ownership points now exist as repo-owned recipes under
-`petalinux/meta-daphne/`.
+The build wrappers now connect the firmware handoff, repo-owned layer, overlay,
+optional runtime bundle, PetaLinux build, boot packaging, and artifact
+collection. Current release candidates still require target-board
+qualification, and the 2026.1 `daphne-server` dependency bundle must be pinned
+and checked as part of each release. QSPI boot firmware remains a separate,
+explicitly gated update path.
 
 ## Current default package policy
 

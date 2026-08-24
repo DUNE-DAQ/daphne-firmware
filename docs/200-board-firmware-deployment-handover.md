@@ -1,6 +1,7 @@
-# Handover: Firmware Deployment to 200 DAPHNE Boards
+# Multi-board Firmware Deployment Plan
 
-Status: published handover candidate, updated 2026-07-30
+Status: working campaign plan, updated 2026-08-24. Commands intentionally
+operate on one isolated board at a time.
 
 ## Goal
 

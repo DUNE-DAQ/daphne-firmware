@@ -9,6 +9,7 @@ list_suite() {
     default)
       cat <<'EOF'
 dune-daq:daphne:config-control:0.1.0
+dune-daq:daphne:fan-monitor:0.1.0
 dune-daq:daphne:selftrigger:0.1.0
 dune-daq:daphne:frontend-control:0.1.0
 dune-daq:daphne:k26c-board-spy-trigger-plane:0.1.0

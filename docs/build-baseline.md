@@ -1,6 +1,10 @@
 # Build Baseline
 
-This branch starts from a known-good K26C hardware build baseline.
+Status: historical Vivado 2024.1 regression reference. This is not the current
+release or build guide. Use `build-manual.md` and the annotated release notes
+for current Vivado 2026.1 instructions and results.
+
+This branch started from a known-good K26C hardware build baseline.
 
 ## Qualified baseline
 

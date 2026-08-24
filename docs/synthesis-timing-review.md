@@ -1,7 +1,11 @@
 # Synthesis Timing Review
 
-This note records the synthesis-side timing review for the current K26C
-build path on `marroyav/fusesoc-backports`.
+Status: historical Vivado 2024.1 review. It is retained for design rationale,
+not as current build guidance. Use `build-manual.md`, `remote-vivado.md`, and
+the release implementation reports for the Vivado 2026.1 flow.
+
+This note records the earlier synthesis-side timing review on
+`marroyav/fusesoc-backports`.
 
 ## Current flow
 
