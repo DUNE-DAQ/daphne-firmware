@@ -59,6 +59,9 @@ class MacIdentityPolicyTests(unittest.TestCase):
     def test_device_tree_has_standard_alias_and_no_compiled_mac(self) -> None:
         text = NETWORK_DTSI.read_text(encoding="utf-8")
         self.assertIn("ethernet0 = &gem0;", text)
+        self.assertIn("serial0 = &uart0;", text)
+        self.assertIn("serial1 = &uart1;", text)
+        self.assertIn('stdout-path = "serial1:115200n8";', text)
         self.assertIn("/delete-property/ mac-address;", text)
         self.assertIn("/delete-property/ local-mac-address;", text)
         self.assertNotRegex(text, r"(?m)^\s*(?:local-)?mac-address\s*=\s*\[")
@@ -72,6 +75,8 @@ class MacIdentityPolicyTests(unittest.TestCase):
                 "/dts-v1/;\n"
                 "/ {\n"
                 "  aliases {};\n"
+                "  uart0: serial@0 {};\n"
+                "  uart1: serial@1 {};\n"
                 "  gem0: ethernet@0 {\n"
                 "    mac-address = [02 00 00 00 00 20];\n"
                 "    local-mac-address = [02 00 00 00 00 20];\n"
@@ -100,6 +105,25 @@ class MacIdentityPolicyTests(unittest.TestCase):
                     text=True,
                 )
                 self.assertNotEqual(0, result.returncode, prop)
+
+            for prop, expected in (
+                ("serial0", "/serial@0"),
+                ("serial1", "/serial@1"),
+            ):
+                result = subprocess.run(
+                    ["fdtget", "-t", "s", output, "/aliases", prop],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                ).stdout.strip()
+                self.assertEqual(expected, result)
+            stdout_path = subprocess.run(
+                ["fdtget", "-t", "s", output, "/chosen", "stdout-path"],
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            self.assertEqual("serial1:115200n8", stdout_path)
 
     def test_random_fallback_is_disabled(self) -> None:
         text = UBOOT_CFG.read_text(encoding="utf-8")

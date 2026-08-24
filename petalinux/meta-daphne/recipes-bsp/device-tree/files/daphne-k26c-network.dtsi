@@ -6,8 +6,14 @@
 	 */
 
 	aliases {
+		serial0 = &uart0;
+		serial1 = &uart1;
 		ethernet0 = &gem0;
 		ethernet_daphne_sgmii = &gem0;
+	};
+
+	chosen {
+		stdout-path = "serial1:115200n8";
 	};
 };
 
