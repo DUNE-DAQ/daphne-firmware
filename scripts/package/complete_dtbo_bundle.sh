@@ -402,13 +402,32 @@ cp -f "$json_file" "$overlay_dir/shell.json"
   cd "$OUTPUT_DIR"
   rm -f "$(basename "$overlay_zip")"
   zip -r "$(basename "$overlay_zip")" "$(basename "$overlay_dir")" >/dev/null
-  "${SHA256_CMD[@]}" \
-    "$(basename "$dtbo_file")" \
-    "$(basename "$bin_file")" \
-    "$(basename "$overlay_zip")" \
-    "$(basename "$overlay_dir")/${overlay_prefix}_${git_sha}.dtbo" \
-    "$(basename "$overlay_dir")/${overlay_prefix}_${git_sha}.bin" \
-    "$(basename "$overlay_dir")/shell.json" > SHA256SUMS
+
+  checksum_candidates=(
+    "${artifact_prefix}_${git_sha}.bit"
+    "${artifact_prefix}_${git_sha}.bin"
+    "${artifact_prefix}_${git_sha}.xsa"
+    "${artifact_prefix}_${git_sha}.dtbo"
+    "${overlay_prefix}_${git_sha}.zip"
+    "${overlay_prefix}_${git_sha}/${overlay_prefix}_${git_sha}.bin"
+    "${overlay_prefix}_${git_sha}/${overlay_prefix}_${git_sha}.dtbo"
+    "${overlay_prefix}_${git_sha}/shell.json"
+    post_route_timing_summary.rpt
+    post_route_bus_skew.rpt
+    post_route_cdc.rpt
+    post_route_methodology.rpt
+    post_route_status.rpt
+    post_route_power.rpt
+    post_route_util.rpt
+    post_imp_drc.rpt
+  )
+  checksum_paths=()
+  for checksum_path in "${checksum_candidates[@]}"; do
+    if [[ -s "$checksum_path" ]]; then
+      checksum_paths+=("$checksum_path")
+    fi
+  done
+  "${SHA256_CMD[@]}" "${checksum_paths[@]}" > SHA256SUMS
 )
 
 echo "INFO: generated artifacts:"

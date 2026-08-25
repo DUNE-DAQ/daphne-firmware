@@ -8,14 +8,14 @@
 --
 -- address 0 = ARM the module by writing the output stream number (0-7) to this address
 --             reading this address will return the status of the state machine in the upper nibble
---             (search for state_nibble futher down in this file...) and the stream number in the lower 3 bits.
+--             (search for state_nibble further down in this file...) and the stream number in the lower 3 bits.
 --
 -- address 4 = FIFO data register (R/O) read the captured data (low 32 bits, then high 32 bits, then low, then high...) 
 --             1k 64-bit words are stored, so read this address 2048 times to get it all
 --
 -- HOW TO USE IT: First, write the output stream number you want to capture (0-7) to address 0. That will FLUSH the FIFO and ARM it.
 -- Now you can poll the status by reading address 0. The status will be in the upper nibble of this 32 bit word.
--- (to see what these four bits mean, search for state_nibble futher down in this file...)
+-- (to see what these four bits mean, search for state_nibble further down in this file...)
 -- You can read the captured data by reading address 1 repeatedly. After this module has cycled through the
 -- all the states, then the first word you'll read is the lower 32 bits of the first 64-bit word, followed by the upper 32 bits,
 -- followed by the lower 32 bits of the next 64-bit word, etc. etc.
@@ -234,7 +234,7 @@ begin
       axi_araddr  <= (others => '1');
     else
       if (axi_arready = '0' and AXI_IN.ARVALID = '1') then
-        -- indicates that the slave has acceped the valid read address
+        -- indicates that the slave has accepted the valid read address
         axi_arready <= '1';
         -- Read Address latching 
         axi_araddr  <= AXI_IN.ARADDR;           
@@ -294,7 +294,7 @@ begin
       if (reg_rden = '1') then
         -- When there is a valid read address (S_AXI_ARVALID) with 
         -- acceptance of read address by the slave (axi_arready), 
-        -- output the read dada 
+        -- output the read data
         -- Read address mux
           axi_rdata <= reg_data_out; -- register read data
       end if;   

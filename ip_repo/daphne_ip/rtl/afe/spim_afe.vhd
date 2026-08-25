@@ -158,8 +158,8 @@ signal afe_rst_reg, afe_pd_reg: std_logic := '0';
 constant CTRLSTAT_OFFSET: std_logic_vector(5 downto 0) := "000000"; -- base + 0
 
 constant AFE0_OFFSET:     std_logic_vector(5 downto 0) := std_logic_vector( to_unsigned( 4,6) ); -- base + 4
-constant TRIM0_OFFSET:    std_logic_vector(5 downto 0) := std_logic_vector( to_unsigned( 8,6) ); -- base + 12
-constant OFFS0_OFFSET:    std_logic_vector(5 downto 0) := std_logic_vector( to_unsigned(12,6) ); -- base + 8
+constant TRIM0_OFFSET:    std_logic_vector(5 downto 0) := std_logic_vector( to_unsigned( 8,6) ); -- base + 8
+constant OFFS0_OFFSET:    std_logic_vector(5 downto 0) := std_logic_vector( to_unsigned(12,6) ); -- base + 12
 
 constant AFE1_OFFSET:     std_logic_vector(5 downto 0) := std_logic_vector( to_unsigned(16,6) );
 constant TRIM1_OFFSET:    std_logic_vector(5 downto 0) := std_logic_vector( to_unsigned(20,6) );

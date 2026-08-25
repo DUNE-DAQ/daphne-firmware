@@ -1,4 +1,4 @@
-# Project Overview
+# Project overview
 
 This page is the high-level entry point for the current `daphne-firmware`
 repository state.
@@ -51,7 +51,7 @@ top-level intent:
 - what the supported targets are
 - what the smoke/formal targets are
 
-## Why Modularization
+## Why modularization
 
 The imported tree is large and tightly coupled. Modularization exists to make
 the design easier to reason about without breaking the known-good path
@@ -67,7 +67,7 @@ Practical reasons:
 The modularization work is intentionally additive first. It introduces cleaner
 boundaries before trying to retire the compatibility path.
 
-## Current Scope
+## Current scope
 
 What the repo owns today:
 
@@ -104,7 +104,7 @@ The historical `a389fcd` hardware baseline was validated through:
 
 It remains a regression reference, not the current release identifier.
 
-## Developer Manifest
+## Developer manifest
 
 The current subsystem-level attribution map lives in:
 
@@ -144,7 +144,7 @@ Recommended path discipline:
 
 Keep the path short and avoid spaces.
 
-## Main Building Blocks
+## Main building blocks
 
 ### Architecture views
 
@@ -164,7 +164,7 @@ Keep the path short and avoid spaces.
 
 ![daphne-firmware readiness contracts](figures/architecture/readiness_contracts.svg)
 
-### 1. Imported compatibility layer
+### Imported compatibility layer
 
 These files preserve the currently qualified hardware path:
 
@@ -175,7 +175,7 @@ These files preserve the currently qualified hardware path:
 
 This is still the real compatibility lane for the production K26C build.
 
-### 2. Board and platform layer
+### Board and platform layer
 
 This is where supported board ownership is defined:
 
@@ -185,7 +185,7 @@ This is where supported board ownership is defined:
 
 This layer defines the supported platform core and default targets.
 
-### 3. Modular isolated RTL layer
+### Modular isolated RTL layer
 
 This is the additive decomposition work:
 
@@ -196,7 +196,7 @@ This is the additive decomposition work:
 This is where subsystem boundaries, neutral records, and reusable feature cores
 are being made explicit.
 
-### 4. Analog/frontend control path
+### Analog/frontend control path
 
 Main responsibility:
 
@@ -210,7 +210,7 @@ Examples:
 - DAC/interface blocks
 - frontend register and capture blocks
 
-### 5. Trigger and readout path
+### Trigger and readout path
 
 Main responsibility:
 
@@ -234,7 +234,7 @@ Examples:
 - xcorr/self-trigger imports
 - readout mux/buffer path
 
-### 6. Timing path
+### Timing path
 
 Main responsibility:
 
@@ -246,7 +246,7 @@ Examples:
 - timing endpoint sources under `rtl/timing/`
 - timing subsystem wrappers in `rtl/isolated/subsystems/timing/`
 
-### 7. Transport path
+### Transport path
 
 Main responsibility:
 
@@ -259,7 +259,7 @@ Examples:
   `ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/`
 - isolated Hermes boundary wrappers
 
-### 8. Verification and deployment support
+### Verification and deployment support
 
 Examples:
 
@@ -270,7 +270,7 @@ Examples:
 
 These are what make the firmware repo more than a raw HDL import.
 
-## How To Build
+## How to build
 
 Use the end-to-end manual:
 
@@ -313,7 +313,7 @@ The highest-value remaining work is:
 5. continue modularization without breaking the proven K26C path
 6. expand validation beyond the current K26C baseline
 
-## Related Documents
+## Related documents
 
 - [build-manual.md](build-manual.md)
 - [build-baseline.md](build-baseline.md)

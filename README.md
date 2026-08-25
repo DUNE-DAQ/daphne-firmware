@@ -52,11 +52,10 @@ For safe local-desktop and server-side control of the upstream Raritan PX4 PDU
 and Kontron/WIENER PL5xx, CML, MARATON, and MPOD power systems, see
 `docs/kontron-wiener-power-control.md`.
 
-For the campaign plan covering identity-safe firmware deployment and generated
-runtime/register configuration across many boards,
-see `docs/200-board-firmware-deployment-handover.md`.
-
 For a guide to current and deprecated documents, see `docs/README.md`.
+
+For the status and release gates of the current source candidate, see
+`docs/releases/selftrigger-2026.08.24-rc2.md`.
 
 For the high-level project philosophy, module map, scope, stable baseline, and
 current TODO list, see `docs/project-overview.md`.
@@ -299,8 +298,8 @@ for packaging an existing handoff is:
 
 The current isolation/formal-prep structure is described in
 `docs/rtl-isolation-plan.md`, the dependency transition is tracked in
-`docs/dependency-transition-plan.md`, and the current qualified build
-checkpoint is recorded in `docs/build-baseline.md`. The current firmware
+`docs/dependency-transition-plan.md`, and the historical build checkpoint is
+recorded in `docs/build-baseline.md`. The current firmware
 artifact boundary is documented in `docs/firmware-delivery.md`.
 
 To drive the repo-owned PetaLinux flow after the hardware handoff is ready:

@@ -229,7 +229,7 @@ begin
 	    else
 		  axi_arvalid <= S_AXI_ARVALID;
           if (axi_arready='0' and axi_arready_reg='0' and S_AXI_ARVALID='1') then
-	        -- indicates that the slave has acceped the valid read address
+	        -- indicates that the slave has accepted the valid read address
 	        axi_arready <= '1';
 			axi_arready_reg <= axi_arready;
 	        -- Read Address latching 

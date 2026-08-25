@@ -5,14 +5,13 @@ Start with the document that matches the job you are doing.
 ## Operating and deployment
 
 - `build-manual.md`: build the FPGA artifacts.
+- `releases/selftrigger-2026.08.24-rc2.md`: current source-candidate status and
+  release gates.
 - `kr260-petalinux-build-guide.md`: build the Linux image and collect a
   deployment bundle.
 - `daphne-board-enrollment-runbook.md`: enroll and identify a board safely.
 - `kria-board-identity-and-production-deployment.md`: identity and deployment
   policy.
-- `200-board-firmware-deployment-handover.md`: current multi-board campaign
-  plan. The filename is historical; this is a plan, not an agent-session
-  handoff.
 - `kontron-wiener-power-control.md`: operate supported power equipment.
 
 ## Firmware development
@@ -29,6 +28,7 @@ These filenames remain as short notices so old links fail safely:
 - `agent-handoff.md`
 - `wsl-agent-summary.md`
 - `gap-analysis.md`
+- `200-board-firmware-deployment-handover.md`
 
 Do not use those files to determine current capabilities. Git history remains
 the source for the old session details.

@@ -277,53 +277,11 @@ filesets:
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_gt_gthe4_common_wrapper.v
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_gt_gthe4_common_wrapper_125.v
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/xxv_ethernet_0_reset_wrapper.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_bit_sync.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gte4_drp_arb.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gthe3_cal_freqcnt.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gthe3_cpll_cal.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gthe4_cal_freqcnt.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gthe4_cpll_cal.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gthe4_cpll_cal_rx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gthe4_cpll_cal_tx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gthe4_delay_powergood.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtwiz_buffbypass_rx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtwiz_buffbypass_tx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtwiz_reset.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtwiz_userclk_rx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtwiz_userclk_tx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtwiz_userdata_rx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtwiz_userdata_tx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtye4_cal_freqcnt.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtye4_cpll_cal.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtye4_cpll_cal_rx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtye4_cpll_cal_tx.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_gtye4_delay_powergood.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_reset_inv_sync.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/hdl/gtwizard_ultrascale_v1_7_reset_sync.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/sim/gtwizard_ultrascale_v1_7_gthe4_channel.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/sim/xxv_ethernet_0_gt.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/sim/xxv_ethernet_0_gt_gthe4_channel_wrapper.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/sim/xxv_ethernet_0_gt_gtwizard_gthe4.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/sim/xxv_ethernet_0_gt_gtwizard_top.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/synth/gtwizard_ultrascale_v1_7_gthe4_channel.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/synth/xxv_ethernet_0_gt.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/synth/xxv_ethernet_0_gt_gthe4_channel_wrapper.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/synth/xxv_ethernet_0_gt_gtwizard_gthe4.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/ip_0/synth/xxv_ethernet_0_gt_gtwizard_top.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v5_1_0/xxv_ethernet_0_top.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v5_1_0/xxv_ethernet_0_ultrascale_rx_userclk.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v5_1_0/xxv_ethernet_0_ultrascale_tx_userclk.v
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_v5_1_0/xxv_ethernet_0_wrapper.v
     file_type: verilogSource
   daq_tcl:
     files:
       - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/wib_top.tcl
     file_type: tclSource
-  daq_xci:
-    files:
-      - ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci
-    file_type: xci
 
 targets:
   default: &default_target
@@ -346,4 +304,3 @@ targets:
     description: Source manifest plus Tcl/XCI collateral expected by Vivado
     filesets_append:
       - daq_tcl
-      - daq_xci

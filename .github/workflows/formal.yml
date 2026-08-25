@@ -25,6 +25,17 @@ jobs:
       - name: Install FuseSoC
         run: python3 -m pip install --user 'fusesoc==2.4.3'
 
+      - name: Check generated source manifests
+        run: |
+          ./scripts/fusesoc/refresh_cores.sh
+          git diff --exit-code -- daphne-ip.core daphne-ip-export.core
+
+      - name: Check scripts and documentation
+        run: |
+          bash -n scripts/fusesoc/check_build_outputs.sh
+          python3 scripts/check_documentation.py
+          python3 scripts/check_register_map.py
+
       - name: Run GHDL smoke suite
         run: ./scripts/fusesoc/run_logic_test.sh --suite all-local
 

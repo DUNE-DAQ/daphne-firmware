@@ -13,8 +13,35 @@ filesets:
     files:
       - rtl/isolated/subsystems/trigger/stc3_record_builder.vhd
     file_type: vhdlSource-2008
+  sim_rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - rtl/isolated/common/primitives/fixed_delay_line.vhd
+      - tests/logic/sync_fifo_fwft_sim.vhd
+      - rtl/isolated/subsystems/trigger/stc3_record_builder.vhd
+    file_type: vhdlSource-2008
+  tb_smoke:
+    files:
+      - tests/logic/stc3_record_builder_smoke_tb.vhd
+    file_type: vhdlSource-2008
 
 targets:
   default:
     filesets:
       - rtl
+  sim:
+    description: GHDL smoke test for record creation, busy accounting, and counter reset
+    default_tool: ghdl
+    filesets:
+      - sim_rtl
+    filesets_append:
+      - tb_smoke
+    toplevel: stc3_record_builder_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us

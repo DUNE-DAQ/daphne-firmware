@@ -20,7 +20,7 @@
 --         reading this register returns the BUSY flag in the LSb 
 --
 -- example: we want to write four bytes to the device and read back 4 bytes at the same time.
--- 1. write the four bytes to base+0, this is four seprate writes and the byte is in the lower 8 bits
+-- 1. write the four bytes to base+0, this is four separate writes and the byte is in the lower 8 bits
 -- 2. write to the GO register base+4
 -- 3. this module shifts the X bits into (and out of) the CM device
 -- 4. read base+4 and check to see if the module is still busy

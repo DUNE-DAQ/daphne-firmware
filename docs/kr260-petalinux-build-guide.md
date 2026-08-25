@@ -1,4 +1,4 @@
-# DAPHNE KR260 PetaLinux Build Guide
+# DAPHNE KR260 PetaLinux build guide
 
 This guide turns the older screenshot-based bring-up notes into a repo-owned
 written procedure for building and staging a DAPHNE PetaLinux image from
@@ -89,10 +89,10 @@ Keep the checkout path short. On Cooper, keep all task data below the assigned
 workspace:
 
 ```text
-/tmp/arroyave/work/current
+/tmp/REPLACE_WITH_FNAL_USER/work/current
 ```
 
-## 1. Build the firmware handoff
+## Build the firmware handoff
 
 Start from `daphne-firmware`.
 
@@ -127,7 +127,7 @@ If implementation finished but DT overlay packaging did not:
 ./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
-## 2. Vivado PS sanity checks
+## Vivado PS sanity checks
 
 If you regenerate or edit the block design, confirm the PS-side settings
 before exporting hardware. Legacy notes still broadly match the intended KR260
@@ -142,7 +142,7 @@ shape:
 The current source of truth is the generated `.xsa` plus the repo-owned build
 scripts, not the old screenshots.
 
-## 3. Create or reuse the PetaLinux project
+## Create or reuse the PetaLinux project
 
 Preferred wrapper:
 
@@ -191,7 +191,7 @@ If you also have a harvested runtime bundle:
   /path/to/daphne-server-runtime-minimal.tgz
 ```
 
-## 4. Manual equivalent of the older screenshot flow
+## Manual equivalent of the older screenshot flow
 
 Use the wrappers above unless you are debugging PetaLinux directly.
 
@@ -217,7 +217,7 @@ petalinux-build
 petalinux-package --boot --u-boot --force
 ```
 
-## 5. Preferred full build wrapper
+## Preferred full build wrapper
 
 Use the repo-owned wrapper for the full image path:
 
@@ -280,11 +280,11 @@ overlay/shell.json
 `BOOT.BIN` is collected only when `build_kr260_image.sh --package-boot` is
 explicitly requested. It is not a qualified QSPI campaign artifact.
 
-## Historical QSPI Development Notes
+## Historical QSPI development notes
 
 The remaining QSPI material in this document records the earlier 2024.1
 bring-up and recovery experiments. It is not an instruction to generate or
-write QSPI from the current 2026.1 handover branch. The 2026.1 custom machine
+write QSPI from the current 2026.1 source candidate. The 2026.1 custom machine
 removes `kria-qspi` from `EXTRA_IMAGEDEPENDS`, and the current collector emits
 the whole-eMMC provisioning image plus the inactive-slot update payload.
 
@@ -324,7 +324,7 @@ Do not run `petalinux-build -c kria-qspi` in this XSA project. The equivalent
 workstream must emit and qualify the complete `kria-qspi.bin` SOM image around
 Image Selector, recovery, and the duplicated boot banks.
 
-## 5.1 Deployment Host Topologies
+## Deployment host topologies
 
 The normal documented setup is general: a Linux/Vivado/PetaLinux host connected
 directly to a DAPHNE board. That host owns the build workspace, can reach the
@@ -477,7 +477,7 @@ second run of `stage_qspi_primary_over_ssh.sh` against the other bank, but only
 as a deliberate lab/factory action. Normal remote updates should use
 `stage_bootfw_update_over_ssh.sh`.
 
-## 6. Overlay generation notes
+## Overlay generation notes
 
 The manual `xsct` / `createdts` flow from the older notes is still useful for
 debugging, but the normal path should stay:
@@ -495,7 +495,7 @@ DT overlay path. On `015`, the critical alias was:
 
 That is now owned by the repo overlay packaging.
 
-## 7. Device-tree policy
+## Device-tree policy
 
 Do not hand-edit generated `pl.dtsi` files in the project workspace as the
 long-term solution.
@@ -515,7 +515,7 @@ Important current finding:
 
 That fix is now part of the repo-owned DAPHNE DT policy.
 
-## 8. Network configuration notes
+## Network configuration notes
 
 The older static `ifconfig` / `rc.local` approach should not be treated as the
 fleet contract.
@@ -534,7 +534,7 @@ Current DAPHNE policy is:
 
 So board identity is no longer “MAC only”.
 
-## 9. Boot and board validation
+## Boot and board validation
 
 After booting the image:
 
@@ -575,7 +575,7 @@ After the May 13 runtime redeployment, the active autonomous boot is QSPI Image
 B into eMMC slot B (`/dev/mmcblk0p4`). QSPI persistent state reports Image B as
 both requested and last booted.
 
-## 10. Proven DAPHNE-15 flash workflow
+## Proven DAPHNE-15 flash workflow
 
 The currently proven offline rootfs flash path on `015` is:
 
@@ -609,7 +609,7 @@ e2fsck -fy /dev/mmcblk0p2
 reboot -f
 ```
 
-## 11. What was actually proven on 2026-05-09
+## What was actually proven on 2026-05-09
 
 On `NP04-DAPHNE-015`:
 

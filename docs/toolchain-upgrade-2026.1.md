@@ -1,9 +1,9 @@
-# Toolchain Upgrade To 2026.1
+# Toolchain upgrade to 2026.1
 
-This branch starts the migration of the DAPHNE firmware build flow from the
-old 2024.x tool defaults to AMD Vivado, Vitis, and PetaLinux 2026.1.
+The supported release target uses AMD Vivado, Vitis, and PetaLinux 2026.1.
+Older 2024.x results remain historical regression evidence.
 
-## Updated Defaults
+## Updated defaults
 
 - Vivado Tcl flow expected version: `2026.1`
 - Vitis device-tree generation prefers installed `sdtgen`; legacy `xsct`
@@ -13,13 +13,13 @@ old 2024.x tool defaults to AMD Vivado, Vitis, and PetaLinux 2026.1.
 - Debian 13 SDTGen runs with a repo-local ncurses compatibility shim under
   `build/xilinx-compat-libs` when Xilinx's bundled `libedit.so.0` asks for
   `libncurses.so.5`.
-- Current PetaLinux setup path for this workspace:
+- Current PetaLinux setup path on Cooper:
 
 ```bash
-source /opt/Xilinx/2026.1/PetaLinux/settings.sh
+source /tools/petalinux/settings.sh
 ```
 
-## Runtime Bundle Status
+## Runtime bundle status
 
 `petalinux/daphne-server-deps.lock.cmake` still records the existing staged
 runtime dependency bundle:
@@ -33,7 +33,7 @@ a qualified 2026.1/PetaLinux runtime bundle. The firmware-side Yocto recipe was
 made release-neutral so it can consume either the existing 2024-named staged
 bundle or a future 2026.1 bundle without changing the recipe path logic.
 
-## Next Validation Gates
+## Next validation gates
 
 - Run the native 2026.1 Vivado dry-run and then a license-backed synthesis.
 - Regenerate the XSA with Vivado 2026.1.

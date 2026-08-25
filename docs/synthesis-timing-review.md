@@ -1,4 +1,4 @@
-# Synthesis Timing Review
+# Synthesis timing review
 
 Status: historical Vivado 2024.1 review. It is retained for design rationale,
 not as current build guidance. Use `build-manual.md`, `remote-vivado.md`, and
@@ -11,22 +11,22 @@ This note records the earlier synthesis-side timing review on
 
 The supported Vivado batch flow currently drives synthesis through:
 
-- [daphne_vivado_flow.tcl](/Users/marroyav/repo/daphne-firmware/xilinx/daphne_vivado_flow.tcl)
+- [daphne_vivado_flow.tcl](../xilinx/daphne_vivado_flow.tcl)
 - `synth_design -top <bd_wrapper> -directive PerformanceOptimized`
 
 Relevant lines:
 
-- [daphne_vivado_flow.tcl](/Users/marroyav/repo/daphne-firmware/xilinx/daphne_vivado_flow.tcl#L97)
-- [daphne_vivado_flow.tcl](/Users/marroyav/repo/daphne-firmware/xilinx/daphne_vivado_flow.tcl#L233)
+- [daphne_vivado_flow.tcl, synthesis setup](../xilinx/daphne_vivado_flow.tcl#L97)
+- [daphne_vivado_flow.tcl, synthesis command](../xilinx/daphne_vivado_flow.tcl#L233)
 
 The flow does not currently expose extra synthesis options such as explicit
 retiming, resource-sharing overrides, or hierarchy controls.
 
-## What UG901 Says
+## What UG901 says
 
-The local Vivado 2024.1 synthesis manual is:
-
-- [ug901-vivado-synthesis-en-us-2024.1.pdf](/Users/marroyav/repo/third_party_docs/amd/vivado-2024.1/pdf/ug901-vivado-synthesis-en-us-2024.1.pdf)
+This historical review used AMD Vivado Design Suite User Guide: Synthesis
+(UG901), version 2024.1. The PDF was local to the review workstation and is
+not part of this repository.
 
 Important points from that guide:
 
@@ -45,9 +45,9 @@ For this design, the most important consequence is:
   directive,
 - but it is also not explicitly enabling retiming on a non-Versal device.
 
-## Repo-Specific Risk Areas
+## Repository-specific risk areas
 
-### 1. Retiming is still unused
+### Retiming is still unused
 
 K26C is a Zynq UltraScale+ target, not a Versal target. The current flow never
 passes an explicit retiming option to `synth_design`, so the build is
@@ -56,16 +56,16 @@ effectively running without synthesis retiming today.
 This is a real lever worth testing, but only after validating the exact Tcl
 form on a Vivado 2024.1 host.
 
-### 2. The STC3 waveform delay path changed implementation style
+### The STC3 waveform delay path changed implementation style
 
 The legacy STC3 path used explicit `SRLC32E` primitives:
 
-- [Daphne_MEZZ stc3.vhd](/Users/marroyav/repo/Daphne_MEZZ/ip_repo/daphne3_ip/rtl/selftrig/stc3.vhd#L264)
+- the historical Daphne_MEZZ `stc3.vhd` at its SRLC32E delay implementation
 
 The current modular builder uses a behavioral fixed delay line:
 
-- [fixed_delay_line.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/common/primitives/fixed_delay_line.vhd#L16)
-- [stc3_record_builder.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/trigger/stc3_record_builder.vhd#L72)
+- [fixed_delay_line.vhd](../rtl/isolated/common/primitives/fixed_delay_line.vhd#L16)
+- [stc3_record_builder.vhd](../rtl/isolated/subsystems/trigger/stc3_record_builder.vhd#L72)
 
 Vivado should be able to infer SRLs from this structure, but that is no longer
 forced the way it was in the legacy code. If SRL inference fails, timing and
@@ -74,7 +74,7 @@ resource use can both degrade.
 This is the most important synthesis-vs-RTL hotspot to inspect in the first
 usable synthesized netlist.
 
-## What Is Probably Not Worth Changing Blindly
+## Changes that need evidence first
 
 - Forcing `flatten_hierarchy` away from the default without evidence.
 - Forcing `resource_sharing` on or off globally.
@@ -85,7 +85,7 @@ usable synthesized netlist.
 Those changes can easily move area/timing around without helping the actual
 critical paths.
 
-## Recommended Experiments
+## Recommended experiments
 
 ### Baseline
 
@@ -116,12 +116,12 @@ Retiming is the next synthesis lever to validate:
 
 Inspect whether the delayed waveform path inferred SRLs as intended:
 
-- [fixed_delay_line.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/common/primitives/fixed_delay_line.vhd)
-- [stc3_record_builder.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/trigger/stc3_record_builder.vhd)
+- [fixed_delay_line.vhd](../rtl/isolated/common/primitives/fixed_delay_line.vhd)
+- [stc3_record_builder.vhd](../rtl/isolated/subsystems/trigger/stc3_record_builder.vhd)
 
 That check is more valuable than adding another speculative synthesis flag.
 
-## Practical Conclusion
+## Practical conclusion
 
 There is no obvious synthesis-documentation violation left in the current flow.
 

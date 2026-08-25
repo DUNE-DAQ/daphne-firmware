@@ -1,4 +1,4 @@
-# DAPHNE K26 Board Identity and MAC Boot Chain
+# DAPHNE K26 board identity and MAC boot chain
 
 Status: source and hardware audit completed 2026-07-14. The eMMC deployment
 path is implemented; the final MAC change on `NP04-DAPHNE-015` is gated on the
@@ -75,7 +75,7 @@ ID identifies the carrier assembly.
 
 ## Exact MAC chain
 
-### 1. EEPROM
+### EEPROM
 
 Read `/sys/bus/i2c/devices/1-0050/eeprom` and preserve the raw 8192-byte dump
 and SHA-256 digest. Decode the board-information UUID/serial and OEM MAC ID 0.
@@ -95,7 +95,7 @@ error occurs when traversal reaches `0xff` padding before a later record. Do
 not reinterpret the decoded MAC as `ff:ff:ff:ff:ff:ff`, and do not claim the
 whole EEPROM parses without warnings. Production QA records both facts.
 
-### 2. U-Boot
+### U-Boot
 
 Xilinx `board_late_init_xilinx()` exports decoded board fields and valid MAC
 records to environment variables. U-Boot's Ethernet device initialization
@@ -120,7 +120,7 @@ Do not run this before LANDB is ready. Do not merely delete `ethaddr` on a
 remote production board: automatic recovery from EEPROM must first be proven
 with the exact installed boot firmware and a serial recovery path.
 
-### 3. Base device tree
+### Base device tree
 
 The source fragment
 `petalinux/meta-daphne/recipes-bsp/device-tree/files/daphne-k26c-network.dtsi`
@@ -128,13 +128,13 @@ defines `ethernet0 = &gem0` and deletes inherited `mac-address` and
 `local-mac-address` properties. This makes the image board-neutral while
 retaining the alias that U-Boot requires for its Ethernet fix-up.
 
-### 4. FPGA overlay
+### FPGA overlay
 
 The DAPHNE FPGA overlay describes PL devices and names its bitstream. It must
 not define GEM aliases or MAC properties. Loading an overlay must not change
 the management interface identity.
 
-### 5. PetaLinux runtime configuration
+### PetaLinux runtime configuration
 
 The per-board renderer creates hostname, IP, gateway, DNS and DAPHNE endpoint
 files. It includes the factory MAC as informational identity data but never

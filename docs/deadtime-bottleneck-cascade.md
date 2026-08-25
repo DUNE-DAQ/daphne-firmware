@@ -1,4 +1,4 @@
-# Dead-Time Bottleneck Cascade
+# Dead-time bottleneck cascade
 
 This note summarizes the current dead-time bottleneck chain in the self-trigger
 readout path and identifies which blocks are worth changing if the design goal
@@ -13,7 +13,7 @@ The transport path does matter, especially for timing closure and `full_count`,
 but the dominant dead-time term in the current RTL comes from per-channel frame
 builder occupancy.
 
-## Current Cascade
+## Current cascade
 
 | Stage | RTL block | Current mechanism | Main limit | Primary symptom |
 | --- | --- | --- | --- | --- |
@@ -23,15 +23,15 @@ builder occupancy.
 | 4 | lane arbitration | 20 channels share one lane through `scan -> dump -> pause` | fair-share drain rate and scan latency | transport backpressure |
 | 5 | lane selection logic | wide ready scan and combinational data mux | QoR / congestion / timing | LUT pressure, routing pressure |
 
-## Why The Builder Dominates
+## Why the builder dominates
 
 The current builder accepts an event only in `wait4trig` and then remains busy
 until the full frame is serialized.
 
 Relevant RTL:
 
-- [stc3_record_builder.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/trigger/stc3_record_builder.vhd:179)
-- [stc3_record_builder.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/trigger/stc3_record_builder.vhd:228)
+- [stc3_record_builder.vhd, trigger acceptance](../rtl/isolated/subsystems/trigger/stc3_record_builder.vhd#L179)
+- [stc3_record_builder.vhd, frame serialization](../rtl/isolated/subsystems/trigger/stc3_record_builder.vhd#L228)
 
 The builder FSM does:
 
@@ -49,7 +49,7 @@ The dead-time study currently quantifies this builder occupancy as:
 
 That is the real architectural gate on per-channel trigger acceptance.
 
-## Current Quantitative Split
+## Current quantitative split
 
 The current stochastic/HDL study gives the following split near the operating
 region of interest.
@@ -65,11 +65,11 @@ region of interest.
 So at `10 kHz/channel`, the builder-driven term is already about five times the
 transport-driven term.
 
-## Transport Ceiling Versus Builder Penalty
+## Transport ceiling versus builder penalty
 
 The current shared lane path is:
 
-- [two_lane_readout_mux.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd:27)
+- [two_lane_readout_mux.vhd](../rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd#L27)
 
 It uses:
 
@@ -77,7 +77,7 @@ It uses:
 - `20` channels per lane
 - `scan -> dump -> pause`
 - a wide combinational lane mux at
-  [two_lane_readout_mux.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd:50)
+  [two_lane_readout_mux.vhd](../rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd#L50)
 
 Its nominal fair-share ceiling is about:
 
@@ -99,11 +99,11 @@ For example:
 That is why transport cleanup alone will not buy a large dead-time reduction in
 the regime we care about.
 
-## What Is Worth Doing In The Frame Builder
+## Frame-builder improvements
 
 Yes, there is real architectural work worth doing in the frame builder.
 
-### 1. Decouple trigger acceptance from frame serialization
+### Decouple trigger acceptance from frame serialization
 
 This is the main change that matters.
 
@@ -131,19 +131,19 @@ Effect:
 This is the only change in this space that directly attacks the dominant
 `busy_count` term.
 
-### 2. Keep payload storage in RAM, not LUT fabric
+### Keep payload storage in RAM, not LUT fabric
 
 That direction is aligned with the current resource situation.
 
 The current per-channel output FIFO is already XPM-based and mapped to UltraRAM:
 
-- [sync_fifo_fwft.vhd](/Users/marroyav/repo/daphne-firmware/rtl/isolated/common/primitives/sync_fifo_fwft.vhd:56)
+- [sync_fifo_fwft.vhd](../rtl/isolated/common/primitives/sync_fifo_fwft.vhd#L56)
 
 So the right architectural move is not "reinvent the FIFO." It is to move more
 of the frame-capture problem into RAM-backed structures and less into wide
 replicated control logic.
 
-### 3. Refactor the builder FSM only if the goal is QoR, not dead time
+### Refactor the builder FSM only for QoR
 
 A counter-driven or phased builder implementation may reduce LUT pressure and
 ease timing compared to the current explicit state expansion.
@@ -157,11 +157,11 @@ remains:
 
 So this is a secondary QoR cleanup, not the main throughput fix.
 
-## What Is Worth Doing In Transport
+## Transport improvements
 
 Transport work is still justified, but for the second-order term.
 
-### 1. Granularize the lane mux
+### Granularize the lane mux
 
 Instead of a flat `20:1` scan-and-select path per lane, use a small hierarchy,
 for example:
@@ -174,7 +174,7 @@ with registered stage boundaries.
 This is mainly a timing/congestion optimization and a moderate reduction in the
 transport-driven `full_count` term.
 
-### 2. Replace linear ready-scan with an active-source queue
+### Replace linear ready-scan with an active-source queue
 
 Instead of scanning all `20` `ready_i` lines every cycle, push channel ids into
 a ready queue when they become serviceable.
@@ -188,7 +188,7 @@ That reduces:
 Again, this improves the shared transport path. It does not remove the dominant
 builder occupancy term.
 
-### 3. Consider standard-mode FIFO output if timing is the issue
+### Consider standard-mode FIFO output if timing is the issue
 
 The current FIFO uses `READ_MODE => "fwft"`.
 

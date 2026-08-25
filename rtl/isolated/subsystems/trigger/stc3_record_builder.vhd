@@ -141,7 +141,7 @@ begin
   fulldrop_proc : process(clock_i)
   begin
     if rising_edge(clock_i) then
-      if enable_i = '0' then
+      if (reset_i = '1' or reset_st_counters_i = '1' or enable_i = '0') then
         fulldrop_count_s <= (others => '0');
       elsif (event_pulse_s = '1' and prog_full_s = '1' and state_s = wait4trig) then
         fulldrop_count_s <= fulldrop_count_s + 1;
@@ -152,14 +152,13 @@ begin
   busydrop_proc : process(clock_i)
   begin
     if rising_edge(clock_i) then
-      if enable_i = '0' then
+      if (reset_i = '1' or reset_st_counters_i = '1' or enable_i = '0') then
         busydrop_count_s <= (others => '0');
+        busydrop_seen_s  <= '0';
       elsif (event_pulse_s = '1' and fsm_busy_s = '1' and busydrop_seen_s = '0') then
         busydrop_count_s <= busydrop_count_s + 1;
         busydrop_seen_s  <= '1';
-      end if;
-
-      if (busydrop_seen_s = '1' and fsm_busy_s = '0') then
+      elsif (busydrop_seen_s = '1' and fsm_busy_s = '0') then
         busydrop_seen_s <= '0';
       end if;
     end if;
@@ -242,7 +241,7 @@ begin
   record_count_proc : process(clock_i)
   begin
     if rising_edge(clock_i) then
-      if enable_i = '0' then
+      if (reset_i = '1' or reset_st_counters_i = '1' or enable_i = '0') then
         record_count_s <= (others => '0');
       elsif state_s = h0 then
         record_count_s <= record_count_s + 1;

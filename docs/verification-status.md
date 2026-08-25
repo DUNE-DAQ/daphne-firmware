@@ -1,15 +1,22 @@
-# Verification Status
+# Verification status
 
 This document records the local verification work for the formal/smoke
 infrastructure update in this change set.
 
 ## Build impact
 
-These changes do not modify the Vivado implementation path, production top-
-level RTL connectivity, or firmware-visible behavior. They do update the
-isolated timing- and Hermes-boundary models used by the local composable
-smoke/formal entry points, along with the helper scripts and formal harnesses
-around them.
+The isolated formal models do not modify production top-level connectivity.
+They update the timing- and Hermes-boundary behavior used by local composable
+smoke/formal entry points.
+
+One production RTL correction is included: the shared self-trigger counter
+reset now clears the record, full-drop, busy-drop, trigger, and packet counters
+as the register map specifies. A focused GHDL test covers trigger acceptance,
+busy-drop accounting, and the common reset path.
+
+The release workflow also collects bus-skew, CDC, methodology, and route-status
+reports and checks them after implementation. That changes the build evidence,
+not the synthesized datapath.
 
 ## Local smoke verification
 
@@ -19,6 +26,7 @@ Verified locally with GHDL through `./scripts/fusesoc/run_logic_test.sh`:
   - `dune-daq:daphne:config-control:0.1.0`
   - `dune-daq:daphne:fan-monitor:0.1.0`
   - `dune-daq:daphne:selftrigger:0.1.0`
+  - `dune-daq:daphne:stc3-record-builder:0.1.0`
   - `dune-daq:daphne:frontend-control:0.1.0`
   - `dune-daq:daphne:k26c-board-spy-trigger-plane:0.1.0`
 - composable suite

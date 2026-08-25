@@ -1,4 +1,4 @@
-# Architecture Reference
+# Architecture reference
 
 This page is the reusable figure index for the current `daphne-firmware`
 architecture.
@@ -14,7 +14,7 @@ slide art. They are intended to be reused in:
 The current figure set is intentionally split by claim. Each figure answers one
 question.
 
-## 1. Subsystem Hierarchy
+## Subsystem hierarchy
 
 Question answered:
 
@@ -28,7 +28,7 @@ Interpretation:
 - solid boxes indicate repo-owned or wrapper-owned architectural ownership
 - the figure is about structural decomposition, not runtime flow
 
-## 2. Runtime Acquisition Path
+## Runtime acquisition path
 
 Question answered:
 
@@ -49,7 +49,7 @@ Interpretation:
 - the spybuffer is intentionally shown as a side observation path, not part of
   the main export chain
 
-## 3. Clock and Timing Topology
+## Clock and timing topology
 
 Question answered:
 
@@ -65,7 +65,7 @@ Interpretation:
 - dashed green edges represent timing qualification rather than direct clock
   distribution
 
-## 4. Readiness Contracts
+## Readiness contracts
 
 Question answered:
 
@@ -82,7 +82,7 @@ Interpretation:
 - this view is the cleanest summary of the contract work behind the modular and
   formal layers
 
-## 5. Build Flow
+## Build flow
 
 Question answered:
 
@@ -102,7 +102,7 @@ Interpretation:
   - `.dtbo`
   - overlay bundle and reports
 
-## 6. Descriptor Identity Path
+## Descriptor identity path
 
 Question answered:
 
@@ -124,7 +124,7 @@ Interpretation:
 - the detailed failure analysis and fix live in
   [peak-descriptor-id-uniqueness.md](peak-descriptor-id-uniqueness.md)
 
-## 7. Dead-Time Bottleneck Cascade
+## Dead-time bottleneck cascade
 
 Question answered:
 

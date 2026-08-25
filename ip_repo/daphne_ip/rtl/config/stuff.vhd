@@ -1,7 +1,7 @@
 -- stuff.vhd
 --
--- this module is a "catch all" for a bunch of misc stuff that exists on the PL side
--- and needs to connect to the PS side via a single axi-lite interface.
+-- Board-control AXI-Lite register block for PL controls and status that the PS
+-- must access through one interface.
 --
 -- "stuff" has some 32-bit registers:
 --
@@ -22,17 +22,9 @@
 -- base+52: self triggered filter output configuration, 2 bits, R/W
 -- base+56: self triggered counter flags reset, 1 bit, R/W
 -- base+60: self triggered mode channel afe compensation enable ch31..ch00 (31..0) R/W
--- base+64: self triggered mode channel afe compensation enable ch31..ch00 (31..0) R/W
+-- base+64: self triggered mode channel afe compensation enable ch39..ch32 (7..0) R/W
 -- base+68: self triggered mode channel inversion enable ch31..ch00 (31..0) R/W
 -- base+72: self triggered mode channel inversion enable ch39..ch32 (7..0) R/W
-
--- *** TO DO: (UPDATE: NOT ANYMORE!)
--- base+32: link_id(5..0) R/W 
--- base+36: slot_id(3..0) R/W 
--- base+40: crate_id(9..0) R/W 
--- base+44: detector_id(5..0) R/W 
--- base+48: version_id(5..0) R/W 
--- base+52: threshold(13..0) R/W 
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -384,7 +376,7 @@ begin
       axi_araddr  <= (others => '1');
     else
       if (axi_arready = '0' and S_AXI_ARVALID = '1') then
-        -- indicates that the slave has acceped the valid read address
+        -- indicates that the slave has accepted the valid read address
         axi_arready <= '1';
         -- Read Address latching 
         axi_araddr  <= S_AXI_ARADDR;           
@@ -451,7 +443,7 @@ begin
       if (reg_rden = '1') then
         -- When there is a valid read address (S_AXI_ARVALID) with 
         -- acceptance of read address by the slave (axi_arready), 
-        -- output the read dada 
+        -- output the read data
         -- Read address mux
           axi_rdata <= reg_data_out; -- register read data
       end if;   

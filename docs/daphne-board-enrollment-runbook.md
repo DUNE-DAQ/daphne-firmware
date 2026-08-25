@@ -1,4 +1,4 @@
-# DAPHNE Board Enrollment: AMD Comparison and One-Board Procedure
+# DAPHNE board enrollment: AMD comparison and one-board procedure
 
 Status: proposed factory and deployment runbook
 
@@ -10,7 +10,7 @@ HWDB-handoff prototype, not the production station interface. The firmware
 renderer consumes `daphne.board-config` version 1 JSON and does not depend on
 the database backend.
 
-## 1. The central decision
+## The central decision
 
 Production must explicitly choose whether the network MAC follows the Kria SOM
 or the logical DAPHNE asset. The hardware database remains the approval and
@@ -35,7 +35,7 @@ IP/endpoint pools and, only for Policy B, a MAC pool. Use one database
 transaction to discover/bind the UUID and register, allocate, or recover the
 board's assignments.
 
-## 2. AMD intended flow versus DAPHNE
+## AMD intended flow versus DAPHNE
 
 | Topic | AMD/Xilinx intended Kria production flow | DAPHNE flow with fixed hardware |
 |---|---|---|
@@ -61,12 +61,12 @@ References:
 - [AMD Kria U-Boot Handoff](https://xilinx.github.io/kria-apps-docs/bootfw/build/html/docs/bootfw_uboot_handoff.html)
 - [Xilinx U-Boot board EEPROM handling](https://github.com/Xilinx/u-boot-xlnx/blob/xlnx_rebase_v2026.01/board/xilinx/common/board.c)
 
-## 3. Information prepared before opening a SOM
+## Information prepared before opening a SOM
 
 Before powering any unit, approve allocation pools. Do not invent assignments
 at the bench.
 
-### 3.1 DAPHNE asset pool
+### DAPHNE asset pool
 
 Prepare or print unique asset tags and board IDs, for example:
 
@@ -78,7 +78,7 @@ board_id:  daphne-015
 Create the asset record with status `received` or `pending_enrollment`. At this
 point the SOM UUID may be empty.
 
-### 3.2 MAC pool, only for a DAPHNE-owned override
+### MAC pool, only for a DAPHNE-owned override
 
 Policy A needs no new pool for primary PS Ethernet: enrollment reads the valid,
 unique SOM MAC and registers it in the database. Policy B requires a MAC block
@@ -107,7 +107,7 @@ The existing locally administered `ba:be:...` pattern can be used only if the
 network authority reserves it across every connected L2 domain. Prefer an
 organization-owned IEEE allocation for long-lived production equipment.
 
-### 3.3 IP pool
+### IP pool
 
 The network team provides the subnet/VLAN and excluded addresses:
 
@@ -127,7 +127,7 @@ Reserve one management IP per DAPHNE board plus spares and growth. Static
 addresses must be outside any uncontrolled DHCP pool, or be represented as
 reservations managed from the same database export.
 
-### 3.4 Other pools/defaults
+### Other pools/defaults
 
 Approve before enrollment:
 
@@ -139,7 +139,7 @@ Approve before enrollment:
 - clock-chip bus/address by carrier revision;
 - database roles allowed to enroll, replace, retire, or authorize a unit.
 
-### 3.5 Capacity example
+### Capacity example
 
 For 100 planned boards, 10 service spares, and 20 percent growth:
 
@@ -158,7 +158,7 @@ infrastructure, DHCP, and other excluded addresses. A `/24` has 256 total IPv4
 addresses but fewer usable DAPHNE addresses; the network team must approve the
 actual subnet rather than infer it from the board count alone.
 
-## 4. Database states and uniqueness
+## Database states and uniqueness
 
 Recommended lifecycle:
 
@@ -188,7 +188,7 @@ to the pending asset until an authorized operator releases or retries it.
 Every change records operator/station, timestamp, previous value, new value,
 reason/work order, and database revision.
 
-### 4.1 Implemented production database and legacy HWDB adapter
+### Implemented production database and legacy HWDB adapter
 
 The companion `hardware-database` repository implements the versioned
 production lifecycle separately from the reviewable HWDB adapter:
@@ -231,7 +231,7 @@ allocate a plausible-looking DUNE PID. See
 [`daphne-staging-database.md`](https://github.com/marroyav/hardware-database/blob/marroyav/daphne-production-qa/docs/daphne-staging-database.md)
 for the schema, commands and handoff format.
 
-## 5. One-board enrollment procedure
+## One-board enrollment procedure
 
 ### Step 1: identify the DAPHNE asset
 
@@ -434,7 +434,7 @@ its allocation automatically for another board.
 The network must not authorize directly from a bench-generated file. It reads
 the approved hardware-database state.
 
-## 6. Repeated enrollment loop
+## Repeated enrollment loop
 
 For a batch, the station repeats the same transaction:
 
@@ -470,7 +470,7 @@ EEPROM. The current `enroll` command accepts approved MAC/IP/hostname/endpoint
 values and commits the full binding atomically; a pool service or network
 authority must supply those assignments.
 
-## 7. Replacement rules
+## Replacement rules
 
 ### SOM replacement
 
@@ -492,7 +492,7 @@ network identity as belonging to a detector slot rather than the physical
 board. That ownership rule must be decided once and encoded in the database;
 operators must not decide it ad hoc.
 
-## 8. Implemented baseline and production gaps
+## Implemented baseline and production gaps
 
 Implemented on the companion `hardware-database` branch
 `marroyav/daphne-production-qa`:

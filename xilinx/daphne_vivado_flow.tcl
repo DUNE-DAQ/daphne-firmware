@@ -132,7 +132,10 @@ proc daphne_resolve_config {script_dir} {
     set cfg(axi_quad_spi_patch) [file join $script_dir "scripts" "axi_quad_spi_dtbo_patch.sed"]
 
     set cfg(git_sha) [dict get $artifact_profile git_sha]
-    set cfg(v_git_sha) "28'h$cfg(git_sha)"
+    # The firmware register is 28 bits, so stamp the first seven hex digits
+    # even if Git expands --short=7 to avoid an abbreviation collision.
+    set version_git_sha [string range $cfg(git_sha) 0 6]
+    set cfg(v_git_sha) "28'h$version_git_sha"
     set cfg(build_name) [dict get $artifact_profile build_name]
     set cfg(overlay_name) [dict get $artifact_profile overlay_name]
 
@@ -293,6 +296,12 @@ proc daphne_run_impl {cfg_name} {
     report_utilization -file [file join $cfg(output_dir) "post_route_util.rpt"]
     report_power -file [file join $cfg(output_dir) "post_route_power.rpt"]
     report_drc -file [file join $cfg(output_dir) "post_imp_drc.rpt"]
+    daphne_run_nonfatal "post-route report_bus_skew" [list \
+        report_bus_skew -file [file join $cfg(output_dir) "post_route_bus_skew.rpt"]]
+    daphne_run_nonfatal "post-route report_cdc" [list \
+        report_cdc -details -file [file join $cfg(output_dir) "post_route_cdc.rpt"]]
+    daphne_run_nonfatal "post-route report_route_status" [list \
+        report_route_status -file [file join $cfg(output_dir) "post_route_status.rpt"]]
     report_io -file [file join $cfg(output_dir) "io.rpt"]
     write_checkpoint -force [file join $cfg(output_dir) "${cfg(bd_name)}_post_impl.dcp"]
 }

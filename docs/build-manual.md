@@ -1,4 +1,4 @@
-# Build Manual
+# Build manual
 
 This is the repo-owned build path from `git clone` to the generated firmware
 products.
@@ -13,25 +13,18 @@ The architectural build-flow view is maintained separately in:
 
 ## Scope
 
-The currently qualified hardware build path is:
+The release build target is:
 
 - board: `k26c`
-- Vivado 2026.1 handover branch: `marroyav/vivado_2026`
-- last historical routed-clean hardware baseline: `a389fcd` on the older
-  qualified tool flow
-- the 2026.1 branch remains a migration candidate until a license-backed clean
-  build at its exact tip passes synthesis, implementation, timing, and artifact
-  packaging
-- migration target host/tool arrangement:
-  - WSL2 shell
-  - Windows Vivado 2026.1
-  - Windows Vitis 2026.1
+- source: an approved immutable release tag or full commit SHA
+- tool: Vivado/Vitis 2026.1
+- primary build host: Cooper, using native Linux tools
 
-The repo also supports a native Linux remote-Vivado path. The macOS workspace
-is useful for local smoke tests and documentation work, but not as the
-qualified full hardware build host.
+The WSL/Windows wrappers remain supported alternatives. Local developer hosts
+are useful for vendor-neutral checks and documentation, but they do not replace
+the clean Cooper implementation and package check required for a release.
 
-## Path Rules
+## Path rules
 
 Keep the repo path short.
 
@@ -55,7 +48,10 @@ Reason:
 - the WSL-to-Windows wrapper path is more reliable when the repo is visible
   through a short Windows path
 
-## 1. Clone The Repo
+## Clone the repository
+
+Set `RELEASE_REF` to the approved tag or full commit. Do not build a moving
+development branch for a release.
 
 ### WSL2 + Windows Vivado/Vitis
 
@@ -63,37 +59,41 @@ Run in WSL:
 
 ```bash
 mkdir -p /mnt/c/w
-git clone --branch marroyav/vivado_2026 --single-branch \
-  git@github.com:DUNE-DAQ/daphne-firmware.git /mnt/c/w/d
+git clone git@github.com:DUNE-DAQ/daphne-firmware.git /mnt/c/w/d
 cd /mnt/c/w/d
-git pull --ff-only
+git fetch --tags
+RELEASE_REF="REPLACE_WITH_APPROVED_TAG_OR_FULL_COMMIT"
+git checkout --detach "$RELEASE_REF"
 ```
 
-### Native Linux Remote Host
+### Native Linux host (Cooper)
 
 Run on the remote Linux host:
 
 ```bash
 mkdir -p ~/w
-git clone --branch marroyav/vivado_2026 --single-branch \
-  git@github.com:DUNE-DAQ/daphne-firmware.git ~/w/d
+git clone git@github.com:DUNE-DAQ/daphne-firmware.git ~/w/d
 cd ~/w/d
-git pull --ff-only
+git fetch --tags
+RELEASE_REF="REPLACE_WITH_APPROVED_TAG_OR_FULL_COMMIT"
+git checkout --detach "$RELEASE_REF"
 ```
 
-## 2. Optional Local Sanity Checks
+## Optional local sanity checks
 
 Run from the repo root on any host with the local HDL tools installed:
 
 ```bash
-./scripts/fusesoc/run_logic_test.sh
-./scripts/formal/run_formal.sh --list
+python3 scripts/check_documentation.py
+python3 scripts/check_register_map.py
+./scripts/fusesoc/run_logic_test.sh --suite all-local
+./scripts/formal/run_formal.sh --suite all-local
 ```
 
 These are not the hardware build. They only sanity-check the checked-in smoke
 and formal targets.
 
-## 3. Full WSL Build
+## Full WSL build
 
 Run in WSL from `/mnt/c/w/d`:
 
@@ -127,34 +127,33 @@ Important environment rules:
 - `DAPHNE_BOARD=k26c` is the qualified board path
 - `DAPHNE_ETH_MODE=create_ip` is the qualified Ethernet mode
 
-## 4. Full Build On A Native Linux Vivado Host
+## Full build on Cooper
 
-Run on the Linux host from `~/w/d`:
+Run from the clean detached checkout:
 
 ```bash
 cd ~/w/d
-export XILINX_SETTINGS_SH=/path/to/Vivado/2026.1/settings64.sh
-export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2026.1/settings64.sh
+source /tools/2026.1/Vitis/settings64.sh
 export DAPHNE_BOARD=k26c
 export DAPHNE_ETH_MODE=create_ip
 export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
-export DAPHNE_OUTPUT_DIR="./output-$DAPHNE_GIT_SHA"
-./scripts/remote/run_remote_vivado_chain.sh
+export DAPHNE_MAX_THREADS=8
+export DAPHNE_OUTPUT_DIR="$PWD/xilinx/output-$DAPHNE_GIT_SHA"
+
+./scripts/fusesoc/refresh_cores.sh
+git diff --exit-code -- daphne-ip.core daphne-ip-export.core
+python3 scripts/check_documentation.py
+python3 scripts/check_register_map.py
+./scripts/fusesoc/preflight_vivado_build.sh
+./scripts/fusesoc/build_platform.sh
+./scripts/fusesoc/check_build_outputs.sh \
+  "$DAPHNE_OUTPUT_DIR" "$DAPHNE_GIT_SHA"
 ```
 
-If you also want the remote wrapper to attempt DTBO packaging, add:
+The Linux build includes overlay packaging. A release is blocked unless the
+final build-output checker reports `RESULT: PASS`.
 
-```bash
-export DAPHNE_REMOTE_PACKAGE_DTBO=1
-```
-
-Logs go under:
-
-```text
-build/remote-vivado/<timestamp>/
-```
-
-## 5. Packaging From Existing `.xsa` / `.bin`
+## Package existing `.xsa` and `.bin` files
 
 If Vivado implementation already produced:
 
@@ -189,7 +188,7 @@ That helper runs the known-good two-stage sequence:
 Use `-OutputDir` instead of `-GitSha` if you want to package a nonstandard
 output directory explicitly.
 
-## 6. Expected Build Products
+## Expected build products
 
 The main output directory is:
 
@@ -208,10 +207,13 @@ For a successful qualified build, expect at least:
 - `SHA256SUMS`
 - implementation reports such as:
   - `post_route_timing_summary.rpt`
+  - `post_route_bus_skew.rpt`
+  - `post_route_cdc.rpt`
   - `post_route_methodology.rpt`
+  - `post_route_status.rpt`
   - `post_route_util.rpt`
 
-## 7. Hardware-Proven Boundary
+## Hardware-proven boundary
 
 The historical repo-owned build and deployment boundary was proven through:
 
@@ -226,7 +228,7 @@ current 2026.1 branch tip or the full PetaLinux deliverable; both require the
 validation gates listed in
 [toolchain-upgrade-2026.1.md](toolchain-upgrade-2026.1.md).
 
-## 8. What Is Still Outside This Manual
+## What is outside this manual
 
 This manual ends at the generated firmware products.
 
