@@ -73,7 +73,7 @@ proc daphne_bd_net_label {cell_name signal_name} {
     return "${cell_name}_${signal_name}"
 }
 
-proc daphne_create_user_ip_cell {user_ip_vlnv block_cell_name version_value} {
+proc daphne_create_user_ip_cell {user_ip_vlnv block_cell_name version_value build_id_value} {
     if {[catch {set daphne_top_cell [create_bd_cell -vlnv $user_ip_vlnv -type IP $block_cell_name]} errmsg]} {
         puts "ERROR: Failed to add block <$block_cell_name>. Please ensure it is defined and sourced properly before running this script."
         return -code error $errmsg
@@ -81,6 +81,7 @@ proc daphne_create_user_ip_cell {user_ip_vlnv block_cell_name version_value} {
         error "ERROR: Block <$block_cell_name> could not be found after creation attempt. Check if the IP is available."
     }
     set_property CONFIG.version $version_value $daphne_top_cell
+    set_property CONFIG.build_id $build_id_value $daphne_top_cell
     return $daphne_top_cell
 }
 
@@ -1427,7 +1428,7 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
 # create instance: daphne_selftrigger_top_0
 set daphneVlnv $daphne_user_ip_vlnv
 set block_cell_name $daphne_ip_cell_name
-set daphne_top_cell [daphne_create_user_ip_cell $daphneVlnv $block_cell_name $v_git_sha]
+set daphne_top_cell [daphne_create_user_ip_cell $daphneVlnv $block_cell_name $v_git_sha $v_build_id]
 
 daphne_create_board_support_cells
 

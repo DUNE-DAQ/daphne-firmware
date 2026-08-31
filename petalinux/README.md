@@ -91,7 +91,10 @@ For a full terminal-driven setup from a hardware handoff directory:
 ./scripts/petalinux/init_kr260_project.sh \
   /path/to/petalinux-project \
   /path/to/hw-handoff-dir \
-  --output-dir ./xilinx/output
+  --self-trigger-output-dir /path/to/selftrigger/output-<self-sha7> \
+  --self-trigger-sha <self-sha7> \
+  --full-stream-output-dir /path/to/fullstream/output-<full-sha7> \
+  --full-stream-sha <full-sha7>
 ```
 
 That wrapper:
@@ -130,7 +133,10 @@ bundle collection:
 ./scripts/petalinux/build_kr260_image.sh \
   /path/to/petalinux-project \
   /path/to/hw-handoff-dir \
-  --output-dir ./xilinx/output
+  --self-trigger-output-dir /path/to/selftrigger/output-<self-sha7> \
+  --self-trigger-sha <self-sha7> \
+  --full-stream-output-dir /path/to/fullstream/output-<full-sha7> \
+  --full-stream-sha <full-sha7>
 ```
 
 That wrapper:
@@ -166,20 +172,53 @@ set visible to the project in a reproducible way.
 
 ## Current firmware staging point
 
-After the hardware build has produced the overlay bundle in `xilinx/output/`:
+After qualified builds have produced both overlay bundles, stage the exact
+seven-character build IDs. The two output directories may belong to separate
+firmware worktrees:
 
 ```bash
-./scripts/petalinux/stage_overlay_into_project.sh /path/to/petalinux-project
+./scripts/petalinux/stage_overlay_into_project.sh \
+  /path/to/petalinux-project \
+  --self-trigger-output /path/to/selftrigger/xilinx/output-<self-sha7> \
+  --self-trigger-sha <self-sha7> \
+  --full-stream-output /path/to/fullstream/xilinx/output-<full-sha7> \
+  --full-stream-sha <full-sha7>
 ```
 
-That copies the latest generated overlay payload into:
+That copies the two explicitly selected overlay payloads into:
 
 ```text
 project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged/
 ```
 
-so the `daphne-overlay` recipe has a repo-owned place to install the qualified
-firmware artifacts from.
+so the `daphne-overlay` recipe has a repo-owned place to install both qualified
+firmware artifacts from. Staging validates both source manifests and both DTBO
+`firmware-name` properties before replacing anything. If one variant is
+missing or ambiguous, the prior staging state is left unchanged.
+
+The installed xmutil app names are immutable:
+
+```text
+daphne_selftrigger_ol_<self-sha7>
+daphne_fullstream_ol_<full-sha7>
+```
+
+The staging transaction rewrites each runtime profile's `APP` field to the
+corresponding exact name along with the payload and recipe variables. The
+recipe creates no mutable `daphne` alias.
+
+Each completed build should carry an app-scoped manifest beside its archive:
+
+```text
+daphne_selftrigger_ol_<self-sha7>.SHA256SUMS
+daphne_fullstream_ol_<full-sha7>.SHA256SUMS
+```
+
+Those names make `--output-dir /path/to/shared-output` safe even though a
+second independent packager may overwrite the compatibility `SHA256SUMS` at
+the root. An aggregate root manifest covering both apps is also accepted. If
+only legacy root manifests are available, keep the builds in separate output
+directories and use `--self-trigger-output` plus `--full-stream-output`.
 
 ## Current userspace runtime staging point
 
@@ -224,6 +263,19 @@ petalinux/output/<project-name>/
     rootfs.ext4
     rootfs.wic.gz
   overlay/
+    daphne-overlay-version.inc
+    self-trigger/
+      daphne_selftrigger_ol_<sha7>.bin
+      daphne_selftrigger_ol_<sha7>.dtbo
+      shell.json
+      BUILD-METADATA.txt
+      SHA256SUMS
+    full-stream/
+      daphne_fullstream_ol_<sha7>.bin
+      daphne_fullstream_ol_<sha7>.dtbo
+      shell.json
+      BUILD-METADATA.txt
+      SHA256SUMS
   meta/
   MANIFEST.txt
   SHA256SUMS

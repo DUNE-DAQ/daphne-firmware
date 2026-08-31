@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
+ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(unset CDPATH; cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
 
 # Keep artifact names aligned with the selected board profile.
-# shellcheck source=board_env.sh
+# ROOT_DIR is resolved at runtime.
+# shellcheck disable=SC1091
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 
@@ -50,6 +51,7 @@ check_file "overlay bitstream" "$OVERLAY_DIR/$OVERLAY_NAME.bin"
 check_file "overlay DTBO" "$OVERLAY_DIR/$OVERLAY_NAME.dtbo"
 check_file "overlay metadata" "$OVERLAY_DIR/shell.json"
 check_file "overlay archive" "$OUTPUT_DIR/$OVERLAY_NAME.zip"
+check_file "overlay manifest" "$OUTPUT_DIR/$OVERLAY_NAME.SHA256SUMS"
 check_file "checksums" "$OUTPUT_DIR/SHA256SUMS"
 check_file "route timing" "$OUTPUT_DIR/post_route_timing_summary.rpt"
 check_file "bus skew" "$OUTPUT_DIR/post_route_bus_skew.rpt"
@@ -63,14 +65,14 @@ check_file "DRC report" "$OUTPUT_DIR/post_imp_drc.rpt"
 checksum_manifest="$OUTPUT_DIR/SHA256SUMS"
 if [[ -s "$checksum_manifest" ]]; then
   if command -v sha256sum >/dev/null 2>&1; then
-    if (CDPATH= cd -- "$OUTPUT_DIR" && sha256sum -c SHA256SUMS); then
+    if (unset CDPATH; cd -- "$OUTPUT_DIR" && sha256sum -c SHA256SUMS); then
       echo "PASS  packaged-file checksums"
     else
       echo "FAIL  a packaged-file checksum does not match" >&2
       failed=1
     fi
   elif command -v shasum >/dev/null 2>&1; then
-    if (CDPATH= cd -- "$OUTPUT_DIR" && shasum -a 256 -c SHA256SUMS); then
+    if (unset CDPATH; cd -- "$OUTPUT_DIR" && shasum -a 256 -c SHA256SUMS); then
       echo "PASS  packaged-file checksums"
     else
       echo "FAIL  a packaged-file checksum does not match" >&2
@@ -90,6 +92,7 @@ if [[ -s "$checksum_manifest" ]]; then
     "$OVERLAY_NAME/$OVERLAY_NAME.bin" \
     "$OVERLAY_NAME/$OVERLAY_NAME.dtbo" \
     "$OVERLAY_NAME/shell.json" \
+    "$OVERLAY_NAME.SHA256SUMS" \
     post_route_timing_summary.rpt \
     post_route_bus_skew.rpt \
     post_route_cdc.rpt \
@@ -101,6 +104,37 @@ if [[ -s "$checksum_manifest" ]]; then
   do
     if ! grep -Fq "  $checksum_path" "$checksum_manifest"; then
       echo "FAIL  checksum manifest does not cover $checksum_path" >&2
+      failed=1
+    fi
+  done
+fi
+
+bundle_checksum_manifest="$OUTPUT_DIR/$OVERLAY_NAME.SHA256SUMS"
+if [[ -s "$bundle_checksum_manifest" ]]; then
+  if command -v sha256sum >/dev/null 2>&1; then
+    if (unset CDPATH; cd -- "$OUTPUT_DIR" && sha256sum -c "$OVERLAY_NAME.SHA256SUMS"); then
+      echo "PASS  overlay bundle checksums"
+    else
+      echo "FAIL  an overlay bundle checksum does not match" >&2
+      failed=1
+    fi
+  elif command -v shasum >/dev/null 2>&1; then
+    if (unset CDPATH; cd -- "$OUTPUT_DIR" && shasum -a 256 -c "$OVERLAY_NAME.SHA256SUMS"); then
+      echo "PASS  overlay bundle checksums"
+    else
+      echo "FAIL  an overlay bundle checksum does not match" >&2
+      failed=1
+    fi
+  fi
+
+  for checksum_path in \
+    "$OVERLAY_NAME.zip" \
+    "$OVERLAY_NAME/$OVERLAY_NAME.bin" \
+    "$OVERLAY_NAME/$OVERLAY_NAME.dtbo" \
+    "$OVERLAY_NAME/shell.json"
+  do
+    if ! grep -Fq "  $checksum_path" "$bundle_checksum_manifest"; then
+      echo "FAIL  overlay manifest does not cover $checksum_path" >&2
       failed=1
     fi
   done

@@ -1,12 +1,40 @@
 This package is the repo-owned hook point for DAPHNE bring-up service
 ownership inside the image.
 
-Intended service chain:
-- firmware.service
-- clockchip.service
-- endpoint.service
-- hermes.service
-- daphne.service
+The `daphne-runtime.target` service chain is:
+
+- `daphne-gateware-prepare.service`
+- `firmware.service`
+- `daphne-gateware-verify.service`
+- `clockchip.service`
+- `endpoint.service`
+- `hermes.service`
+- `daphne.service`
+
+`daphne-gateware-verify.service` reads the common identity words at
+`0x940000F0`, `0x940000F4`, `0x940000F8`, and `0x940000FC`. No clock, Hermes,
+or server process starts unless magic, ABI 2.0, variant, and the zero-extended
+28-bit build stamp match the active profile.
+
+Use `sudo daphne-gateware list`, `status`, `switch self-trigger`,
+`switch full-stream`, or `set-default PROFILE`. A switch is serialized and
+transactional: systemd stops every PL client before `firmware.service` unloads
+the FPGA, the active profile is replaced atomically, the complete target is
+started, its full dependency chain remains active through a one-second
+post-start stability window, and a failed start is rolled back to the prior
+profile.
+The unload helper deliberately propagates `xmutil`, `dfx-mgr-client`, or
+`fpgautil` failures.
+
+The two checked-in profile files contain fail-closed release placeholders for
+their immutable `daphne_selftrigger_ol_<7sha>` and
+`daphne_fullstream_ol_<7sha>` app directory names. Release packaging must
+replace those `APP` values and install both matching app directories, each with
+`BUILD-METADATA.txt` containing `git_sha` (seven or more hex digits), before
+enabling this target. `stage_overlay_into_project.sh` now validates both
+qualified bundles and atomically replaces the two `APP` values together with
+the staged payload. The `daphne-overlay` recipe installs both immutable apps;
+it deliberately creates no generic `daphne` alias.
 
 The service logic is now repo-owned, but the userspace runtime and overlay
 payloads are still staged from qualified artifacts rather than rebuilt here
@@ -46,3 +74,10 @@ Current implementation notes:
 - `daphne.service` also carries `LD_LIBRARY_PATH=/usr/lib/daphne-server`
   because the staged `daphneServer` bundle still ships private shared libs
   outside the default dynamic-linker search path.
+- `daphne.service` runs `daphne-gateware quiesce` after every stop. For the
+  full-stream profile this verifies the live identity, clears the atomic gate
+  at `0xA0020080`, and waits for the stream-clock acknowledgement before an
+  FPGA unload can proceed. Self-trigger stops require no extra MMIO write.
+- `daphne.service` passes the active profile as `--gateware-mode` and the pinned
+  identity stamp as `--expected-gateware-build-id`. Exit status 78 prevents an
+  ABI/configuration mismatch from entering a restart loop.

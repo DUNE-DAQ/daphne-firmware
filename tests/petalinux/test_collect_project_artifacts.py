@@ -11,7 +11,7 @@ COLLECT = ROOT / "scripts" / "petalinux" / "collect_project_artifacts.sh"
 
 
 class CollectProjectArtifactsTests(unittest.TestCase):
-    def test_collects_xsdb_ram_boot_inputs_and_wic_image(self) -> None:
+    def test_collects_xsdb_ram_boot_inputs_wic_and_both_gatewares(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
             root = Path(root_text)
             project = root / "daphne-petalinux"
@@ -44,7 +44,22 @@ class CollectProjectArtifactsTests(unittest.TestCase):
                 "rootfs.wic.gz",
             ):
                 (images / name).write_text(f"{name}\n", encoding="utf-8")
-            (overlay / "daphne-overlay.dtbo").write_text("overlay\n", encoding="utf-8")
+            for mode, app in (
+                ("self-trigger", "daphne_selftrigger_ol_abcdef1"),
+                ("full-stream", "daphne_fullstream_ol_1234abc"),
+            ):
+                mode_dir = overlay / mode
+                mode_dir.mkdir()
+                for name in (
+                    f"{app}.bin",
+                    f"{app}.dtbo",
+                    "shell.json",
+                    "BUILD-METADATA.txt",
+                    "SHA256SUMS",
+                ):
+                    (mode_dir / name).write_text(f"{mode}:{name}\n", encoding="utf-8")
+            version_inc = overlay.parent.parent / "daphne-overlay-version.inc"
+            version_inc.write_text('DAPHNE_DUAL_OVERLAY_STAGED = "1"\n')
             bundle = root / "bundle"
 
             subprocess.run([str(COLLECT), str(project), str(bundle)], check=True, text=True)
@@ -58,7 +73,17 @@ class CollectProjectArtifactsTests(unittest.TestCase):
                 "boot/Image",
                 "boot/system.dtb",
                 "rootfs/rootfs.wic.gz",
-                "overlay/daphne-overlay.dtbo",
+                "overlay/daphne-overlay-version.inc",
+                "overlay/self-trigger/daphne_selftrigger_ol_abcdef1.bin",
+                "overlay/self-trigger/daphne_selftrigger_ol_abcdef1.dtbo",
+                "overlay/self-trigger/shell.json",
+                "overlay/self-trigger/BUILD-METADATA.txt",
+                "overlay/self-trigger/SHA256SUMS",
+                "overlay/full-stream/daphne_fullstream_ol_1234abc.bin",
+                "overlay/full-stream/daphne_fullstream_ol_1234abc.dtbo",
+                "overlay/full-stream/shell.json",
+                "overlay/full-stream/BUILD-METADATA.txt",
+                "overlay/full-stream/SHA256SUMS",
                 "MANIFEST.txt",
                 "SHA256SUMS",
             ):
@@ -69,7 +94,9 @@ class CollectProjectArtifactsTests(unittest.TestCase):
             )
             self.assertIn("image_profile=minimal", metadata)
             self.assertIn("deployment_scope=whole-emmc-and-inactive-slot", metadata)
-            self.assertIn("overlay_policy=included-from-staged-artifacts", metadata)
+            self.assertIn(
+                "overlay_policy=included-from-staged-dual-artifacts", metadata
+            )
 
     def test_provisioning_bundle_excludes_stale_staged_overlay(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
@@ -95,13 +122,18 @@ class CollectProjectArtifactsTests(unittest.TestCase):
             images.mkdir(parents=True)
             overlay.mkdir(parents=True)
             (images / "rootfs.wic.gz").write_text("wic\n", encoding="utf-8")
-            (overlay / "daphne-overlay.dtbo").write_text("stale\n", encoding="utf-8")
+            for mode in ("self-trigger", "full-stream"):
+                (overlay / mode).mkdir()
+                (overlay / mode / "stale.dtbo").write_text(
+                    "stale\n", encoding="utf-8"
+                )
             bundle = root / "bundle"
 
             subprocess.run([str(COLLECT), str(project), str(bundle)], check=True, text=True)
 
             self.assertTrue((bundle / "rootfs" / "rootfs.wic.gz").is_file())
-            self.assertFalse((bundle / "overlay" / "daphne-overlay.dtbo").exists())
+            self.assertFalse((bundle / "overlay" / "self-trigger").exists())
+            self.assertFalse((bundle / "overlay" / "full-stream").exists())
             metadata = (bundle / "meta" / "COLLECT-METADATA.txt").read_text(
                 encoding="utf-8"
             )

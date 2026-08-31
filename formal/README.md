@@ -142,9 +142,10 @@ Properties currently checked:
   documented qualifier is satisfied, the gate must rise.
 - Per-AFE slice boundaries stay invalid/unsafe while taps are loading or while
   local configuration transactions are busy.
-- The frontend-to-selftrigger adapter preserves per-AFE channel ordering,
-  drops the frame lane, and truncates 16-bit capture samples to the 14-bit
-  trigger path exactly as the legacy self-trigger path expects.
+- The frontend-to-selftrigger adapter presents canonical board-AFE order to
+  the trigger path by mapping board AFEs `0,1,2,3,4` from PL capture buses
+  `0,4,3,2,1`; within each AFE it preserves channel ordering, drops the frame
+  lane, and truncates 16-bit capture samples to 14 bits.
 - The vendor-neutral delay primitives preserve the same bounded sample-history
   selection contract as the isolated self-trigger wrappers that consume them.
 - The timing subsystem boundary stays neutral in local mode, and when endpoint

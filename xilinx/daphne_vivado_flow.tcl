@@ -136,6 +136,7 @@ proc daphne_resolve_config {script_dir} {
     # even if Git expands --short=7 to avoid an abbreviation collision.
     set version_git_sha [string range $cfg(git_sha) 0 6]
     set cfg(v_git_sha) "28'h$version_git_sha"
+    set cfg(v_build_id) "32'h0$version_git_sha"
     set cfg(build_name) [dict get $artifact_profile build_name]
     set cfg(overlay_name) [dict get $artifact_profile overlay_name]
 
@@ -207,6 +208,7 @@ proc daphne_create_block_design {cfg_name} {
     upvar 1 $cfg_name cfg
 
     set v_git_sha $cfg(v_git_sha)
+    set v_build_id $cfg(v_build_id)
     source -notrace [file join $cfg(script_dir) "daphne_bd_gen.tcl"]
     set bd_file_obj [get_files -quiet $cfg(bd_file)]
     if {[llength $bd_file_obj] == 0} {

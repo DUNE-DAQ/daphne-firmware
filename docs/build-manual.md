@@ -204,6 +204,7 @@ For a successful qualified build, expect at least:
 - `daphne_selftrigger_<gitsha>.dtbo`
 - `daphne_selftrigger_ol_<gitsha>/`
 - `daphne_selftrigger_ol_<gitsha>.zip`
+- `daphne_selftrigger_ol_<gitsha>.SHA256SUMS`
 - `SHA256SUMS`
 - implementation reports such as:
   - `post_route_timing_summary.rpt`

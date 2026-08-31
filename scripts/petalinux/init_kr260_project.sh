@@ -16,7 +16,14 @@ Options:
                           (default: zynqMP)
   --image-profile NAME   DAPHNE image profile: provisioning|minimal|developer
                          (default: minimal)
-  --output-dir DIR       Stage overlay artifacts from this firmware output dir
+  --output-dir DIR       Shared dual-gateware output with scoped manifests
+  --self-trigger-output-dir DIR
+                         Self-trigger firmware output directory
+  --full-stream-output-dir DIR
+                         Full-stream firmware output directory
+  --self-trigger-sha SHA7
+                         Select an exact self-trigger app build
+  --full-stream-sha SHA7 Select an exact full-stream app build
   --runtime-bundle TGZ   Stage this qualified DAPHNE runtime bundle
   --skip-stage-overlay   Do not stage overlay artifacts
   --skip-stage-runtime   Do not stage the runtime bundle
@@ -45,7 +52,10 @@ shift 2
 
 BSP_PATH=""
 TEMPLATE_NAME="zynqMP"
-OUTPUT_DIR=""
+SELF_TRIGGER_OUTPUT_DIR=""
+FULL_STREAM_OUTPUT_DIR=""
+SELF_TRIGGER_SHA=""
+FULL_STREAM_SHA=""
 RUNTIME_BUNDLE=""
 STAGE_OVERLAY=1
 STAGE_RUNTIME=1
@@ -63,7 +73,24 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --output-dir)
-      OUTPUT_DIR="$2"
+      SELF_TRIGGER_OUTPUT_DIR="$2"
+      FULL_STREAM_OUTPUT_DIR="$2"
+      shift 2
+      ;;
+    --self-trigger-output-dir)
+      SELF_TRIGGER_OUTPUT_DIR="$2"
+      shift 2
+      ;;
+    --full-stream-output-dir)
+      FULL_STREAM_OUTPUT_DIR="$2"
+      shift 2
+      ;;
+    --self-trigger-sha)
+      SELF_TRIGGER_SHA="$2"
+      shift 2
+      ;;
+    --full-stream-sha)
+      FULL_STREAM_SHA="$2"
       shift 2
       ;;
     --runtime-bundle)
@@ -189,10 +216,15 @@ DAPHNE_META_LAYER_MODE="$LAYER_MODE" \
 )
 
 if (( STAGE_OVERLAY )); then
-  if [[ -n "$OUTPUT_DIR" ]]; then
-    "$ROOT_DIR/scripts/petalinux/stage_overlay_into_project.sh" "$PROJECT_DIR" "$OUTPUT_DIR"
+  if [[ -n "$SELF_TRIGGER_OUTPUT_DIR" || -n "$FULL_STREAM_OUTPUT_DIR" ]]; then
+    STAGE_ARGS=("$PROJECT_DIR")
+    [[ -z "$SELF_TRIGGER_OUTPUT_DIR" ]] || STAGE_ARGS+=(--self-trigger-output "$SELF_TRIGGER_OUTPUT_DIR")
+    [[ -z "$FULL_STREAM_OUTPUT_DIR" ]] || STAGE_ARGS+=(--full-stream-output "$FULL_STREAM_OUTPUT_DIR")
+    [[ -z "$SELF_TRIGGER_SHA" ]] || STAGE_ARGS+=(--self-trigger-sha "$SELF_TRIGGER_SHA")
+    [[ -z "$FULL_STREAM_SHA" ]] || STAGE_ARGS+=(--full-stream-sha "$FULL_STREAM_SHA")
+    "$ROOT_DIR/scripts/petalinux/stage_overlay_into_project.sh" "${STAGE_ARGS[@]}"
   else
-    echo "INFO: overlay staging skipped because --output-dir was not provided."
+    echo "INFO: dual-overlay staging skipped because no gateware output directories were provided."
   fi
 fi
 

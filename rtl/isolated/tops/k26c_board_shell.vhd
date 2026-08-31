@@ -7,6 +7,7 @@ use work.daphne_package.all;
 entity k26c_board_shell is
   generic (
     version     : std_logic_vector(27 downto 0) := X"1234567";
+    build_id    : std_logic_vector(31 downto 0) := X"01234567";
     link_id     : std_logic_vector(5 downto 0)  := "000000";
     slot_id     : std_logic_vector(3 downto 0)  := X"2";
     crate_id    : std_logic_vector(9 downto 0)  := "0000000011";
@@ -459,6 +460,7 @@ begin
       mux_a                  => mux_a,
       stat_led               => stat_led,
       version                => version,
+      build_id               => build_id,
       adhoc                  => adhoc,
       core_chan_enable       => core_chan_enable,
       filter_output_selector => filter_output_selector,

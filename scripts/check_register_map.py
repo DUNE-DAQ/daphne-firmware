@@ -11,6 +11,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOC_PATH = ROOT / "Memory_Map.md"
 STUFF_PATH = ROOT / "ip_repo/daphne_ip/rtl/config/stuff.vhd"
+TOP_PATH = ROOT / "ip_repo/daphne_ip/rtl/daphne_selftrigger_top.vhd"
+BD_PATH = ROOT / "xilinx/daphne_bd_gen.tcl"
+FLOW_PATH = ROOT / "xilinx/daphne_vivado_flow.tcl"
 REGISTER_BANK_PATH = (
     ROOT / "rtl/isolated/subsystems/control/selftrigger_register_bank.vhd"
 )
@@ -40,6 +43,14 @@ def binary_constants(text: str) -> dict[str, int]:
     return {name: int(bits, 2) for name, bits in pattern.findall(text)}
 
 
+def hex_constants(text: str) -> dict[str, int]:
+    pattern = re.compile(
+        r'constant\s+(\w+)\s*:\s*std_logic_vector\([^)]*\)\s*:=\s*X"([0-9A-Fa-f]+)"',
+        re.IGNORECASE,
+    )
+    return {name: int(value, 16) for name, value in pattern.findall(text)}
+
+
 def integer_constants(text: str) -> dict[str, int]:
     pattern = re.compile(
         r"constant\s+(\w+)\s*:\s*integer\s*:=\s*16#([0-9A-Fa-f]+)#",
@@ -51,6 +62,9 @@ def integer_constants(text: str) -> dict[str, int]:
 def main() -> int:
     doc = DOC_PATH.read_text(encoding="utf-8")
     stuff = STUFF_PATH.read_text(encoding="utf-8")
+    top = TOP_PATH.read_text(encoding="utf-8")
+    block_design = BD_PATH.read_text(encoding="utf-8")
+    flow = FLOW_PATH.read_text(encoding="utf-8")
     register_bank = REGISTER_BANK_PATH.read_text(encoding="utf-8")
     record_builder = RECORD_BUILDER_PATH.read_text(encoding="utf-8")
     rows = table_rows(doc)
@@ -91,7 +105,7 @@ def main() -> int:
                 )
 
     # The STUFF offsets are taken from the implementation, not duplicated here.
-    stuff_constants = binary_constants(stuff)
+    stuff_constants = binary_constants(stuff) | hex_constants(stuff)
     board_registers = {
         "FANCTRL_OFFSET": ("fan_speed_reg", "R/W", "8b"),
         "FAN0SPD_OFFSET": ("fan0_rpm", "R/O", "12b"),
@@ -120,6 +134,82 @@ def main() -> int:
         require_row(
             0x94000000 + stuff_constants[constant], register, access, size=size
         )
+
+    identity_registers = {
+        "FW_ID_MAGIC_OFFSET": (
+            "fw_identity_magic",
+            "FW_ID_MAGIC_C",
+            0x44415048,
+        ),
+        "FW_ABI_VERSION_OFFSET": (
+            "fw_abi_version",
+            "FW_ABI_VERSION_C",
+            0x00020000,
+        ),
+        "FW_VARIANT_ID_OFFSET": (
+            "fw_variant_id",
+            "FW_VARIANT_ID_C",
+            0x00000001,
+        ),
+    }
+    for offset_name, (register, value_name, expected_value) in identity_registers.items():
+        if stuff_constants.get(offset_name) is None:
+            errors.append(f"RTL is missing identity offset constant {offset_name}")
+            continue
+        if stuff_constants.get(value_name) != expected_value:
+            actual = stuff_constants.get(value_name)
+            errors.append(
+                f"RTL identity constant {value_name} is {actual!r}, "
+                f"expected 0x{expected_value:08X}"
+            )
+        require_row(
+            0x94000000 + stuff_constants[offset_name],
+            register,
+            "R/O",
+            size="32b",
+            default=f"0x{expected_value:08X}",
+        )
+    if stuff_constants.get("FW_BUILD_ID_OFFSET") is None:
+        errors.append("RTL is missing identity offset constant FW_BUILD_ID_OFFSET")
+    else:
+        require_row(
+            0x94000000 + stuff_constants["FW_BUILD_ID_OFFSET"],
+            "fw_build_id",
+            "R/O",
+            size="32b",
+        )
+
+    version_port = re.search(
+        r"version\s*:\s*in\s+std_logic_vector\(27\s+downto\s+0\)",
+        stuff,
+        re.IGNORECASE,
+    )
+    if version_port is None:
+        errors.append("self-trigger legacy version port is not 28 bits")
+    build_id_port = re.search(
+        r"build_id\s*:\s*in\s+std_logic_vector\(31\s+downto\s+0\)",
+        stuff,
+        re.IGNORECASE,
+    )
+    if build_id_port is None:
+        errors.append("self-trigger board-control build_id port is not 32 bits")
+    if re.search(
+        r'X"0"\s*&\s*build_id\(27\s+downto\s+0\)', stuff, re.IGNORECASE
+    ) is None:
+        errors.append("self-trigger build ID readback is not zero-extended from 28 bits")
+    build_id_generic = re.search(
+        r"build_id\s*:\s*std_logic_vector\(31\s+downto\s+0\)",
+        top,
+        re.IGNORECASE,
+    )
+    if build_id_generic is None:
+        errors.append("self-trigger top-level build_id generic is not 32 bits")
+    if "set_property CONFIG.build_id $build_id_value $daphne_top_cell" not in block_design:
+        errors.append("Vivado block design does not stamp the self-trigger build_id")
+    if re.search(
+        r'set\s+cfg\(v_build_id\)\s+"32\'h0\$version_git_sha"', flow
+    ) is None:
+        errors.append("Vivado flow does not zero-extend the seven-hex build ID")
 
     constants = integer_constants(register_bank)
     required_constants = {
@@ -188,6 +278,20 @@ def main() -> int:
 
     if "## Hermes/10G sender control" not in doc or "0x98000000" not in doc:
         errors.append("0x98000000 must be documented as Hermes/10G sender control")
+    reserved_rows = [
+        address for address in rows if 0xA0020000 <= address < 0xA0030000
+    ]
+    if reserved_rows:
+        errors.append(
+            "self-trigger map uses addresses in the reserved full-stream mux window: "
+            + ", ".join(f"0x{address:08X}" for address in reserved_rows)
+        )
+    if "belongs to the full-stream input" not in doc or "unmapped in self-trigger" not in doc:
+        errors.append("the reserved full-stream 0xA0020000 window is not documented")
+    if re.search(
+        r"assign_bd_address\s+-offset\s+0xA0020000\b", block_design, re.IGNORECASE
+    ):
+        errors.append("self-trigger Vivado block design maps the reserved 0xA0020000 window")
     if "threshold_xc(" in doc and "=0x3FF" in doc:
         errors.append("obsolete 10-bit threshold disable value 0x3FF remains")
     if re.search(r"\b(?:TCount|PCount)\([^\n]+\|\s*R/W\s*\|", doc):

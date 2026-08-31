@@ -1,7 +1,7 @@
 CAPI=2:
 
 name: dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0
-description: Adapter from frontend capture lanes to the flat self-trigger sample bank
+description: Adapter from PL frontend capture lanes to the canonical board-order self-trigger sample bank
 provider:
   name: local
 
@@ -14,8 +14,26 @@ filesets:
     files:
       - rtl/isolated/subsystems/trigger/frontend_to_selftrigger_adapter.vhd
     file_type: vhdlSource-2008
+  tb_smoke:
+    files:
+      - tests/logic/frontend_to_selftrigger_adapter_smoke_tb.vhd
+    file_type: vhdlSource-2008
 
 targets:
-  default:
+  default: &default_target
     filesets:
       - rtl
+  sim:
+    <<: *default_target
+    description: GHDL smoke test for canonical board-AFE to PL-capture ordering
+    default_tool: ghdl
+    filesets_append:
+      - tb_smoke
+    toplevel: frontend_to_selftrigger_adapter_smoke_tb
+    tools:
+      ghdl:
+        analyze_options:
+          - --std=08
+        run_options:
+          - --assert-level=error
+          - --stop-time=2us

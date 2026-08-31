@@ -88,7 +88,7 @@ case "$IMAGE_PROFILE" in
   minimal|developer)
     INCLUDE_STAGED_OVERLAY=1
     DEPLOYMENT_SCOPE="whole-emmc-and-inactive-slot"
-    OVERLAY_POLICY="included-from-staged-artifacts"
+    OVERLAY_POLICY="included-from-staged-dual-artifacts"
     ;;
 esac
 
@@ -137,11 +137,17 @@ copy_if_exists "$IMAGES_DIR/rootfs.cpio.gz" "$ROOTFS_DIR/rootfs.cpio.gz"
 copy_if_exists "$IMAGES_DIR/rootfs.manifest" "$ROOTFS_DIR/rootfs.manifest"
 
 if (( INCLUDE_STAGED_OVERLAY == 1 )) && [[ -d "$STAGED_DIR" ]]; then
-  copy_if_exists "$STAGED_DIR/daphne-overlay.dtbo" "$OVERLAY_DIR/daphne-overlay.dtbo"
-  copy_if_exists "$STAGED_DIR/daphne-overlay.bin" "$OVERLAY_DIR/daphne-overlay.bin"
-  copy_if_exists "$STAGED_DIR/shell.json" "$OVERLAY_DIR/shell.json"
-  copy_if_exists "$STAGED_DIR/SHA256SUMS" "$OVERLAY_DIR/SHA256SUMS"
-  copy_if_exists "$STAGED_DIR/BUILD-METADATA.txt" "$OVERLAY_DIR/BUILD-METADATA.txt"
+  for mode in self-trigger full-stream; do
+    if [[ -d "$STAGED_DIR/$mode" ]]; then
+      mkdir -p "$OVERLAY_DIR/$mode"
+      find "$STAGED_DIR/$mode" -maxdepth 1 -type f -print0 | sort -z | while IFS= read -r -d '' path; do
+        cp -f "$path" "$OVERLAY_DIR/$mode/$(basename -- "$path")"
+      done
+    fi
+  done
+  copy_if_exists \
+    "$PROJECT_DIR/project-spec/meta-daphne/recipes-firmware/daphne-overlay/daphne-overlay-version.inc" \
+    "$OVERLAY_DIR/daphne-overlay-version.inc"
 fi
 
 FIRMWARE_GIT_COMMIT="unknown"

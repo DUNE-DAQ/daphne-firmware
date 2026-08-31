@@ -183,6 +183,10 @@ This module is special, as here are noted only the first element of each address
 |  0x40   | 0x94000040 |  afe_comp_enable_reg  |  8b   |  R/W   |    0x00    |      Self trigger compensator enable MSB register       | Channel 39 to channel 32 (39 downto 32) |
 |  0x44   | 0x94000044 |   invert_enable_reg   |  32b  |  R/W   | 0x00000000 |    Self trigger signal inverter enable LSB register     |  Channel 31 to channel 0 (31 downto 0)  |
 |  0x48   | 0x94000048 |   invert_enable_reg   |  8b   |  R/W   |    0x00    |    Self trigger signal inverter enable MSB register     | Channel 39 to channel 32 (39 downto 32) |
+|  0xF0   | 0x940000F0 |   fw_identity_magic   |  32b  |  R/O   | 0x44415048 |              Shared gateware identity magic (`DAPH`)    | Must match before interpreting the remaining identity words |
+|  0xF4   | 0x940000F4 |    fw_abi_version     |  32b  |  R/O   | 0x00020000 |              Dual-profile platform ABI version 2.0      | ABI major is bits 31:16; minor is bits 15:0 |
+|  0xF8   | 0x940000F8 |    fw_variant_id      |  32b  |  R/O   | 0x00000001 |              Self-trigger gateware variant               | `1` = self-trigger; `2` = full-stream |
+|  0xFC   | 0x940000FC |     fw_build_id       |  32b  |  R/O   |     -      |              Build commit identifier                     | Bits 31:28 are zero; bits 27:0 hold the seven-hex artifact SHA prefix |
 
 ## Hermes/10G sender control, AXI4-Lite slave interface: `TRIRG_S_AXI`
 **Base Address:** `0x9800_0000`
@@ -236,6 +240,10 @@ record, busy-drop, and full-drop counters; its packet counter is cleared only by
 
 **Base Address:** `0xA001_0000`
 **Memory Bank Size:** `64K`
+
+The `0xA002_0000` through `0xA002_FFFF` window belongs to the full-stream input
+mux and is intentionally unmapped in self-trigger gateware.
+
 | Offset  |  Address   |        Register         | Size  | Access |  Default   |             Description             |               Additional Information                |
 |---------|------------|-------------------------|-------|--------|------------|-------------------------------------|-----------------------------------------------------|
 |  0x000  | 0xA0010000 |     threshold_xc(0)     |  32b  |  R/W   | 0x0FFFFFFF | Channel 0 Threshold value register  | (31:28) All Zeros not used. (27:0) Cross Correlation Trigger Threshold Value. If set to 0x0FFFFFFF Disables all self trigger operations on this channel. |

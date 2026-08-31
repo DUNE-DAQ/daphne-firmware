@@ -33,6 +33,9 @@ jobs:
       - name: Check scripts and documentation
         run: |
           bash -n scripts/fusesoc/check_build_outputs.sh
+          sh -n petalinux/meta-daphne/recipes-core/daphne-services/files/daphne-fw-stop.sh
+          python3 -m py_compile petalinux/meta-daphne/recipes-core/daphne-services/files/daphne-gateware
+          python3 -m unittest discover -s tests/petalinux -v
           python3 scripts/check_documentation.py
           python3 scripts/check_register_map.py
 

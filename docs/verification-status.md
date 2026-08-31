@@ -28,6 +28,7 @@ Verified locally with GHDL through `./scripts/fusesoc/run_logic_test.sh`:
   - `dune-daq:daphne:selftrigger:0.1.0`
   - `dune-daq:daphne:stc3-record-builder:0.1.0`
   - `dune-daq:daphne:frontend-control:0.1.0`
+  - `dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0`
   - `dune-daq:daphne:k26c-board-spy-trigger-plane:0.1.0`
 - composable suite
   - `dune-daq:daphne:daphne-composable-core-top:0.1.0`
@@ -203,10 +204,12 @@ protect.
 
 The same top harness now also instantiates a probe
 `frontend_to_selftrigger_adapter` on the public `frontend_dout_o` image and
-checks the 40-channel flattening/truncation contract directly at the public top
-seam. That means the validate-stub top proof now covers both halves of the
-composable story: the lane image exposed to software stays tied to the
-standalone frontend shell, and that same lane image still maps into the
+checks the 40-channel board-order mapping and truncation contract directly at
+the public top seam. Canonical board AFEs `0,1,2,3,4` are sourced from PL
+capture buses `0,4,3,2,1`, respectively, while lanes `0..7` remain in order and
+lane 8 remains excluded. That means the validate-stub top proof now covers both
+halves of the composable story: the lane image exposed to software stays tied
+to the standalone frontend shell, and that same lane image still maps into the
 trigger-sample view exactly as the isolated adapter contract expects.
 
 The analog-control seam now has its own reset-qualified composable proof:
@@ -277,6 +280,7 @@ Current passing local inventory:
 - `./scripts/formal/run_formal.sh --suite composable-cover`
 - `./scripts/formal/run_formal.sh --suite all-local`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-control:0.1.0`
+- `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:frontend-to-selftrigger-adapter:0.1.0`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:fan-monitor:0.1.0`
 - `./scripts/fusesoc/run_logic_test.sh dune-daq:daphne:selftrigger:0.1.0`
 

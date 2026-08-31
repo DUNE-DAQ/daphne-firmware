@@ -21,6 +21,8 @@ entity daphne_composable_top_formal is
 end entity daphne_composable_top_formal;
 
 architecture formal of daphne_composable_top_formal is
+  type board_to_pl_afe_map_t is array (0 to 4) of natural range 0 to 4;
+  constant EXPECTED_BOARD_TO_PL_AFE_C : board_to_pl_afe_map_t := (0, 4, 3, 2, 1);
   constant CONFIG_VALID_C   : std_logic_vector(4 downto 0) := (others => '0');
   constant AFE_MISO_C       : std_logic_vector(4 downto 0) := (others => '0');
   constant VERSION_C        : std_logic_vector(3 downto 0) := (others => '0');
@@ -398,30 +400,38 @@ begin
     end generate gen_lane;
   end generate gen_afe;
 
-  gen_adapter_afe : for afe in 0 to 4 generate
+  gen_adapter_board_afe : for board_afe in 0 to 4 generate
     gen_adapter_channel : for ch in 0 to 7 generate
     begin
-      assert trigger_samples_probe((afe * 8) + ch) =
-             frontend_dout_o(afe)(ch)(15 downto 2)
-        report "public composable top must expose a frontend lane image that the adapter maps into the trigger path without reordering"
+      assert trigger_samples_probe((board_afe * 8) + ch) =
+             frontend_dout_o(EXPECTED_BOARD_TO_PL_AFE_C(board_afe))(ch)(15 downto 2)
+        report "public composable top must expose a frontend lane image that the adapter maps into canonical board order"
         severity failure;
     end generate gen_adapter_channel;
-  end generate gen_adapter_afe;
+  end generate gen_adapter_board_afe;
 
   assert trigger_samples_probe(0) = frontend_dout_o(0)(0)(15 downto 2)
     report "public composable top channel 0 must adapt from AFE0 channel 0"
     severity failure;
 
-  assert trigger_samples_probe(16) = frontend_dout_o(2)(0)(15 downto 2)
-    report "public composable top must keep the flattened trigger-sample order contiguous across AFEs"
+  assert trigger_samples_probe(8) = frontend_dout_o(4)(0)(15 downto 2)
+    report "public composable top board AFE1 must adapt from PL AFE4"
     severity failure;
 
-  assert trigger_samples_probe(23) = frontend_dout_o(2)(7)(15 downto 2)
-    report "public composable top must stop at the eighth data channel for each AFE before flattening"
+  assert trigger_samples_probe(16) = frontend_dout_o(3)(0)(15 downto 2)
+    report "public composable top board AFE2 must adapt from PL AFE3"
     severity failure;
 
-  assert trigger_samples_probe(39) = frontend_dout_o(4)(7)(15 downto 2)
-    report "public composable top channel 39 must adapt from AFE4 channel 7"
+  assert trigger_samples_probe(24) = frontend_dout_o(2)(0)(15 downto 2)
+    report "public composable top board AFE3 must adapt from PL AFE2"
+    severity failure;
+
+  assert trigger_samples_probe(32) = frontend_dout_o(1)(0)(15 downto 2)
+    report "public composable top board AFE4 must adapt from PL AFE1"
+    severity failure;
+
+  assert trigger_samples_probe(39) = frontend_dout_o(1)(7)(15 downto 2)
+    report "public composable top channel 39 must preserve board AFE4 channel 7"
     severity failure;
 
   gen_channel : for idx in 0 to 39 generate

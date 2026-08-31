@@ -20,8 +20,11 @@ Complete the Linux overlay bundle with:
   ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
-This adds the `.dtbo`, overlay directory, overlay ZIP, and checksums. Use this
-form when the board already has a compatible Linux image.
+This adds the `.dtbo`, overlay directory, overlay ZIP, an app-scoped
+`daphne_selftrigger_ol_<sha>.SHA256SUMS`, and the compatibility root manifest.
+The app-scoped manifest survives when independently built gateware bundles are
+later collected into one shared directory. Use this form when the board
+already has a compatible Linux image.
 
 ## PetaLinux image bundle
 
@@ -32,8 +35,11 @@ deployment artifacts:
 ```bash
 ./scripts/petalinux/build_kr260_image.sh \
   /path/to/petalinux-project \
-  ./xilinx/output-$DAPHNE_GIT_SHA \
-  --output-dir ./xilinx/output-$DAPHNE_GIT_SHA \
+  /path/to/selftrigger/xilinx/output-<self-sha7> \
+  --self-trigger-output-dir /path/to/selftrigger/xilinx/output-<self-sha7> \
+  --self-trigger-sha <self-sha7> \
+  --full-stream-output-dir /path/to/fullstream/xilinx/output-<full-sha7> \
+  --full-stream-sha <full-sha7> \
   --runtime-bundle /path/to/qualified-runtime.tgz \
   --package-boot
 ```

@@ -17,6 +17,7 @@ Generated outputs:
   - <build-name-prefix>_<gitsha>.dtbo
   - <overlay-name-prefix>_<gitsha>/
   - <overlay-name-prefix>_<gitsha>.zip
+  - <overlay-name-prefix>_<gitsha>.SHA256SUMS
   - SHA256SUMS
 EOF
 }
@@ -29,22 +30,18 @@ find_latest_xsa() {
   local search_dir="$1"
   local candidate
 
-  for pattern in "${BUILD_NAME_PREFIX}_*.xsa"; do
-    candidate="$(find "$search_dir" -maxdepth 1 -type f -name "$pattern" | sort | tail -n 1)"
+  candidate="$(find "$search_dir" -maxdepth 1 -type f -name "${BUILD_NAME_PREFIX}_*.xsa" | sort | tail -n 1)"
+  if [[ -n "$candidate" ]]; then
+    printf '%s\n' "$candidate"
+    return 0
+  fi
+
+  if [[ "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" ]]; then
+    candidate="$(find "$search_dir" -maxdepth 1 -type f -name "${LEGACY_ARTIFACT_PREFIX}_*.xsa" | sort | tail -n 1)"
     if [[ -n "$candidate" ]]; then
       printf '%s\n' "$candidate"
       return 0
     fi
-  done
-
-  if [[ "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" ]]; then
-    for pattern in "${LEGACY_ARTIFACT_PREFIX}_*.xsa"; do
-      candidate="$(find "$search_dir" -maxdepth 1 -type f -name "$pattern" | sort | tail -n 1)"
-      if [[ -n "$candidate" ]]; then
-        printf '%s\n' "$candidate"
-        return 0
-      fi
-    done
   fi
 
   return 0
@@ -244,8 +241,10 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
+ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(unset CDPATH; cd -- "$(dirname -- "$0")/../.." && pwd)}"
 BOARD="${DAPHNE_BOARD:-k26c}"
+# ROOT_DIR is resolved at runtime.
+# shellcheck disable=SC1091
 . "$ROOT_DIR/scripts/fusesoc/board_env.sh"
 daphne_resolve_board_defaults "$ROOT_DIR" "$BOARD"
 if [[ -n "${1:-}" ]]; then
@@ -257,7 +256,7 @@ elif [[ -n "${DAPHNE_GIT_SHA:-}" ]]; then
 else
   OUTPUT_DIR_INPUT="$ROOT_DIR/xilinx/output"
 fi
-OUTPUT_DIR="$(CDPATH= cd -- "$OUTPUT_DIR_INPUT" && pwd)"
+OUTPUT_DIR="$(unset CDPATH; cd -- "$OUTPUT_DIR_INPUT" && pwd)"
 DTGEN_OUTPUT_DIR="$(select_dtgen_output_dir "$OUTPUT_DIR")"
 DTBO_GEN_TCL="$ROOT_DIR/xilinx/daphne_dtbo_gen.tcl"
 AXI_SPI_PATCH="$ROOT_DIR/xilinx/scripts/axi_quad_spi_dtbo_patch.sed"
@@ -314,14 +313,14 @@ case "$xsa_basename" in
   ${BUILD_NAME_PREFIX}_*.xsa)
     artifact_prefix="${BUILD_NAME_PREFIX}"
     overlay_prefix="${OVERLAY_NAME_PREFIX}"
-    git_sha="${xsa_basename#${BUILD_NAME_PREFIX}_}"
+    git_sha="${xsa_basename#"${BUILD_NAME_PREFIX}_"}"
     git_sha="${git_sha%.xsa}"
     ;;
   *)
     if [[ "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" && "$xsa_basename" == ${LEGACY_ARTIFACT_PREFIX}_*.xsa ]]; then
       artifact_prefix="${LEGACY_ARTIFACT_PREFIX}"
       overlay_prefix="${LEGACY_OVERLAY_PREFIX}"
-      git_sha="${xsa_basename#${LEGACY_ARTIFACT_PREFIX}_}"
+      git_sha="${xsa_basename#"${LEGACY_ARTIFACT_PREFIX}_"}"
       git_sha="${git_sha%.xsa}"
     else
       echo "ERROR: unrecognized XSA name: $xsa_basename" >&2
@@ -403,6 +402,15 @@ cp -f "$json_file" "$overlay_dir/shell.json"
   rm -f "$(basename "$overlay_zip")"
   zip -r "$(basename "$overlay_zip")" "$(basename "$overlay_dir")" >/dev/null
 
+  bundle_manifest="${overlay_prefix}_${git_sha}.SHA256SUMS"
+  bundle_checksum_paths=(
+    "${overlay_prefix}_${git_sha}.zip"
+    "${overlay_prefix}_${git_sha}/${overlay_prefix}_${git_sha}.bin"
+    "${overlay_prefix}_${git_sha}/${overlay_prefix}_${git_sha}.dtbo"
+    "${overlay_prefix}_${git_sha}/shell.json"
+  )
+  "${SHA256_CMD[@]}" "${bundle_checksum_paths[@]}" > "$bundle_manifest"
+
   checksum_candidates=(
     "${artifact_prefix}_${git_sha}.bit"
     "${artifact_prefix}_${git_sha}.bin"
@@ -412,6 +420,7 @@ cp -f "$json_file" "$overlay_dir/shell.json"
     "${overlay_prefix}_${git_sha}/${overlay_prefix}_${git_sha}.bin"
     "${overlay_prefix}_${git_sha}/${overlay_prefix}_${git_sha}.dtbo"
     "${overlay_prefix}_${git_sha}/shell.json"
+    "$bundle_manifest"
     post_route_timing_summary.rpt
     post_route_bus_skew.rpt
     post_route_cdc.rpt
@@ -435,4 +444,5 @@ printf '  %s\n' \
   "$dtbo_file" \
   "$overlay_dir" \
   "$overlay_zip" \
+  "$OUTPUT_DIR/${overlay_prefix}_${git_sha}.SHA256SUMS" \
   "$OUTPUT_DIR/SHA256SUMS"

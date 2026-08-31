@@ -593,6 +593,8 @@ set daphne_ports [ipx::add_ports_from_hdl -top_level_hdl_file $daphne_ip_top_hdl
 set daphne_generics [ipx::add_model_parameters_from_hdl -top_level_hdl_file $daphne_ip_top_hdl_file -top_module_name $daphne_ip_top_module -include_dirs $daphne_ip_include_dirs $daphne]
 set_property DISPLAY_NAME Version [ipx::get_hdl_parameters -of_objects $daphne version]
 set_property VALUE_RESOLVE_TYPE user [ipx::get_hdl_parameters -of_objects $daphne version]
+set_property DISPLAY_NAME {Build ID} [ipx::get_hdl_parameters -of_objects $daphne build_id]
+set_property VALUE_RESOLVE_TYPE user [ipx::get_hdl_parameters -of_objects $daphne build_id]
 set_property DISPLAY_NAME {Link ID} [ipx::get_hdl_parameters -of_objects $daphne link_id]
 set_property VALUE_RESOLVE_TYPE user [ipx::get_hdl_parameters -of_objects $daphne link_id]
 set_property DISPLAY_NAME {Slot ID} [ipx::get_hdl_parameters -of_objects $daphne slot_id]
@@ -613,6 +615,14 @@ set_property VALUE_BIT_STRING_LENGTH 28 $version_param
 set_property VALUE_FORMAT bitString $version_param
 set_property VALUE_RESOLVE_TYPE user $version_param
 set_property VALUE_PERMISSION user $version_param
+
+set build_id_param [ipx::add_user_parameter build_id $daphne]
+set_property DISPLAY_NAME {Build ID} $build_id_param
+set_property VALUE 0x01234567 $build_id_param
+set_property VALUE_BIT_STRING_LENGTH 32 $build_id_param
+set_property VALUE_FORMAT bitString $build_id_param
+set_property VALUE_RESOLVE_TYPE user $build_id_param
+set_property VALUE_PERMISSION user $build_id_param
 
 set link_id_param [ipx::add_user_parameter link_id $daphne]
 set_property DISPLAY_NAME {Link ID} $link_id_param

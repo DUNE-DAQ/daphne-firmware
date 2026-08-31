@@ -39,6 +39,7 @@ architecture tb of stuff_axi_smoke_tb is
     signal mux_a : std_logic_vector(1 downto 0);
     signal stat_led : std_logic_vector(5 downto 0);
     signal version : std_logic_vector(27 downto 0) := x"1234567";
+    signal build_id : std_logic_vector(31 downto 0) := x"A1234567";
     signal core_chan_enable : std_logic_vector(39 downto 0);
     signal adhoc : std_logic_vector(7 downto 0);
     signal filter_output_selector : std_logic_vector(1 downto 0);
@@ -103,6 +104,7 @@ begin
             mux_a => mux_a,
             stat_led => stat_led,
             version => version,
+            build_id => build_id,
             core_chan_enable => core_chan_enable,
             adhoc => adhoc,
             filter_output_selector => filter_output_selector,
@@ -185,6 +187,36 @@ begin
         assert readback = x"01234567"
             report "Version register readback mismatch"
             severity failure;
+        axi_read(x"000000F0", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"44415048"
+            report "Identity magic readback mismatch"
+            severity failure;
+        axi_read(x"000000F4", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00020000"
+            report "ABI version readback mismatch"
+            severity failure;
+        axi_read(x"000000F8", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00000001"
+            report "Variant ID readback mismatch"
+            severity failure;
+        axi_read(x"000000FC", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"01234567"
+            report "Build ID readback mismatch"
+            severity failure;
+
+        -- Identity words are immutable even though writes receive an OKAY response.
+        axi_write(x"000000F0", x"00000000", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"000000F4", x"FFFFFFFF", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"000000F8", x"FFFFFFFF", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"000000FC", x"FFFFFFFF", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_read(x"000000F0", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"44415048" report "Identity magic was writable" severity failure;
+        axi_read(x"000000F4", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00020000" report "ABI version was writable" severity failure;
+        axi_read(x"000000F8", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00000001" report "Variant ID was writable" severity failure;
+        axi_read(x"000000FC", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"01234567" report "Build ID was writable" severity failure;
 
         axi_write(x"00000000", x"00000055", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
         axi_read(x"00000000", araddr, arvalid, rdata, rvalid, clk, readback);
@@ -311,6 +343,16 @@ begin
         axi_read(x"00000018", araddr, arvalid, rdata, rvalid, clk, readback);
         assert readback = x"00000015"
             report "Partial-strobe write unexpectedly modified the LED register"
+            severity failure;
+
+        axi_write(x"00000080", x"00000000", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_read(x"00000000", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00000055"
+            report "High board-control write aliased the fan register"
+            severity failure;
+        axi_read(x"00000080", araddr, arvalid, rdata, rvalid, clk, readback);
+        assert readback = x"00000000"
+            report "High board-control offset aliased a low register"
             severity failure;
 
         assert false report "stuff_axi_smoke_tb completed successfully" severity note;

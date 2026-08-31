@@ -1,12 +1,35 @@
-This package installs the staged DAPHNE overlay payload into the runtime path
-used by `dfx-mgr-client` / `xmutil`.
+This package installs a matched pair of immutable DAPHNE FPGA apps for
+`dfx-mgr-client` / `xmutil`:
 
-Installed payload:
-- `/lib/firmware/xilinx/daphne_selftrigger_ol_a389fcd/`
-- compatibility aliases for the legacy app names used on older boards
-- shell.json
+- `/lib/firmware/xilinx/daphne_selftrigger_ol_<sha7>/`
+- `/lib/firmware/xilinx/daphne_fullstream_ol_<sha7>/`
 
-Source of truth:
-- xilinx/output/
-- scripts/package/complete_dtbo_bundle.sh
-- scripts/petalinux/stage_overlay_into_project.sh
+Each app directory contains an app-named `.bin`, an app-named `.dtbo`,
+`shell.json`, `BUILD-METADATA.txt`, and a local `SHA256SUMS`. The package also
+installs the root-level firmware-name symlink requested by each DTBO. No
+mutable `daphne` alias is created; runtime profiles must select the exact app
+directory name.
+
+The recipe deliberately fails its fetch task while
+`DAPHNE_DUAL_OVERLAY_STAGED = "0"`. The provisioning image excludes this
+package and can still parse the layer. Populate both variants atomically with:
+
+```
+scripts/petalinux/stage_overlay_into_project.sh \
+  /path/to/petalinux-project \
+  --self-trigger-output /path/to/selftrigger/output \
+  --self-trigger-sha <sha7> \
+  --full-stream-output /path/to/fullstream/output \
+  --full-stream-sha <sha7>
+```
+
+Sources of truth:
+
+- the preferred app-scoped `<app>.SHA256SUMS` from each gateware build (a root
+  manifest remains supported for separate legacy output directories)
+- the DTBO `firmware-name` property
+- `scripts/petalinux/stage_overlay_into_project.sh`
+
+When both bundles are copied into one shared output directory, preserve both
+app-scoped manifests. The root `SHA256SUMS` is compatibility output owned by a
+single build and may be overwritten by the second packager.

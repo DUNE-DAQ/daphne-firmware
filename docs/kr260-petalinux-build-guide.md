@@ -118,6 +118,7 @@ xilinx/output-<gitsha>/
   daphne_selftrigger_<gitsha>.dtbo
   daphne_selftrigger_ol_<gitsha>/
   daphne_selftrigger_ol_<gitsha>.zip
+  daphne_selftrigger_ol_<gitsha>.SHA256SUMS
   SHA256SUMS
 ```
 
@@ -149,14 +150,16 @@ Preferred wrapper:
 ```bash
 cd /path/to/daphne-firmware
 
-export DAPHNE_GIT_SHA="$(git rev-parse --short=7 HEAD)"
 PROJECT_DIR=/path/to/daphne-petalinux
-HW_HANDOFF_DIR="$PWD/xilinx/output-$DAPHNE_GIT_SHA"
+HW_HANDOFF_DIR=/path/to/selftrigger/xilinx/output-<self-sha7>
 
 ./scripts/petalinux/init_kr260_project.sh \
   "$PROJECT_DIR" \
   "$HW_HANDOFF_DIR" \
-  --output-dir "$HW_HANDOFF_DIR"
+  --self-trigger-output-dir /path/to/selftrigger/xilinx/output-<self-sha7> \
+  --self-trigger-sha <self-sha7> \
+  --full-stream-output-dir /path/to/fullstream/xilinx/output-<full-sha7> \
+  --full-stream-sha <full-sha7>
 ```
 
 This wrapper:
@@ -180,7 +183,12 @@ If you already have a project and only need to attach the repo-owned layer:
 
 ```bash
 ./scripts/petalinux/bootstrap_kr260_project.sh "$PROJECT_DIR"
-./scripts/petalinux/stage_overlay_into_project.sh "$PROJECT_DIR" "$HW_HANDOFF_DIR"
+./scripts/petalinux/stage_overlay_into_project.sh \
+  "$PROJECT_DIR" \
+  --self-trigger-output /path/to/selftrigger/xilinx/output-<self-sha7> \
+  --self-trigger-sha <self-sha7> \
+  --full-stream-output /path/to/fullstream/xilinx/output-<full-sha7> \
+  --full-stream-sha <full-sha7>
 ```
 
 If you also have a harvested runtime bundle:
@@ -231,7 +239,10 @@ HW_HANDOFF_DIR="$PWD/xilinx/output-$DAPHNE_GIT_SHA"
 ./scripts/petalinux/build_kr260_image.sh \
   "$PROJECT_DIR" \
   "$HW_HANDOFF_DIR" \
-  --output-dir "$HW_HANDOFF_DIR"
+  --self-trigger-output-dir /path/to/selftrigger/xilinx/output-<self-sha7> \
+  --self-trigger-sha <self-sha7> \
+  --full-stream-output-dir /path/to/fullstream/xilinx/output-<full-sha7> \
+  --full-stream-sha <full-sha7>
 ```
 
 Collected output lands in:
@@ -252,9 +263,19 @@ petalinux/output/<project-name>/
     rootfs.ext4
     rootfs.wic.gz
   overlay/
-    daphne-overlay.dtbo
-    daphne-overlay.bin
-    shell.json
+    daphne-overlay-version.inc
+    self-trigger/
+      daphne_selftrigger_ol_<self-sha7>.dtbo
+      daphne_selftrigger_ol_<self-sha7>.bin
+      shell.json
+      BUILD-METADATA.txt
+      SHA256SUMS
+    full-stream/
+      daphne_fullstream_ol_<full-sha7>.dtbo
+      daphne_fullstream_ol_<full-sha7>.bin
+      shell.json
+      BUILD-METADATA.txt
+      SHA256SUMS
   meta/
   MANIFEST.txt
   SHA256SUMS
@@ -272,9 +293,11 @@ boot/u-boot-dtb.elf
 boot/ramdisk.cpio.gz.u-boot
 rootfs/rootfs.ext4
 rootfs/rootfs.wic.gz
-overlay/daphne-overlay.dtbo
-overlay/daphne-overlay.bin
-overlay/shell.json
+overlay/daphne-overlay-version.inc
+overlay/self-trigger/daphne_selftrigger_ol_<self-sha7>.dtbo
+overlay/self-trigger/daphne_selftrigger_ol_<self-sha7>.bin
+overlay/full-stream/daphne_fullstream_ol_<full-sha7>.dtbo
+overlay/full-stream/daphne_fullstream_ol_<full-sha7>.bin
 ```
 
 `BOOT.BIN` is collected only when `build_kr260_image.sh --package-boot` is
@@ -486,14 +509,18 @@ debugging, but the normal path should stay:
 ./scripts/package/complete_dtbo_bundle.sh ./xilinx/output-$DAPHNE_GIT_SHA
 ```
 
-The current overlay runtime also needs the firmware-name alias expected by the
-DT overlay path. On `015`, the critical alias was:
+Each overlay runtime also needs the firmware-name alias expected by its DTBO.
+The dual-app recipe derives and validates both names from the immutable app
+IDs, then installs aliases such as:
 
 ```text
-/lib/firmware/daphne_selftrigger_7353a17.bit.bin
+/lib/firmware/daphne_selftrigger_<self-sha7>.bit.bin
+/lib/firmware/daphne_fullstream_<full-sha7>.bit.bin
 ```
 
-That is now owned by the repo overlay packaging.
+Both aliases are owned by the repo overlay packaging. A PetaLinux image build
+fails closed until both variants have been staged; it never substitutes the
+checked-in historical self-trigger payload for a missing release artifact.
 
 ## Device-tree policy
 

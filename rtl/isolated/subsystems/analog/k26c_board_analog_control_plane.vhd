@@ -10,6 +10,7 @@ port(
     mux_a: out std_logic_vector(1 downto 0);
     stat_led: out std_logic_vector(5 downto 0);
     version: in std_logic_vector(27 downto 0);
+    build_id: in std_logic_vector(31 downto 0);
     adhoc: out std_logic_vector(7 downto 0);
     core_chan_enable: out std_logic_vector(39 downto 0);
     filter_output_selector: out std_logic_vector(1 downto 0);
@@ -190,6 +191,7 @@ begin
       mux_a                  => mux_a,
       stat_led               => stat_led,
       version                => version,
+      build_id               => build_id,
       adhoc                  => adhoc,
       core_chan_enable       => core_chan_enable,
       filter_output_selector => filter_output_selector,

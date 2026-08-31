@@ -6,6 +6,7 @@ use work.daphne_package.all;
 entity daphne_selftrigger_top is
 generic(
     version: std_logic_vector(27 downto 0) := X"1234567" ;
+    build_id: std_logic_vector(31 downto 0) := X"01234567";
     link_id: std_logic_vector(5 downto 0) := "000000";
     slot_id: std_logic_vector(3 downto 0) := X"2";
     crate_id: std_logic_vector(9 downto 0) := "0000000011";
@@ -290,6 +291,7 @@ begin
   k26c_board_shell_inst : entity work.k26c_board_shell
     generic map (
       version     => version,
+      build_id    => build_id,
       link_id     => link_id,
       slot_id     => slot_id,
       crate_id    => crate_id,
