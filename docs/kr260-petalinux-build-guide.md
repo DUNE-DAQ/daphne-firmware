@@ -35,10 +35,15 @@ Important current status:
   the DAPHNE carrier
 - QSPI A/B firmware is a separate 2026.1 SDT deliverable; it is deliberately
   excluded from the XSA/eMMC image build
-- the current FPGA overlay is excluded from provisioning and remains
-  unqualified until the XXV license and post-route methodology gates close
-- the staged `daphneServer` payload remains a checksum-verified legacy
-  external binary and is not reproducible from this repository
+- the minimal image stages the exact self-trigger and full-stream applications;
+  both generate complete bitstreams, while inherited CDC/methodology findings
+  and the four-link target test remain release-qualification gates
+- Vivado still reports XXV Ethernet feature-key warnings, but they do not block
+  synthesis, implementation, DRC, or bitstream generation under the current
+  2026.1/`2026.07` entitlement
+- the staged `daphneServer` comes from a qualified, source-identified AArch64
+  build; its private protobuf/ZeroMQ libraries and Hermes helper remain legacy
+  binary inputs with recorded hashes
 
 Historical bring-up on `DAPHNE-015` proved the older flow with:
 
@@ -361,6 +366,8 @@ For a directly connected host, deploy the collected bundle with:
   --board daphne-15 \
   --host 10.73.137.16 \
   --bundle petalinux/output/<project-name> \
+  --board-config /path/to/rendered/daphne-15 \
+  --host-key-sha256 SHA256:<ed25519-fingerprint> \
   --emmc inactive-slot \
   --dry-run
 ```
@@ -381,6 +388,8 @@ ONL:
   --board daphne-15 \
   --host 10.73.137.16 \
   --bundle /path/to/petalinux/output/<project-name> \
+  --board-config /path/to/rendered/daphne-15 \
+  --host-key-sha256 SHA256:<ed25519-fingerprint> \
   --emmc inactive-slot
 ```
 
@@ -394,10 +403,10 @@ is reachable/trusted from ONL:
   --board daphne-15 \
   --host 10.73.137.16 \
   --bundle petalinux/output/<project-name> \
+  --board-config /path/to/rendered/daphne-15 \
+  --host-key-sha256 SHA256:<ed25519-fingerprint> \
   --emmc inactive-slot \
-  --control-host marroyav@np04-onl-004.cern.ch \
-  --ssh-option StrictHostKeyChecking=no \
-  --ssh-option UserKnownHostsFile=/dev/null
+  --control-host marroyav@np04-onl-004.cern.ch
 ```
 
 For a healthy board, the preferred QSPI boot-firmware update helper is:

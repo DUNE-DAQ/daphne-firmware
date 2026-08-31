@@ -17,7 +17,7 @@ STAGE_SCRIPT = ROOT / "scripts/petalinux/stage_runtime_into_project.sh"
 RECIPE_SOURCE = (
     ROOT / "petalinux/meta-daphne/recipes-apps/daphne-server"
 )
-REQUIRED_COMMIT = "e17515b1a57370c57b1b709e0a77f6c48c135daf"
+REQUIRED_COMMIT = "77b39b7eb75204e1f2025f251a3a76ecf69d1d74"
 BUNDLE_NAME = "daphne-server-runtime-minimal.tgz"
 SERVER_MEMBER = "home/petalinux/daphne-server/build-petalinux/daphneServer"
 

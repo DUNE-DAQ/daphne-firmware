@@ -70,9 +70,23 @@ Remove `--dry-run` only after the printed board, host, inactive slot, bundle,
 configuration, and hashes are correct. This command writes the inactive eMMC
 slot. It does not update QSPI, change the MAC, or change board identity.
 
-The same qualified image may be deployed to many boards by repeating the
-one-board command with each board's rendered configuration. Campaign-wide
-scheduling and evidence collection belong to the production-station layer.
+For several boards, list each board, host, rendered configuration, and pinned
+host-key fingerprint in a campaign CSV, then run the sequential wrapper in its
+default dry-run mode:
+
+```bash
+python3 scripts/deploy/daphne_deploy_campaign.py campaign.csv \
+  --bundle /path/to/collected-bundle \
+  --evidence-dir evidence/dry-run
+```
+
+The wrapper validates the whole campaign before contacting the first board,
+stops on the first failure, and records per-board logs plus a JSON summary.
+Add `--execute` only after reviewing a successful dry run. That stages inactive
+slots without rebooting or claiming hardware qualification; reboot and verify
+one board at a time. See
+[Deploy the dual-gateware release](dual-gateware-deployment.md) for the complete
+ring procedure.
 
 ## Qualification boundary
 

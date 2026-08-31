@@ -449,9 +449,10 @@ recorded in `docs/source-audit.md`.
 
 - The FPGA image can be used on multiple boards; it is not a single-board
   firmware.
-- Deployment is intentionally one board per command. Fleet scheduling,
-  database ownership, and campaign-wide evidence aggregation belong to the
-  production-station layer.
+- The low-level deployer changes one board at a time. The repository also
+  provides a sequential, stop-on-failure campaign wrapper for validated board
+  lists and deployment evidence. Inventory authority and hardware
+  qualification remain production-station responsibilities.
 - K26C is the qualified carrier baseline. Other carriers need their own pin,
   clock, boot, and hardware validation.
 - Formal checks cover selected leaf blocks and explicit subsystem contracts;

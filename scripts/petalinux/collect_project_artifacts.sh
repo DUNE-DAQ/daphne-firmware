@@ -38,6 +38,8 @@ trap cleanup_staging_bundle EXIT
 
 IMAGES_DIR="$PROJECT_DIR/images/linux"
 STAGED_DIR="$PROJECT_DIR/project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged"
+SERVER_RECIPE_DIR="$PROJECT_DIR/project-spec/meta-daphne/recipes-apps/daphne-server"
+SERVER_STAGED_DIR="$SERVER_RECIPE_DIR/files/staged"
 LOCAL_CONF="$PROJECT_DIR/build/conf/local.conf"
 BOOT_DIR="$BUNDLE_DIR/boot"
 ROOTFS_DIR="$BUNDLE_DIR/rootfs"
@@ -148,6 +150,22 @@ if (( INCLUDE_STAGED_OVERLAY == 1 )) && [[ -d "$STAGED_DIR" ]]; then
   copy_if_exists \
     "$PROJECT_DIR/project-spec/meta-daphne/recipes-firmware/daphne-overlay/daphne-overlay-version.inc" \
     "$OVERLAY_DIR/daphne-overlay-version.inc"
+
+  # Keep the exact userspace/gateware agreement beside the collected image.
+  # These files are small, immutable provenance inputs; the runtime tarball
+  # itself is already installed in the root filesystem and is not duplicated.
+  copy_if_exists \
+    "$SERVER_STAGED_DIR/BUILD-METADATA.txt" \
+    "$META_DIR/DAPHNE-SERVER-BUILD-METADATA.txt"
+  copy_if_exists \
+    "$SERVER_STAGED_DIR/SHA256SUMS" \
+    "$META_DIR/DAPHNE-SERVER-STAGED-SHA256SUMS"
+  copy_if_exists \
+    "$SERVER_RECIPE_DIR/daphne-server-contract.inc" \
+    "$META_DIR/daphne-server-contract.inc"
+  copy_if_exists \
+    "$SERVER_RECIPE_DIR/daphne-server-version.inc" \
+    "$META_DIR/daphne-server-version.inc"
 fi
 
 FIRMWARE_GIT_COMMIT="unknown"
@@ -191,7 +209,7 @@ if (( ${#checksum_cmd[@]} > 0 )); then
     cd "$BUNDLE_DIR"
     while IFS= read -r -d '' path; do
       "${checksum_cmd[@]}" "$path"
-    done < <(find . -type f ! -name SHA256SUMS -print0 | sort -z)
+    done < <(find . -type f ! -path ./SHA256SUMS -print0 | sort -z)
   ) > "$BUNDLE_DIR/SHA256SUMS"
 fi
 

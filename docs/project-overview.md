@@ -76,14 +76,14 @@ What the repo owns today:
 - the FuseSoC source graph and smoke/formal targets
 - the repo-owned PetaLinux layer, image profiles, build wrappers, and artifact
   collection
-- board-configuration rendering and one-board-at-a-time inactive-slot eMMC
-  deployment
+- board-configuration rendering, one-board inactive-slot deployment, and a
+  sequential multi-board staging/evidence wrapper
 - the runtime contract needed by `daphne-server`
 
 What the repo does not fully own yet:
 
-- multi-board station scheduling, inventory authority, and campaign-wide
-  evidence aggregation
+- inventory authority, unattended post-boot qualification, and production
+  fleet orchestration
 - a fully reproducible 2026.1 `daphne-server` dependency/runtime release
 - validated support beyond the current K26C baseline
 

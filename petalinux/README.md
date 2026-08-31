@@ -222,7 +222,8 @@ directories and use `--self-trigger-output` plus `--full-stream-output`.
 
 ## Current userspace runtime staging point
 
-After harvesting a qualified runtime bundle from a working board:
+After cross-building the pinned server commit, validating it for AArch64, and
+placing its generated `BUILD-METADATA.txt` beside the qualified runtime bundle:
 
 ```bash
 ./scripts/petalinux/stage_runtime_into_project.sh \

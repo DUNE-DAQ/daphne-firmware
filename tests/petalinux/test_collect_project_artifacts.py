@@ -25,6 +25,14 @@ class CollectProjectArtifactsTests(unittest.TestCase):
                 / "files"
                 / "staged"
             )
+            server_recipe = (
+                project
+                / "project-spec"
+                / "meta-daphne"
+                / "recipes-apps"
+                / "daphne-server"
+            )
+            server_staged = server_recipe / "files" / "staged"
             (project / "project-spec").mkdir(parents=True)
             (project / "build" / "conf").mkdir(parents=True)
             (project / "build" / "conf" / "local.conf").write_text(
@@ -32,6 +40,7 @@ class CollectProjectArtifactsTests(unittest.TestCase):
             )
             images.mkdir(parents=True)
             overlay.mkdir(parents=True)
+            server_staged.mkdir(parents=True)
 
             for name in (
                 "BOOT.BIN",
@@ -60,6 +69,20 @@ class CollectProjectArtifactsTests(unittest.TestCase):
                     (mode_dir / name).write_text(f"{mode}:{name}\n", encoding="utf-8")
             version_inc = overlay.parent.parent / "daphne-overlay-version.inc"
             version_inc.write_text('DAPHNE_DUAL_OVERLAY_STAGED = "1"\n')
+            (server_staged / "BUILD-METADATA.txt").write_text(
+                "server_git_commit=e17515b\n", encoding="utf-8"
+            )
+            (server_staged / "SHA256SUMS").write_text(
+                "0" * 64 + "  daphne-server-runtime-minimal.tgz\n",
+                encoding="utf-8",
+            )
+            (server_recipe / "daphne-server-contract.inc").write_text(
+                'DAPHNE_SERVER_REQUIRED_GATEWARE_ABI_MAJOR = "2"\n',
+                encoding="utf-8",
+            )
+            (server_recipe / "daphne-server-version.inc").write_text(
+                'DAPHNE_SERVER_RUNTIME_QUALIFIED = "1"\n', encoding="utf-8"
+            )
             bundle = root / "bundle"
 
             subprocess.run([str(COLLECT), str(project), str(bundle)], check=True, text=True)
@@ -84,6 +107,10 @@ class CollectProjectArtifactsTests(unittest.TestCase):
                 "overlay/full-stream/shell.json",
                 "overlay/full-stream/BUILD-METADATA.txt",
                 "overlay/full-stream/SHA256SUMS",
+                "meta/DAPHNE-SERVER-BUILD-METADATA.txt",
+                "meta/DAPHNE-SERVER-STAGED-SHA256SUMS",
+                "meta/daphne-server-contract.inc",
+                "meta/daphne-server-version.inc",
                 "MANIFEST.txt",
                 "SHA256SUMS",
             ):
@@ -97,6 +124,14 @@ class CollectProjectArtifactsTests(unittest.TestCase):
             self.assertIn(
                 "overlay_policy=included-from-staged-dual-artifacts", metadata
             )
+            checksums = (bundle / "SHA256SUMS").read_text(encoding="utf-8")
+            self.assertIn(
+                "  ./overlay/self-trigger/SHA256SUMS\n", checksums
+            )
+            self.assertIn(
+                "  ./overlay/full-stream/SHA256SUMS\n", checksums
+            )
+            self.assertNotIn("  ./SHA256SUMS\n", checksums)
 
     def test_provisioning_bundle_excludes_stale_staged_overlay(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
