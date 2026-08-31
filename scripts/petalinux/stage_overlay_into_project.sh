@@ -236,12 +236,25 @@ resolve_bundle() {
     "${RESOLVED_APP}/${RESOLVED_APP}.dtbo" \
     "${RESOLVED_APP}/shell.json"
   do
-    match_count="$(awk -v path="$relative_path" '$2 == path { count += 1 } END { print count + 0 }' "$RESOLVED_MANIFEST")"
+    match_count="$(awk -v path="$relative_path" '
+      {
+        name = $2
+        sub(/^\*/, "", name)
+        if (NF == 2 && name == path) count += 1
+      }
+      END { print count + 0 }
+    ' "$RESOLVED_MANIFEST")"
     if [[ "$match_count" != "1" ]]; then
       echo "ERROR: $RESOLVED_MANIFEST must contain exactly one checksum for $relative_path" >&2
       exit 2
     fi
-    expected_digest="$(awk -v path="$relative_path" '$2 == path { print $1 }' "$RESOLVED_MANIFEST")"
+    expected_digest="$(awk -v path="$relative_path" '
+      {
+        name = $2
+        sub(/^\*/, "", name)
+        if (NF == 2 && name == path) print $1
+      }
+    ' "$RESOLVED_MANIFEST")"
     case "$relative_path" in
       "${RESOLVED_APP}.zip") candidate="$RESOLVED_ZIP" ;;
       *) candidate="$output_dir/$relative_path" ;;

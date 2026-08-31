@@ -131,7 +131,7 @@ if [[ -f "$SOURCE_SUMS" ]]; then
       {
         name = $2
         sub(/^\*/, "", name)
-        if (name == artifact) print $1
+        if (NF == 2 && name == artifact) print $1
       }
     ' "$SOURCE_SUMS"
   )

@@ -59,7 +59,35 @@ INSANE_SKIP:${PN} += "dev-so rpaths"
 DAPHNE_RUNTIME_LIBDIR = "${libdir}/daphne-server"
 
 do_install() {
-    expected_sha="$(awk '$2 == "daphne-server-runtime-minimal.tgz" {print $1}' ${WORKDIR}/staged/SHA256SUMS)"
+    runtime_manifest="${WORKDIR}/staged/SHA256SUMS"
+    runtime_artifact="daphne-server-runtime-minimal.tgz"
+
+    verify_manifest_path_once() {
+        manifest="$1"
+        checksum_path="$2"
+        match_count="$(awk -v path="$checksum_path" '
+            {
+                name = $2
+                sub(/^\*/, "", name)
+                if (NF == 2 && name == path) count += 1
+            }
+            END { print count + 0 }
+        ' "$manifest")"
+        if [ "$match_count" != "1" ]; then
+            bbfatal "$manifest must contain exactly one checksum for $checksum_path (found $match_count)"
+        fi
+    }
+
+    for checksum_path in "$runtime_artifact" BUILD-METADATA.txt; do
+        verify_manifest_path_once "$runtime_manifest" "$checksum_path"
+    done
+    expected_sha="$(awk -v path="$runtime_artifact" '
+        {
+            name = $2
+            sub(/^\*/, "", name)
+            if (NF == 2 && name == path) print $1
+        }
+    ' "$runtime_manifest")"
     actual_sha="$(sha256sum ${WORKDIR}/staged/daphne-server-runtime-minimal.tgz | awk '{print $1}')"
     if [ -z "${expected_sha}" ] || [ "${actual_sha}" != "${expected_sha}" ]; then
         bbfatal "DAPHNE runtime bundle checksum verification failed"

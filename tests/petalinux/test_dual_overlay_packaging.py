@@ -322,6 +322,55 @@ class DualOverlayPackagingTests(unittest.TestCase):
         self.assertIn("checksum mismatch", result.stderr)
         self.assert_prior_state_preserved()
 
+    def test_suffixed_manifest_path_cannot_replace_exact_artifact(self) -> None:
+        self_output = self.base / "self-output"
+        full_output = self.base / "full-output"
+        self_output.mkdir()
+        full_output.mkdir()
+        self_app = self.make_bundle(
+            self_output, "self-trigger", "abcdef1", layout="amba"
+        )
+        self.make_bundle(full_output, "full-stream", "1234abc", layout="fragment")
+        manifest = self_output / f"{self_app}.SHA256SUMS"
+        required = f"{self_app}.zip"
+        backup = self_output / f"{required} backup"
+        shutil.copy2(self_output / required, backup)
+        exact_line = f"{self.digest(self_output / required)}  {required}\n"
+        replacement = f"{self.digest(backup)}  {required} backup\n"
+        manifest.write_text(
+            manifest.read_text().replace(exact_line, replacement, 1)
+        )
+
+        result = self.run_stage(self_output, full_output)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            f"must contain exactly one checksum for {required}", result.stderr
+        )
+        self.assert_prior_state_preserved()
+
+    def test_duplicate_manifest_path_is_rejected(self) -> None:
+        self_output = self.base / "self-output"
+        full_output = self.base / "full-output"
+        self_output.mkdir()
+        full_output.mkdir()
+        self_app = self.make_bundle(
+            self_output, "self-trigger", "abcdef1", layout="amba"
+        )
+        self.make_bundle(full_output, "full-stream", "1234abc", layout="fragment")
+        manifest = self_output / f"{self_app}.SHA256SUMS"
+        required = f"{self_app}.zip"
+        duplicate = f"{self.digest(self_output / required)}  {required}\n"
+        manifest.write_text(manifest.read_text() + duplicate)
+
+        result = self.run_stage(self_output, full_output)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            f"must contain exactly one checksum for {required}", result.stderr
+        )
+        self.assert_prior_state_preserved()
+
     def test_ambiguous_build_requires_explicit_sha(self) -> None:
         self_output = self.base / "self-output"
         full_output = self.base / "full-output"
@@ -393,6 +442,8 @@ class DualOverlayPackagingTests(unittest.TestCase):
         self.assertNotIn('DAPHNE_OVERLAY_APP = "daphne"', recipe)
         self.assertIn('do_fetch[prefuncs] += "validate_dual_overlay"', recipe)
         self.assertNotIn("python __anonymous", recipe)
+        self.assertIn("verify_manifest_path_once", recipe)
+        self.assertIn("must contain exactly one checksum", recipe)
 
     def test_self_trigger_packager_emits_bundle_scoped_manifest(self) -> None:
         packager = (ROOT / "scripts/package/complete_dtbo_bundle.sh").read_text()

@@ -51,6 +51,22 @@ SRC_URI += " \
 do_install() {
     firmware_dir="${D}${nonarch_base_libdir}/firmware"
 
+    verify_manifest_path_once() {
+        manifest="$1"
+        checksum_path="$2"
+        match_count="$(awk -v path="$checksum_path" '
+            {
+                name = $2
+                sub(/^\*/, "", name)
+                if (NF == 2 && name == path) count += 1
+            }
+            END { print count + 0 }
+        ' "$manifest")"
+        if [ "$match_count" != "1" ]; then
+            bbfatal "$manifest must contain exactly one checksum for $checksum_path (found $match_count)"
+        fi
+    }
+
     install -d "${firmware_dir}/xilinx"
     install -d ${D}${datadir}/daphne-firmware
     install -m 0644 ${WORKDIR}/README.overlay \
@@ -63,6 +79,9 @@ do_install() {
         source_dir="${WORKDIR}/staged/${mode}"
         app_dir="${firmware_dir}/xilinx/${app}"
 
+        for checksum_path in "${app}.bin" "${app}.dtbo" shell.json BUILD-METADATA.txt; do
+            verify_manifest_path_once "${source_dir}/SHA256SUMS" "$checksum_path"
+        done
         (cd "${source_dir}" && sha256sum --check --strict SHA256SUMS)
         install -d "${app_dir}"
         install -m 0644 "${source_dir}/BUILD-METADATA.txt" "${app_dir}/BUILD-METADATA.txt"

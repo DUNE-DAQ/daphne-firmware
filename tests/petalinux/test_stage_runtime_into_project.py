@@ -256,6 +256,38 @@ class StageRuntimeIntoProjectTests(unittest.TestCase):
         self.assertIn("SHA-256 mismatch", result.stderr)
         self.assert_prior_state_preserved()
 
+    def test_rejects_suffixed_checksum_path_substitution(self) -> None:
+        bundle, bundle_sha = self.make_bundle()
+        backup = bundle.parent / f"{BUNDLE_NAME} backup"
+        shutil.copy2(bundle, backup)
+        (bundle.parent / "SHA256SUMS").write_text(
+            f"{bundle_sha}  {BUNDLE_NAME} backup\n", encoding="utf-8"
+        )
+
+        result = self.run_stage(bundle)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            f"must contain exactly one checksum for {BUNDLE_NAME}", result.stderr
+        )
+        self.assert_prior_state_preserved()
+
+    def test_rejects_duplicate_checksum_path(self) -> None:
+        bundle, bundle_sha = self.make_bundle()
+        (bundle.parent / "SHA256SUMS").write_text(
+            f"{bundle_sha}  {BUNDLE_NAME}\n"
+            f"{bundle_sha}  {BUNDLE_NAME}\n",
+            encoding="utf-8",
+        )
+
+        result = self.run_stage(bundle)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            f"must contain exactly one checksum for {BUNDLE_NAME}", result.stderr
+        )
+        self.assert_prior_state_preserved()
+
     def test_final_version_move_failure_rolls_back_payload_and_sentinel(self) -> None:
         bundle, _ = self.make_bundle()
         fake_bin = self.base / "fake-bin"
@@ -301,6 +333,8 @@ class StageRuntimeIntoProjectTests(unittest.TestCase):
         self.assertIn("DAPHNE_SERVER_RUNTIME_QUALIFIED", recipe)
         self.assertIn('DAPHNE_SERVER_RUNTIME_QUALIFIED = "0"', sentinel)
         self.assertNotIn("bb.fatal", sentinel)
+        self.assertIn("verify_manifest_path_once", recipe)
+        self.assertIn("must contain exactly one checksum", recipe)
 
 
 if __name__ == "__main__":

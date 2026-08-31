@@ -40,6 +40,26 @@ check_file() {
   fi
 }
 
+check_manifest_path_once() {
+  local label="$1"
+  local manifest="$2"
+  local checksum_path="$3"
+  local match_count
+
+  match_count="$(awk -v path="$checksum_path" '
+    {
+      name = $2
+      sub(/^\*/, "", name)
+      if (NF == 2 && name == path) count += 1
+    }
+    END { print count + 0 }
+  ' "$manifest")"
+  if [[ "$match_count" != "1" ]]; then
+    echo "FAIL  $label must contain exactly one checksum for $checksum_path (found $match_count)" >&2
+    failed=1
+  fi
+}
+
 echo "Checking self-trigger build $GIT_SHA"
 echo "Output directory: $OUTPUT_DIR"
 
@@ -102,10 +122,7 @@ if [[ -s "$checksum_manifest" ]]; then
     post_route_util.rpt \
     post_imp_drc.rpt
   do
-    if ! grep -Fq "  $checksum_path" "$checksum_manifest"; then
-      echo "FAIL  checksum manifest does not cover $checksum_path" >&2
-      failed=1
-    fi
+    check_manifest_path_once "checksum manifest" "$checksum_manifest" "$checksum_path"
   done
 fi
 
@@ -133,10 +150,7 @@ if [[ -s "$bundle_checksum_manifest" ]]; then
     "$OVERLAY_NAME/$OVERLAY_NAME.dtbo" \
     "$OVERLAY_NAME/shell.json"
   do
-    if ! grep -Fq "  $checksum_path" "$bundle_checksum_manifest"; then
-      echo "FAIL  overlay manifest does not cover $checksum_path" >&2
-      failed=1
-    fi
+    check_manifest_path_once "overlay manifest" "$bundle_checksum_manifest" "$checksum_path"
   done
 fi
 
