@@ -15,6 +15,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/deploy/daphne_deploy_campaign.py"
+RELEASE = "dual-gateware-2026.08.31-rc1"
 
 
 class DaphneDeployCampaignTests(unittest.TestCase):
@@ -90,6 +91,7 @@ class DaphneDeployCampaignTests(unittest.TestCase):
                 f"ASSET_ID={board}\n"
                 f"HOSTNAME_FQDN={board.lower()}.example\n"
                 "EXPECTED_BOOT_MAC=02:00:00:00:00:01\n"
+                f"FIRMWARE_RELEASE={RELEASE}\n"
             ),
             "hostname": f"{board.lower()}.example\n",
             "daphne-board.env": (
@@ -220,6 +222,7 @@ class DaphneDeployCampaignTests(unittest.TestCase):
         self.assertEqual(summary["attempted_boards"], 2)
         self.assertEqual(summary["bundle_verification"]["verified_entries"], 4)
         self.assertEqual(summary["campaign_csv_sha256"], self.digest(campaign))
+        self.assertEqual(summary["firmware_release"], RELEASE)
         self.assertEqual(
             summary["bundle_verification"]["manifest_sha256"],
             self.digest(self.bundle / "SHA256SUMS"),
@@ -256,6 +259,7 @@ class DaphneDeployCampaignTests(unittest.TestCase):
         self.assertEqual(summary["qualification"]["status"], "not_performed")
         self.assertTrue(summary["qualification"]["required_for_release"])
         self.assertFalse(summary["boards"][0]["release_qualified"])
+        self.assertEqual(summary["boards"][0]["firmware_release"], RELEASE)
         self.assertTrue((evidence / "001-BOARD-A.log").is_file())
         self.assertTrue((evidence / "002-BOARD-B.log").is_file())
         self.assertEqual(
@@ -309,6 +313,48 @@ class DaphneDeployCampaignTests(unittest.TestCase):
         self.assertEqual(self.calls(), [])
         self.assertFalse(evidence.exists())
 
+    def test_board_config_must_name_a_firmware_release(self) -> None:
+        row = self.row("BOARD-A", "board-a.example", "A")
+        config = Path(row["board_config"])
+        manifest = config / "manifest.env"
+        manifest.write_text(
+            manifest.read_text(encoding="utf-8").replace(
+                f"FIRMWARE_RELEASE={RELEASE}\n", ""
+            ),
+            encoding="utf-8",
+        )
+        campaign = self.campaign_csv([row])
+        evidence = self.base / "missing-release-evidence"
+
+        result = self.run_campaign(campaign, evidence)
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("FIRMWARE_RELEASE", result.stderr)
+        self.assertEqual(self.calls(), [])
+        self.assertFalse(evidence.exists())
+
+    def test_campaign_rejects_mixed_firmware_releases(self) -> None:
+        rows = [
+            self.row("BOARD-A", "board-a.example", "A"),
+            self.row("BOARD-B", "board-b.example", "B"),
+        ]
+        second_manifest = Path(rows[1]["board_config"]) / "manifest.env"
+        second_manifest.write_text(
+            second_manifest.read_text(encoding="utf-8").replace(
+                RELEASE, "dual-gateware-other-rc"
+            ),
+            encoding="utf-8",
+        )
+        campaign = self.campaign_csv(rows)
+        evidence = self.base / "mixed-release-evidence"
+
+        result = self.run_campaign(campaign, evidence)
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("different firmware releases", result.stderr)
+        self.assertEqual(self.calls(), [])
+        self.assertFalse(evidence.exists())
+
     def test_malformed_quoted_header_is_a_clean_preflight_failure(self) -> None:
         campaign = self.base / "malformed.csv"
         campaign.write_text('"board,host\n', encoding="utf-8")
@@ -352,7 +398,8 @@ class DaphneDeployCampaignTests(unittest.TestCase):
         (second_config / "manifest.env").write_text(
             "ASSET_ID=board-a\n"
             "HOSTNAME_FQDN=board-a.example\n"
-            "EXPECTED_BOOT_MAC=02:00:00:00:00:01\n",
+            "EXPECTED_BOOT_MAC=02:00:00:00:00:01\n"
+            f"FIRMWARE_RELEASE={RELEASE}\n",
             encoding="utf-8",
         )
         (second_config / "hostname").write_text(

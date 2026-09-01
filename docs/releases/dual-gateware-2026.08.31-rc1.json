@@ -88,6 +88,7 @@
       "build_log": "artifacts/image/petalinux-build.log",
       "build_log_sha256": "1a45f65246067f941819bf234a4b1e6e35c43396193f366b8ff18e96443352c4",
       "build_log_size_bytes": 32992,
+      "bundle_manifest_sha256": "edef509e7759e7d1be77ee0eaab95815b49e790a1885cb0bffcb99dc0fd1b34f",
       "rootfs_cpio_gz_sha256": "9a3f1666479c6b86ba3b3cad402a8fe97e98b26be711838e51496108ec4d63ab",
       "rootfs_ext4_sha256": "64cdb4036b0407dbf2dcab26115aaeb8183abad341bc68d16ec34768627ef4f7",
       "rootfs_manifest_sha256": "49fb4ee013bf366a2915de238a8202adeba2ee61af29d1bb1fe48b5b82aeb788",

@@ -14,7 +14,7 @@ release. Use the ring procedure below until its hardware gates are complete.
 | Self-trigger | `3f17f1b` | `77b39b7`, mode `self-trigger` | `daphnemodules` 3.0.3 or 3.0.4 |
 | Full-stream | `b24e416` | `77b39b7`, mode `full-stream` | `daphnemodules` 3.0.4 |
 
-The common client candidate is `daphnemodules` 3.0.4 at commit `9d80784`,
+The common client package is `daphnemodules` 3.0.4 at commit `9d80784`,
 built and tested with DUNE-DAQ `fddaq-v5.6.2-a9-1`. The image server listens on
 TCP port 40001. Full-stream requires a nonempty ordered list of at most 32
 unique board-channel IDs from 0 through 39. Self-trigger leaves that list
@@ -37,13 +37,17 @@ CSV:
 python3 scripts/deploy/render_board_config.py \
   --record boards/DAPHNE-001.json \
   --record-sha256 <record-sha256> \
+  --expected-firmware-release dual-gateware-2026.08.31-rc1 \
   --output boards/DAPHNE-001 \
+  --prefix <site-prefix> \
   --gateway <gateway-ip> \
   --dns <dns-ip>
 ```
 
 Repeat with the corresponding record and output directory for every board.
-The renderer refuses records that are not approved for network admission.
+The renderer refuses records that are not approved for network admission or
+do not name this exact firmware release. The network prefix is deliberately
+required; do not assume `/24`.
 
 Do not disable SSH host-key checking. Stop the external DUNE-DAQ run before an
 image deployment or gateware switch.
@@ -120,6 +124,39 @@ An empty `full_stream_channels` list selects self-trigger. Full-stream requires
 1 through 32 unique board-channel IDs in the range 0 through 39; list order is
 output order. Record the client artifact hash and exact list with each board's
 qualification evidence.
+
+## Record qualification
+
+After a staged board has rebooted and passed the checks above, create its
+record from the frozen campaign summary and release contract:
+
+```bash
+python3 scripts/deploy/daphne_qualification.py init \
+  --campaign-summary evidence/canary-install/campaign-summary.json \
+  --board DAPHNE-001 \
+  --compatibility docs/releases/dual-gateware-2026.08.31-rc1.json \
+  --output evidence/canary-install/DAPHNE-001-qualification.json
+```
+
+The new record is deliberately `NOT_RUN`. Fill its site-approved DAQ command,
+DAQ configuration digest, Ethernet duration and counter thresholds, then add
+the observed results and checksummed evidence for every gate. Evidence paths
+are relative to the record. The schema and unqualified example are under
+`scripts/deploy/schemas/` and `scripts/deploy/examples/`.
+
+Check it against the same two frozen inputs:
+
+```bash
+python3 scripts/deploy/daphne_qualification.py check \
+  evidence/canary-install/DAPHNE-001-qualification.json \
+  --campaign-summary evidence/canary-install/campaign-summary.json \
+  --compatibility docs/releases/dual-gateware-2026.08.31-rc1.json
+```
+
+Exit 0 means qualified, 1 means valid but incomplete or failed, and 2 means
+invalid or tampered. The checker verifies identities, thresholds, and evidence
+hashes; the named reviewer remains responsible for inspecting the evidence and
+approving the site test policy.
 
 ## Switch gateware safely
 

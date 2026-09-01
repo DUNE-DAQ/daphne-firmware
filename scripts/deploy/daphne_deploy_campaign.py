@@ -71,6 +71,7 @@ class BoardTarget:
     host_key_sha256: str
     user: str
     control_host: str | None
+    firmware_release: str
     board_config_sha256: dict[str, str]
     board_config_files: dict[str, bytes]
 
@@ -115,7 +116,7 @@ def manifest_value(text: str, label: Path, key: str) -> str:
 
 def validate_board_config(
     path: Path, board: str
-) -> tuple[dict[str, str], dict[str, bytes]]:
+) -> tuple[dict[str, str], dict[str, bytes], str]:
     missing = sorted(
         name for name in REQUIRED_BOARD_CONFIG_FILES if not (path / name).is_file()
     )
@@ -142,7 +143,12 @@ def validate_board_config(
     manifest = path / "manifest.env"
     values = {
         key: manifest_value(texts["manifest.env"], manifest, key)
-        for key in ("ASSET_ID", "HOSTNAME_FQDN", "EXPECTED_BOOT_MAC")
+        for key in (
+            "ASSET_ID",
+            "HOSTNAME_FQDN",
+            "EXPECTED_BOOT_MAC",
+            "FIRMWARE_RELEASE",
+        )
     }
     for key, value in values.items():
         if not MANIFEST_VALUE_RE.fullmatch(value):
@@ -178,6 +184,7 @@ def validate_board_config(
             for name, data in files.items()
         },
         files,
+        values["FIRMWARE_RELEASE"],
     )
 
 
@@ -264,9 +271,11 @@ def load_campaign(path: Path) -> tuple[list[BoardTarget], str, bytes]:
                 csv_path.parent,
                 f"board_config on CSV line {line_number}",
             )
-            board_config_sha256, board_config_files = validate_board_config(
-                board_config, board
-            )
+            (
+                board_config_sha256,
+                board_config_files,
+                firmware_release,
+            ) = validate_board_config(board_config, board)
 
             unique_values = {
                 "board": board.casefold(),
@@ -292,6 +301,7 @@ def load_campaign(path: Path) -> tuple[list[BoardTarget], str, bytes]:
                     host_key_sha256=fingerprint,
                     user=user,
                     control_host=control_host,
+                    firmware_release=firmware_release,
                     board_config_sha256=board_config_sha256,
                     board_config_files=board_config_files,
                 )
@@ -299,6 +309,12 @@ def load_campaign(path: Path) -> tuple[list[BoardTarget], str, bytes]:
 
     if not targets:
         raise CampaignError("campaign CSV has no board rows")
+    firmware_releases = {target.firmware_release for target in targets}
+    if len(firmware_releases) != 1:
+        raise CampaignError(
+            "campaign board configurations name different firmware releases: "
+            + ", ".join(sorted(firmware_releases))
+        )
     return targets, hashlib.sha256(csv_bytes).hexdigest(), csv_bytes
 
 
@@ -565,6 +581,7 @@ def board_identity(target: BoardTarget, board_config: Path) -> dict[str, object]
         "host": target.host,
         "user": target.user,
         "control_host": target.control_host,
+        "firmware_release": target.firmware_release,
         "board_config_source": str(target.board_config),
         "board_config": str(board_config),
         "board_config_sha256": target.board_config_sha256,
@@ -757,6 +774,7 @@ def main(argv: list[str] | None = None) -> int:
         "deploy_script_source": str(deploy_source),
         "deploy_script_sha256": deploy_script_sha256,
         "input_snapshot": input_snapshot,
+        "firmware_release": targets[0].firmware_release,
         "mode": "execute" if args.execute else "dry-run",
         "reboot": args.reboot,
         "continue_on_error": args.continue_on_error,

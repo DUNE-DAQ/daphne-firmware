@@ -22,8 +22,11 @@ jobs:
           version: '2026-04-08'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install FuseSoC
-        run: python3 -m pip install --user 'fusesoc==2.4.3'
+      - name: Install Python test dependencies
+        run: >-
+          python3 -m pip install --user
+          'fusesoc==2.4.3'
+          'jsonschema==4.25.1'
 
       - name: Check generated source manifests
         run: |
