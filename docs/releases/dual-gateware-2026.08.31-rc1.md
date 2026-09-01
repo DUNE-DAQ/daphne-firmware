@@ -17,6 +17,7 @@ the server.
 | `daphne-server` | `77b39b7eb75204e1f2025f251a3a76ecf69d1d74` | One AArch64 executable with explicit self-trigger and full-stream modes |
 | `daphnemodules` | `9d807840f249763607a1e31bb78e44de8ba8a082` | Package version 3.0.4; one client build for both modes |
 | Image integration | `ae2c7be986ba4930968a2821afc641d5f52591a4` | PetaLinux 2026.1 minimal profile |
+| Campaign tooling | `93db1ad0392918d8a0e6d4603bdddd96cbac0aae` | Strict board records, sequential rollout, and per-board qualification |
 
 The full-stream build-wrapper correction is commit
 `bff0ee134b12e9e98dc72d99e3917454b02ea38d`. It was made after the immutable
@@ -95,6 +96,10 @@ See [Firmware delivery](../firmware-delivery.md) for image deployment and
 - PetaLinux: all 7,093 BitBake tasks succeeded. Bundle checksums pass, and the
   installed AArch64 server launches from the extracted root filesystem under
   QEMU with both required gateware-selection options.
+- Campaign: all 58 deployment and qualification tests pass. A qualification
+  record is bound to the exact campaign summary, release ID, extracted image
+  manifest, root filesystem, gateware build IDs, artifacts, and evidence
+  hashes. The Draft 2020-12 schemas reject incomplete PASS claims.
 
 The XXV Ethernet feature-key warnings still appear under Vivado 2026.1, even
 though the floating Enterprise entitlement has a `2026.07` version limit and
@@ -104,7 +109,7 @@ to rule out evaluation-time behavior.
 ## Promotion gate
 
 Before tagging this RC as production, boot it on representative boards and
-record evidence for:
+record evidence with `scripts/deploy/daphne_qualification.py` for:
 
 - self-trigger to full-stream to self-trigger switching;
 - failed-load rollback and recovery of the previous mode;
@@ -114,4 +119,6 @@ record evidence for:
 - inactive-slot deployment, trial boot, confirmation, and rollback.
 
 Do not promote solely from build success. Hardware evidence is part of this
-release contract.
+release contract. Approved board records, host fingerprints, recovery access,
+DAQ commands and channel plans, and Ethernet thresholds have not yet been
+supplied; the checker therefore leaves every board unqualified by default.

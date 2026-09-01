@@ -2,7 +2,7 @@
   "contract": "daphne.dual-gateware-release",
   "contract_version": 1,
   "release_id": "dual-gateware-2026.08.31-rc1",
-  "created_utc": "2026-08-31T23:20:18Z",
+  "created_utc": "2026-09-01T00:14:29Z",
   "lifecycle": "engineering_rc",
   "production_qualified": false,
   "board_family": "k26c",
@@ -33,6 +33,12 @@
       "tree": "57e99f3cd1f18846fe336258ae7076fca2a4142d",
       "dirty": false
     },
+    "campaign_tooling": {
+      "repository": "git@github.com:DUNE-DAQ/daphne-firmware.git",
+      "commit": "93db1ad0392918d8a0e6d4603bdddd96cbac0aae",
+      "tree": "b2bc5c49daa46f311f3c770504879c6943071ba2",
+      "dirty": false
+    },
     "server": {
       "repository": "git@github.com:ecristal/daphneZMQ.git",
       "commit": "77b39b7eb75204e1f2025f251a3a76ecf69d1d74",
@@ -54,6 +60,52 @@
     "client_rules": {
       "self_trigger": "full_stream_channels must be empty",
       "full_stream": "full_stream_channels must contain 1 to 32 unique board-channel IDs in the range 0 through 39"
+    }
+  },
+  "campaign_tooling": {
+    "deployment_tests": "58_passed",
+    "schema_validator": "jsonschema-4.25.1",
+    "files": {
+      "single_board_deployer": {
+        "source_path": "scripts/deploy/daphne_deploy.sh",
+        "release_path": "tools/daphne_deploy.sh",
+        "sha256": "0f57f57448d8bcf492c068d45a5fe31afd767433ba3eaf880ebbba87bbbe7d7c"
+      },
+      "campaign_runner": {
+        "source_path": "scripts/deploy/daphne_deploy_campaign.py",
+        "release_path": "tools/daphne_deploy_campaign.py",
+        "sha256": "bc55a12b114f0afb32f31b6d092d15a006d26340464858124b277d70c7ffe893"
+      },
+      "board_config_renderer": {
+        "source_path": "scripts/deploy/render_board_config.py",
+        "release_path": "tools/render_board_config.py",
+        "sha256": "7dcaf5d4c9a14b91d92f8a4972cb14f0cf3865c388c8d2949b9b0d31a082d36a"
+      },
+      "qualification_checker": {
+        "source_path": "scripts/deploy/daphne_qualification.py",
+        "release_path": "tools/daphne_qualification.py",
+        "sha256": "9f762d61fcf882daeca662d3d54903af69eb00a5a56689936c3dcb44122b86c9"
+      },
+      "board_config_schema": {
+        "source_path": "scripts/deploy/schemas/daphne-board-config-v1.schema.json",
+        "release_path": "schemas/daphne-board-config-v1.schema.json",
+        "sha256": "84b1db9ef96f0a0612b36e88ce62fb0b70a168b89d208ca32230f44d9c72f994"
+      },
+      "qualification_schema": {
+        "source_path": "scripts/deploy/schemas/daphne-hardware-qualification-v1.schema.json",
+        "release_path": "schemas/daphne-hardware-qualification-v1.schema.json",
+        "sha256": "8a3791fd57e90dc38579f1c0e050d2d3cdbdd2cce31b95ee1b3c15dce92c0c1c"
+      },
+      "board_config_example": {
+        "source_path": "scripts/deploy/examples/daphne-board-config-v1.example.json",
+        "release_path": "examples/daphne-board-config-v1.example.json",
+        "sha256": "e5f6e22ff38330e4f830daeb7368e396cce4fe6cbaa83265b403b315b2b1238f"
+      },
+      "qualification_example": {
+        "source_path": "scripts/deploy/examples/daphne-hardware-qualification-v1.example.json",
+        "release_path": "examples/daphne-hardware-qualification-v1.example.json",
+        "sha256": "fc17e73f6249e819798a4e99893798f7355116e1bef20f507a3009651ad8114d"
+      }
     }
   },
   "profiles": {
@@ -132,12 +184,17 @@
     "server_aarch64_and_qemu": "pass",
     "client_fddaq_5_6_build_and_tests": "pass",
     "petalinux_build_and_rootfs_contract": "pass",
+    "campaign_tooling_and_contract_tests": "pass",
+    "approved_board_records": "not_supplied",
+    "site_acceptance_policy": "not_supplied",
     "board_switch_and_rollback": "not_run",
     "board_data_path": "not_run",
     "four_link_license_duration": "not_run"
   },
   "blockers": [
     "Review, fix, or explicitly baseline the inherited design-wide CDC and methodology findings.",
+    "Supply reviewed board-configuration records, independently approved SSH fingerprints, network settings, and recovery access.",
+    "Approve the site DAQ command, channel plans, Ethernet duration, counter thresholds, and error thresholds.",
     "Run self-trigger to full-stream to self-trigger switching and rollback on hardware.",
     "Qualify the data path, channel mapping, and all four Ethernet links for sufficient duration.",
     "Publish the exact commits and client package, then create reviewed release tags."
