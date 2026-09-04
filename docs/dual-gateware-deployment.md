@@ -6,6 +6,10 @@ several DAPHNE boards. The detailed build and recovery material remains in the
 
 The 2026.08.31 RC1 image is an engineering candidate, not a production fleet
 release. Use the ring procedure below until its hardware gates are complete.
+The frozen `59e8f55b...` image archive predates the FPGA-region overlay fix in
+`0b4f916`; rebuild from `release/dual-gateware-2026.08.31-rc1` before using
+this procedure on another board. Do not present the older archive as the
+corrected release image.
 
 ## Release agreement
 
@@ -98,6 +102,68 @@ MAC address, overwrite the active slot, or reboot the board. A successful row
 is recorded as `staged`, not qualified. The wrapper rejects
 `--execute --reboot` because it has no unattended post-boot health gate. Do not
 use `--continue-on-error` for a release rollout.
+
+## Persist the QSPI boot environment after recovery
+
+This separate, one-time serial-console step is required when recovery or a
+blank SOM leaves the QSPI U-Boot environment unset. `saveenv` writes only the
+redundant U-Boot environment in QSPI; it does not install or replace QSPI boot
+firmware. The commands below are the values validated on DAPHNE-007 on
+2026-09-04 after writing the two-partition eMMC image.
+
+This boot command deliberately pins the FAT boot partition to `mmc 0:1` and
+the root filesystem to `/dev/mmcblk0p2`. Do not install it on a board already
+using the campaign's A/B environment: that environment must retain its
+`active_slot` selection and rollback commands.
+
+At the U-Boot serial prompt, first verify that the protected MAC matches the
+approved SOM/database identity. DAPHNE-007 must report
+`00:0a:35:23:a1:90`; stop if it does not. Do not copy this MAC to another
+board and do not force an `ethaddr` rewrite merely because U-Boot rejects an
+attempt to replace an already-protected correct value.
+
+```text
+printenv ethaddr
+setenv ipaddr
+setenv ethact ethernet@ff0b0000
+setenv serverip 192.168.0.104
+setenv netmask 255.255.255.0
+setenv hostname daphne007
+setenv board_id DAPHNE-007
+setenv netinit 'mw.l 0xff5e0050 0x06010c00; mw.l 0xfd402860 0x00000080; mw.l 0xff0b0200 0x00000140; mw.l 0xff0b0004 0x092e0c4a; sleep 2'
+setenv preboot 'run netinit; setenv autoload no; dhcp'
+setenv bootcmd 'mmc dev 0; fatload mmc 0:1 0x18000000 Image; fatload mmc 0:1 0x40000000 system.dtb; setenv bootargs "earlycon console=ttyPS1,115200 root=/dev/mmcblk0p2 rootwait rw"; booti 0x18000000 - 0x40000000'
+setenv bootdelay 2
+setenv autoload no
+printenv ethaddr ethact serverip netmask hostname board_id netinit preboot bootcmd bootdelay autoload
+saveenv
+```
+
+For another board, obtain `ethaddr`, `hostname`, `board_id`, `serverip`, and
+`netmask` from its approved board record and site configuration; never derive
+or increment identities at the console. Require `Saving Environment to
+SPIFlash... OK` before continuing. Then power off, select physical QSPI boot
+mode, power on, interrupt the first autoboot, and repeat the `printenv`
+readback above. The boot log must identify QSPI boot and Linux must mount
+`/dev/mmcblk0p2` as `/`.
+
+After allowing that boot to complete, verify the root, the complete service
+chain, the listening server, and the selected gateware application:
+
+```sh
+findmnt -n -o SOURCE /
+sudo systemctl --no-pager --full status \
+  daphne-runtime.target daphne-gateware-prepare.service firmware.service \
+  daphne-gateware-verify.service clockchip.service endpoint.service \
+  hermes.service daphne.service
+sudo systemctl --failed --no-pager
+sudo ss -ltnp | grep ':40001'
+sudo daphne-gateware status
+```
+
+Saving this environment is independent of selecting self-trigger or
+full-stream. Use `daphne-gateware` for application switching and next-boot
+application defaults; do not edit `bootcmd` when changing FPGA modes.
 
 Reboot one staged board at a time from its serial console or a site-approved,
 pinned SSH session. After it returns, verify the selected slot and runtime

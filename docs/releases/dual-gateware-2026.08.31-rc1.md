@@ -18,6 +18,7 @@ the server.
 | `daphnemodules` | `9d807840f249763607a1e31bb78e44de8ba8a082` | Package version 3.0.4; one client build for both modes |
 | Image integration | `ae2c7be986ba4930968a2821afc641d5f52591a4` | PetaLinux 2026.1 minimal profile |
 | Campaign tooling | `93db1ad0392918d8a0e6d4603bdddd96cbac0aae` | Strict board records, sequential rollout, and per-board qualification |
+| Overlay/runtime hotfix | `0b4f916e3e59ba72f66eaa07f5ce1f2cfc420de8` | Correct Kria FPGA-region overlays and use `xmutil` for application switching |
 
 The full-stream build-wrapper correction is commit
 `bff0ee134b12e9e98dc72d99e3917454b02ea38d`. It was made after the immutable
@@ -33,6 +34,50 @@ systemd launch contract.
 This RC does not update QSPI and does not include a separately packaged
 `BOOT.BIN`. QSPI boot firmware remains a separate qualification path; normal
 rollout uses the inactive eMMC slot.
+
+## Published source branches
+
+| Component | Repository | Branch | Pinned commit |
+| --- | --- | --- | --- |
+| Release integration, image integration, and campaign tooling | `DUNE-DAQ/daphne-firmware` | `release/dual-gateware-2026.08.31-rc1` | `0b4f916` (`ae2c7be` image, `93db1ad` campaign) |
+| Self-trigger gateware | `DUNE-DAQ/daphne-firmware` | `marroyav/selftrigger-dual-abi-v2` | `3f17f1b` |
+| Full-stream gateware | `marroyav/daphne-fullstream-firmware` | `marroyav/fullstream-mux-a002` | `b24e416` |
+| Full-stream build tooling | `marroyav/daphne-fullstream-firmware` | `release/fullstream-build-tools-2026.08.31-rc1` | `bff0ee1` |
+| Server | `ecristal/daphneZMQ` | `release/dual-gateware-server-2026.08.31-rc1` | `77b39b7` |
+| Client package 3.0.4 | `DUNE-DAQ/daphnemodules` | `release/dual-gateware-client-3.0.4-rc1` | `9d80784` |
+
+All branch tips above are published. The server development alias
+`marroyav/dual-gateware-abi-v2` is also published at the same `77b39b7`
+commit.
+
+## September 4 hardware correction
+
+DAPHNE-007 bring-up showed that the original generated DTBO placed
+`firmware-name` on the AXI bus fragment. `xmutil` could therefore attach the
+peripheral nodes without programming the FPGA. Commit `0b4f916` fixes the
+packager to emit separate `&fpga_full` and `&amba` fragments, uses the
+immutable application `.bin` name, and makes the service helpers prefer the
+Kria `xmutil` application path.
+
+On DAPHNE-007, corrected self-trigger and full-stream applications reported
+their expected ABI 2 identities and builds, service-controlled switching
+passed in both directions, and a QSPI-to-eMMC boot reached the complete
+runtime target with self-trigger selected. This is bring-up evidence, not a
+production qualification record; data-path, rollback-injection, and extended
+four-link tests remain open.
+
+That autonomous boot also required a one-time persistent U-Boot environment
+for the replacement SOM. The exact DAPHNE-007 `netinit`, DHCP `preboot`,
+eMMC `bootcmd`, identity, `saveenv`, power-cycle, and readback steps are in
+[the deployment procedure](../dual-gateware-deployment.md#persist-the-qspi-boot-environment-after-recovery).
+This changes QSPI environment records only; it is not a QSPI `BOOT.BIN`
+update. The documented fixed slot-A command is for the recovered two-partition
+image and must not overwrite the campaign A/B boot environment.
+
+The frozen image archive identified above was built before `0b4f916` and does
+not contain this correction. Do not distribute that archive as the corrected
+dual-gateware image. Rebuild the PetaLinux image from the published release
+branch before a new-board or fleet deployment.
 
 ## Supported combinations
 
