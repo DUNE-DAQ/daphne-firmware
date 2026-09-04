@@ -16,14 +16,14 @@ start_dfx_mgr() {
   return 0
 }
 
-if command -v dfx-mgr-client >/dev/null 2>&1; then
-  start_dfx_mgr
-  echo "Loading ${APP} via dfx-mgr-client ..."
-  dfx-mgr-client -load "${APP}"
-elif command -v xmutil >/dev/null 2>&1; then
+if command -v xmutil >/dev/null 2>&1; then
   start_dfx_mgr
   echo "Loading ${APP} via xmutil ..."
   xmutil loadapp "${APP}"
+elif command -v dfx-mgr-client >/dev/null 2>&1; then
+  start_dfx_mgr
+  echo "Loading ${APP} via dfx-mgr-client ..."
+  dfx-mgr-client -loadByName "${APP}"
 elif command -v fpgautil >/dev/null 2>&1; then
   if [ ! -r "${APP_BIN}" ]; then
     echo "Missing bitstream: ${APP_BIN}" >&2
@@ -41,7 +41,7 @@ else
 fi
 
 st=unknown
-for i in $(seq 1 50); do
+for _ in $(seq 1 50); do
   st=$(cat /sys/class/fpga_manager/fpga0/state 2>/dev/null || echo unknown)
   [ "$st" = "operating" ] && break
   sleep 0.2

@@ -16,16 +16,16 @@ python validate_dual_overlay () {
         )
 
     contracts = (
-        ("DAPHNE_SELF_TRIGGER_APP", "daphne_selftrigger_ol", "DAPHNE_SELF_TRIGGER_FIRMWARE_NAME", "daphne_selftrigger"),
-        ("DAPHNE_FULL_STREAM_APP", "daphne_fullstream_ol", "DAPHNE_FULL_STREAM_FIRMWARE_NAME", "daphne_fullstream"),
+        ("DAPHNE_SELF_TRIGGER_APP", "daphne_selftrigger_ol", "DAPHNE_SELF_TRIGGER_FIRMWARE_NAME"),
+        ("DAPHNE_FULL_STREAM_APP", "daphne_fullstream_ol", "DAPHNE_FULL_STREAM_FIRMWARE_NAME"),
     )
-    for app_var, app_prefix, firmware_var, firmware_prefix in contracts:
+    for app_var, app_prefix, firmware_var in contracts:
         app = d.getVar(app_var) or ""
         firmware_name = d.getVar(firmware_var) or ""
         match = re.fullmatch(rf"{app_prefix}_([0-9a-f]{{7}})", app)
         if match is None:
             bb.fatal(f"{app_var} is not an immutable SHA7 app name: {app!r}")
-        expected_firmware_name = f"{firmware_prefix}_{match.group(1)}.bit.bin"
+        expected_firmware_name = f"{app}.bin"
         if firmware_name != expected_firmware_name:
             bb.fatal(
                 f"{firmware_var}={firmware_name!r} does not match {app_var}={app!r}"

@@ -523,8 +523,8 @@ The dual-app recipe derives and validates both names from the immutable app
 IDs, then installs aliases such as:
 
 ```text
-/lib/firmware/daphne_selftrigger_<self-sha7>.bit.bin
-/lib/firmware/daphne_fullstream_<full-sha7>.bit.bin
+/lib/firmware/daphne_selftrigger_ol_<self-sha7>.bin
+/lib/firmware/daphne_fullstream_ol_<full-sha7>.bin
 ```
 
 Both aliases are owned by the repo overlay packaging. A PetaLinux image build
@@ -540,6 +540,15 @@ Current repo-owned DT policy lives in:
 
 - `petalinux/meta-daphne/recipes-bsp/device-tree/files/system-user.dtsi`
 - `petalinux/meta-daphne/recipes-bsp/device-tree/files/daphne-k26c-network.dtsi`
+- `scripts/package/normalize_pl_overlay.py`
+
+The overlay normalizer emits two fragments. FPGA programming properties,
+clocks, AFI configuration, resets, and ZOCL target `&fpga_full`; PL peripheral
+nodes target `&amba`. In particular, `firmware-name` must never be placed on
+the AXI bus node: `xmutil` can apply such a device-tree fragment without ever
+programming the FPGA. The normalizer also rewrites the generated interrupt
+parent to the base-tree `gic` symbol and repairs the AXI interrupt and SPI
+bindings before `dtc` runs.
 
 Important current finding:
 

@@ -11,14 +11,14 @@ start_dfx_mgr() {
   return 0
 }
 
-if command -v dfx-mgr-client >/dev/null 2>&1; then
-  start_dfx_mgr
-  echo "Unloading FPGA app via dfx-mgr-client ..."
-  dfx-mgr-client -remove
-elif command -v xmutil >/dev/null 2>&1; then
+if command -v xmutil >/dev/null 2>&1; then
   start_dfx_mgr
   echo "Unloading FPGA app via xmutil ..."
   xmutil unloadapp
+elif command -v dfx-mgr-client >/dev/null 2>&1; then
+  start_dfx_mgr
+  echo "Unloading FPGA app via dfx-mgr-client ..."
+  dfx-mgr-client -remove
 elif command -v fpgautil >/dev/null 2>&1; then
   echo "Unloading FPGA app via fpgautil ..."
   fpgautil -R -n full

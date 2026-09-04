@@ -193,8 +193,10 @@ project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged/
 
 so the `daphne-overlay` recipe has a repo-owned place to install both qualified
 firmware artifacts from. Staging validates both source manifests and both DTBO
-`firmware-name` properties before replacing anything. If one variant is
-missing or ambiguous, the prior staging state is left unchanged.
+`firmware-name` properties before replacing anything. Each name is the
+immutable xmutil app payload (`<app>.bin`), and the packaging step requires it
+to live on the `&fpga_full` fragment while PL peripherals live on `&amba`. If
+one variant is missing or ambiguous, the prior staging state is left unchanged.
 
 The installed xmutil app names are immutable:
 

@@ -82,102 +82,11 @@ need_cmd() {
 
 normalize_pl_dtsi() {
   local dtsi_path="$1"
+  local firmware_name="$2"
 
-  python3 - "$dtsi_path" <<'PY'
-from pathlib import Path
-import sys
-
-path = Path(sys.argv[1])
-lines = [
-    line
-    for line in path.read_text().splitlines()
-    if line.strip() not in {"/dts-v1/;", "/plugin/;"}
-]
-out = []
-
-def block_indent(block_lines, default):
-    for candidate in block_lines[1:]:
-        stripped = candidate.strip()
-        if stripped and stripped != "};":
-            return candidate[: len(candidate) - len(candidate.lstrip())]
-    return default
-
-def rewrite_intc_block(block_lines):
-    indent = block_indent(block_lines, "                ")
-    rewritten = []
-    for line in block_lines[:-1]:
-        stripped = line.strip()
-        if stripped.startswith("#interrupt-cells"):
-            continue
-        if stripped.startswith("interrupt-controller"):
-            continue
-        rewritten.append(line)
-    rewritten.append(f"{indent}#interrupt-cells = <2>;")
-    rewritten.append(f"{indent}interrupt-controller;")
-    rewritten.append(block_lines[-1])
-    return rewritten
-
-def rewrite_spi_block(block_lines):
-    indent = block_indent(block_lines, "                ")
-    nested_indent = indent + "    "
-    spidev_indent = indent
-    rewritten = []
-    skip_depth = 0
-    for line in block_lines[:-1]:
-        stripped = line.strip()
-        if skip_depth > 0:
-            skip_depth += line.count("{")
-            skip_depth -= line.count("}")
-            continue
-        if stripped.startswith("#address-cells"):
-            continue
-        if stripped.startswith("#size-cells"):
-            continue
-        if stripped.startswith("spidev@0"):
-            skip_depth = line.count("{") - line.count("}")
-            continue
-        rewritten.append(line)
-
-    rewritten.extend([
-        f"{indent}#address-cells = <1>;",
-        f"{indent}#size-cells = <0>;",
-        f"{spidev_indent}spidev@0 {{",
-        f'{nested_indent}status = "okay";',
-        f'{nested_indent}compatible = "rohm,dh2228fv";',
-        f"{nested_indent}spi-max-frequency = <50000000>;",
-        f"{nested_indent}reg = <0>;",
-        f"{spidev_indent}}};",
-    ])
-    rewritten.append(block_lines[-1])
-    return rewritten
-
-i = 0
-while i < len(lines):
-    line = lines[i]
-    if "interrupt-controller@9c010000" in line or "axi_quad_spi@9c020000" in line:
-        block = [line]
-        depth = line.count("{") - line.count("}")
-        i += 1
-        while i < len(lines):
-            block.append(lines[i])
-            depth += lines[i].count("{") - lines[i].count("}")
-            i += 1
-            if depth <= 0:
-                break
-        if "interrupt-controller@9c010000" in block[0]:
-            out.extend(rewrite_intc_block(block))
-        else:
-            out.extend(rewrite_spi_block(block))
-        continue
-    out.append(line)
-    i += 1
-
-# Vitis 2026.1 emits pl.dtsi as an includable fragment without either
-# directive.  This helper compiles the fragment directly, so make it a
-# standalone overlay while keeping the rewrite idempotent for older output.
-out = ["/dts-v1/;", "/plugin/;"] + out
-path.write_text("\n".join(out) + "\n")
-PY
+  python3 "$PL_OVERLAY_NORMALIZER" \
+    --firmware-name "$firmware_name" \
+    "$dtsi_path"
 }
 
 select_dtgen_tool() {
@@ -260,6 +169,7 @@ OUTPUT_DIR="$(unset CDPATH; cd -- "$OUTPUT_DIR_INPUT" && pwd)"
 DTGEN_OUTPUT_DIR="$(select_dtgen_output_dir "$OUTPUT_DIR")"
 DTBO_GEN_TCL="$ROOT_DIR/xilinx/daphne_dtbo_gen.tcl"
 AXI_SPI_PATCH="$ROOT_DIR/xilinx/scripts/axi_quad_spi_dtbo_patch.sed"
+PL_OVERLAY_NORMALIZER="$ROOT_DIR/scripts/package/normalize_pl_overlay.py"
 BUILD_NAME_PREFIX="${DAPHNE_BUILD_NAME_PREFIX:-daphne_selftrigger}"
 OVERLAY_NAME_PREFIX="${DAPHNE_OVERLAY_NAME_PREFIX:-${BUILD_NAME_PREFIX}_ol}"
 ACCEPT_LEGACY_ARTIFACT_ALIASES="${DAPHNE_ACCEPT_LEGACY_ARTIFACT_ALIASES:-0}"
@@ -291,6 +201,11 @@ fi
 
 if [[ ! -f "$AXI_SPI_PATCH" ]]; then
   echo "ERROR: missing AXI Quad SPI patch: $AXI_SPI_PATCH" >&2
+  exit 2
+fi
+
+if [[ ! -f "$PL_OVERLAY_NORMALIZER" ]]; then
+  echo "ERROR: missing PL overlay normalizer: $PL_OVERLAY_NORMALIZER" >&2
   exit 2
 fi
 
@@ -372,7 +287,7 @@ if [[ -z "$pl_dtsi_path" ]]; then
   exit 2
 fi
 
-normalize_pl_dtsi "$pl_dtsi_path"
+normalize_pl_dtsi "$pl_dtsi_path" "${overlay_prefix}_${git_sha}.bin"
 
 if ! grep -Eq '(axi_intc|interrupt-controller)@9c010000' "$pl_dtsi_path"; then
   echo "ERROR: expected AXI interrupt controller node at 0x9C010000 was not found in $pl_dtsi_path" >&2

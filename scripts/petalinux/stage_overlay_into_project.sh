@@ -152,8 +152,7 @@ resolve_bundle() {
   local label="$1"
   local output_dir="$2"
   local overlay_prefix="$3"
-  local build_prefix="$4"
-  local requested_sha="$5"
+  local requested_sha="$4"
   local candidate suffix
   local -a candidates=()
 
@@ -223,7 +222,10 @@ resolve_bundle() {
       firmware_name="$value"
     fi
   done
-  RESOLVED_FIRMWARE_NAME="${build_prefix}_${RESOLVED_SHA}.bit.bin"
+  # The DTBO is consumed as an xmutil application. Keep firmware-name tied to
+  # the immutable application payload that is installed beside the DTBO,
+  # rather than to the Vivado build-artifact basename.
+  RESOLVED_FIRMWARE_NAME="${RESOLVED_APP}.bin"
   if [[ "$firmware_name" != "$RESOLVED_FIRMWARE_NAME" ]]; then
     echo "ERROR: $label DTBO firmware-name is '$firmware_name'; expected '$RESOLVED_FIRMWARE_NAME'." >&2
     exit 2
@@ -267,7 +269,7 @@ resolve_bundle() {
   done
 }
 
-resolve_bundle self-trigger "$SELF_OUTPUT" daphne_selftrigger_ol daphne_selftrigger "$SELF_SHA"
+resolve_bundle self-trigger "$SELF_OUTPUT" daphne_selftrigger_ol "$SELF_SHA"
 self_sha="$RESOLVED_SHA"
 self_app="$RESOLVED_APP"
 self_dir="$RESOLVED_DIR"
@@ -275,7 +277,7 @@ self_zip="$RESOLVED_ZIP"
 self_manifest="$RESOLVED_MANIFEST"
 self_firmware_name="$RESOLVED_FIRMWARE_NAME"
 
-resolve_bundle full-stream "$FULL_OUTPUT" daphne_fullstream_ol daphne_fullstream "$FULL_SHA"
+resolve_bundle full-stream "$FULL_OUTPUT" daphne_fullstream_ol "$FULL_SHA"
 full_sha="$RESOLVED_SHA"
 full_app="$RESOLVED_APP"
 full_dir="$RESOLVED_DIR"

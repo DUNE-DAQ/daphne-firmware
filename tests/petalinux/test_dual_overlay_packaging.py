@@ -97,17 +97,15 @@ class DualOverlayPackagingTests(unittest.TestCase):
     ) -> str:
         if mode == "self-trigger":
             overlay_prefix = "daphne_selftrigger_ol"
-            build_prefix = "daphne_selftrigger"
         else:
             overlay_prefix = "daphne_fullstream_ol"
-            build_prefix = "daphne_fullstream"
         app = f"{overlay_prefix}_{sha}"
         app_dir = output / app
         app_dir.mkdir(parents=True)
         (app_dir / f"{app}.bin").write_bytes(f"binary:{app}\n".encode())
         (app_dir / f"{app}.dtbo").write_text(
             f"layout={layout}\n"
-            f"firmware_name={firmware_name or f'{build_prefix}_{sha}.bit.bin'}\n"
+            f"firmware_name={firmware_name or f'{app}.bin'}\n"
         )
         (app_dir / "shell.json").write_text(
             '{ "shell_type" : "XRT_FLAT", "num_slots": "1" }\n'
@@ -396,12 +394,12 @@ class DualOverlayPackagingTests(unittest.TestCase):
             "full-stream",
             "1234abc",
             layout="fragment",
-            firmware_name="daphne_fullstream_deadbee.bit.bin",
+            firmware_name="daphne_fullstream_ol_deadbee.bin",
         )
 
         result = self.run_stage(self_output, full_output)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("expected 'daphne_fullstream_1234abc.bit.bin'", result.stderr)
+        self.assertIn("expected 'daphne_fullstream_ol_1234abc.bin'", result.stderr)
         self.assert_prior_state_preserved()
 
     def test_commit_failure_rolls_back_payload_metadata_and_profiles(self) -> None:
