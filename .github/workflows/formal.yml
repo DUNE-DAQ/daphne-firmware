@@ -22,6 +22,11 @@ jobs:
           version: '2026-04-08'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install device-tree test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes device-tree-compiler
+
       - name: Install Python test dependencies
         run: >-
           python3 -m pip install --user
