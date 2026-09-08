@@ -259,16 +259,19 @@ Examples:
   `ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/`
 - isolated Hermes boundary wrappers
 
-### Verification and deployment support
+### Verification and hardware packaging
 
 Examples:
 
 - `tests/logic/`
 - `formal/`
 - `scripts/`
-- `petalinux/`
+- `tests/package/`
 
 These are what make the firmware repo more than a raw HDL import.
+
+PetaLinux, the server, services, and deployment support are now owned by
+[daphne-os](https://github.com/DUNE-DAQ/daphne-os).
 
 ## How to build
 

@@ -1,7 +1,11 @@
 # daphne-firmware
 
-This repository builds, verifies, packages, and deploys the DAPHNE
-self-trigger firmware for the K26C platform.
+This repository owns DAPHNE HDL, hardware verification, and the FuseSoC/Vivado
+flow that builds FPGA artifacts for the K26C platform.
+
+PetaLinux, `daphne-server`, runtime services, and deployment campaigns now live
+in [daphne-os](https://github.com/DUNE-DAQ/daphne-os). See
+[the repository boundary](docs/repository-split.md) for the hardware handoff.
 
 The firmware is not limited to one board. The same qualified image can run on
 many boards. For safety, each deployment command operates on one explicitly
@@ -12,13 +16,8 @@ that operation for additional boards.
 
 - Build the K26C FPGA image with the repo-owned FuseSoC/Vivado flow.
 - Produce `.bit`, `.bin`, `.xsa`, `.dtbo`, and Linux overlay ZIP artifacts.
-- Build and collect PetaLinux boot, kernel, device-tree, and rootfs artifacts.
-- Render per-board identity and runtime configuration.
-- Deploy to one board's inactive eMMC slot with dry-run, identity checks, and
-  post-boot verification.
 - Run GHDL smoke tests and bounded formal checks without Vivado.
-- Load the overlay and operate the clock, timing, `daphne-server`, and
-  oscilloscope-mode paths on the qualified K26C baseline.
+- Export checksummed hardware handoffs consumed by `daphne-os`.
 
 Release artifacts still require the board-level checks stated in their release
 notes. A successful build alone is not hardware qualification.
@@ -34,10 +33,9 @@ notes. A successful build alone is not hardware qualification.
   and formal targets.
 - `tests/logic/`: HDL smoke tests.
 - `boards/`: board metadata and support status.
-- `petalinux/`: the repo-owned PetaLinux layer, profiles, and runtime contract.
-- `scripts/petalinux/`: project setup, image build, staging, and collection.
-- `scripts/deploy/`: one-board-at-a-time configuration and eMMC deployment.
-- `docs/`: current operator guides, architecture, and verification records.
+- `scripts/package/`: hardware handoff and DT overlay generation.
+- `tests/package/`: hardware-artifact and repository-boundary regressions.
+- `docs/`: hardware build guides, architecture, and verification records.
 - `formal/`: SymbiYosys scaffolds for leaf blocks that are suitable for formal.
 - `rtl/isolated/`: neutral subsystem wrapper shells and typed interfaces for the
   isolation/formal-prep phase.
@@ -48,9 +46,8 @@ For the current clone-to-products manual, including which host/shell to use,
 path-length guidance, and where the final products land, see
 `docs/build-manual.md`.
 
-For safe local-desktop and server-side control of the upstream Raritan PX4 PDU
-and Kontron/WIENER PL5xx, CML, MARATON, and MPOD power systems, see
-`docs/kontron-wiener-power-control.md`.
+For station power control, use the
+[daphne-os operator runbook](https://github.com/DUNE-DAQ/daphne-os/blob/develop/docs/kontron-wiener-power-control.md).
 
 For a guide to current and deprecated documents, see `docs/README.md`.
 
@@ -302,14 +299,11 @@ The current isolation/formal-prep structure is described in
 recorded in `docs/build-baseline.md`. The current firmware
 artifact boundary is documented in `docs/firmware-delivery.md`.
 
-To drive the repo-owned PetaLinux flow after the hardware handoff is ready:
-
-```bash
-./scripts/petalinux/build_kr260_image.sh \
-  /path/to/petalinux-project \
-  /path/to/hw-handoff-dir \
-  --output-dir ./xilinx/output
-```
+After the hardware handoff is ready, build the image from a separate
+`daphne-os` checkout using its
+[PetaLinux build guide](https://github.com/DUNE-DAQ/daphne-os/blob/develop/docs/kr260-petalinux-build-guide.md).
+Supply the exact qualified XSA and both gateware output directories; keep the
+hardware commit IDs and checksums attached to those inputs.
 
 Optional overrides:
 

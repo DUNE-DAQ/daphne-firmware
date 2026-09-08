@@ -7,12 +7,10 @@ Start with the document that matches the job you are doing.
 - `build-manual.md`: build the FPGA artifacts.
 - `releases/selftrigger-2026.08.24-rc2.md`: current source-candidate status and
   release gates.
-- `kr260-petalinux-build-guide.md`: build the Linux image and collect a
-  deployment bundle.
-- `daphne-board-enrollment-runbook.md`: enroll and identify a board safely.
-- `kria-board-identity-and-production-deployment.md`: identity and deployment
-  policy.
-- `kontron-wiener-power-control.md`: operate supported power equipment.
+- [daphne-os documentation](https://github.com/DUNE-DAQ/daphne-os/blob/develop/docs/README.md):
+  Linux images, server development, services, board enrollment, campaigns,
+  recovery, and station power control.
+- [Repository boundary](repository-split.md): artifact handoff and migration.
 
 ## Firmware development
 
@@ -28,7 +26,6 @@ These filenames remain as short notices so old links fail safely:
 - `agent-handoff.md`
 - `wsl-agent-summary.md`
 - `gap-analysis.md`
-- `200-board-firmware-deployment-handover.md`
 
 Do not use those files to determine current capabilities. Git history remains
 the source for the old session details.
@@ -38,7 +35,8 @@ or recovery context:
 
 - `build-baseline.md`: Vivado 2024.1 regression baseline.
 - `synthesis-timing-review.md`: Vivado 2024.1 synthesis review.
-- `pl-i2c-binding-blocker.md`: resolved 2026 PL-I2C incident record.
+- [PL-I2C incident record](https://github.com/DUNE-DAQ/daphne-os/blob/develop/docs/pl-i2c-binding-blocker.md):
+  resolved 2026 device-tree incident.
 
 In build documentation, *hardware handoff* means the `.xsa` interface passed
 from Vivado to PetaLinux. That is current AMD terminology and is unrelated to

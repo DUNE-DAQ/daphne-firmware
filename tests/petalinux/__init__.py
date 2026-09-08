@@ -1,1 +1,0 @@
-"""PetaLinux policy tests."""

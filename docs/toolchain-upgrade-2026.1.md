@@ -21,15 +21,15 @@ source /tools/petalinux/settings.sh
 
 ## Runtime bundle status
 
-`petalinux/daphne-server-deps.lock.cmake` still records the existing staged
-runtime dependency bundle:
+The [runtime dependency lock in daphne-os](https://github.com/DUNE-DAQ/daphne-os/blob/develop/petalinux/daphne-server-deps.lock.cmake)
+records the existing staged runtime dependency bundle:
 
 ```text
 daphne-deps-petalinux2024.1-aarch64-glibc2.36-protobuf30.1-zeromq4.3.4.tar.gz
 ```
 
 That filename and checksum should not be changed until `daphne-server` produces
-a qualified 2026.1/PetaLinux runtime bundle. The firmware-side Yocto recipe was
+a qualified 2026.1/PetaLinux runtime bundle. The OS-owned Yocto recipe was
 made release-neutral so it can consume either the existing 2024-named staged
 bundle or a future 2026.1 bundle without changing the recipe path logic.
 
@@ -40,5 +40,7 @@ bundle or a future 2026.1 bundle without changing the recipe path logic.
 - Regenerate DT overlay sources with Vitis SDTGen 2026.1.
 - Create or refresh the KR260 PetaLinux project using PetaLinux 2026.1.
 - Rebuild the `daphne-server` runtime bundle against the 2026.1 sysroot and
-  update `petalinux/daphne-server-deps.lock.cmake` only after the checksum is
+  update `daphne-os/petalinux/daphne-server-deps.lock.cmake` only after the checksum is
   known.
+
+Run the last two OS-related steps from a `daphne-os` checkout.
