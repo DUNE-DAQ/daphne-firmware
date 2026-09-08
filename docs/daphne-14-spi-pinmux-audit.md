@@ -103,7 +103,7 @@ For the default DAPHNE image:
 
 The active DT append point is:
 
-- `petalinux/meta-daphne/recipes-bsp/device-tree/files/system-user.dtsi`
+- [OS base device-tree overlay](https://github.com/DUNE-DAQ/daphne-os/blob/develop/petalinux/meta-daphne/recipes-bsp/device-tree/files/system-user.dtsi)
 
 The current repo-owned patch does two things:
 

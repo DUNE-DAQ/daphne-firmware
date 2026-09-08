@@ -1,6 +1,8 @@
 # Firmware delivery
 
-The repository supports two delivery forms for K26C boards.
+This repository produces the hardware artifact bundle for K26C boards.
+Linux images and deployment are owned by
+[daphne-os](https://github.com/DUNE-DAQ/daphne-os).
 
 ## FPGA overlay bundle
 
@@ -28,7 +30,7 @@ already has a compatible Linux image.
 
 ## PetaLinux image bundle
 
-The repo-owned PetaLinux wrapper consumes the Vivado hardware handoff, stages
+From a separate `daphne-os` checkout, its PetaLinux wrapper consumes the Vivado hardware handoff, stages
 the overlay and optional runtime bundle, builds the image, and collects the
 deployment artifacts:
 
@@ -48,8 +50,9 @@ The collected bundle includes the available boot, kernel, device-tree, and
 rootfs artifacts plus hashes and a manifest. `BOOT.BIN` is included only when
 `--package-boot` is requested.
 
-See `kr260-petalinux-build-guide.md` for the complete build, recovery, and
-validation procedure.
+See the [OS build guide](https://github.com/DUNE-DAQ/daphne-os/blob/develop/docs/kr260-petalinux-build-guide.md)
+for the complete build, recovery, and validation procedure. The commands in
+this section and below run from `daphne-os`, not from `daphne-firmware`.
 
 ## Deploy one board
 
@@ -85,7 +88,7 @@ stops on the first failure, and records per-board logs plus a JSON summary.
 Add `--execute` only after reviewing a successful dry run. That stages inactive
 slots without rebooting or claiming hardware qualification; reboot and verify
 one board at a time. See
-[Deploy the dual-gateware release](dual-gateware-deployment.md) for the complete
+[Deploy the dual-gateware release](https://github.com/DUNE-DAQ/daphne-os/blob/develop/docs/dual-gateware-deployment.md) for the complete
 ring procedure.
 
 ## Qualification boundary

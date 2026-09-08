@@ -242,7 +242,7 @@ Still outside this scope:
 
 For those next steps, see:
 
-- [petalinux/README.md](../petalinux/README.md)
+- [daphne-os PetaLinux integration](https://github.com/DUNE-DAQ/daphne-os/blob/develop/petalinux/README.md)
 - [docs/firmware-delivery.md](firmware-delivery.md)
 - [docs/remote-vivado.md](remote-vivado.md)
 - [docs/wsl-windows-vivado.md](wsl-windows-vivado.md)

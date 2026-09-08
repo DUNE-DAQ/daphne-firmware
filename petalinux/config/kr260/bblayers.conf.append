@@ -1,2 +1,0 @@
-# DAPHNE repo-owned layer
-BBLAYERS += "${TOPDIR}/../project-spec/meta-daphne"
