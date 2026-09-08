@@ -2,10 +2,14 @@ SUMMARY = "On-target build dependencies for daphne-server / daphneZMQ"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-inherit packagegroup
-
+# packagegroup snapshots this at inheritance time. Selecting the architecture
+# afterwards leaves allarch inherited and breaks renamed library dependencies.
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
+inherit packagegroup
+
+# Protobuf's CMake exports reference static utf8_validity even when its main
+# libraries are shared. Include that archive for native CMake consumers.
 RDEPENDS:${PN} = " \
     packagegroup-core-buildessential \
     cmake \
@@ -20,6 +24,7 @@ RDEPENDS:${PN} = " \
     python3-tqdm \
     protobuf \
     protobuf-dev \
+    protobuf-staticdev \
     protobuf-compiler \
     zeromq \
     zeromq-dev \

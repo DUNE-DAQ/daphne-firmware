@@ -11,9 +11,42 @@ ROOT = Path(__file__).resolve().parents[2]
 BOOTSTRAP = ROOT / "scripts" / "petalinux" / "bootstrap_kr260_project.sh"
 LOCAL_APPEND = ROOT / "petalinux" / "config" / "kr260" / "local.conf.append"
 EMMC_WKS = ROOT / "petalinux" / "meta-daphne" / "wic" / "daphne-emmc.wks"
+DEVELOPER_PACKAGEGROUP = (
+    ROOT / "petalinux" / "meta-daphne" / "recipes-core" / "packagegroups"
+    / "packagegroup-daphne-server-build.bb"
+)
+PROTOBUF_APPEND = (
+    ROOT / "petalinux" / "meta-daphne" / "recipes-devtools" / "protobuf"
+    / "protobuf_%.bbappend"
+)
 
 
 class BootstrapKr260ProjectTests(unittest.TestCase):
+    def test_developer_profile_includes_protobuf_static_cmake_dependencies(self) -> None:
+        # Protobuf's installed CMake config imports utf8_validity, which is
+        # packaged as a static library even with shared Protobuf enabled.
+        recipe = DEVELOPER_PACKAGEGROUP.read_text(encoding="utf-8")
+        self.assertIn("protobuf-staticdev", recipe.split())
+
+    def test_developer_profile_enables_target_protoc_binary(self) -> None:
+        fragment = PROTOBUF_APPEND.read_text(encoding="utf-8")
+        self.assertIn(
+            'PACKAGECONFIG:append:class-target = " '
+            "${@bb.utils.contains('DAPHNE_IMAGE_PROFILE', 'developer', "
+            "'compiler', '', d)}\"",
+            fragment,
+        )
+
+    def test_developer_packagegroup_sets_architecture_before_inheriting(self) -> None:
+        # packagegroup.bbclass immediately snapshots PACKAGE_ARCH. Setting it
+        # afterwards still inherits allarch, which rejects renamed Protobuf
+        # packages during RPM packaging even when PACKAGE_ARCH later changes.
+        recipe = DEVELOPER_PACKAGEGROUP.read_text(encoding="utf-8")
+        self.assertLess(
+            recipe.index('PACKAGE_ARCH = "${MACHINE_ARCH}"'),
+            recipe.index("inherit packagegroup"),
+        )
+
     def test_provisioning_profile_is_accepted_and_recorded(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
             project = Path(root_text) / "project"
