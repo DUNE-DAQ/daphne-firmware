@@ -17,7 +17,6 @@ filesets:
     file_type: vhdlSource-2008
   rtl_verilog:
     files:
-      - ip_repo/daphne_ip/rtl/selftrig/xcorr_import/IIRFilter_afe_integrator_optimized.v
       - ip_repo/daphne_ip/rtl/selftrig/xcorr_import/k_low_pass_filter.v
     file_type: verilogSource
 

@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.env.all;
 
 use work.daphne_package.all;
 
@@ -58,6 +59,7 @@ architecture tb of stuff_axi_smoke_tb is
         signal wstrb_s : out std_logic_vector(3 downto 0);
         signal wvalid_s : out std_logic;
         signal bvalid_s : in std_logic;
+        signal awready_s, wready_s : in std_logic;
         signal clk_s : in std_logic
     ) is
     begin
@@ -66,7 +68,7 @@ architecture tb of stuff_axi_smoke_tb is
         wdata_s <= data;
         wstrb_s <= strobe;
         wvalid_s <= '1';
-        wait until rising_edge(clk_s);
+        wait until rising_edge(clk_s) and awready_s='1' and wready_s='1';
         awvalid_s <= '0';
         wvalid_s <= '0';
         wait until bvalid_s = '1';
@@ -79,13 +81,14 @@ architecture tb of stuff_axi_smoke_tb is
         signal arvalid_s : out std_logic;
         signal rdata_s : in std_logic_vector(31 downto 0);
         signal rvalid_s : in std_logic;
+        signal arready_s : in std_logic;
         signal clk_s : in std_logic;
         variable data : out std_logic_vector(31 downto 0)
     ) is
     begin
         araddr_s <= addr;
         arvalid_s <= '1';
-        wait until rising_edge(clk_s);
+        wait until rising_edge(clk_s) and arready_s='1';
         arvalid_s <= '0';
         wait until rvalid_s = '1';
         data := rdata_s;
@@ -93,6 +96,12 @@ architecture tb of stuff_axi_smoke_tb is
     end procedure;
 begin
     clk <= not clk after clk_period / 2;
+    watchdog : process
+    begin
+        wait for 10 us;
+        assert false report "stuff_axi_smoke_tb timed out before completion" severity failure;
+        wait;
+    end process;
 
     dut : entity work.stuff
         port map (
@@ -171,43 +180,43 @@ begin
         assert reset_st_counters = '0'
             report "Counter reset flag did not reset low"
             severity failure;
-        assert afe_comp_enable = DEFAULT_st_comp_command
-            report "AFE compensation mask did not reset to package default"
+        assert afe_comp_enable = x"0000000000"
+            report "Removed AFE compensation must remain disabled at reset"
             severity failure;
         assert invert_enable = DEFAULT_st_invert_command
             report "Invert mask did not reset to package default"
             severity failure;
-        axi_read(x"00000000", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000000", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"000000FF"
             report "Fan-speed register did not reset to full-speed default"
             severity failure;
-        axi_read(x"0000001C", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"0000001C", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"01234567"
             report "Version register readback mismatch"
             severity failure;
 
-        axi_write(x"00000000", x"00000055", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_read(x"00000000", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_write(x"00000000", x"00000055", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_read(x"00000000", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"00000055"
             report "Fan-speed register readback mismatch after write"
             severity failure;
 
-        axi_write(x"00000018", x"00000015", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000018", x"00000015", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
         assert stat_led = "010101"
             report "LED control write did not update the exported signals"
             severity failure;
-        axi_read(x"00000018", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000018", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"00000015"
             report "LED register readback mismatch"
             severity failure;
 
-        axi_write(x"0000000C", x"00000001", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"0000000C", x"00000001", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
         assert hvbias_en = '1'
             report "High-voltage bias write did not update the exported signal"
             severity failure;
 
-        axi_write(x"00000010", x"00000002", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_write(x"00000014", x"00000003", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000010", x"00000002", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_write(x"00000014", x"00000003", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
         assert mux_en = "10"
             report "MUX enable write did not update the exported signal"
             severity failure;
@@ -215,36 +224,36 @@ begin
             report "MUX address write did not update the exported signal"
             severity failure;
 
-        axi_write(x"00000028", x"000000AA", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000028", x"000000AA", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
         assert adhoc = x"AA"
             report "Adhoc trigger command write did not update the exported signal"
             severity failure;
-        axi_read(x"00000028", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000028", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"000000AA"
             report "Adhoc trigger command readback mismatch"
             severity failure;
 
-        axi_write(x"00000020", x"A5A55AA5", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_write(x"00000024", x"0000005A", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000020", x"A5A55AA5", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_write(x"00000024", x"0000005A", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
         assert core_chan_enable(31 downto 0) = x"A5A55AA5"
             report "Low channel-enable mask write did not update"
             severity failure;
         assert core_chan_enable(39 downto 32) = x"5A"
             report "High channel-enable mask write did not update"
             severity failure;
-        axi_read(x"00000020", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000020", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"A5A55AA5"
             report "Low channel-enable mask readback mismatch"
             severity failure;
-        axi_read(x"00000024", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000024", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"0000005A"
             report "High channel-enable mask readback mismatch"
             severity failure;
 
-        axi_write(x"0000002C", x"00001234", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_write(x"00000030", x"00000012", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_write(x"00000034", x"00000002", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_write(x"00000038", x"00000001", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"0000002C", x"00001234", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_write(x"00000030", x"00000012", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_write(x"00000034", x"00000002", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_write(x"00000038", x"00000001", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
         assert st_config = std_logic_vector(to_unsigned(16#1234#, st_config'length))
             report "Self-trigger config write did not update the exported signal"
             severity failure;
@@ -257,32 +266,32 @@ begin
         assert reset_st_counters = '1'
             report "Reset counters write did not update the exported signal"
             severity failure;
-        axi_read(x"0000002C", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"0000002C", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"00001234"
             report "Self-trigger config readback mismatch"
             severity failure;
-        axi_read(x"00000030", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000030", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"00000012"
             report "Signal-delay readback mismatch"
             severity failure;
-        axi_read(x"00000034", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000034", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"00000002"
             report "Filter output selector readback mismatch"
             severity failure;
-        axi_read(x"00000038", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000038", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"00000001"
             report "Reset counters readback mismatch"
             severity failure;
 
-        axi_write(x"0000003C", x"89ABCDEF", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_write(x"00000040", x"00000012", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_write(x"00000044", x"76543210", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_write(x"00000048", x"000000AB", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        assert afe_comp_enable(31 downto 0) = x"89ABCDEF"
-            report "AFE compensation low mask write did not update"
+        axi_write(x"0000003C", x"89ABCDEF", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_write(x"00000040", x"00000012", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_write(x"00000044", x"76543210", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_write(x"00000048", x"000000AB", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        assert afe_comp_enable(31 downto 0) = x"00000000"
+            report "Legacy low-mask write reinstated removed compensation"
             severity failure;
-        assert afe_comp_enable(39 downto 32) = x"12"
-            report "AFE compensation high mask write did not update"
+        assert afe_comp_enable(39 downto 32) = x"00"
+            report "Legacy high-mask write reinstated removed compensation"
             severity failure;
         assert invert_enable(31 downto 0) = x"76543210"
             report "Invert low mask write did not update"
@@ -290,30 +299,30 @@ begin
         assert invert_enable(39 downto 32) = x"AB"
             report "Invert high mask write did not update"
             severity failure;
-        axi_read(x"0000003C", araddr, arvalid, rdata, rvalid, clk, readback);
-        assert readback = x"89ABCDEF"
-            report "AFE compensation low mask readback mismatch"
+        axi_read(x"0000003C", araddr, arvalid, rdata, rvalid, arready, clk, readback);
+        assert readback = x"00000000"
+            report "Removed AFE compensation low mask must read zero"
             severity failure;
-        axi_read(x"00000040", araddr, arvalid, rdata, rvalid, clk, readback);
-        assert readback = x"00000012"
-            report "AFE compensation high mask readback mismatch"
+        axi_read(x"00000040", araddr, arvalid, rdata, rvalid, arready, clk, readback);
+        assert readback = x"00000000"
+            report "Removed AFE compensation high mask must read zero"
             severity failure;
-        axi_read(x"00000044", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000044", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"76543210"
             report "Invert low mask readback mismatch"
             severity failure;
-        axi_read(x"00000048", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000048", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"000000AB"
             report "Invert high mask readback mismatch"
             severity failure;
 
-        axi_write(x"00000018", x"0000003F", "0011", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_read(x"00000018", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_write(x"00000018", x"0000003F", "0011", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, awready, wready, clk);
+        axi_read(x"00000018", araddr, arvalid, rdata, rvalid, arready, clk, readback);
         assert readback = x"00000015"
             report "Partial-strobe write unexpectedly modified the LED register"
             severity failure;
 
         assert false report "stuff_axi_smoke_tb completed successfully" severity note;
-        wait;
+        stop; wait;
     end process;
 end tb;

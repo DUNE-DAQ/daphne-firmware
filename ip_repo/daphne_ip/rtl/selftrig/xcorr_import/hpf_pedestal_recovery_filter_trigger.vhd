@@ -33,7 +33,7 @@ entity hpf_pedestal_recovery_filter_trigger is
         clk : in std_logic;
         reset : in std_logic;
         enable : in std_logic;
-        afe_comp_enable : in std_logic;
+        afe_comp_enable : in std_logic; -- compatibility input; compensator hardware removed
         invert_enable : in std_logic;
         threshold_xc : in std_logic_vector(27 downto 0); --(41 downto 0)
         output_selector : in std_logic_vector(1 downto 0);
@@ -47,7 +47,8 @@ end hpf_pedestal_recovery_filter_trigger;
 
 architecture hpf_pedestal_recovery_filter_trigger_arch of hpf_pedestal_recovery_filter_trigger is
 
-signal hpf_out, hpf_out_aux, hpf_out_xcorr: signed(15 downto 0);
+signal hpf_out: signed(15 downto 0) := (others => '0');
+signal hpf_out_aux, hpf_out_xcorr: signed(15 downto 0);
 signal movmean_out: signed(15 downto 0);
 signal movmean_out_14: signed(13 downto 0);
 signal x_i, x_delayed: signed(15 downto 0);
@@ -56,7 +57,6 @@ signal w_out: signed(15 downto 0);
 signal resta_out, lpf_out, cfd_out: signed(15 downto 0);
 signal suma_out: signed(15 downto 0);
 --signal tm_output_selector: std_logic;
-signal internal_afe_comp_enable: std_logic;
 signal triggered_xc: std_logic;
 signal xcorr_calc: signed(27 downto 0);
 
@@ -69,16 +69,6 @@ component k_low_pass_filter
         y : out signed(15 downto 0)
     ); 
 end component k_low_pass_filter;
-
-component IIRFilter_afe_integrator_optimized
-    port (
-        clk : in std_logic;
-        reset : in std_logic;
-        enable : in std_logic;
-        x : in signed(15 downto 0);
-        y : out signed(15 downto 0)
-    ); 
-end component IIRFilter_afe_integrator_optimized;
 
 --component moving_integrator_filter
 --    port (
@@ -127,15 +117,16 @@ begin
             y => lpf_out
         ); 
         
-    hpf: IIRFilter_afe_integrator_optimized
-        port map (
-            clk => clk,
-            reset => reset,
-            enable => internal_afe_comp_enable,
-            x => resta_out,
-            y => hpf_out
-        ); 
-        
+    -- Retain exactly the disabled compensator's one-clock bypass latency.
+    -- Its IIR arithmetic and state are absent, independently of the legacy
+    -- afe_comp_enable input. The original bypass also sampled during reset.
+    uncompensated_delay : process(clk)
+    begin
+        if rising_edge(clk) then
+            hpf_out <= resta_out;
+        end if;
+    end process;
+
 --    movmean: moving_integrator_filter
 --        port map (
 --            clk => clk,
@@ -228,6 +219,5 @@ begin
     y1 <= std_logic_vector(w_out);
     y2 <= std_logic_vector(hpf_out_xcorr);
     baseline <= std_logic_vector(baseline_aux);
-    internal_afe_comp_enable <= (enable AND afe_comp_enable);    
 
 end hpf_pedestal_recovery_filter_trigger_arch;
