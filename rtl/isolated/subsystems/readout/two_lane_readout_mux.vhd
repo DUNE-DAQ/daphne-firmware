@@ -17,19 +17,16 @@ entity two_lane_readout_mux is
     ready_i : in  std_logic_array_t(0 to CHANNEL_COUNT_G - 1);
     dout_i  : in  slv72_array_t(0 to CHANNEL_COUNT_G - 1);
     rd_en_o : out std_logic_array_t(0 to CHANNEL_COUNT_G - 1);
-    dout_o  : out array_2x64_type;
+    dout_o  : out array_64_type(LANE_COUNT_G - 1 downto 0);
     valid_o : out std_logic_vector(LANE_COUNT_G - 1 downto 0);
-    last_o  : out std_logic_vector(LANE_COUNT_G - 1 downto 0)
+    last_o  : out std_logic_vector(LANE_COUNT_G - 1 downto 0);
+    packet_ready_i : in std_logic_vector(LANE_COUNT_G - 1 downto 0) := (others => '1')
   );
 end entity two_lane_readout_mux;
 
 architecture rtl of two_lane_readout_mux is
   type state_t is (rst, scan, dump, pause);
 begin
-  assert LANE_COUNT_G = 2
-    report "two_lane_readout_mux currently supports exactly two output lanes"
-    severity failure;
-
   assert CHANNEL_COUNT_G = (LANE_COUNT_G * CHANNELS_PER_LANE_G)
     report "two_lane_readout_mux requires CHANNEL_COUNT_G = LANE_COUNT_G * CHANNELS_PER_LANE_G"
     severity failure;
@@ -63,7 +60,10 @@ begin
 
             when scan =>
               if ready_i(CHANNEL_BASE_C + sel_s) = '1' then
-                state_s <= dump;
+                -- Reserve downstream capacity for the entire packet before
+                -- reading its first word. Once started, a packet never stalls.
+                -- Hold a ready channel's turn while the link is unavailable.
+                if packet_ready_i(lane_idx)='1' then state_s <= dump; end if;
               else
                 if sel_s = CHANNELS_PER_LANE_G - 1 then
                   sel_s <= 0;

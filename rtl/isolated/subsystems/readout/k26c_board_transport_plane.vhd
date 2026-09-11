@@ -61,10 +61,26 @@ port(
     eth0_tx_p: out std_logic_vector(0 downto 0);
     eth0_tx_n: out std_logic_vector(0 downto 0);
     eth0_tx_dis: out std_logic_vector(0 downto 0);
+    eth1_rx_p: in std_logic_vector(0 downto 0);
+    eth1_rx_n: in std_logic_vector(0 downto 0);
+    eth1_tx_p: out std_logic_vector(0 downto 0);
+    eth1_tx_n: out std_logic_vector(0 downto 0);
+    eth1_tx_dis: out std_logic_vector(0 downto 0);
+    eth2_rx_p: in std_logic_vector(0 downto 0);
+    eth2_rx_n: in std_logic_vector(0 downto 0);
+    eth2_tx_p: out std_logic_vector(0 downto 0);
+    eth2_tx_n: out std_logic_vector(0 downto 0);
+    eth2_tx_dis: out std_logic_vector(0 downto 0);
+    eth3_rx_p: in std_logic_vector(0 downto 0);
+    eth3_rx_n: in std_logic_vector(0 downto 0);
+    eth3_tx_p: out std_logic_vector(0 downto 0);
+    eth3_tx_n: out std_logic_vector(0 downto 0);
+    eth3_tx_dis: out std_logic_vector(0 downto 0);
 
-    readout_data_i: in array_2x64_type;
-    readout_valid_i: in std_logic_vector(1 downto 0);
-    readout_last_i: in std_logic_vector(1 downto 0);
+    readout_data_i: in array_8x64_type;
+    readout_valid_i: in std_logic_vector(7 downto 0);
+    readout_last_i: in std_logic_vector(7 downto 0);
+    readout_ready_o: out std_logic_vector(7 downto 0);
 
     out_buff_data: out std_logic_vector(63 downto 0);
     out_buff_trig: out std_logic;
@@ -108,9 +124,25 @@ begin
       eth0_tx_p           => eth0_tx_p,
       eth0_tx_n           => eth0_tx_n,
       eth0_tx_dis         => eth0_tx_dis,
+      eth1_rx_p => eth1_rx_p,
+      eth1_rx_n => eth1_rx_n,
+      eth1_tx_p => eth1_tx_p,
+      eth1_tx_n => eth1_tx_n,
+      eth1_tx_dis => eth1_tx_dis,
+      eth2_rx_p => eth2_rx_p,
+      eth2_rx_n => eth2_rx_n,
+      eth2_tx_p => eth2_tx_p,
+      eth2_tx_n => eth2_tx_n,
+      eth2_tx_dis => eth2_tx_dis,
+      eth3_rx_p => eth3_rx_p,
+      eth3_rx_n => eth3_rx_n,
+      eth3_tx_p => eth3_tx_p,
+      eth3_tx_n => eth3_tx_n,
+      eth3_tx_dis => eth3_tx_dis,
       readout_data_i      => readout_data_i,
       readout_valid_i     => readout_valid_i,
-      readout_last_i      => readout_last_i
+      readout_last_i      => readout_last_i,
+      readout_ready_o     => readout_ready_o
     );
 
   outbuffer_plane_inst : entity work.k26c_board_outbuffer_plane

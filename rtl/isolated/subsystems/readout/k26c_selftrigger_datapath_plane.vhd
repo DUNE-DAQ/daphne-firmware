@@ -48,9 +48,10 @@ port(
     thresh_s_axi_rvalid: out std_logic;
     thresh_s_axi_rready: in std_logic;
 
-    readout_data_o: out array_2x64_type;
-    readout_valid_o: out std_logic_vector(1 downto 0);
-    readout_last_o: out std_logic_vector(1 downto 0)
+    readout_data_o: out array_8x64_type;
+    readout_valid_o: out std_logic_vector(7 downto 0);
+    readout_last_o: out std_logic_vector(7 downto 0);
+    readout_ready_i: in std_logic_vector(7 downto 0) := (others => '1')
 );
 end k26c_selftrigger_datapath_plane;
 
@@ -211,7 +212,10 @@ begin
       dout_o                    => fabric_dout
     );
 
+  -- Two adjacent five-channel lanes feed each Hermes link:0..9,10..19,
+  --20..29 and30..39. Legacy callers retain the mux's two-lane defaults.
   two_lane_readout_mux_inst : entity work.two_lane_readout_mux
+    generic map(CHANNEL_COUNT_G=>40, LANE_COUNT_G=>8, CHANNELS_PER_LANE_G=>5)
     port map (
       clock_i => clock,
       reset_i => reset,
@@ -220,7 +224,8 @@ begin
       rd_en_o => rd_en,
       dout_o  => readout_data_o,
       valid_o => readout_valid_o,
-      last_o  => readout_last_o
+      last_o  => readout_last_o,
+      packet_ready_i => readout_ready_i
     );
 
   selftrigger_register_bank_inst : entity work.selftrigger_register_bank

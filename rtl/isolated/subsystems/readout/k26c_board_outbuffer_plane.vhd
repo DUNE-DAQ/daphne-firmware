@@ -30,9 +30,9 @@ port(
     outbuff_s_axi_rvalid: out std_logic;
     outbuff_s_axi_rready: in std_logic;
 
-    readout_data_i: in array_2x64_type;
-    readout_valid_i: in std_logic_vector(1 downto 0);
-    readout_last_i: in std_logic_vector(1 downto 0);
+    readout_data_i: in array_8x64_type;
+    readout_valid_i: in std_logic_vector(7 downto 0);
+    readout_last_i: in std_logic_vector(7 downto 0);
 
     out_buff_data: out std_logic_vector(63 downto 0);
     out_buff_trig: out std_logic;
@@ -70,7 +70,7 @@ begin
     );
 
   out_buff_data <= readout_data_i(0);
-  out_buff_trig <= readout_valid_i(0) or readout_valid_i(1);
+  out_buff_trig <= or readout_valid_i;
   valid_debug   <= readout_valid_i(0);
   last_debug    <= readout_last_i(0);
 end architecture rtl;

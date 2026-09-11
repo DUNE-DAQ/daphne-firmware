@@ -7,7 +7,8 @@ use ieee.numeric_std.all;
 
 package daphne_package is
 
-    type array_2x64_type is array (1 downto 0) of std_logic_vector(63 downto 0);
+    type array_64_type is array (natural range <>) of std_logic_vector(63 downto 0);
+    subtype array_2x64_type is array_64_type(1 downto 0);
     type array_4x4_type is array (3 downto 0) of std_logic_vector(3 downto 0);
     type array_4x6_type is array (3 downto 0) of std_logic_vector(5 downto 0);
     type array_4x8_type is array (3 downto 0) of std_logic_vector(7 downto 0);
@@ -21,7 +22,7 @@ package daphne_package is
     type array_8x6_type is array(7 downto 0) of std_logic_vector(5 downto 0);
     type array_8x14_type is array(7 downto 0) of std_logic_vector(13 downto 0);
     type array_8x32_type is array(7 downto 0) of std_logic_vector(31 downto 0);
-    type array_8x64_type is array(7 downto 0) of std_logic_vector(63 downto 0);
+    subtype array_8x64_type is array_64_type(7 downto 0);
     type array_9x14_type is array(8 downto 0) of std_logic_vector(13 downto 0);
     type array_9x16_type is array(8 downto 0) of std_logic_vector(15 downto 0);
     type array_9x32_type is array(8 downto 0) of std_logic_vector(31 downto 0);
