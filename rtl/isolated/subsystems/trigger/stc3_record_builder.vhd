@@ -116,13 +116,13 @@ architecture rtl of stc3_record_builder is
   end;
   function slot_addr(slot : slot_t; word_idx : natural) return unsigned is
   begin return slot & to_unsigned(word_idx,7); end;
-  function inside_window(delta : unsigned(63 downto 0);
+  function inside_window(delta : sample_seq_t;
                          continuation : std_logic) return boolean is
   begin
     -- The union of trigger-in-frame [0,511] and pretrigger-start-in-frame
-    -- [64,575] is [0,575], including across the external timestamp wrap.
-    if continuation='1' then return delta<to_unsigned(FRAME_SAMPLE_COUNT_C+PRETRIGGER_SAMPLES_C,64); end if;
-    return delta<to_unsigned(FRAME_SAMPLE_COUNT_C,64);
+    -- [64,575] is [0,575]. Call only after the full event-age guard.
+    if continuation='1' then return delta<to_unsigned(FRAME_SAMPLE_COUNT_C+PRETRIGGER_SAMPLES_C,sample_seq_t'length); end if;
+    return delta<to_unsigned(FRAME_SAMPLE_COUNT_C,sample_seq_t'length);
   end;
   signal seq_s : sample_seq_t := (others=>'0');
   signal history_s : natural range 0 to RING_DEPTH_C := 0;
@@ -171,19 +171,27 @@ architecture rtl of stc3_record_builder is
   signal last_start_valid_s : std_logic := '0';
   signal event_pulse_s, trigger_previous_s : std_logic := '0';
   signal event_timestamp_s : std_logic_vector(63 downto 0);
-  -- Use DSP arithmetic released by removal of the AFE compensator. These
-  -- combinational deltas preserve the existing event/coverage cycle exactly.
-  signal current_delta_s, previous_delta_s : unsigned(63 downto 0);
-  attribute use_dsp : string;
-  attribute use_dsp of current_delta_s, previous_delta_s : signal is "yes";
+  -- One full-width age check protects the bounded local comparisons against
+  -- stale/future tuples whose low sequence bits would otherwise alias.
+  signal event_age_s : unsigned(63 downto 0);
+  signal timestamp_previous_s : unsigned(63 downto 0) := (others=>'0');
+  signal timestamp_armed_s : std_logic := '0';
+  signal timestamp_jump_s : std_logic;
+  signal event_seq_s, current_delta_s, previous_delta_s : sample_seq_t;
   signal event_sample_s : std_logic_vector(13 downto 0);
   signal event_tag_s : std_logic_vector(1 downto 0);
   signal record_count_s, full_count_s, busy_count_s, spacing_count_s, queue_drop_s, ring_drop_s,
          trigger_count_s, packet_count_s, continuation_count_s, continuation_drop_s,
          covered_count_s, descriptor_overflow_count_s : unsigned(31 downto 0) := (others=>'0');
 begin
-  current_delta_s <= unsigned(event_timestamp_s)-unsigned(current_s.sample0_ts);
-  previous_delta_s <= unsigned(event_timestamp_s)-unsigned(previous_s.sample0_ts);
+  -- Clock/reset/timestamp are common to all channels, allowing synthesis to
+  -- share this epoch guard. Natural64-bit wrap is a normal increment.
+  timestamp_jump_s <= '1' when timestamp_armed_s='1' and
+    unsigned(timestamp_i)/=timestamp_previous_s+1 else '0';
+  event_age_s <= unsigned(timestamp_i)-unsigned(event_timestamp_s);
+  event_seq_s <= seq_s-resize(event_age_s,sample_seq_t'length);
+  current_delta_s <= event_seq_s-current_s.start_seq;
+  previous_delta_s <= event_seq_s-previous_s.start_seq;
   queue_head_s <= unpack_meta(queue_s(head_s));
   queue_next_s <= unpack_meta(queue_s(next_q(head_s)));
   descriptor_baseline_s <= raw_baseline(active_s.baseline,active_s.positive_pulse);
@@ -290,7 +298,6 @@ begin
     variable active_valid, header_pending : std_logic;
     variable req : frame_meta_t;
     variable req_valid, req_cont, req_first, accepted, covered : boolean;
-    variable trigger_age64 : unsigned(63 downto 0);
     variable event_end_seq, candidate_start_seq : sample_seq_t;
     variable age : natural range 0 to RING_DEPTH_C+1;
     variable workload : natural range 0 to 5*SERIALIZER_CYCLES_C;
@@ -303,6 +310,7 @@ begin
     if rising_edge(clock_i) then
       if reset_i='1' then
         seq_s<=(others=>'0'); history_s<=0; head_s<=0; tail_s<=0; queue_count_s<=0;
+        timestamp_previous_s<=(others=>'0'); timestamp_armed_s<='0';
         active_s<=META_NULL_C; active_valid_s<='0'; fetch_running_s<='0'; sample_valid_s<='0';
         fetch_index_s<=(others=>'0'); sample_index_s<=(others=>'0');
         header_pending_s<='0'; header_meta_s<=META_NULL_C;
@@ -321,12 +329,24 @@ begin
         reserved:=reserved_count_s; published:=published_count_s;
         active_valid:=active_valid_s; header_pending:=header_pending_s;
         seq_s<=seq_s+1;
+        timestamp_previous_s<=unsigned(timestamp_i); timestamp_armed_s<='1';
         -- Expire the spacing reference before the local modulo sample counter
         -- can wrap and make an ancient fragment appear recent again.
         if last_start_valid_s='1' and seq_age(seq_s,last_start_s)>RING_DEPTH_C then
           last_start_valid_s<='0';
         end if;
+        if current_accepted_s='1' and seq_age(seq_s,current_s.start_seq)>RING_DEPTH_C then
+          current_accepted_s<='0';
+        end if;
+        if previous_accepted_s='1' and seq_age(seq_s,previous_s.start_seq)>RING_DEPTH_C then
+          previous_accepted_s<='0';
+        end if;
         if history_s<RING_DEPTH_C then history_s<=history_s+1; end if;
+        if timestamp_jump_s='1' then
+          -- Start a new admission epoch; reserved packet ownership and the
+          -- uninterrupted raw-sample ring/serializer keep draining unchanged.
+          history_s<=0; current_accepted_s<='0'; previous_accepted_s<='0'; last_start_valid_s<='0';
+        end if;
         trigger_previous_s<=trigger_i.trigger_pulse;
         if trigger_i.trigger_pulse='1' and trigger_previous_s='0' and enable_i='1' then
           trigger_count_s<=trigger_count_s+1;
@@ -384,7 +404,7 @@ begin
         req:=META_NULL_C; req_valid:=false; req_cont:=false; req_first:=false;
         quiet_next:=quiet_s; activity_next:=activity_s;
         -- Evaluate the inclusive final sample before deciding the next fragment.
-        if chain_active_s='1' and enable_i='1' and continuation_enable_i='1' then
+        if chain_active_s='1' and enable_i='1' and continuation_enable_i='1' and timestamp_jump_s='0' then
           if current_s.positive_pulse='1' then residual:=to_integer(unsigned(din_i))-to_integer(unsigned(activity_baseline_s));
           else residual:=to_integer(unsigned(activity_baseline_s))-to_integer(unsigned(din_i)); end if;
           if activity_s='0' and residual>=to_integer(unsigned(current_s.activity_threshold)) then activity_next:='1';
@@ -408,46 +428,48 @@ begin
               current_s<=req; current_accepted_s<='0';
             else chain_active_s<='0'; end if;
           end if;
-        elsif enable_i='0' or continuation_enable_i='0' then
+        elsif enable_i='0' or continuation_enable_i='0' or timestamp_jump_s='1' then
           chain_active_s<='0'; activity_s<='0'; quiet_s<=0;
         end if;
 
-        if event_pulse_s='1' and enable_i='1' then
-          covered := (current_accepted_s='1' and inside_window(current_delta_s,continuation_enable_i)) or
-                     (previous_accepted_s='1' and inside_window(previous_delta_s,continuation_enable_i));
-          if covered then
-            covered_count_s<=covered_count_s+1;
-            -- A coalesced trigger still owns its complete trigger..trigger+447
-            -- posttrigger interval. Delayed trigger delivery may reopen the
-            -- last quiet-closed chain from retained samples, without shifting
-            -- its 512-sample grid or adding another pretrigger region.
-            trigger_age64:=unsigned(timestamp_i)-unsigned(event_timestamp_s);
-            if continuation_enable_i='1' and trigger_age64<=447 then
-              event_end_seq:=seq_s-resize(trigger_age64,sample_seq_t'length)+447;
-              if signed(event_end_seq-required_end_s)>0 then required_end_s<=event_end_seq; end if;
-              if signed(event_end_seq-(current_s.start_seq+511))>0 and
-                 seq_s-current_s.start_seq>=511 and not req_valid then
-                req:=current_s; req.start_seq:=current_s.start_seq+512;
-                req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+512);
-                req.continuation:='1'; req.trigger_sample:=event_sample_s;
-                req_valid:=true; req_cont:=true;
-                previous_s<=current_s; previous_accepted_s<=current_accepted_s;
-                current_s<=req; current_accepted_s<='0'; chain_active_s<='1';
-              end if;
-            end if;
-          elsif chain_active_s='1' or req_valid then
-            -- A trigger in a denied fragment does not shift the chain grid.
-            busy_count_s<=busy_count_s+1;
+        if event_pulse_s='1' and enable_i='1' and timestamp_jump_s='0' then
+          -- Supported tuples arrive at most447 clocks after the trigger;
+          -- older/future tuples are counted whole losses before local matching.
+          if event_age_s>447 then
+            ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
           else
-            trigger_age64:=unsigned(timestamp_i)-unsigned(event_timestamp_s);
-            if trigger_age64>to_unsigned(RING_DEPTH_C-PRETRIGGER_SAMPLES_C,64) then
-              ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
+            covered := (current_accepted_s='1' and seq_age(seq_s,current_s.start_seq)<=RING_DEPTH_C and
+                        inside_window(current_delta_s,continuation_enable_i)) or
+                       (previous_accepted_s='1' and seq_age(seq_s,previous_s.start_seq)<=RING_DEPTH_C and
+                        inside_window(previous_delta_s,continuation_enable_i));
+            if covered then
+              covered_count_s<=covered_count_s+1;
+              -- A coalesced trigger still owns its complete trigger..trigger+447
+              -- posttrigger interval. Delayed trigger delivery may reopen the
+              -- last quiet-closed chain from retained samples, without shifting
+              -- its 512-sample grid or adding another pretrigger region.
+              if continuation_enable_i='1' then
+                event_end_seq:=event_seq_s+447;
+                if signed(event_end_seq-required_end_s)>0 then required_end_s<=event_end_seq; end if;
+                if signed(event_end_seq-(current_s.start_seq+511))>0 and
+                   seq_s-current_s.start_seq>=511 and not req_valid then
+                  req:=current_s; req.start_seq:=current_s.start_seq+512;
+                  req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+512);
+                  req.continuation:='1'; req.trigger_sample:=event_sample_s;
+                  req_valid:=true; req_cont:=true;
+                  previous_s<=current_s; previous_accepted_s<=current_accepted_s;
+                  current_s<=req; current_accepted_s<='0'; chain_active_s<='1';
+                end if;
+              end if;
+            elsif chain_active_s='1' or req_valid then
+              -- A trigger in a denied fragment does not shift the chain grid.
+              busy_count_s<=busy_count_s+1;
             else
-              age:=to_integer(trigger_age64)+PRETRIGGER_SAMPLES_C;
+              age:=to_integer(event_age_s(8 downto 0))+PRETRIGGER_SAMPLES_C;
               min_spacing:=512;
               if continuation_enable_i='0' then min_spacing:=512-to_integer(unsigned(signal_delay_i))*16; end if;
               candidate_start_seq:=seq_s-to_unsigned(age,sample_seq_t'length);
-              if age>history_s or age>511 then
+              if age>history_s then
                 ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
               elsif last_start_valid_s='1' and seq_age(seq_s,last_start_s)<=RING_DEPTH_C and
                     signed(candidate_start_seq-last_start_s)<to_signed(min_spacing,sample_seq_t'length) then

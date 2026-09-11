@@ -23,6 +23,10 @@ architecture tb of stc3_continuation_edges_tb is
       when 0 | 1 => if packet=0 then return 236; else return 748; end if;
       when 2 => return 636;
       when 3 => if packet=0 then return 89; else return 601; end if;
+      when 5 => if packet=0 then return 236; else return 8436; end if;
+      when 6 => if packet=0 then return 8236; else return 8748; end if;
+      when 7 => if packet=0 then return 8116; else return 8628; end if;
+      when 8 => if packet=0 then return 236; else return 20401; end if;
       when others => return 236;
     end case;
   end;
@@ -57,7 +61,7 @@ begin
             report "edge test timestamp/spacing mismatch phase="&integer'image(phase_s)&" packet="&integer'image(packet_idx) severity failure;
         elsif word_idx=1 then
           assert data_s(50)='1' report "missing fragment descriptor format flag" severity failure;
-          if (phase_s=0 or phase_s=3) and packet_idx=1 then
+          if (phase_s=0 or phase_s=3 or phase_s=7) and packet_idx=1 then
             assert data_s(51)='1' report "reopened continuation flag missing" severity failure;
           else assert data_s(51)='0' report "independent packet marked continuation" severity failure; end if;
           assert data_s(47 downto 46)=CALIBRATION_TAG_SOFTWARE_C report "calibration tag lost" severity failure;
@@ -85,12 +89,13 @@ begin
       wait until rising_edge(clock_s); wait until rising_edge(clock_s); wait for 1 ns;
       reset_s<='0';
     end procedure;
-    procedure sample(cycle : natural; force_trigger : boolean := false; natural_trigger : boolean := false; event_cycle : natural := 0) is
+    procedure sample(cycle : natural; force_trigger : boolean := false; natural_trigger : boolean := false;
+                     event_cycle : natural := 0; epoch_offset : natural := 0) is
     begin
-      ts_s<=std_logic_vector(BASE_C+cycle);
+      ts_s<=std_logic_vector(BASE_C+cycle+epoch_offset);
       trigger_s.baseline<=std_logic_vector(to_unsigned(4096,14));
       trigger_s.trigger_sample<=std_logic_vector(to_unsigned(4096,14));
-      trigger_s.trigger_timestamp<=std_logic_vector(BASE_C+event_cycle);
+      trigger_s.trigger_timestamp<=std_logic_vector(BASE_C+event_cycle+epoch_offset);
       trigger_s.calibration_tag<=CALIBRATION_TAG_SOFTWARE_C;
       trigger_s.trigger_pulse<='0'; if natural_trigger then trigger_s.trigger_pulse<='1'; end if;
       force_s<='0'; if force_trigger then force_s<='1'; end if;
@@ -138,6 +143,46 @@ begin
     assert observed_s=1 and unsigned(records_s)=1 and unsigned(packets_s)=0
       report "disable/counter reset interrupted admitted fragment" severity failure;
     assert unsigned(full_s)=0 and unsigned(busy_s)=0 severity failure;
+    -- A previous accepted reference must expire before the 13-bit sample
+    -- counter aliases it. These independent seeds are8200 samples apart.
+    restart(5);
+    for t in 0 to 10000 loop sample(t,t=300 or t=8500); end loop;
+    assert observed_s=2 and unsigned(cont_s)=0 and unsigned(covered_s)=0 and unsigned(busy_s)=0
+      report "old accepted reference aliased a fresh trigger after8192 samples" severity failure;
+
+    -- While a recent frame is live, an event8192 clocks old has identical low
+    -- local bits. A future timestamp also maps nearby. Both must fail the full
+    -- age guard, and a subsequent supported independent seed must still work.
+    restart(6);
+    for t in 0 to 10300 loop
+      if t=8400 then sample(t,false,true,208);
+      elsif t=8402 then sample(t,false,true,8403);
+      else sample(t,t=8300 or t=8812); end if;
+    end loop;
+    assert observed_s=2 and unsigned(ring_drop_s)=2 and unsigned(busy_s)=2 and unsigned(covered_s)=0
+      report "stale/future timestamp bypassed the full age guard" severity failure;
+    assert unsigned(cont_s)=0 severity failure;
+
+    -- The frame crosses the low13-bit wrap; a delayed supported event on the
+    -- other side coalesces and extends its posttrigger interval by one fragment.
+    restart(7);
+    for t in 0 to 10100 loop sample(t,t=8180,t=8254,8190); end loop;
+    assert observed_s=2 and unsigned(cont_s)=1 and unsigned(covered_s)=1 and unsigned(busy_s)=0
+      report "fresh delayed trigger failed around the low13-bit sequence wrap" severity failure;
+
+    -- A discontinuous timestamp step creates a new admission epoch, without
+    -- aborting the earlier reserved packet. Ignore an event on the jump edge;
+    -- history=0 there means63 subsequent samples are insufficient,64 suffice.
+    restart(8);
+    for t in 0 to 2200 loop
+      if t<400 then sample(t,t=300);
+      else sample(t,t=400 or t=464 or t=465,false,0,20000); end if;
+    end loop;
+    assert observed_s=2 and unsigned(packets_s)=2 and unsigned(records_s)=2
+      report "timestamp jump lost old ownership or failed to admit the new epoch" severity failure;
+    assert unsigned(cont_s)=0 and unsigned(covered_s)=0 and unsigned(ring_drop_s)=1 and unsigned(busy_s)=1
+      report "timestamp jump merged epochs or bypassed the new-history requirement" severity failure;
+
     report "stc3_continuation_edges_tb PASS" severity note;
     stop;
     wait;
