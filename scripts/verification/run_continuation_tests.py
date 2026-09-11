@@ -14,12 +14,15 @@ def main():
     parser.add_argument("--trace", type=Path, help="replay a waveform_packet_sim trace DAT")
     parser.add_argument("--output", type=Path, help="write replay transport words CSV")
     parser.add_argument("--channels", type=int, default=2)
+    parser.add_argument("--lanes", type=int, choices=(2, 8), default=2, help="physical readout lanes for waveform replay")
     parser.add_argument("--replay-only", action="store_true")
     args = parser.parse_args()
     if args.trace and not args.output:
         parser.error("--trace requires --output")
     if args.replay_only and not args.trace:
         parser.error("--replay-only requires --trace")
+    if args.trace and (args.channels < args.lanes or args.channels > 40 or args.channels % args.lanes):
+        parser.error("--channels must be <=40 and divide evenly across --lanes")
     ghdl = os.environ.get("GHDL") or shutil.which("ghdl")
     if not ghdl:
         fallback = Path.home() / "tools/oss-cad-suite/bin/ghdl"
@@ -67,7 +70,7 @@ def main():
             args.output.resolve().parent.mkdir(parents=True, exist_ok=True)
             run("-e", "--std=08", "stc3_trace_replay_tb")
             run("-r", "--std=08", "stc3_trace_replay_tb", f"-gTRACE_G={args.trace.resolve()}",
-                f"-gOUTPUT_G={args.output.resolve()}", f"-gCHANNELS_G={args.channels}", "--assert-level=error")
+                f"-gOUTPUT_G={args.output.resolve()}", f"-gCHANNELS_G={args.channels}", f"-gLANES_G={args.lanes}", "--assert-level=error")
         if args.replay_only:
             return
         for bench in ("axi_lite_unavailable_tb", "fragment_peak_descriptors_tb", "fragment_peak_descriptors_serial_tb", "fragment_peak_descriptors_banked_tb", "continuation_registers_tb", "trig_xc_alignment_tb"):

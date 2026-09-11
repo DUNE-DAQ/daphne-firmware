@@ -7,9 +7,9 @@ use work.daphne_package.all;
 use work.daphne_subsystem_pkg.all;
 
 -- Replay coherent builder-boundary candidates from the independent waveform
--- simulator. Logical channels are balanced across the real 20-slot mux lanes.
+-- simulator. Logical channels are balanced across the configured physical mux lanes.
 entity stc3_trace_replay_tb is
-  generic (TRACE_G : string; OUTPUT_G : string; CHANNELS_G : positive := 2);
+  generic (TRACE_G : string; OUTPUT_G : string; CHANNELS_G : positive := 2; LANES_G : positive := 2);
 end;
 architecture test of stc3_trace_replay_tb is
   type samples_t is array(natural range <>) of std_logic_vector(13 downto 0);
@@ -20,13 +20,14 @@ architecture test of stc3_trace_replay_tb is
   signal triggers : trigger_xcorr_result_array_t(0 to CHANNELS_G-1) := (others=>TRIGGER_XCORR_RESULT_NULL);
   signal ready, rd : std_logic_array_t(0 to 39) := (others=>'0');
   signal data : slv72_array_t(0 to 39) := (others=>(others=>'0'));
-  signal outdata : array_2x64_type;
-  signal valid,last : std_logic_vector(1 downto 0);
+  signal outdata : array_64_type(LANES_G-1 downto 0);
+  signal valid,last : std_logic_vector(LANES_G-1 downto 0);
   signal records,packets,conts,drops,merged,fulls,busys : slv64_array_t(0 to CHANNELS_G-1);
   function physical(c : natural) return natural is
-  begin return (c/(CHANNELS_G/2))*20+c mod (CHANNELS_G/2); end;
+  begin return (c/(CHANNELS_G/LANES_G))*(40/LANES_G)+c mod (CHANNELS_G/LANES_G); end;
 begin
-  assert CHANNELS_G mod 2=0 and CHANNELS_G<=40 severity failure;
+  assert (LANES_G=2 or LANES_G=8) and CHANNELS_G mod LANES_G=0 and CHANNELS_G<=40
+    report "replay channels must divide into two or eight physical lanes" severity failure;
   clk <= not clk after 8 ns;
   channels : for c in 0 to CHANNELS_G-1 generate
     dut : entity work.stc3_record_builder port map(
@@ -41,7 +42,9 @@ begin
       rd_en_i=>rd(physical(c)),dout_o=>data(physical(c)),continuation_count_o=>conts(c),
       continuation_drop_count_o=>drops(c),covered_trigger_count_o=>merged(c),descriptor_overflow_count_o=>open);
   end generate;
-  mux : entity work.two_lane_readout_mux port map(clock_i=>clk,reset_i=>rst,ready_i=>ready,dout_i=>data,
+  mux : entity work.two_lane_readout_mux
+    generic map(CHANNEL_COUNT_G=>40, LANE_COUNT_G=>LANES_G, CHANNELS_PER_LANE_G=>40/LANES_G)
+    port map(clock_i=>clk,reset_i=>rst,ready_i=>ready,dout_i=>data,
     rd_en_o=>rd,dout_o=>outdata,valid_o=>valid,last_o=>last);
   replay : process
     file source : text open read_mode is TRACE_G;
@@ -50,11 +53,11 @@ begin
     variable cycle,channel,sample,trig,trig_ts,baseline : integer;
     variable n : natural := 0;
     variable baseline_last : integer_vector(0 to CHANNELS_G-1) := (others=>8192);
-    variable word_idx : integer_vector(0 to 1) := (others=>0);
+    variable word_idx : integer_vector(0 to LANES_G-1) := (others=>0);
     procedure capture is
     begin
       wait until rising_edge(clk); wait for 1 ns;
-      for lane in 0 to 1 loop
+      for lane in 0 to LANES_G-1 loop
         if valid(lane)='1' then
           write(line_out,n); write(line_out,string'(",")); write(line_out,lane);
           write(line_out,string'(",")); write(line_out,word_idx(lane)); write(line_out,string'(","));
