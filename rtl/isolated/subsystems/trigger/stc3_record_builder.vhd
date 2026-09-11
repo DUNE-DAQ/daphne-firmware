@@ -57,7 +57,10 @@ architecture rtl of stc3_record_builder is
   constant PACKET_SLOT_COUNT_C : positive := 32;
   constant SERIALIZER_CYCLES_C : positive := 512;
   constant RETENTION_LIMIT_C : positive := RING_DEPTH_C - 64;
-  subtype sample_seq_t is unsigned(31 downto 0);
+  -- Live ring/queue references span at most 2048 samples. The extra two
+  -- address bits give an 8192-sample modulo and a 4096-sample signed half-range.
+  -- Expired spacing references are invalidated and deadlines are clamped below.
+  subtype sample_seq_t is unsigned(12 downto 0);
   subtype slot_t is unsigned(4 downto 0);
   type frame_meta_t is record
     start_seq : sample_seq_t;
@@ -78,7 +81,7 @@ architecture rtl of stc3_record_builder is
     continuation=>'0', slot=>(others=>'0'));
   -- A packed, single-write distributed RAM avoids per-field register feedback
   -- and reset muxes across the descriptor queue. Empty entries are never used.
-  subtype packed_meta_t is std_logic_vector(160 downto 0);
+  subtype packed_meta_t is std_logic_vector(141 downto 0);
   type frame_queue_t is array(0 to FRAME_QUEUE_DEPTH_C-1) of packed_meta_t;
   function pack_meta(m : frame_meta_t) return packed_meta_t is
   begin
@@ -89,7 +92,7 @@ architecture rtl of stc3_record_builder is
   function unpack_meta(v : packed_meta_t) return frame_meta_t is
     variable m : frame_meta_t;
   begin
-    m.start_seq:=unsigned(v(160 downto 129)); m.sample0_ts:=v(128 downto 65);
+    m.start_seq:=unsigned(v(141 downto 129)); m.sample0_ts:=v(128 downto 65);
     m.baseline:=v(64 downto 51); m.trigger_sample:=v(50 downto 37);
     m.threshold_lsb:=v(36 downto 23); m.activity_threshold:=v(22 downto 9);
     m.positive_pulse:=v(8); m.calibration_tag:=v(7 downto 6); m.continuation:=v(5);
@@ -113,8 +116,16 @@ architecture rtl of stc3_record_builder is
   end;
   function slot_addr(slot : slot_t; word_idx : natural) return unsigned is
   begin return slot & to_unsigned(word_idx,7); end;
-  function inside_window(ts : std_logic_vector(63 downto 0); m : frame_meta_t) return boolean is
-  begin return unsigned(ts)-unsigned(m.sample0_ts) < to_unsigned(FRAME_SAMPLE_COUNT_C,64); end;
+  function inside_window(ts : std_logic_vector(63 downto 0); m : frame_meta_t;
+                         continuation : std_logic) return boolean is
+    variable delta : unsigned(63 downto 0);
+  begin
+    delta:=unsigned(ts)-unsigned(m.sample0_ts);
+    -- The union of trigger-in-frame [0,511] and pretrigger-start-in-frame
+    -- [64,575] is [0,575], including across the external timestamp wrap.
+    if continuation='1' then return delta<to_unsigned(FRAME_SAMPLE_COUNT_C+PRETRIGGER_SAMPLES_C,64); end if;
+    return delta<to_unsigned(FRAME_SAMPLE_COUNT_C,64);
+  end;
   signal seq_s : sample_seq_t := (others=>'0');
   signal history_s : natural range 0 to RING_DEPTH_C := 0;
   signal queue_s : frame_queue_t := (others=>(others=>'0'));
@@ -307,7 +318,7 @@ begin
         reserved:=reserved_count_s; published:=published_count_s;
         active_valid:=active_valid_s; header_pending:=header_pending_s;
         seq_s<=seq_s+1;
-        -- Expire the spacing reference before the32-bit local sample counter
+        -- Expire the spacing reference before the local modulo sample counter
         -- can wrap and make an ancient fragment appear recent again.
         if last_start_valid_s='1' and seq_age(seq_s,last_start_s)>RING_DEPTH_C then
           last_start_valid_s<='0';
@@ -382,6 +393,12 @@ begin
           elsif quiet_next<chain_quiet_limit_s then quiet_next:=quiet_next+1; end if;
           activity_s<=activity_next; quiet_s<=quiet_next;
           if seq_s-current_s.start_seq>=511 then
+            -- A satisfied deadline may otherwise age through the signed
+            -- half-range during a long tail. Advancing it to the frame end
+            -- preserves whether more posttrigger samples are still required.
+            if signed(required_end_s-(current_s.start_seq+511))<=0 then
+              required_end_s<=current_s.start_seq+511;
+            end if;
             if quiet_next<chain_quiet_limit_s or signed(required_end_s-(current_s.start_seq+511))>0 then
               req:=current_s; req.start_seq:=current_s.start_seq+512;
               req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+512);
@@ -396,17 +413,8 @@ begin
         end if;
 
         if event_pulse_s='1' and enable_i='1' then
-          covered := (current_accepted_s='1' and inside_window(event_timestamp_s,current_s)) or
-                     (previous_accepted_s='1' and inside_window(event_timestamp_s,previous_s));
-          -- A new trigger can arrive just after a quiet-closed fragment while
-          -- its 64-sample pretrigger region still overlaps that fragment. Keep
-          -- the existing grid and extend its union rather than reject it for
-          -- seed spacing. With continuation disabled retain legacy spacing.
-          if continuation_enable_i='1' then
-            covered := covered or
-              (current_accepted_s='1' and inside_window(std_logic_vector(unsigned(event_timestamp_s)-64),current_s)) or
-              (previous_accepted_s='1' and inside_window(std_logic_vector(unsigned(event_timestamp_s)-64),previous_s));
-          end if;
+          covered := (current_accepted_s='1' and inside_window(event_timestamp_s,current_s,continuation_enable_i)) or
+                     (previous_accepted_s='1' and inside_window(event_timestamp_s,previous_s,continuation_enable_i));
           if covered then
             covered_count_s<=covered_count_s+1;
             -- A coalesced trigger still owns its complete trigger..trigger+447
@@ -415,7 +423,7 @@ begin
             -- its 512-sample grid or adding another pretrigger region.
             trigger_age64:=unsigned(timestamp_i)-unsigned(event_timestamp_s);
             if continuation_enable_i='1' and trigger_age64<=447 then
-              event_end_seq:=seq_s-resize(trigger_age64,32)+447;
+              event_end_seq:=seq_s-resize(trigger_age64,sample_seq_t'length)+447;
               if signed(event_end_seq-required_end_s)>0 then required_end_s<=event_end_seq; end if;
               if signed(event_end_seq-(current_s.start_seq+511))>0 and
                  seq_s-current_s.start_seq>=511 and not req_valid then
@@ -438,14 +446,14 @@ begin
               age:=to_integer(trigger_age64)+PRETRIGGER_SAMPLES_C;
               min_spacing:=512;
               if continuation_enable_i='0' then min_spacing:=512-to_integer(unsigned(signal_delay_i))*16; end if;
-              candidate_start_seq:=seq_s-to_unsigned(age,32);
+              candidate_start_seq:=seq_s-to_unsigned(age,sample_seq_t'length);
               if age>history_s or age>511 then
                 ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
               elsif last_start_valid_s='1' and seq_age(seq_s,last_start_s)<=RING_DEPTH_C and
-                    signed(candidate_start_seq-last_start_s)<to_signed(min_spacing,32) then
+                    signed(candidate_start_seq-last_start_s)<to_signed(min_spacing,sample_seq_t'length) then
                 spacing_count_s<=spacing_count_s+1; busy_count_s<=busy_count_s+1;
               else
-                req:=META_NULL_C; req.start_seq:=seq_s-to_unsigned(age,32);
+                req:=META_NULL_C; req.start_seq:=seq_s-to_unsigned(age,sample_seq_t'length);
                 req.sample0_ts:=std_logic_vector(unsigned(event_timestamp_s)-64);
                 req.baseline:=trigger_i.baseline;
                 req.trigger_sample:=event_sample_s; req.threshold_lsb:=threshold_xc_i(13 downto 0);
