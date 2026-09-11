@@ -183,6 +183,8 @@ architecture rtl of stc3_record_builder is
   signal record_count_s, full_count_s, busy_count_s, spacing_count_s, queue_drop_s, ring_drop_s,
          trigger_count_s, packet_count_s, continuation_count_s, continuation_drop_s,
          covered_count_s, descriptor_overflow_count_s : unsigned(31 downto 0) := (others=>'0');
+  attribute use_dsp : string;
+  attribute use_dsp of packet_count_s, record_count_s, covered_count_s, trigger_count_s : signal is "yes";
 begin
   -- Clock/reset/timestamp are common to all channels, allowing synthesis to
   -- share this epoch guard. Natural64-bit wrap is a normal increment.
