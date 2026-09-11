@@ -40,6 +40,7 @@ filesets:
       - xilinx/daphne_ip_gen.tcl
       - xilinx/legacy_flow_support_sources.txt
       - xilinx/daphne_vivado_flow.tcl
+      - xilinx/daphne_four_sfp_gt.tcl
       - xilinx/daphne_xgui_gen.tcl
       - xilinx/daphne_board_env.tcl
       - xilinx/vivado_impl_entry.tcl
@@ -49,6 +50,7 @@ filesets:
   legacy_flow_support:
     files:
       - xilinx/daphne_vivado_flow.tcl
+      - xilinx/daphne_four_sfp_gt.tcl
       - xilinx/vivado_impl_entry.tcl
     file_type: user
   export_support:
