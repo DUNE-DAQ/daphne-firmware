@@ -1,5 +1,6 @@
 # Fast area comparison; this is not a board implementation/timing qualification.
 # vivado -mode batch -source cooper_ooc_synth.tcl -tclargs SOURCE NEW_OUTPUT [builder|descriptor|registers|both|all]
+# DAPHNE_OOC_SYNTH_DIRECTIVE also applies when this Tcl helper is invoked directly.
 if {$argc < 2 || $argc > 3} {
     error "Usage: cooper_ooc_synth.tcl SOURCE_ROOT NEW_OUTPUT_DIRECTORY ?builder|descriptor|registers|both|all?"
 }
@@ -15,10 +16,16 @@ switch -- $selection {
     all { set targets {fragment_peak_descriptors_banked stc3_record_builder selftrigger_register_bank} }
     default { error "Unknown target selection: $selection" }
 }
+set directive PerformanceOptimized
+if {[info exists ::env(DAPHNE_OOC_SYNTH_DIRECTIVE)]} {
+    set directive $::env(DAPHNE_OOC_SYNTH_DIRECTIVE)
+}
+if {$directive ni {PerformanceOptimized AreaOptimized_high AreaOptimized_medium}} {
+    error "Unsupported DAPHNE_OOC_SYNTH_DIRECTIVE: $directive"
+}
 if {[file exists $output_root]} { error "Use a new output directory: $output_root" }
 file mkdir $output_root
 set part xck26-sfvc784-2LV-c
-set directive PerformanceOptimized
 set_param general.maxThreads 2
 set packages [list \
     ip_repo/daphne_ip/rtl/daphne_package.vhd \

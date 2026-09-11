@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 # The Tcl helper can be supplied externally to keep a pinned clone unchanged.
+# DAPHNE_OOC_SYNTH_DIRECTIVE optionally selects an explicit area comparison.
 set -euo pipefail
 source_root="${1:?usage: cooper_ooc_synth.sh SOURCE_ROOT NEW_RUN_DIRECTORY [builder|descriptor|registers|both|all]}"
 source_root="$(CDPATH= cd -- "$source_root" && pwd)"
 run_root="${2:?a new run directory is required}"
 selection="${3:-both}"
+directive="${DAPHNE_OOC_SYNTH_DIRECTIVE-PerformanceOptimized}"
+case "$directive" in
+  PerformanceOptimized|AreaOptimized_high|AreaOptimized_medium) ;;
+  *) printf 'Unsupported DAPHNE_OOC_SYNTH_DIRECTIVE: %s\n' "$directive" >&2; exit 2 ;;
+esac
+export DAPHNE_OOC_SYNTH_DIRECTIVE="$directive"
 helper_directory="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 script_path="$helper_directory/$(basename -- "$0")"
 tcl_helper="${DAPHNE_OOC_TCL:-$helper_directory/cooper_ooc_synth.tcl}"
@@ -15,6 +22,7 @@ unset LD_LIBRARY_PATH LD_PRELOAD PYTHONHOME PYTHONPATH
 export XILINX_VIVADO=/tools/2026.1/Vivado
 cd "$run_root"
 date -u +%FT%TZ > started.txt
+printf '%s\n' "$directive" > synth-directive.txt
 trap 'result=$?; printf "%s\n" "$result" > exit-code.txt; date -u +%FT%TZ > finished.txt' EXIT
 git -C "$source_root" rev-parse HEAD > source-commit.txt
 git -C "$source_root" status --porcelain=v1 > source-status.txt
