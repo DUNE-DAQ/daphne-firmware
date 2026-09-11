@@ -130,8 +130,16 @@ pulse/charge capture, and output drops when interpreting deadtime improvement.
 Reference baseline, new RTL, simulation source, waveform seeds and tool
 versions must be pinned in the final evidence.
 
+Cooper's Vivado 2026.1 vendor XPM simulation passed for RTL `355376f`: two
+30-packet chains with even/odd starts, every ADC sample checked, plus the
+timestamp/admission/disable/reset boundary bench. The local evidence archive
+is `artifacts/continuation512/cooper-355376f/vendor-memory-sim.tar.gz` under
+the workspace firmware directory, accompanied by SHA256. The vendor memory
+source SHA256 is
+`2ffcfc104eae061b7fefc3bda9d123d466c12df6363748284c1ca349b00cf75a`.
+
 See [the Cooper build procedure](cooper-continuation-build.md). Resource fit,
-routed timing, DRC, vendor-memory equivalence and final matched performance
-results remain qualification steps until their reports are recorded. Input
+routed timing and DRC remain qualification steps until their reports are
+recorded. Input
 spy buffers are still present in this candidate and may be removed if actual
 implementation results show that their resources are needed.
