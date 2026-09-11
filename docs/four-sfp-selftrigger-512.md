@@ -67,6 +67,9 @@ interrupt all four links. No deployed hardware has been programmed by this work.
   `python3 scripts/verification/run_multilane_readout_tests.py`.
 - Board wrapper interfaces:
   `python3 scripts/verification/run_board_readout_elaboration.py`.
+- Per-link TX/RX clocks, reset release and link-status isolation, with vendor
+  transceivers replaced by controllable boundary models:
+  `python3 scripts/verification/run_hermes_phy_clock_reset_test.py`.
 - Actual AMD asynchronous FIFO models, first-packet retention, blocked output,
   complete-packet credits and drain recovery:
   `scripts/remote/cooper_hermes_admission_sim.sh SOURCE NEW_SIM_DIRECTORY`.
@@ -77,3 +80,31 @@ interrupt all four links. No deployed hardware has been programmed by this work.
 Full-device resource fit, routed timing/DRC and packaged programming artifacts
 remain required before hardware qualification. Simulation success alone does not
 establish those results.
+
+### Clock coverage evidence and final audit
+
+The shared Ethernet reference requires a primary `eth_refclk` constraint of
+6.400 ns. In Vivado 2026.1 build 6511674, applying this constraint to the earlier
+single-link `355376f` synthesis checkpoint reduced `check_timing` clockless pins
+from 9506 to eight and unconstrained internal endpoints from 21528 to 97.
+This establishes propagation of the reference clock in that checkpoint; it does
+not establish timing closure for the four-link candidate.
+
+The eight remaining clockless pins are unused PS8 EMIO outputs:
+`EMIOENET[0-3]MDIOMDC`, `EMIOSDIO[0-1]CLKOUT` and `EMIOSPI[0-1]SCLKO`.
+The other 97 endpoints belong to the old `gen_udp_clk_fifos.udp_out_fifo_inst`
+read-side logic, whose clock was tied low. The four-link source disables that
+redundant FIFO generate and supplies each link's RX clock to the receive interface.
+These findings explain the old checkpoint; the final implementation must confirm
+that the obsolete FIFO endpoints are absent and inspect any remaining warnings.
+
+After routing, collect the actual candidate's reports with:
+
+```sh
+vivado -mode batch -source scripts/verification/audit_routed_checkpoint.tcl \
+  -tclargs ROUTED_CHECKPOINT NEW_REPORT_DIRECTORY
+```
+
+Review route status, setup/hold timing, clock coverage, CDC, exception coverage,
+methodology and DRC reports against the implemented interfaces. The collector's
+completion marker means reports were generated, not that qualification passed.
