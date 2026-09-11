@@ -207,47 +207,69 @@ begin
     addr_v := to_integer(unsigned(axi_araddr(11 downto 0)));
     data_v := (others => '0');
 
+    -- Register addresses are disjoint. Explicitly OR the decoded words so
+    -- synthesis builds a parallel read mux rather than a 40-channel priority
+    -- chain. AXI timing and unmapped-address zero responses are unchanged.
     for idx in 0 to CHANNEL_COUNT_G - 1 loop
       if addr_v = idx * CHANNEL_STRIDE_C + THRESHOLD_OFFSET_C then
-        data_v := "0000" & threshold_xc_reg(idx);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + RECORD_COUNT_LO_C then
-        data_v := record_count_i(idx)(31 downto 0);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + RECORD_COUNT_HI_C then
-        data_v := record_count_i(idx)(63 downto 32);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + BUSY_COUNT_LO_C then
-        data_v := busy_count_i(idx)(31 downto 0);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + BUSY_COUNT_HI_C then
-        data_v := busy_count_i(idx)(63 downto 32);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + FULL_COUNT_LO_C then
-        data_v := full_count_i(idx)(31 downto 0);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + FULL_COUNT_HI_C then
-        data_v := full_count_i(idx)(63 downto 32);
-      elsif addr_v = idx * CHANNEL_STRIDE_C + CONTINUATION_CONFIG_C then
-        data_v := continuation_config_reg(idx);
-      elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_LO_OFFSET_C then
-        data_v := tcount_i(idx)(31 downto 0);
-      elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_HI_OFFSET_C then
-        data_v := tcount_i(idx)(63 downto 32);
-      elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + PCOUNT_LO_OFFSET_C then
-        data_v := pcount_i(idx)(31 downto 0);
-      elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + PCOUNT_HI_OFFSET_C then
-        data_v := pcount_i(idx)(63 downto 32);
-      elsif addr_v = 16#800# + idx * 32 then
-        data_v := continuation_count_i(idx)(31 downto 0);
-      elsif addr_v = 16#804# + idx * 32 then
-        data_v := continuation_count_i(idx)(63 downto 32);
-      elsif addr_v = 16#808# + idx * 32 then
-        data_v := continuation_drop_count_i(idx)(31 downto 0);
-      elsif addr_v = 16#80C# + idx * 32 then
-        data_v := continuation_drop_count_i(idx)(63 downto 32);
-      elsif addr_v = 16#810# + idx * 32 then
-        data_v := covered_trigger_count_i(idx)(31 downto 0);
-      elsif addr_v = 16#814# + idx * 32 then
-        data_v := covered_trigger_count_i(idx)(63 downto 32);
-      elsif addr_v = 16#818# + idx * 32 then
-        data_v := descriptor_overflow_count_i(idx)(31 downto 0);
-      elsif addr_v = 16#81C# + idx * 32 then
-        data_v := descriptor_overflow_count_i(idx)(63 downto 32);
+        data_v := data_v or ("0000" & threshold_xc_reg(idx));
+      end if;
+      if addr_v = idx * CHANNEL_STRIDE_C + RECORD_COUNT_LO_C then
+        data_v := data_v or (record_count_i(idx)(31 downto 0));
+      end if;
+      if addr_v = idx * CHANNEL_STRIDE_C + RECORD_COUNT_HI_C then
+        data_v := data_v or (record_count_i(idx)(63 downto 32));
+      end if;
+      if addr_v = idx * CHANNEL_STRIDE_C + BUSY_COUNT_LO_C then
+        data_v := data_v or (busy_count_i(idx)(31 downto 0));
+      end if;
+      if addr_v = idx * CHANNEL_STRIDE_C + BUSY_COUNT_HI_C then
+        data_v := data_v or (busy_count_i(idx)(63 downto 32));
+      end if;
+      if addr_v = idx * CHANNEL_STRIDE_C + FULL_COUNT_LO_C then
+        data_v := data_v or (full_count_i(idx)(31 downto 0));
+      end if;
+      if addr_v = idx * CHANNEL_STRIDE_C + FULL_COUNT_HI_C then
+        data_v := data_v or (full_count_i(idx)(63 downto 32));
+      end if;
+      if addr_v = idx * CHANNEL_STRIDE_C + CONTINUATION_CONFIG_C then
+        data_v := data_v or (continuation_config_reg(idx));
+      end if;
+      if addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_LO_OFFSET_C then
+        data_v := data_v or (tcount_i(idx)(31 downto 0));
+      end if;
+      if addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_HI_OFFSET_C then
+        data_v := data_v or (tcount_i(idx)(63 downto 32));
+      end if;
+      if addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + PCOUNT_LO_OFFSET_C then
+        data_v := data_v or (pcount_i(idx)(31 downto 0));
+      end if;
+      if addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + PCOUNT_HI_OFFSET_C then
+        data_v := data_v or (pcount_i(idx)(63 downto 32));
+      end if;
+      if addr_v = 16#800# + idx * 32 then
+        data_v := data_v or (continuation_count_i(idx)(31 downto 0));
+      end if;
+      if addr_v = 16#804# + idx * 32 then
+        data_v := data_v or (continuation_count_i(idx)(63 downto 32));
+      end if;
+      if addr_v = 16#808# + idx * 32 then
+        data_v := data_v or (continuation_drop_count_i(idx)(31 downto 0));
+      end if;
+      if addr_v = 16#80C# + idx * 32 then
+        data_v := data_v or (continuation_drop_count_i(idx)(63 downto 32));
+      end if;
+      if addr_v = 16#810# + idx * 32 then
+        data_v := data_v or (covered_trigger_count_i(idx)(31 downto 0));
+      end if;
+      if addr_v = 16#814# + idx * 32 then
+        data_v := data_v or (covered_trigger_count_i(idx)(63 downto 32));
+      end if;
+      if addr_v = 16#818# + idx * 32 then
+        data_v := data_v or (descriptor_overflow_count_i(idx)(31 downto 0));
+      end if;
+      if addr_v = 16#81C# + idx * 32 then
+        data_v := data_v or (descriptor_overflow_count_i(idx)(63 downto 32));
       end if;
     end loop;
 
