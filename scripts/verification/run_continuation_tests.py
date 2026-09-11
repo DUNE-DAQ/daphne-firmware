@@ -31,10 +31,12 @@ def main():
         "ip_repo/daphne_ip/rtl/daphne_package.vhd",
         "rtl/isolated/common/daphne_subsystem_pkg.vhd",
         "rtl/isolated/subsystems/trigger/fragment_peak_descriptors.vhd",
+        "rtl/isolated/subsystems/trigger/fragment_peak_descriptors_serial.vhd",
         "rtl/isolated/subsystems/control/selftrigger_register_bank.vhd",
         "rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd",
         "rtl/isolated/subsystems/control/trigger_control_adapter.vhd",
         "rtl/isolated/common/primitives/sample_ring_buffer.vhd",
+        "rtl/isolated/common/primitives/sample_ring_buffer_single.vhd",
         "rtl/isolated/common/primitives/packet_frame_store.vhd",
         "rtl/isolated/subsystems/trigger/stc3_record_builder.vhd",
         "rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd",
@@ -43,6 +45,7 @@ def main():
         "ip_repo/daphne_ip/rtl/selftrig/trig_xc.vhd",
         "tests/logic/trig_xc_alignment_tb.vhd",
         "tests/logic/fragment_peak_descriptors_tb.vhd",
+        "tests/logic/fragment_peak_descriptors_serial_tb.vhd",
         "tests/logic/continuation_registers_tb.vhd",
         "tests/logic/stc3_continuation_tb.vhd",
         "tests/logic/stc3_continuation_edges_tb.vhd",
@@ -62,7 +65,7 @@ def main():
                 f"-gOUTPUT_G={args.output.resolve()}", f"-gCHANNELS_G={args.channels}", "--assert-level=error")
         if args.replay_only:
             return
-        for bench in ("fragment_peak_descriptors_tb", "continuation_registers_tb", "trig_xc_alignment_tb"):
+        for bench in ("fragment_peak_descriptors_tb", "fragment_peak_descriptors_serial_tb", "continuation_registers_tb", "trig_xc_alignment_tb"):
             run("-e", "--std=08", bench)
             run("-r", "--std=08", bench, "--assert-level=error", "--stop-time=100us")
         run("-e", "--std=08", "stc3_continuation_tb")
