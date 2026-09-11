@@ -23,15 +23,23 @@ fi
 date -u +%FT%TZ > "$evidence_root/build.started"
 trap 'result=$?; printf "%s\n" "$result" > "$evidence_root/build.exit-code"; date -u +%FT%TZ > "$evidence_root/build.finished"' EXIT
 
-# Avoid the unrelated PetaLinux SDK in Cooper's login PATH.
-export PATH="/tools/2026.1/Vivado/bin:/tools/2026.1/Vitis/bin:/tools/bin:/home/arroyave/.local/bin:/usr/local/bin:/usr/bin:/bin"
+# Prefer system Python/shell tools. Cooper supplies Git and Make only through
+# the SDK, so retain its usr/bin as a fallback after the normal system paths.
+export PATH="/tools/2026.1/Vivado/bin:/tools/2026.1/Vitis/bin:/tools/bin:/home/arroyave/.local/bin:/usr/local/bin:/usr/bin:/bin:/tools/petalinux/sysroots/x86_64-petalinux-linux/usr/bin"
 unset LD_LIBRARY_PATH LD_PRELOAD PYTHONHOME PYTHONPATH
 export XILINX_VIVADO=/tools/2026.1/Vivado
 export XILINX_VITIS=/tools/2026.1/Vitis
+for command_name in git bash sed date sha256sum hostname uname vivado sdtgen dtc python3 fusesoc make zip unzip tclsh; do
+  command -v "$command_name" >> "$evidence_root/tool-paths.txt" || {
+    echo "ERROR: required build tool is unavailable: $command_name" >&2
+    exit 2
+  }
+done
 export DAPHNE_BOARD=k26c
 export DAPHNE_ETH_MODE=create_ip
 export DAPHNE_MAX_THREADS="${DAPHNE_MAX_THREADS:-4}"
-export DAPHNE_GIT_SHA="$(git -C "$source_root" rev-parse --short=7 HEAD)"
+DAPHNE_GIT_SHA="$(git -C "$source_root" rev-parse --short=7 HEAD)"
+export DAPHNE_GIT_SHA
 export DAPHNE_OUTPUT_DIR="./output-$DAPHNE_GIT_SHA"
 export DAPHNE_REMOTE_PACKAGE_DTBO=1
 export DAPHNE_REMOTE_LOG_DIR="$evidence_root/remote-vivado"
