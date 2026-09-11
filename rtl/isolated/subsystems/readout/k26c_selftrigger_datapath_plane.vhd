@@ -56,40 +56,44 @@ port(
 end k26c_selftrigger_datapath_plane;
 
 architecture rtl of k26c_selftrigger_datapath_plane is
+  constant ACTIVE_AFE_COUNT_C     : positive := 4;
+  constant ACTIVE_CHANNEL_COUNT_C : positive := 32;
+  constant READOUT_LANE_COUNT_C   : positive := 8;
+  constant CHANNELS_PER_LANE_C    : positive := 4;
   signal threshold_axi_in:   AXILITE_INREC;
   signal threshold_axi_out:  AXILITE_OUTREC;
-  signal threshold_xc:       slv28_array_t(0 to 39);
-  signal continuation_config: slv32_array_t(0 to 39);
-  signal TCount:             slv64_array_t(0 to 39);
-  signal PCount:             slv64_array_t(0 to 39);
-  signal continuation_count:             slv64_array_t(0 to 39);
-  signal continuation_drop_count:             slv64_array_t(0 to 39);
-  signal covered_trigger_count:             slv64_array_t(0 to 39);
-  signal descriptor_overflow_count:             slv64_array_t(0 to 39);
-  signal record_count:       slv64_array_t(0 to 39);
-  signal full_count:         slv64_array_t(0 to 39);
-  signal busy_count:         slv64_array_t(0 to 39);
-  signal trigger_samples:    sample14_array_t(0 to 39);
-  signal trigger_control:    trigger_xcorr_control_array_t(0 to 39);
-  signal trigger_result:     trigger_xcorr_result_array_t(0 to 39);
-  signal config_valid:       std_logic_vector(4 downto 0) := (others => '0');
-  signal config_cmd:         afe_config_command_bank_t(0 to 4) := (others => AFE_CONFIG_COMMAND_NULL);
-  signal config_status:      afe_config_status_bank_t(0 to 4);
-  signal afe_miso:           std_logic_vector(4 downto 0) := (others => '0');
-  signal afe_sclk:           std_logic_vector(4 downto 0);
-  signal afe_sen:            std_logic_vector(4 downto 0);
-  signal afe_mosi:           std_logic_vector(4 downto 0);
-  signal trim_sclk:          std_logic_vector(4 downto 0);
-  signal trim_mosi:          std_logic_vector(4 downto 0);
-  signal trim_ldac_n:        std_logic_vector(4 downto 0);
-  signal trim_sync_n:        std_logic_vector(4 downto 0);
-  signal offset_sclk:        std_logic_vector(4 downto 0);
-  signal offset_mosi:        std_logic_vector(4 downto 0);
-  signal offset_ldac_n:      std_logic_vector(4 downto 0);
-  signal offset_sync_n:      std_logic_vector(4 downto 0);
-  signal ready:              std_logic_array_t(0 to 39);
-  signal rd_en:              std_logic_array_t(0 to 39);
-  signal fabric_dout:        slv72_array_t(0 to 39);
+  signal threshold_xc:       slv28_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal continuation_config: slv32_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal TCount:             slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal PCount:             slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal continuation_count: slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal continuation_drop_count: slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal covered_trigger_count: slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal descriptor_overflow_count: slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal record_count:       slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal full_count:         slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal busy_count:         slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal trigger_samples:    sample14_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal trigger_control:    trigger_xcorr_control_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal trigger_result:     trigger_xcorr_result_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal config_valid:       std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0) := (others => '0');
+  signal config_cmd:         afe_config_command_bank_t(0 to ACTIVE_AFE_COUNT_C - 1) := (others => AFE_CONFIG_COMMAND_NULL);
+  signal config_status:      afe_config_status_bank_t(0 to ACTIVE_AFE_COUNT_C - 1);
+  signal afe_miso:           std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0) := (others => '0');
+  signal afe_sclk:           std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal afe_sen:            std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal afe_mosi:           std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal trim_sclk:          std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal trim_mosi:          std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal trim_ldac_n:        std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal trim_sync_n:        std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal offset_sclk:        std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal offset_mosi:        std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal offset_ldac_n:      std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal offset_sync_n:      std_logic_vector(ACTIVE_AFE_COUNT_C - 1 downto 0);
+  signal ready:              std_logic_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal rd_en:              std_logic_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal fabric_dout:        slv72_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
 begin
   threshold_axi_in.ACLK    <= thresh_s_axi_aclk;
   threshold_axi_in.ARESETN <= thresh_s_axi_aresetn;
@@ -114,14 +118,15 @@ begin
   thresh_s_axi_rresp   <= threshold_axi_out.RRESP;
   thresh_s_axi_rvalid  <= threshold_axi_out.RVALID;
 
-  gen_legacy_monitor_outputs : for idx in 0 to 39 generate
+  gen_legacy_monitor_outputs : for idx in 0 to ACTIVE_CHANNEL_COUNT_C - 1 generate
   begin
     st_trigger_signal(idx) <= trigger_result(idx).trigger_pulse;
   end generate gen_legacy_monitor_outputs;
+  st_trigger_signal(39 downto ACTIVE_CHANNEL_COUNT_C) <= (others => '0');
 
   frontend_adapter_inst : entity work.frontend_to_selftrigger_adapter
     generic map (
-      AFE_COUNT_G => 5
+      AFE_COUNT_G => ACTIVE_AFE_COUNT_C
     )
     port map(
       afe_dout_i        => din_core,
@@ -130,12 +135,12 @@ begin
 
   control_adapter_inst : entity work.trigger_control_adapter
     generic map (
-      CHANNEL_COUNT_G => 40
+      CHANNEL_COUNT_G => ACTIVE_CHANNEL_COUNT_C
     )
     port map(
-      core_chan_enable_i       => enable,
-      afe_comp_enable_i        => afe_comp_enable,
-      invert_enable_i          => invert_enable,
+      core_chan_enable_i       => enable(ACTIVE_CHANNEL_COUNT_C - 1 downto 0),
+      afe_comp_enable_i        => afe_comp_enable(ACTIVE_CHANNEL_COUNT_C - 1 downto 0),
+      invert_enable_i          => invert_enable(ACTIVE_CHANNEL_COUNT_C - 1 downto 0),
       threshold_xc_i           => threshold_xc,
       continuation_config_i    => continuation_config,
       adhoc_i                  => adhoc,
@@ -153,7 +158,7 @@ begin
 
   daphne_composable_core_top_inst : entity work.daphne_composable_core_top
     generic map (
-      AFE_COUNT_G          => 5,
+      AFE_COUNT_G          => ACTIVE_AFE_COUNT_C,
       ENABLE_SELFTRIGGER_G => true,
       ENABLE_TIMING_G      => false,
       ENABLE_HERMES_G      => false
@@ -212,10 +217,15 @@ begin
       dout_o                    => fabric_dout
     );
 
-  -- Two adjacent five-channel lanes feed each Hermes link:0..9,10..19,
-  --20..29 and30..39. Legacy callers retain the mux's two-lane defaults.
+  -- Two adjacent four-channel lanes feed each Hermes link:0..7,8..15,
+  --16..23 and24..31. The public monitor/config ports remain 40 bits wide;
+  --channels32..39 are intentionally unavailable in this resource-fit build.
   two_lane_readout_mux_inst : entity work.two_lane_readout_mux
-    generic map(CHANNEL_COUNT_G=>40, LANE_COUNT_G=>8, CHANNELS_PER_LANE_G=>5)
+    generic map(
+      CHANNEL_COUNT_G     => ACTIVE_CHANNEL_COUNT_C,
+      LANE_COUNT_G        => READOUT_LANE_COUNT_C,
+      CHANNELS_PER_LANE_G => CHANNELS_PER_LANE_C
+    )
     port map (
       clock_i => clock,
       reset_i => reset,
@@ -229,6 +239,9 @@ begin
     );
 
   selftrigger_register_bank_inst : entity work.selftrigger_register_bank
+    generic map (
+      CHANNEL_COUNT_G => ACTIVE_CHANNEL_COUNT_C
+    )
     port map (
       AXI_IN         => threshold_axi_in,
       AXI_OUT        => threshold_axi_out,
