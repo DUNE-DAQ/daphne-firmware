@@ -61,13 +61,10 @@ architecture rtl of stc3_record_builder is
   subtype slot_t is unsigned(4 downto 0);
   type sample_block_t is array(0 to 31) of std_logic_vector(13 downto 0);
   type serializer_state_t is (ser_idle, ser_load, ser_emit, ser_header);
-  type slot_state_t is (slot_free, slot_reserved, slot_complete, slot_dropped);
-  type slot_state_array_t is array(0 to PACKET_SLOT_COUNT_C-1) of slot_state_t;
   type frame_meta_t is record
     start_seq : sample_seq_t;
     sample0_ts : std_logic_vector(63 downto 0);
     baseline : std_logic_vector(13 downto 0);
-    raw_baseline : std_logic_vector(13 downto 0);
     trigger_sample : std_logic_vector(13 downto 0);
     threshold_lsb : std_logic_vector(13 downto 0);
     activity_threshold : std_logic_vector(13 downto 0);
@@ -78,10 +75,34 @@ architecture rtl of stc3_record_builder is
   end record;
   constant META_NULL_C : frame_meta_t := (
     start_seq=>(others=>'0'), sample0_ts=>(others=>'0'), baseline=>(others=>'0'),
-    raw_baseline=>(others=>'0'), trigger_sample=>(others=>'0'), threshold_lsb=>(others=>'0'),
+    trigger_sample=>(others=>'0'), threshold_lsb=>(others=>'0'),
     activity_threshold=>(others=>'0'), positive_pulse=>'0', calibration_tag=>CALIBRATION_TAG_NORMAL_C,
     continuation=>'0', slot=>(others=>'0'));
-  type frame_queue_t is array(0 to FRAME_QUEUE_DEPTH_C-1) of frame_meta_t;
+  -- A packed, single-write distributed RAM avoids per-field register feedback
+  -- and reset muxes across the descriptor queue. Empty entries are never used.
+  subtype packed_meta_t is std_logic_vector(160 downto 0);
+  type frame_queue_t is array(0 to FRAME_QUEUE_DEPTH_C-1) of packed_meta_t;
+  function pack_meta(m : frame_meta_t) return packed_meta_t is
+  begin
+    return std_logic_vector(m.start_seq) & m.sample0_ts & m.baseline & m.trigger_sample &
+      m.threshold_lsb & m.activity_threshold & m.positive_pulse & m.calibration_tag &
+      m.continuation & std_logic_vector(m.slot);
+  end;
+  function unpack_meta(v : packed_meta_t) return frame_meta_t is
+    variable m : frame_meta_t;
+  begin
+    m.start_seq:=unsigned(v(160 downto 129)); m.sample0_ts:=v(128 downto 65);
+    m.baseline:=v(64 downto 51); m.trigger_sample:=v(50 downto 37);
+    m.threshold_lsb:=v(36 downto 23); m.activity_threshold:=v(22 downto 9);
+    m.positive_pulse:=v(8); m.calibration_tag:=v(7 downto 6); m.continuation:=v(5);
+    m.slot:=unsigned(v(4 downto 0));
+    return m;
+  end;
+  function raw_baseline(value : std_logic_vector(13 downto 0); positive : std_logic) return std_logic_vector is
+  begin
+    if positive='1' then return std_logic_vector(to_unsigned(0,14)-unsigned(value)); end if;
+    return value;
+  end;
   function next_q(i : natural) return natural is
   begin return (i+1) mod FRAME_QUEUE_DEPTH_C; end;
   function seq_age(now_seq, start_seq : sample_seq_t) return natural is
@@ -118,16 +139,21 @@ architecture rtl of stc3_record_builder is
 
   signal seq_s : sample_seq_t := (others=>'0');
   signal history_s : natural range 0 to RING_DEPTH_C := 0;
-  signal queue_s : frame_queue_t := (others=>META_NULL_C);
+  signal queue_s : frame_queue_t := (others=>(others=>'0'));
+  attribute ram_style : string;
+  attribute ram_style of queue_s : signal is "distributed";
   signal head_s, tail_s : natural range 0 to FRAME_QUEUE_DEPTH_C-1 := 0;
   signal queue_count_s : natural range 0 to FRAME_QUEUE_DEPTH_C := 0;
-  signal queue_head_s : frame_meta_t;
+  signal queue_head_s, queue_next_s : frame_meta_t;
   signal active_s : frame_meta_t := META_NULL_C;
   signal active_valid_s : std_logic := '0';
   signal state_s : serializer_state_t := ser_idle;
-  signal slots_s : slot_state_array_t := (others=>slot_free);
+  -- Publication is ordered, so slot liveness is represented by pointers and
+  -- counts. Only exceptional stale-frame holes need a per-slot bit.
+  signal dropped_s : std_logic_vector(PACKET_SLOT_COUNT_C-1 downto 0) := (others=>'0');
+  signal publish_drop_s, consume_drop_s : std_logic;
   signal allocate_slot_s, read_slot_s : slot_t := (others=>'0');
-  signal reserved_count_s, complete_count_s : natural range 0 to PACKET_SLOT_COUNT_C := 0;
+  signal reserved_count_s, published_count_s : natural range 0 to PACKET_SLOT_COUNT_C := 0;
   signal read_word_s : natural range 0 to FRAME_WORD_COUNT_C-1 := 0;
   signal block_s : natural range 0 to 15 := 0;
   signal load_s : natural range 0 to 16 := 0;
@@ -141,8 +167,8 @@ architecture rtl of stc3_record_builder is
   signal store_din_s : std_logic_vector(71 downto 0);
   signal descriptor_start_s, descriptor_pair_valid_s, descriptor_done_s, descriptor_overflow_s : std_logic;
   signal descriptor_pair_idx_s : unsigned(7 downto 0);
-  signal descriptor_trailer_s, active_trailer_s : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
-  signal active_descriptor_overflow_s : std_logic := '0';
+  signal descriptor_trailer_s : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
+  signal descriptor_baseline_s, activity_baseline_s : std_logic_vector(13 downto 0);
   signal chain_active_s, current_accepted_s, previous_accepted_s : std_logic := '0';
   signal current_s, previous_s : frame_meta_t := META_NULL_C;
   signal activity_s : std_logic := '0';
@@ -159,7 +185,25 @@ architecture rtl of stc3_record_builder is
          trigger_count_s, packet_count_s, continuation_count_s, continuation_drop_s,
          covered_count_s, descriptor_overflow_count_s : unsigned(31 downto 0) := (others=>'0');
 begin
-  queue_head_s <= queue_s(head_s);
+  queue_head_s <= unpack_meta(queue_s(head_s));
+  queue_next_s <= unpack_meta(queue_s(next_q(head_s)));
+  descriptor_baseline_s <= raw_baseline(queue_head_s.baseline,queue_head_s.positive_pulse);
+  activity_baseline_s <= raw_baseline(current_s.baseline,current_s.positive_pulse);
+  publish_drop_s <= '1' when state_s=ser_idle and queue_count_s>0 and
+    seq_age(seq_s,queue_head_s.start_seq)>RETENTION_LIMIT_C else '0';
+  consume_drop_s <= '1' when published_count_s>0 and dropped_s(to_integer(read_slot_s))='1' else '0';
+  drop_bitmap_proc : process(clock_i)
+  begin
+    if rising_edge(clock_i) then
+      if reset_i='1' then dropped_s<=(others=>'0');
+      else
+        for i in 0 to PACKET_SLOT_COUNT_C-1 loop
+          if consume_drop_s='1' and read_slot_s=to_unsigned(i,read_slot_s'length) then dropped_s(i)<='0'; end if;
+          if publish_drop_s='1' and queue_head_s.slot=to_unsigned(i,queue_head_s.slot'length) then dropped_s(i)<='1'; end if;
+        end loop;
+      end if;
+    end if;
+  end process;
   event_pulse_s <= trigger_i.trigger_pulse or force_trigger_i;
   event_timestamp_s <= timestamp_i when force_trigger_i='1' else trigger_i.trigger_timestamp;
   event_sample_s <= din_i when force_trigger_i='1' else trigger_i.trigger_sample;
@@ -169,7 +213,7 @@ begin
   frame_match_o <= '1' when enable_i='1' and queue_count_s<FRAME_QUEUE_DEPTH_C and
                    reserved_count_s<PACKET_SLOT_COUNT_C else '0';
   delayed_sample_o <= din_i;
-  ready_o <= '1' when complete_count_s>0 and slots_s(to_integer(read_slot_s))=slot_complete else '0';
+  ready_o <= '1' when published_count_s>0 and dropped_s(to_integer(read_slot_s))='0' else '0';
 
   ring_addr_s <= active_s.start_seq(10 downto 0)+to_unsigned(block_s*32+load_s*2,11)
                  when state_s=ser_load and load_s<16 else active_s.start_seq(10 downto 0);
@@ -183,9 +227,9 @@ begin
   store_rd_addr_proc : process(all)
   begin
     store_raddr_s <= slot_addr(read_slot_s,read_word_s);
-    if slots_s(to_integer(read_slot_s))=slot_dropped then
+    if consume_drop_s='1' then
       store_raddr_s <= slot_addr(read_slot_s+1,0);
-    elsif rd_en_i='1' and slots_s(to_integer(read_slot_s))=slot_complete then
+    elsif rd_en_i='1' and published_count_s>0 and dropped_s(to_integer(read_slot_s))='0' then
       if read_word_s=FRAME_WORD_COUNT_C-1 then store_raddr_s<=slot_addr(read_slot_s+1,0);
       else store_raddr_s<=slot_addr(read_slot_s,read_word_s+1); end if;
     end if;
@@ -203,20 +247,20 @@ begin
       case header_s is
         when 0 => store_din_s<=X"BE" & active_s.sample0_ts;
         when 1 => store_din_s<=X"00" & ch_id_i & version_i & active_s.continuation & '1' &
-                    active_descriptor_overflow_s & '0' & active_s.calibration_tag & active_s.baseline &
+                    descriptor_overflow_s & '0' & active_s.calibration_tag & active_s.baseline &
                     "00" & active_s.threshold_lsb & "00" & active_s.trigger_sample;
-        when others => store_din_s<=X"00" & active_trailer_s((header_s-2)*2+1) & active_trailer_s((header_s-2)*2);
+        when others => store_din_s<=X"00" & descriptor_trailer_s((header_s-2)*2+1) & descriptor_trailer_s((header_s-2)*2);
       end case;
     end if;
   end process;
   descriptor_start_s <= '1' when state_s=ser_idle and queue_count_s>0 and
-      seq_age(seq_s,queue_s(head_s).start_seq)>=511 and
-      seq_age(seq_s,queue_s(head_s).start_seq)<=RETENTION_LIMIT_C else '0';
+      seq_age(seq_s,queue_head_s.start_seq)>=511 and
+      seq_age(seq_s,queue_head_s.start_seq)<=RETENTION_LIMIT_C else '0';
   descriptor_pair_valid_s <= '1' when state_s=ser_load and load_s>0 else '0';
   descriptor_pair_idx_s <= to_unsigned(block_s*16+load_s-1,8) when load_s>0 else (others=>'0');
   descriptor_inst : entity work.fragment_peak_descriptors
     port map(clock_i=>clock_i, reset_i=>reset_i, start_i=>descriptor_start_s,
-      baseline_i=>queue_head_s.raw_baseline,
+      baseline_i=>descriptor_baseline_s,
       positive_pulse_i=>queue_head_s.positive_pulse,
       threshold_i=>queue_head_s.activity_threshold,
       pair_valid_i=>descriptor_pair_valid_s, sample0_i=>ring_data0_s, sample1_i=>ring_data1_s,
@@ -224,27 +268,29 @@ begin
       overflow_o=>descriptor_overflow_s);
 
   main_proc : process(clock_i)
-    variable q : frame_queue_t;
+    variable pending_head : frame_meta_t;
     variable head, tail, count : natural range 0 to FRAME_QUEUE_DEPTH_C;
-    variable slots : slot_state_array_t;
-    variable reserved, complete : natural range 0 to PACKET_SLOT_COUNT_C;
+    variable reserved, published : natural range 0 to PACKET_SLOT_COUNT_C;
     variable active_valid : std_logic;
     variable req : frame_meta_t;
     variable req_valid, req_cont, req_first, accepted, covered : boolean;
     variable trigger_age64 : unsigned(63 downto 0);
     variable event_end_seq, candidate_start_seq : sample_seq_t;
-    variable age, workload, wait_cycles, quiet_next, quiet_limit, min_spacing : natural;
+    variable age : natural range 0 to RING_DEPTH_C+1;
+    variable workload : natural range 0 to 5*SERIALIZER_CYCLES_C;
+    variable wait_cycles : natural range 0 to 511;
+    variable quiet_next, quiet_limit : natural range 0 to 511;
+    variable min_spacing : natural range 1 to 512;
     variable residual : integer range -16383 to 16383;
     variable activity_next : std_logic;
   begin
     if rising_edge(clock_i) then
       if reset_i='1' then
-        seq_s<=(others=>'0'); history_s<=0; queue_s<=(others=>META_NULL_C); head_s<=0; tail_s<=0; queue_count_s<=0;
+        seq_s<=(others=>'0'); history_s<=0; head_s<=0; tail_s<=0; queue_count_s<=0;
         active_s<=META_NULL_C; active_valid_s<='0'; state_s<=ser_idle;
-        slots_s<=(others=>slot_free); allocate_slot_s<=(others=>'0'); read_slot_s<=(others=>'0');
-        reserved_count_s<=0; complete_count_s<=0; read_word_s<=0;
+        allocate_slot_s<=(others=>'0'); read_slot_s<=(others=>'0');
+        reserved_count_s<=0; published_count_s<=0; read_word_s<=0;
         block_s<=0; load_s<=0; emit_s<=0; header_s<=0; samples_s<=(others=>(others=>'0'));
-        active_trailer_s<=PEAK_DESCRIPTOR_TRAILER_NULL; active_descriptor_overflow_s<='0';
         chain_active_s<='0'; current_accepted_s<='0'; previous_accepted_s<='0';
         current_s<=META_NULL_C; previous_s<=META_NULL_C; activity_s<='0'; quiet_s<=0; chain_quiet_limit_s<=32;
         required_end_s<=(others=>'0'); last_start_s<=(others=>'0'); last_start_valid_s<='0'; trigger_previous_s<='0';
@@ -253,8 +299,8 @@ begin
         trigger_count_s<=(others=>'0'); packet_count_s<=(others=>'0'); continuation_count_s<=(others=>'0');
         continuation_drop_s<=(others=>'0'); covered_count_s<=(others=>'0'); descriptor_overflow_count_s<=(others=>'0');
       else
-        q:=queue_s; head:=head_s; tail:=tail_s; count:=queue_count_s;
-        slots:=slots_s; reserved:=reserved_count_s; complete:=complete_count_s;
+        pending_head:=queue_head_s; head:=head_s; tail:=tail_s; count:=queue_count_s;
+        reserved:=reserved_count_s; published:=published_count_s;
         active_valid:=active_valid_s;
         seq_s<=seq_s+1;
         -- Expire the spacing reference before the32-bit local sample counter
@@ -268,26 +314,26 @@ begin
           trigger_count_s<=trigger_count_s+1;
         end if;
         -- Releasing or skipping a slot is the sole operation returning a credit.
-        if slots(to_integer(read_slot_s))=slot_dropped then
-          slots(to_integer(read_slot_s)):=slot_free; read_slot_s<=read_slot_s+1; read_word_s<=0; reserved:=reserved-1;
-        elsif rd_en_i='1' and slots(to_integer(read_slot_s))=slot_complete then
+        if consume_drop_s='1' then
+          read_slot_s<=read_slot_s+1; read_word_s<=0; reserved:=reserved-1; published:=published-1;
+        elsif rd_en_i='1' and published_count_s>0 and dropped_s(to_integer(read_slot_s))='0' then
           if read_word_s=FRAME_WORD_COUNT_C-1 then
-            slots(to_integer(read_slot_s)):=slot_free; read_slot_s<=read_slot_s+1; read_word_s<=0;
-            reserved:=reserved-1; complete:=complete-1;
+            read_slot_s<=read_slot_s+1; read_word_s<=0;
+            reserved:=reserved-1; published:=published-1;
           else read_word_s<=read_word_s+1; end if;
         end if;
         -- Serialization drains admitted work even when acquisition is disabled.
         case state_s is
           when ser_idle =>
             if count>0 then
-              age:=seq_age(seq_s,q(head).start_seq);
+              age:=seq_age(seq_s,pending_head.start_seq);
               if age>RETENTION_LIMIT_C then
-                slots(to_integer(q(head).slot)):=slot_dropped;
+                published:=published+1;
                 ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
-                if q(head).continuation='1' then continuation_drop_s<=continuation_drop_s+1; end if;
-                head:=next_q(head); count:=count-1;
+                if pending_head.continuation='1' then continuation_drop_s<=continuation_drop_s+1; end if;
+                head:=next_q(head); count:=count-1; pending_head:=queue_next_s;
               elsif age>=511 then
-                active_s<=q(head); active_valid:='1'; block_s<=0; load_s<=0; emit_s<=0;
+                active_s<=pending_head; active_valid:='1'; block_s<=0; load_s<=0; emit_s<=0;
                 state_s<=ser_load; head:=next_q(head); count:=count-1;
               end if;
             end if;
@@ -301,15 +347,14 @@ begin
           when ser_emit =>
             if emit_s=6 then
               if block_s=15 then
-                active_trailer_s<=descriptor_trailer_s; active_descriptor_overflow_s<=descriptor_overflow_s;
                 header_s<=0; state_s<=ser_header;
               else block_s<=block_s+1; load_s<=0; state_s<=ser_load; end if;
             else emit_s<=emit_s+1; end if;
           when ser_header =>
             if header_s=7 then
-              slots(to_integer(active_s.slot)):=slot_complete; complete:=complete+1;
+              published:=published+1;
               active_valid:='0'; state_s<=ser_idle; record_count_s<=record_count_s+1;
-              if active_descriptor_overflow_s='1' then descriptor_overflow_count_s<=descriptor_overflow_count_s+1; end if;
+              if descriptor_overflow_s='1' then descriptor_overflow_count_s<=descriptor_overflow_count_s+1; end if;
             else header_s<=header_s+1; end if;
         end case;
 
@@ -317,8 +362,8 @@ begin
         quiet_next:=quiet_s; activity_next:=activity_s;
         -- Evaluate the inclusive final sample before deciding the next fragment.
         if chain_active_s='1' and enable_i='1' and continuation_enable_i='1' then
-          if current_s.positive_pulse='1' then residual:=to_integer(unsigned(din_i))-to_integer(unsigned(current_s.raw_baseline));
-          else residual:=to_integer(unsigned(current_s.raw_baseline))-to_integer(unsigned(din_i)); end if;
+          if current_s.positive_pulse='1' then residual:=to_integer(unsigned(din_i))-to_integer(unsigned(activity_baseline_s));
+          else residual:=to_integer(unsigned(activity_baseline_s))-to_integer(unsigned(din_i)); end if;
           if activity_s='0' and residual>=to_integer(unsigned(current_s.activity_threshold)) then activity_next:='1';
           elsif activity_s='1' and residual<=to_integer(unsigned(current_s.activity_threshold))/2 then activity_next:='0'; end if;
           if activity_next='1' then quiet_next:=0;
@@ -390,8 +435,7 @@ begin
               else
                 req:=META_NULL_C; req.start_seq:=seq_s-to_unsigned(age,32);
                 req.sample0_ts:=std_logic_vector(unsigned(event_timestamp_s)-64);
-                req.baseline:=trigger_i.baseline; req.raw_baseline:=trigger_i.baseline;
-                if positive_pulse_i='1' then req.raw_baseline:=std_logic_vector(to_unsigned(0,14)-unsigned(trigger_i.baseline)); end if;
+                req.baseline:=trigger_i.baseline;
                 req.trigger_sample:=event_sample_s; req.threshold_lsb:=threshold_xc_i(13 downto 0);
                 req.activity_threshold:=activity_threshold_i;
                 if unsigned(activity_threshold_i)=0 then req.activity_threshold:=std_logic_vector(to_unsigned(1,14)); end if;
@@ -403,11 +447,19 @@ begin
         end if;
         if req_valid then
           age:=seq_age(seq_s,req.start_seq);
-          workload:=count*SERIALIZER_CYCLES_C;
+          -- Small explicit table: keep the work estimate out of generic
+          -- integer multiplication and expose its tight synthesis bounds.
+          case count is
+            when 0 => workload:=0;
+            when 1 => workload:=393;
+            when 2 => workload:=786;
+            when 3 => workload:=1179;
+            when others => workload:=1572;
+          end case;
           if active_valid='1' then workload:=workload+SERIALIZER_CYCLES_C; end if;
           wait_cycles:=0;
-          if active_valid='0' and count>0 and seq_age(seq_s,q(head).start_seq)<511 then
-            wait_cycles:=511-seq_age(seq_s,q(head).start_seq);
+          if active_valid='0' and count>0 and seq_age(seq_s,pending_head.start_seq)<511 then
+            wait_cycles:=511-seq_age(seq_s,pending_head.start_seq);
           end if;
           accepted:=false;
           if reserved=PACKET_SLOT_COUNT_C then full_count_s<=full_count_s+1;
@@ -415,10 +467,8 @@ begin
           elsif age+workload+wait_cycles>RETENTION_LIMIT_C then ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
           else
             req.slot:=allocate_slot_s;
-            assert slots(to_integer(allocate_slot_s))=slot_free report "packet reservation reused a live slot" severity failure;
-            slots(to_integer(allocate_slot_s)):=slot_reserved;
             allocate_slot_s<=allocate_slot_s+1; reserved:=reserved+1;
-            q(tail):=req; tail:=next_q(tail); count:=count+1; accepted:=true;
+            queue_s(tail_s)<=pack_meta(req); tail:=next_q(tail); count:=count+1; accepted:=true;
             packet_count_s<=packet_count_s+1; last_start_s<=req.start_seq; last_start_valid_s<='1';
             if req_cont then continuation_count_s<=continuation_count_s+1; end if;
           end if;
@@ -443,8 +493,15 @@ begin
           trigger_count_s<=(others=>'0'); packet_count_s<=(others=>'0'); continuation_count_s<=(others=>'0');
           continuation_drop_s<=(others=>'0'); covered_count_s<=(others=>'0'); descriptor_overflow_count_s<=(others=>'0');
         end if;
-        queue_s<=q; head_s<=head; tail_s<=tail; queue_count_s<=count;
-        slots_s<=slots; reserved_count_s<=reserved; complete_count_s<=complete; active_valid_s<=active_valid;
+        -- synthesis translate_off
+        if active_valid='1' then
+          assert reserved=published+count+1 report "packet reservation conservation failed" severity failure;
+        else
+          assert reserved=published+count report "packet reservation conservation failed" severity failure;
+        end if;
+        -- synthesis translate_on
+        head_s<=head; tail_s<=tail; queue_count_s<=count;
+        reserved_count_s<=reserved; published_count_s<=published; active_valid_s<=active_valid;
       end if;
     end if;
   end process;
