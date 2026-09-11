@@ -37,12 +37,29 @@ architecture rtl of fragment_peak_descriptors_banked is
   signal baseline_s, threshold_s, peak_s : unsigned(13 downto 0) := (others=>'0');
   signal positive_s, running_s, in_run_s : std_logic := '0';
   signal integral_s : unsigned(22 downto 0) := (others=>'0');
+  signal amplitude_s : unsigned(13 downto 0);
+  signal integral_sum_s : unsigned(22 downto 0);
+  attribute use_dsp : string;
+  attribute use_dsp of integral_sum_s : signal is "yes";
   signal start_s, peak_time_s : unsigned(8 downto 0) := (others=>'0');
   signal duration_s : unsigned(9 downto 0) := (others=>'0');
   signal slot_s : natural range 0 to 5 := 0;
   signal working_overflow_s, completed_overflow_s : std_logic := '0';
 begin
   overflow_o <= completed_overflow_s;
+  -- Use the arriving configuration on a simultaneous start/sample0 edge.
+  -- The DSP adder is combinational, retaining the existing accumulation cycle.
+  amplitude_proc : process(all)
+    variable baseline : unsigned(13 downto 0);
+    variable positive : std_logic;
+  begin
+    baseline := baseline_s; positive := positive_s;
+    if start_i='1' then baseline := unsigned(baseline_i); positive := positive_pulse_i; end if;
+    amplitude_s <= (others=>'0');
+    if positive='1' and unsigned(sample_i)>baseline then amplitude_s <= unsigned(sample_i)-baseline;
+    elsif positive='0' and unsigned(sample_i)<baseline then amplitude_s <= baseline-unsigned(sample_i); end if;
+  end process;
+  integral_sum_s <= integral_s+resize(amplitude_s,23);
 
   process(all)
     variable index : natural range 0 to 7;
@@ -102,15 +119,13 @@ begin
           run_start := (others=>'0'); peak_time := (others=>'0'); in_run := '0'; slot := 0;
         end if;
         if sample_valid_i='1' and (running_s='1' or start_i='1') then
-          amplitude := (others=>'0');
-          if positive='1' and unsigned(sample_i)>baseline then amplitude := unsigned(sample_i)-baseline;
-          elsif positive='0' and unsigned(sample_i)<baseline then amplitude := baseline-unsigned(sample_i); end if;
+          amplitude := amplitude_s;
           if amplitude>threshold then
             if in_run='0' then
               integral := resize(amplitude,23); peak := amplitude; duration := to_unsigned(1,10);
               run_start := sample_index_i; peak_time := (others=>'0'); in_run := '1';
             else
-              integral := integral+resize(amplitude,23); duration := duration+1;
+              integral := integral_sum_s; duration := duration+1;
               if amplitude>peak then peak := amplitude; peak_time := sample_index_i-run_start; end if;
             end if;
           end if;
