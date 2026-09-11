@@ -105,6 +105,6 @@ vivado -mode batch -source scripts/verification/audit_routed_checkpoint.tcl \
   -tclargs ROUTED_CHECKPOINT NEW_REPORT_DIRECTORY
 ```
 
-Review route status, setup/hold timing, clock coverage, CDC, exception coverage,
-methodology and DRC reports against the implemented interfaces. The collector's
+Review route status, setup/hold timing, bus skew, clock coverage, CDC, exception
+coverage, methodology and DRC reports against the implemented interfaces. The collector's
 completion marker means reports were generated, not that qualification passed.

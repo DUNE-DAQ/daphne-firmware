@@ -24,6 +24,7 @@ report_cdc -details -file [file join $report_dir cdc.rpt]
 report_exceptions -coverage -file [file join $report_dir exceptions_coverage.rpt]
 report_methodology -file [file join $report_dir methodology.rpt]
 report_timing_summary -report_unconstrained -file [file join $report_dir timing_summary.rpt]
+report_bus_skew -file [file join $report_dir bus_skew.rpt]
 report_drc -file [file join $report_dir drc.rpt]
 set complete [open [file join $report_dir reports_complete.txt] w]
 puts $complete "Reports generated; this is not an automatic timing/CDC qualification result."
