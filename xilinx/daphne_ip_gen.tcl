@@ -337,6 +337,9 @@ set_property TAXONOMY /UserIP $daphne
 # create file groups for the IP
 
 # RTL file groups
+# The public IP model deliberately retains the daphne_selftrigger_top wrapper
+# and its k26c_board_shell_inst hierarchy used by the timing constraints. The
+# wrapper ports must match the selected board shell used to infer IP ports.
 set lang_synth [ipx::add_file_group xilinx_anylanguagesynthesis $daphne]
 set_property LANGUAGE VHDL $lang_synth
 set_property MODEL_NAME $componentIdentifier $lang_synth
@@ -594,6 +597,16 @@ ipx::update_checksums $daphne
 
 # create the ports based on the TOP level design and the subcores
 set daphne_ports [ipx::add_ports_from_hdl -top_level_hdl_file $daphne_ip_top_hdl_file -top_module_name $daphne_ip_top_module -include_dirs $daphne_ip_include_dirs $daphne]
+
+# Fail packaging immediately if any required four-SFP physical port is absent.
+foreach sfp {0 1 2 3} {
+    foreach suffix {rx_p rx_n tx_p tx_n tx_dis} {
+        set sfp_port eth${sfp}_${suffix}
+        if {[llength [ipx::get_ports $sfp_port -of_objects $daphne]] != 1} {
+            error "ERROR: packaged IP is missing required four-SFP port $sfp_port."
+        }
+    }
+}
 
 # create the generic parameters of the design based on the TOP level generic
 set daphne_generics [ipx::add_model_parameters_from_hdl -top_level_hdl_file $daphne_ip_top_hdl_file -top_module_name $daphne_ip_top_module -include_dirs $daphne_ip_include_dirs $daphne]

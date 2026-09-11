@@ -76,9 +76,11 @@ proc daphne_connect_board_user_ip {block_cell_name} {
     connect_bd_net -net [daphne_bd_net_label $block_cell_name dac_ldac_n] [daphne_bd_pin $block_cell_name dac_ldac_n] [get_bd_ports DACS_LDACN]
     connect_bd_net -net [daphne_bd_net_label $block_cell_name dac_sclk] [daphne_bd_pin $block_cell_name dac_sclk] [get_bd_ports DACS_SCLK]
     connect_bd_net -net [daphne_bd_net_label $block_cell_name dac_sync_n] [daphne_bd_pin $block_cell_name dac_sync_n] [get_bd_ports DACS_CS]
-    connect_bd_net -net [daphne_bd_net_label $block_cell_name eth0_tx_dis] [daphne_bd_pin $block_cell_name eth0_tx_dis] [get_bd_ports SFP_GTH0_TX_DIS]
-    connect_bd_net -net [daphne_bd_net_label $block_cell_name eth0_tx_n] [daphne_bd_pin $block_cell_name eth0_tx_n] [get_bd_ports TX0_GTH_N]
-    connect_bd_net -net [daphne_bd_net_label $block_cell_name eth0_tx_p] [daphne_bd_pin $block_cell_name eth0_tx_p] [get_bd_ports TX0_GTH_P]
+    foreach sfp {0 1 2 3} {
+        connect_bd_net -net [daphne_bd_net_label $block_cell_name eth${sfp}_tx_dis] [daphne_bd_pin $block_cell_name eth${sfp}_tx_dis] [get_bd_ports SFP_GTH${sfp}_TX_DIS]
+        connect_bd_net -net [daphne_bd_net_label $block_cell_name eth${sfp}_tx_n] [daphne_bd_pin $block_cell_name eth${sfp}_tx_n] [get_bd_ports TX${sfp}_GTH_N]
+        connect_bd_net -net [daphne_bd_net_label $block_cell_name eth${sfp}_tx_p] [daphne_bd_pin $block_cell_name eth${sfp}_tx_p] [get_bd_ports TX${sfp}_GTH_P]
+    }
     connect_bd_net -net [daphne_bd_net_label $block_cell_name fan_ctrl] [daphne_bd_pin $block_cell_name fan_ctrl] [get_bd_ports FAN_CONTROL]
     connect_bd_net -net [daphne_bd_net_label $block_cell_name hvbias_en] [daphne_bd_pin $block_cell_name hvbias_en] [get_bd_ports VBIAS_EN]
     connect_bd_net -net [daphne_bd_net_label $block_cell_name mux_a] [daphne_bd_pin $block_cell_name mux_a] [get_bd_ports MUXA]
@@ -104,8 +106,10 @@ proc daphne_connect_board_user_ip {block_cell_name} {
     connect_bd_net -net afe3_p_0_1 [get_bd_ports afe3_p] [daphne_bd_pin $block_cell_name afe3_p]
     connect_bd_net -net afe4_n_0_1 [get_bd_ports afe4_n] [daphne_bd_pin $block_cell_name afe4_n]
     connect_bd_net -net afe4_p_0_1 [get_bd_ports afe4_p] [daphne_bd_pin $block_cell_name afe4_p]
-    connect_bd_net -net eth0_rx_n_0_1 [get_bd_ports RX0_GTH_N] [daphne_bd_pin $block_cell_name eth0_rx_n]
-    connect_bd_net -net eth0_rx_p_0_1 [get_bd_ports RX0_GTH_P] [daphne_bd_pin $block_cell_name eth0_rx_p]
+    foreach sfp {0 1 2 3} {
+        connect_bd_net -net eth${sfp}_rx_n_0_1 [get_bd_ports RX${sfp}_GTH_N] [daphne_bd_pin $block_cell_name eth${sfp}_rx_n]
+        connect_bd_net -net eth${sfp}_rx_p_0_1 [get_bd_ports RX${sfp}_GTH_P] [daphne_bd_pin $block_cell_name eth${sfp}_rx_p]
+    }
     connect_bd_net -net eth_clk_n_0_1 [get_bd_ports GTH0_REFCLK_N] [daphne_bd_pin $block_cell_name eth_clk_n]
     connect_bd_net -net eth_clk_p_0_1 [get_bd_ports GTH0_REFCLK_P] [daphne_bd_pin $block_cell_name eth_clk_p]
     connect_bd_net -net fan_tach_0_1 [get_bd_ports fan_tach] [daphne_bd_pin $block_cell_name fan_tach]

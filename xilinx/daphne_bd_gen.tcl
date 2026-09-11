@@ -54,7 +54,11 @@ if {$daphne_bd_shell_tcl ne ""} {
 }
 
 proc daphne_bd_pin {cell_name pin_name} {
-    return [get_bd_pins "${cell_name}/${pin_name}"]
+    set pins [get_bd_pins -quiet "${cell_name}/${pin_name}"]
+    if {[llength $pins] != 1} {
+        error "ERROR: required user-IP pin ${cell_name}/${pin_name} is missing or ambiguous."
+    }
+    return $pins
 }
 
 proc daphne_bd_intf_pin {cell_name pin_name} {
