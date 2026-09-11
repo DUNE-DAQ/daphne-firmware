@@ -22,7 +22,8 @@ The first sample is consumed one clock after its read launch; sample511
 writes the final payload word at launch+512. The next fragment can launch on
 that edge. Eight header words use gaps between its payload writes, publishing
 the previous packet 8 or 9 clocks after its final sample. Fragment descriptors
-are captured before the helper starts the next frame. Readout sees the
+are stored in alternating distributed-RAM banks; the completed bank remains
+readable while the helper processes the next frame. Readout sees the
 original header-first 120-word order and cannot start an incomplete packet.
 
 Continuation uses a baseline and polarity frozen at the chain's first trigger.
@@ -167,3 +168,17 @@ but are not dependencies of this board shell or its output-monitor plane.
 The previous synthesized design attributed 3681 LUTs and 53 BRAM36 blocks
 to the two removed planes. Net savings require the next synthesized report,
 which will include the small replacement AXI responders.
+
+## Removed AFE digital compensator
+
+The `IIRFilter_afe_integrator_optimized` instance is removed from the active
+trigger filter. A single signed16 register implements its former disabled
+bypass path, preserving the pipeline latency with compensation off. Baseline
+subtraction, pulse polarity, cross-correlation and CFD stages remain active.
+The former compensator enable registers at stuff offsets 0x3C and 0x40 now
+ignore writes and read zero; their output enable mask is tied to zero.
+
+Run `python3 scripts/verification/run_compensator_removal_tests.py` for the
+bypass-latency and actual stuff AXI tests. The wrapper test uses the existing
+LPF/XC validation stand-ins and the actual CFD; it verifies the compensator
+boundary, not a complete analog-to-trigger equivalence proof.
