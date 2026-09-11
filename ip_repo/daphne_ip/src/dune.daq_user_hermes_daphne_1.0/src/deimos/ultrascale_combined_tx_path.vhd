@@ -25,11 +25,13 @@ use work.tx_mux_decl.all;
 
 entity ultrascale_combined_tx_path is
     generic(
+        PACKET_WORDS: natural := 0;
         N_SRC               : integer := 4;
         N_MGT               : positive range 1 to 4 := 2;
         IN_BUF_DEPTH        : natural
     );
     port(
+        packet_ready: out std_logic_vector(N_MGT*N_SRC-1 downto 0) := (others => '0');
         ipb_clk             : in  std_logic;
         ipb_rst             : in  std_logic;
         ipb_in              : in  ipb_wbus;
@@ -265,6 +267,7 @@ src_gen: for i in 0 to N_MGT-1 generate
 -- tx_mux       
 mux: entity work.tx_mux
 generic map(
+    PACKET_WORDS => PACKET_WORDS,
     N_SRC => N_SRC,
     IFACE_ID => i,
     IN_BUF_DEPTH => IN_BUF_DEPTH
@@ -277,6 +280,7 @@ port map(
     src_clk => data_clk,
     src_rst => data_clk_rst,
     ts => ts,
+    packet_ready => packet_ready((i+1)*N_SRC-1 downto i*N_SRC),
     d => d_array((i*N_SRC)+N_SRC - 1 downto (i*N_SRC)),
     samp => samp,
     mark => mark,

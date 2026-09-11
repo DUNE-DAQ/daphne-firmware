@@ -22,9 +22,11 @@ use work.tx_mux_decl.all;
 
 entity tx_mux_ibuf is
     generic(
+        PACKET_WORDS: natural := 0;
         IN_BUF_DEPTH: natural:= 2048
     );
     port(
+        packet_ready: out std_logic := '0';
         ipb_clk: in std_logic;
         ipb_rst: in std_logic;
         ipb_in: in ipb_wbus;
@@ -57,6 +59,7 @@ architecture rtl of tx_mux_ibuf is
     type rx_state_t is (ST_INIT, ST_DISC, ST_RUN);
     signal rx_state: rx_state_t;
     signal lfifo_busy_rx, fifo_busy_rx, lfifo_full, fifo_full, lfifo_we, fifo_we: std_logic;
+    signal fifo_reserve_full, lfifo_reserve_full: std_logic;
     signal rx_run, oflow: std_logic;
     signal rx_ctr: unsigned(11 downto 0);
     signal lfifo_d, lfifo_q: std_logic_vector(12 downto 0);
@@ -78,6 +81,14 @@ architecture rtl of tx_mux_ibuf is
     attribute mark_debug of rx_state, d, lfifo_we, lfifo_d, rx_ctr, fifo_we, lfifo_full, fifo_full, oflow, tx_state, txw, last: signal is true;
 
 begin
+    assert PACKET_WORDS = 0 or (PACKET_WORDS <= MAX_BLK_SIZE and PACKET_WORDS + 16 < IN_BUF_DEPTH)
+        report "Invalid Hermes fixed-packet reservation" severity failure;
+    -- Source-domain programmable-full flags reserve a whole block plus four
+    -- pipeline words. Only the packet scheduler consumes this admission signal.
+    packet_ready <= '1' when PACKET_WORDS /= 0 and rx_state = ST_RUN and
+        src_rst = '0' and fifo_busy_rx = '0' and lfifo_busy_rx = '0' and
+        fifo_reserve_full = '0' and lfifo_reserve_full = '0' and
+        ctrl_fake_en = '0' else '0';
 
 -- Registers
 
@@ -154,10 +165,16 @@ begin
                 case rx_state is
                 when ST_INIT =>  -- Starting state
                     if fifo_busy_rx = '0' and lfifo_busy_rx = '0' then
-                        rx_state <= ST_DISC;
+                        if PACKET_WORDS /= 0 then
+                            -- After reset, wait for an idle source boundary so a
+                            -- tail of an interrupted packet cannot be published.
+                            if di.valid = '0' then rx_state <= ST_RUN; end if;
+                        else
+                            rx_state <= ST_DISC;
+                        end if;
                     end if;
                 when ST_DISC => -- Discard packets
-                    if di.last = '1' and fifo_full = '0' and lfifo_full = '0' then
+                    if (di.last = '1' or (PACKET_WORDS /= 0 and di.valid = '0')) and fifo_full = '0' and lfifo_full = '0' then
                         rx_state <= ST_RUN;
                     end if;
                 when ST_RUN => -- Operating
@@ -193,17 +210,19 @@ begin
             FIFO_MEMORY_TYPE => "distributed",
             FIFO_READ_LATENCY => 0,
             FIFO_WRITE_DEPTH => LBUF_DEPTH,
+            PROG_FULL_THRESH => LBUF_DEPTH - 4,
             WR_DATA_COUNT_WIDTH => LBUF_C_W,
             READ_DATA_WIDTH => 13,
             READ_MODE => "fwft",
             SIM_ASSERT_CHK => 1,
-            USE_ADV_FEATURES => "1004",
+            USE_ADV_FEATURES => "1006",
             WRITE_DATA_WIDTH => 13
         )
         port map(
             data_valid => lfifo_valid,
             dout => lfifo_q,
             full => lfifo_full,
+            prog_full => lfifo_reserve_full,
             wr_data_count => lfifo_c(LBUF_C_W - 1 downto 0),
             rd_rst_busy => lfifo_busy_tx,
             wr_rst_busy => lfifo_busy_rx,
@@ -229,19 +248,20 @@ begin
             FIFO_MEMORY_TYPE => "block",
             FIFO_READ_LATENCY => 0,
             FIFO_WRITE_DEPTH => IN_BUF_DEPTH,
-            PROG_FULL_THRESH => 16,
+            PROG_FULL_THRESH => IN_BUF_DEPTH - PACKET_WORDS - 4,
             RD_DATA_COUNT_WIDTH => 8,
             WR_DATA_COUNT_WIDTH => 8,
             READ_DATA_WIDTH => 64,
             READ_MODE => "fwft",
             SIM_ASSERT_CHK => 1,
-            USE_ADV_FEATURES => "1404",
+            USE_ADV_FEATURES => "1406",
             WRITE_DATA_WIDTH => 64
         )
         port map(
             data_valid => fifo_valid,
             dout => fifo_q,
             full => fifo_full,
+            prog_full => fifo_reserve_full,
             rd_data_count => fifo_cw,
             wr_data_count => fifo_c,
             rd_rst_busy => fifo_busy_tx,

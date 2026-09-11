@@ -18,11 +18,13 @@ use work.tx_mux_decl.all;
 
 entity tx_mux is
     generic(
+        PACKET_WORDS: natural := 0;
         N_SRC: positive;
         IFACE_ID: integer;
         IN_BUF_DEPTH: natural
     );
     port(
+        packet_ready: out std_logic_vector(N_SRC-1 downto 0) := (others => '0');
         ipb_clk: in std_logic;
         ipb_rst: in std_logic;
         ipb_in: in  ipb_wbus;
@@ -174,6 +176,7 @@ begin
 
         ibuf: entity work.tx_mux_ibuf
             generic map(
+                PACKET_WORDS => PACKET_WORDS,
                 IN_BUF_DEPTH => IN_BUF_DEPTH
             )
             port map(
@@ -185,6 +188,7 @@ begin
                 src_rst => rst_buf,
                 ts => ts,
                 d => d(i),
+                packet_ready => packet_ready(i),
                 eth_clk => eth_clk,
                 eth_rst => rst,
                 re => re(i),

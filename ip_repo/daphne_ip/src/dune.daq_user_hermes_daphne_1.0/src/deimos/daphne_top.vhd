@@ -20,6 +20,7 @@ use work.tx_mux_decl.all;
 use work.freq_pkg.all;
 
 entity daphne_top is
+    generic (N_MGT: positive range 1 to 4 := 1; PACKET_WORDS: natural := 0; IN_BUF_DEPTH: positive := 2048);
     port(
         S_AXI_ACLK: in std_logic;
         S_AXI_ARESETN: in std_logic;
@@ -43,11 +44,11 @@ entity daphne_top is
         S_AXI_RVALID: out std_logic;
         S_AXI_RREADY: in std_logic;
         
-        eth_rx_p: in  std_logic_vector(0 downto 0); -- Ethernet rx from SFP
-        eth_rx_n: in  std_logic_vector(0 downto 0);
-        eth_tx_p: out std_logic_vector(0 downto 0); -- Ethernet tx to SFP
-        eth_tx_n: out std_logic_vector(0 downto 0);
-        eth_tx_dis: out std_logic_vector(0 downto 0); -- SFP tx_disable
+        eth_rx_p: in  std_logic_vector(N_MGT-1 downto 0); -- Ethernet rx from SFP
+        eth_rx_n: in  std_logic_vector(N_MGT-1 downto 0);
+        eth_tx_p: out std_logic_vector(N_MGT-1 downto 0); -- Ethernet tx to SFP
+        eth_tx_n: out std_logic_vector(N_MGT-1 downto 0);
+        eth_tx_dis: out std_logic_vector(N_MGT-1 downto 0); -- SFP tx_disable
     
         eth_clk_p: in std_logic; -- Transceiver refclk
         eth_clk_n: in std_logic;
@@ -66,6 +67,26 @@ entity daphne_top is
         d1_valid: in std_logic;
         d1_last: in std_logic;
 
+        d2: in std_logic_vector(63 downto 0) := (others => '0');
+        d2_valid: in std_logic := '0';
+        d2_last: in std_logic := '0';
+        d3: in std_logic_vector(63 downto 0) := (others => '0');
+        d3_valid: in std_logic := '0';
+        d3_last: in std_logic := '0';
+        d4: in std_logic_vector(63 downto 0) := (others => '0');
+        d4_valid: in std_logic := '0';
+        d4_last: in std_logic := '0';
+        d5: in std_logic_vector(63 downto 0) := (others => '0');
+        d5_valid: in std_logic := '0';
+        d5_last: in std_logic := '0';
+        d6: in std_logic_vector(63 downto 0) := (others => '0');
+        d6_valid: in std_logic := '0';
+        d6_last: in std_logic := '0';
+        d7: in std_logic_vector(63 downto 0) := (others => '0');
+        d7_valid: in std_logic := '0';
+        d7_last: in std_logic := '0';
+        packet_ready: out std_logic_vector(2*N_MGT-1 downto 0) := (others => '0');
+
         ts : in std_logic_vector(63 downto 0);
         
         ext_mac_addr    : in std_logic_vector(47 downto 0);
@@ -76,6 +97,11 @@ end entity daphne_top;
 
 architecture rtl of daphne_top is
 
+    signal sources: array_of_src_d_arrays(N_MGT-1 downto 0)(1 downto 0);
+    signal flat_sources: src_d_array(7 downto 0);
+    signal mac_addresses: mac_addr_array(N_MGT-1 downto 0);
+    signal ip_addresses: ip_addr_array(N_MGT-1 downto 0);
+    signal port_addresses: udp_port_array(N_MGT-1 downto 0);
     signal ipbw: ipb_wbus;
     signal ipbr: ipb_rbus;
     signal ipb_clk, ipb_rst: std_logic;
@@ -83,6 +109,23 @@ architecture rtl of daphne_top is
     constant C_S_AXI_ADDR_WIDTH: integer := 16;
     
 begin
+
+    flat_sources(0) <= (d0, d0_valid, d0_last);
+    flat_sources(1) <= (d1, d1_valid, d1_last);
+    flat_sources(2) <= (d2, d2_valid, d2_last);
+    flat_sources(3) <= (d3, d3_valid, d3_last);
+    flat_sources(4) <= (d4, d4_valid, d4_last);
+    flat_sources(5) <= (d5, d5_valid, d5_last);
+    flat_sources(6) <= (d6, d6_valid, d6_last);
+    flat_sources(7) <= (d7, d7_valid, d7_last);
+    links: for i in 0 to N_MGT-1 generate
+        sources(i)(0) <= flat_sources(2*i);
+        sources(i)(1) <= flat_sources(2*i+1);
+        -- Preserve link0 identity; each additional physical interface is unique.
+        mac_addresses(i) <= std_logic_vector(unsigned(ext_mac_addr) + i);
+        ip_addresses(i) <= std_logic_vector(unsigned(ext_ip_addr) + i);
+        port_addresses(i) <= ext_port_addr;
+    end generate;
 
     ipb_ctrl : entity work.ipb_axi4_lite_ctrl
         port map (
@@ -121,9 +164,10 @@ begin
     mux: entity work.eth_readout
         generic map(
             N_SRC => 2,
-            N_MGT => 1,
+            N_MGT => N_MGT,
+            PACKET_WORDS => PACKET_WORDS,
             REF_FREQ => f156_25,
-            IN_BUF_DEPTH => 2048
+            IN_BUF_DEPTH => IN_BUF_DEPTH
         )
         port map(
             ipb_clk                => ipb_clk,
@@ -148,17 +192,11 @@ begin
             
             data_clk               => data_clk,
             data_clk_rst           => data_clk_rst,
-            d(0)(0).d              => d0,
-            d(0)(0).valid          => d0_valid,
-            d(0)(0).last           => d0_last,
-
-            d(0)(1).d              => d1,
-            d(0)(1).valid          => d1_valid,
-            d(0)(1).last           => d1_last,
-            
-            ext_mac_addr(0)        => ext_mac_addr,
-            ext_ip_addr(0)         => ext_ip_addr,
-            ext_port_addr(0)       => ext_port_addr
+            d                      => sources,
+            packet_ready           => packet_ready,
+            ext_mac_addr           => mac_addresses,
+            ext_ip_addr            => ip_addresses,
+            ext_port_addr          => port_addresses
         );
 
 end architecture rtl;

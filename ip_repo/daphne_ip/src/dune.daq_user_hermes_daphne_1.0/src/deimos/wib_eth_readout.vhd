@@ -29,12 +29,14 @@ use work.hermes_core_version_pkg.all;
 
 entity eth_readout is
     generic(
+        PACKET_WORDS: natural := 0;
         N_SRC: positive;
         N_MGT: positive;
         IN_BUF_DEPTH: natural;
         REF_FREQ: t_freq := f156_25
     );
     port(
+        packet_ready: out std_logic_vector(N_MGT*N_SRC-1 downto 0) := (others => '0');
         ipb_clk: in std_logic;
         ipb_rst: in std_logic;
         ipb_in: in  ipb_wbus;
@@ -167,6 +169,7 @@ begin
     tx_path: entity work.ultrascale_combined_tx_path
 
       generic map(
+        PACKET_WORDS => PACKET_WORDS,
         N_SRC  => N_SRC,
         N_MGT  => N_MGT,
         IN_BUF_DEPTH => IN_BUF_DEPTH
@@ -193,6 +196,7 @@ begin
         phy_ready_array     => txpath_ready_array,
         rst_156_25_array    => rst_156_25_array,
         d => d,
+        packet_ready => packet_ready,
         ext_mac_addr    => ext_mac_addr,  
         ext_ip_addr     => ext_ip_addr,   
         ext_port_addr   => ext_port_addr, 
