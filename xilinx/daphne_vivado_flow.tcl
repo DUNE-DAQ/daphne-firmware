@@ -236,6 +236,9 @@ proc daphne_run_synth {cfg_name} {
     upvar 1 $cfg_name cfg
 
     synth_design -top $cfg(bd_wrapper_name) -directive $cfg(synth_directive)
+    # Generated single-channel XXV constraints all initially select X0Y4.
+    # Override them only after synthesis has loaded every scoped IP constraint.
+    source [file join $cfg(script_dir) "daphne_four_sfp_gt.tcl"]
     if {[string tolower $cfg(dump_post_synth_debug)] in {"1" "true" "yes" "on"}} {
         puts "INFO: Dumping post-synth clock/object debug reports before Tcl-backed timing constraints."
         daphne_dump_post_synth_debug cfg

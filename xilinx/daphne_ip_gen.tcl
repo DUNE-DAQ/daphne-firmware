@@ -302,6 +302,12 @@ if {$daphne_eth_mode eq "create_ip"} {
     set_property -dict [list \
         CONFIG.CORE {Ethernet PCS/PMA 64-bit} \
         CONFIG.BASE_R_KR {BASE-R} \
+        CONFIG.LINE_RATE {10} \
+        CONFIG.NUM_OF_CORES {1} \
+        CONFIG.GT_TYPE {GTH} \
+        CONFIG.GT_REF_CLK_FREQ {156.25} \
+        CONFIG.GT_GROUP_SELECT {Quad_X0Y1} \
+        CONFIG.LANE1_GT_LOC {X0Y4} \
         CONFIG.INCLUDE_AXI4_INTERFACE {0} \
         CONFIG.INCLUDE_STATISTICS_COUNTERS {0} \
         CONFIG.INCLUDE_SHARED_LOGIC {0} \

@@ -110,9 +110,11 @@ proc daphne_connect_default_user_ip {block_cell_name} {
     connect_bd_net -net [daphne_bd_net_label $block_cell_name dac_ldac_n] [daphne_bd_pin $block_cell_name dac_ldac_n] [get_bd_ports DACS_LDACN]
     connect_bd_net -net [daphne_bd_net_label $block_cell_name dac_sclk] [daphne_bd_pin $block_cell_name dac_sclk] [get_bd_ports DACS_SCLK]
     connect_bd_net -net [daphne_bd_net_label $block_cell_name dac_sync_n] [daphne_bd_pin $block_cell_name dac_sync_n] [get_bd_ports DACS_CS]
-    connect_bd_net -net [daphne_bd_net_label $block_cell_name eth0_tx_dis] [daphne_bd_pin $block_cell_name eth0_tx_dis] [get_bd_ports SFP_GTH0_TX_DIS]
-    connect_bd_net -net [daphne_bd_net_label $block_cell_name eth0_tx_n] [daphne_bd_pin $block_cell_name eth0_tx_n] [get_bd_ports TX0_GTH_N]
-    connect_bd_net -net [daphne_bd_net_label $block_cell_name eth0_tx_p] [daphne_bd_pin $block_cell_name eth0_tx_p] [get_bd_ports TX0_GTH_P]
+    foreach sfp {0 1 2 3} {
+        connect_bd_net -net [daphne_bd_net_label $block_cell_name eth${sfp}_tx_dis] [daphne_bd_pin $block_cell_name eth${sfp}_tx_dis] [get_bd_ports SFP_GTH${sfp}_TX_DIS]
+        connect_bd_net -net [daphne_bd_net_label $block_cell_name eth${sfp}_tx_n] [daphne_bd_pin $block_cell_name eth${sfp}_tx_n] [get_bd_ports TX${sfp}_GTH_N]
+        connect_bd_net -net [daphne_bd_net_label $block_cell_name eth${sfp}_tx_p] [daphne_bd_pin $block_cell_name eth${sfp}_tx_p] [get_bd_ports TX${sfp}_GTH_P]
+    }
     connect_bd_net -net [daphne_bd_net_label $block_cell_name fan_ctrl] [daphne_bd_pin $block_cell_name fan_ctrl] [get_bd_ports FAN_CONTROL]
     connect_bd_net -net [daphne_bd_net_label $block_cell_name hvbias_en] [daphne_bd_pin $block_cell_name hvbias_en] [get_bd_ports VBIAS_EN]
     connect_bd_net -net [daphne_bd_net_label $block_cell_name mux_a] [daphne_bd_pin $block_cell_name mux_a] [get_bd_ports MUXA]
@@ -138,8 +140,10 @@ proc daphne_connect_default_user_ip {block_cell_name} {
     connect_bd_net -net afe3_p_0_1 [get_bd_ports afe3_p] [daphne_bd_pin $block_cell_name afe3_p]
     connect_bd_net -net afe4_n_0_1 [get_bd_ports afe4_n] [daphne_bd_pin $block_cell_name afe4_n]
     connect_bd_net -net afe4_p_0_1 [get_bd_ports afe4_p] [daphne_bd_pin $block_cell_name afe4_p]
-    connect_bd_net -net eth0_rx_n_0_1 [get_bd_ports RX0_GTH_N] [daphne_bd_pin $block_cell_name eth0_rx_n]
-    connect_bd_net -net eth0_rx_p_0_1 [get_bd_ports RX0_GTH_P] [daphne_bd_pin $block_cell_name eth0_rx_p]
+    foreach sfp {0 1 2 3} {
+        connect_bd_net -net eth${sfp}_rx_n_0_1 [get_bd_ports RX${sfp}_GTH_N] [daphne_bd_pin $block_cell_name eth${sfp}_rx_n]
+        connect_bd_net -net eth${sfp}_rx_p_0_1 [get_bd_ports RX${sfp}_GTH_P] [daphne_bd_pin $block_cell_name eth${sfp}_rx_p]
+    }
     connect_bd_net -net eth_clk_n_0_1 [get_bd_ports GTH0_REFCLK_N] [daphne_bd_pin $block_cell_name eth_clk_n]
     connect_bd_net -net eth_clk_p_0_1 [get_bd_ports GTH0_REFCLK_P] [daphne_bd_pin $block_cell_name eth_clk_p]
     connect_bd_net -net fan_tach_0_1 [get_bd_ports fan_tach] [daphne_bd_pin $block_cell_name fan_tach]
@@ -299,12 +303,15 @@ set AFE0_MISO [create_bd_port -dir I AFE0_MISO]
 set AFE12_AFE_MISO [create_bd_port -dir I AFE12_AFE_MISO]
 set AFE34_AFE_MISO [create_bd_port -dir I AFE34_AFE_MISO]
 set trig_IN [create_bd_port -dir I trig_IN]
-set GTH0_REFCLK_N [create_bd_port -dir I -type clk -freq_hz 100000000 GTH0_REFCLK_N]
-set GTH0_REFCLK_P [create_bd_port -dir I -type clk -freq_hz 100000000 GTH0_REFCLK_P]
+# One 156.25 MHz reference supplies the four DAQ channels in GTH quad 224.
+set GTH0_REFCLK_N [create_bd_port -dir I -type clk -freq_hz 156250000 GTH0_REFCLK_N]
+set GTH0_REFCLK_P [create_bd_port -dir I -type clk -freq_hz 156250000 GTH0_REFCLK_P]
 set sysclk_n [create_bd_port -dir I sysclk_n]
 set sysclk_p [create_bd_port -dir I sysclk_p]
-set RX0_GTH_N [create_bd_port -dir I RX0_GTH_N]
-set RX0_GTH_P [create_bd_port -dir I RX0_GTH_P]
+foreach sfp {0 1 2 3} {
+    create_bd_port -dir I RX${sfp}_GTH_N
+    create_bd_port -dir I RX${sfp}_GTH_P
+}
 # outputs
 set FAN_CONTROL [create_bd_port -dir O FAN_CONTROL]
 set VBIAS_EN [create_bd_port -dir O VBIAS_EN]
@@ -334,9 +341,11 @@ set trim_sync_n [create_bd_port -dir O -from 4 -to 0 trim_sync_n]
 set trim_ldac_n [create_bd_port -dir O -from 4 -to 0 trim_ldac_n]
 set offset_sync_n [create_bd_port -dir O -from 4 -to 0 offset_sync_n]
 set offset_ldac_n [create_bd_port -dir O -from 4 -to 0 offset_ldac_n]
-set TX0_GTH_N [create_bd_port -dir O -from 0 -to 0 TX0_GTH_N]
-set TX0_GTH_P [create_bd_port -dir O -from 0 -to 0 TX0_GTH_P]
-set SFP_GTH0_TX_DIS [create_bd_port -dir O -from 0 -to 0 SFP_GTH0_TX_DIS]
+foreach sfp {0 1 2 3} {
+    create_bd_port -dir O -from 0 -to 0 TX${sfp}_GTH_N
+    create_bd_port -dir O -from 0 -to 0 TX${sfp}_GTH_P
+    create_bd_port -dir O -from 0 -to 0 SFP_GTH${sfp}_TX_DIS
+}
 set CM_CSn [create_bd_port -dir O -from 0 -to 0 CM_CSn]
 
 
