@@ -6,6 +6,7 @@ package daphne_subsystem_pkg is
   type sample14_array_t is array (natural range <>) of std_logic_vector(13 downto 0);
   type std_logic_array_t is array (natural range <>) of std_logic;
   type slv28_array_t is array (natural range <>) of std_logic_vector(27 downto 0);
+  type slv32_array_t is array (natural range <>) of std_logic_vector(31 downto 0);
   type slv64_array_t is array (natural range <>) of std_logic_vector(63 downto 0);
   type slv72_array_t is array (natural range <>) of std_logic_vector(71 downto 0);
 
@@ -109,12 +110,17 @@ package daphne_subsystem_pkg is
   constant CALIBRATION_TAG_TIMING_C   : std_logic_vector(1 downto 0) := "10";
   constant CALIBRATION_TAG_SOFTWARE_C : std_logic_vector(1 downto 0) := "11";
 
+  -- Per-channel ST register +0x1C: enable31, quiet24:16, threshold13:0.
+  -- Provisional engineering defaults: continuation on,32 quiet samples,64 ADC.
+  constant CONTINUATION_CONFIG_DEFAULT_C : std_logic_vector(31 downto 0) := x"80200040";
+
   type trigger_xcorr_control_t is record
     enable                 : std_logic;
     afe_comp_enable        : std_logic;
     invert_enable          : std_logic;
     filter_output_selector : std_logic_vector(1 downto 0);
     threshold_xc           : std_logic_vector(27 downto 0);
+    continuation_config    : std_logic_vector(31 downto 0);
     adhoc                  : std_logic_vector(7 downto 0);
     ti_trigger             : std_logic_vector(7 downto 0);
     ti_trigger_stbr        : std_logic;
@@ -267,6 +273,7 @@ package daphne_subsystem_pkg is
     invert_enable          => '0',
     filter_output_selector => (others => '0'),
     threshold_xc           => (others => '0'),
+    continuation_config    => CONTINUATION_CONFIG_DEFAULT_C,
     adhoc                  => (others => '0'),
     ti_trigger             => (others => '0'),
     ti_trigger_stbr        => '0'

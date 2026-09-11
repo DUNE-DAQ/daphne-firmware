@@ -341,6 +341,15 @@ begin
         if event_pulse_s='1' and enable_i='1' then
           covered := (current_accepted_s='1' and inside_window(event_timestamp_s,current_s)) or
                      (previous_accepted_s='1' and inside_window(event_timestamp_s,previous_s));
+          -- A new trigger can arrive just after a quiet-closed fragment while
+          -- its 64-sample pretrigger region still overlaps that fragment. Keep
+          -- the existing grid and extend its union rather than reject it for
+          -- seed spacing. With continuation disabled retain legacy spacing.
+          if continuation_enable_i='1' then
+            covered := covered or
+              (current_accepted_s='1' and inside_window(std_logic_vector(unsigned(event_timestamp_s)-64),current_s)) or
+              (previous_accepted_s='1' and inside_window(std_logic_vector(unsigned(event_timestamp_s)-64),previous_s));
+          end if;
           if covered then
             covered_count_s<=covered_count_s+1;
             -- A coalesced trigger still owns its complete trigger..trigger+447

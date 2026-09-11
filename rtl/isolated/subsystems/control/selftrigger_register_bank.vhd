@@ -13,11 +13,16 @@ entity selftrigger_register_bank is
     AXI_IN         : in  AXILITE_INREC;
     AXI_OUT        : out AXILITE_OUTREC;
     threshold_xc_o : out slv28_array_t(0 to CHANNEL_COUNT_G - 1);
+    continuation_config_o : out slv32_array_t(0 to CHANNEL_COUNT_G - 1);
     record_count_i : in  slv64_array_t(0 to CHANNEL_COUNT_G - 1);
     full_count_i   : in  slv64_array_t(0 to CHANNEL_COUNT_G - 1);
     busy_count_i   : in  slv64_array_t(0 to CHANNEL_COUNT_G - 1);
     tcount_i       : in  slv64_array_t(0 to CHANNEL_COUNT_G - 1);
-    pcount_i       : in  slv64_array_t(0 to CHANNEL_COUNT_G - 1)
+    pcount_i       : in  slv64_array_t(0 to CHANNEL_COUNT_G - 1);
+    continuation_count_i : in slv64_array_t(0 to CHANNEL_COUNT_G - 1) := (others => (others => '0'));
+    continuation_drop_count_i : in slv64_array_t(0 to CHANNEL_COUNT_G - 1) := (others => (others => '0'));
+    covered_trigger_count_i : in slv64_array_t(0 to CHANNEL_COUNT_G - 1) := (others => (others => '0'));
+    descriptor_overflow_count_i : in slv64_array_t(0 to CHANNEL_COUNT_G - 1) := (others => (others => '0'))
   );
 end entity selftrigger_register_bank;
 
@@ -30,6 +35,7 @@ architecture rtl of selftrigger_register_bank is
   constant BUSY_COUNT_HI_C         : integer := 16#10#;
   constant FULL_COUNT_LO_C         : integer := 16#14#;
   constant FULL_COUNT_HI_C         : integer := 16#18#;
+  constant CONTINUATION_CONFIG_C   : integer := 16#1C#;
   constant PRIMITIVE_BASE_C        : integer := 16#500#;
   constant PRIMITIVE_STRIDE_C      : integer := 16#10#;
   constant TCOUNT_LO_OFFSET_C      : integer := 16#00#;
@@ -38,6 +44,7 @@ architecture rtl of selftrigger_register_bank is
   constant PCOUNT_HI_OFFSET_C      : integer := 16#0C#;
 
   signal threshold_xc_reg : slv28_array_t(0 to CHANNEL_COUNT_G - 1) := (others => (others => '1'));
+  signal continuation_config_reg : slv32_array_t(0 to CHANNEL_COUNT_G - 1) := (others => CONTINUATION_CONFIG_DEFAULT_C);
 
   signal axi_awaddr   : std_logic_vector(31 downto 0) := (others => '0');
   signal axi_awready  : std_logic := '0';
@@ -55,6 +62,7 @@ architecture rtl of selftrigger_register_bank is
   signal aw_en        : std_logic := '1';
 begin
   threshold_xc_o <= threshold_xc_reg;
+  continuation_config_o <= continuation_config_reg;
 
   AXI_OUT.AWREADY <= axi_awready;
   AXI_OUT.WREADY  <= axi_wready;
@@ -122,6 +130,7 @@ begin
       if AXI_IN.ARESETN = '0' then
         for idx in 0 to CHANNEL_COUNT_G - 1 loop
           threshold_xc_reg(idx) <= (others => '1');
+          continuation_config_reg(idx) <= CONTINUATION_CONFIG_DEFAULT_C;
         end loop;
       else
         if reg_wren = '1' and AXI_IN.WSTRB = "1111" then
@@ -129,6 +138,8 @@ begin
           for idx in 0 to CHANNEL_COUNT_G - 1 loop
             if addr_v = idx * CHANNEL_STRIDE_C + THRESHOLD_OFFSET_C then
               threshold_xc_reg(idx) <= AXI_IN.WDATA(27 downto 0);
+            elsif addr_v = idx * CHANNEL_STRIDE_C + CONTINUATION_CONFIG_C then
+              continuation_config_reg(idx) <= AXI_IN.WDATA and x"81FF3FFF";
             end if;
           end loop;
         end if;
@@ -211,6 +222,8 @@ begin
         data_v := full_count_i(idx)(31 downto 0);
       elsif addr_v = idx * CHANNEL_STRIDE_C + FULL_COUNT_HI_C then
         data_v := full_count_i(idx)(63 downto 32);
+      elsif addr_v = idx * CHANNEL_STRIDE_C + CONTINUATION_CONFIG_C then
+        data_v := continuation_config_reg(idx);
       elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_LO_OFFSET_C then
         data_v := tcount_i(idx)(31 downto 0);
       elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_HI_OFFSET_C then
@@ -219,6 +232,22 @@ begin
         data_v := pcount_i(idx)(31 downto 0);
       elsif addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + PCOUNT_HI_OFFSET_C then
         data_v := pcount_i(idx)(63 downto 32);
+      elsif addr_v = 16#800# + idx * 32 then
+        data_v := continuation_count_i(idx)(31 downto 0);
+      elsif addr_v = 16#804# + idx * 32 then
+        data_v := continuation_count_i(idx)(63 downto 32);
+      elsif addr_v = 16#808# + idx * 32 then
+        data_v := continuation_drop_count_i(idx)(31 downto 0);
+      elsif addr_v = 16#80C# + idx * 32 then
+        data_v := continuation_drop_count_i(idx)(63 downto 32);
+      elsif addr_v = 16#810# + idx * 32 then
+        data_v := covered_trigger_count_i(idx)(31 downto 0);
+      elsif addr_v = 16#814# + idx * 32 then
+        data_v := covered_trigger_count_i(idx)(63 downto 32);
+      elsif addr_v = 16#818# + idx * 32 then
+        data_v := descriptor_overflow_count_i(idx)(31 downto 0);
+      elsif addr_v = 16#81C# + idx * 32 then
+        data_v := descriptor_overflow_count_i(idx)(63 downto 32);
       end if;
     end loop;
 

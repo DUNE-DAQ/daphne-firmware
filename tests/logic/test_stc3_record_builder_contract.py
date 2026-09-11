@@ -42,7 +42,10 @@ def natural_constant(vhdl: str, name: str) -> int:
     return int(match.group(1))
 
 
-class Stc3RecordBuilderContractTest(unittest.TestCase):
+class HistoricalStc3RecordBuilderContractTest(unittest.TestCase):
+    """Pin the compared reference architectures; new RTL is tested dynamically
+    by scripts/verification/run_continuation_tests.py.
+    """
     def test_baseline_d7c9f04_is_1024_sample_232_word_builder(self) -> None:
         baseline = git_show("d7c9f04", BUILDER)
 
@@ -63,8 +66,8 @@ class Stc3RecordBuilderContractTest(unittest.TestCase):
         words_per_block = 7
         self.assertEqual(header_words + blocks * words_per_block, 232)
 
-    def test_current_builder_is_512_sample_2k_ring_contract(self) -> None:
-        current = read_repo(BUILDER)
+    def test_reference_512_builder_is_512_sample_2k_ring_contract(self) -> None:
+        current = git_show("7d5d3a6", BUILDER)
 
         frame_samples = natural_constant(current, "FRAME_SAMPLE_COUNT_C")
         frame_blocks = frame_samples // 32
@@ -96,8 +99,8 @@ class Stc3RecordBuilderContractTest(unittest.TestCase):
         self.assertIn("sample0_ts_v  := unsigned(event_timestamp_s) - to_unsigned(PRETRIGGER_SAMPLES_C", current)
         self.assertIn("delayed_sample_o <= din_i;", current)
 
-    def test_current_builder_tags_calibration_in_reserved_header_bits(self) -> None:
-        current = read_repo(BUILDER)
+    def test_reference_512_builder_tags_calibration_in_reserved_header_bits(self) -> None:
+        current = git_show("7d5d3a6", BUILDER)
         pkg = read_repo("rtl/isolated/common/daphne_subsystem_pkg.vhd")
 
         self.assertIn('CALIBRATION_TAG_NORMAL_C   : std_logic_vector(1 downto 0) := "00"', pkg)
@@ -119,8 +122,8 @@ class Stc3RecordBuilderContractTest(unittest.TestCase):
         self.assertIn("event_trigger_sample_s <= din_i when force_trigger_i = '1' else trigger_i.trigger_sample;", current)
         self.assertIn("queue_v(tail_v).calibration_tag := event_calibration_tag_s;", current)
 
-    def test_current_xpm_memory_contracts_are_explicit(self) -> None:
-        ring = read_repo("rtl/isolated/common/primitives/sample_ring_buffer.vhd")
+    def test_reference_512_xpm_memory_contracts_are_explicit(self) -> None:
+        ring = git_show("7d5d3a6", "rtl/isolated/common/primitives/sample_ring_buffer.vhd")
         fifo = read_repo("rtl/isolated/common/primitives/sync_fifo_fwft.vhd")
 
         self.assertIn('MEMORY_PRIMITIVE        => "block"', ring)
@@ -142,7 +145,7 @@ class Stc3RecordBuilderContractTest(unittest.TestCase):
 
     def test_readout_mux_dumps_after_one_ready_sample_gate(self) -> None:
         mux = read_repo("rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd")
-        current = read_repo(BUILDER)
+        current = git_show("7d5d3a6", BUILDER)
 
         frame_words = 8 + (natural_constant(current, "FRAME_SAMPLE_COUNT_C") // 32) * 7
         ready_threshold = frame_words - natural_constant(current, "FIFO_READY_MARGIN_C")

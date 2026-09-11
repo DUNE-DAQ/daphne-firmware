@@ -42,8 +42,13 @@ end selftrig_core;
 
 architecture selftrig_core_arch of selftrig_core is
   signal threshold_xc: slv28_array_t(0 to 39);
+  signal continuation_config: slv32_array_t(0 to 39);
   signal TCount: slv64_array_t(0 to 39);
   signal PCount: slv64_array_t(0 to 39);
+  signal continuation_count: slv64_array_t(0 to 39);
+  signal continuation_drop_count: slv64_array_t(0 to 39);
+  signal covered_trigger_count: slv64_array_t(0 to 39);
+  signal descriptor_overflow_count: slv64_array_t(0 to 39);
   signal record_count: slv64_array_t(0 to 39);
   signal full_count: slv64_array_t(0 to 39);
   signal busy_count: slv64_array_t(0 to 39);
@@ -93,6 +98,7 @@ begin
       afe_comp_enable_i        => afe_comp_enable,
       invert_enable_i          => invert_enable,
       threshold_xc_i           => threshold_xc,
+      continuation_config_i    => continuation_config,
       adhoc_i                  => adhoc,
       filter_output_selector_i => filter_output_selector,
       ti_trigger_i             => ti_trigger,
@@ -158,6 +164,10 @@ begin
       busy_count_o          => busy_count,
       trigger_count_o       => TCount,
       packet_count_o        => PCount,
+      continuation_count_o        => continuation_count,
+      continuation_drop_count_o        => continuation_drop_count,
+      covered_trigger_count_o        => covered_trigger_count,
+      descriptor_overflow_count_o        => descriptor_overflow_count,
       delayed_sample_o      => open,
       ready_o               => ready,
       dout_o                => fabric_dout
@@ -180,11 +190,16 @@ begin
       AXI_IN         => AXI_IN,
       AXI_OUT        => AXI_OUT,
       threshold_xc_o => threshold_xc,
+      continuation_config_o => continuation_config,
       record_count_i => record_count,
       full_count_i   => full_count,
       busy_count_i   => busy_count,
       tcount_i       => TCount,
-      pcount_i       => PCount
+      pcount_i       => PCount,
+      continuation_count_i       => continuation_count,
+      continuation_drop_count_i       => continuation_drop_count,
+      covered_trigger_count_i       => covered_trigger_count,
+      descriptor_overflow_count_i       => descriptor_overflow_count
     );
 
 end selftrig_core_arch;

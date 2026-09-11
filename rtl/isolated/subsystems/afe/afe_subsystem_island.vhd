@@ -43,6 +43,10 @@ entity afe_subsystem_island is
     busy_count_o        : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     trigger_count_o     : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     packet_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    continuation_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    continuation_drop_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    covered_trigger_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    descriptor_overflow_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     delayed_sample_o    : out sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
     ready_o             : out std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     rd_en_i             : in  std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -99,6 +103,10 @@ begin
         busy_count_o        => busy_count_o,
         trigger_count_o     => trigger_count_o,
         packet_count_o      => packet_count_o,
+        continuation_count_o      => continuation_count_o,
+        continuation_drop_count_o      => continuation_drop_count_o,
+        covered_trigger_count_o      => covered_trigger_count_o,
+        descriptor_overflow_count_o      => descriptor_overflow_count_o,
         delayed_sample_o    => delayed_sample_o,
         ready_o             => ready_o,
         rd_en_i             => rd_en_i,
@@ -115,6 +123,10 @@ begin
     busy_count_o        <= (others => (others => '0'));
     trigger_count_o     <= (others => (others => '0'));
     packet_count_o      <= (others => (others => '0'));
+    continuation_count_o      <= (others => (others => '0'));
+    continuation_drop_count_o      <= (others => (others => '0'));
+    covered_trigger_count_o      <= (others => (others => '0'));
+    descriptor_overflow_count_o      <= (others => (others => '0'));
     delayed_sample_o    <= (others => (others => '0'));
     ready_o             <= (others => '0');
     dout_o              <= (others => (others => '0'));

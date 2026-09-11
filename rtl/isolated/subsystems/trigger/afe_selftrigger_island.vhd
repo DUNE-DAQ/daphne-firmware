@@ -28,6 +28,10 @@ entity afe_selftrigger_island is
     busy_count_o        : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     trigger_count_o     : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     packet_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    continuation_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    continuation_drop_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    covered_trigger_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    descriptor_overflow_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     delayed_sample_o    : out sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
     ready_o             : out std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     rd_en_i             : in  std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -71,6 +75,10 @@ begin
         version_i           => version_i,
         threshold_xc_i      => trigger_control_i(idx).threshold_xc,
         signal_delay_i      => signal_delay_i,
+        continuation_enable_i => trigger_control_i(idx).continuation_config(31),
+        positive_pulse_i    => trigger_control_i(idx).invert_enable,
+        activity_threshold_i => trigger_control_i(idx).continuation_config(13 downto 0),
+        quiet_samples_i     => trigger_control_i(idx).continuation_config(24 downto 16),
         clock_i             => clock_i,
         reset_i             => reset_i,
         reset_st_counters_i => reset_st_counters_i,
@@ -92,6 +100,10 @@ begin
         output_reject_count_o  => open,
         trigger_count_o     => trigger_count_o(idx),
         packet_count_o      => packet_count_o(idx),
+        continuation_count_o      => continuation_count_o(idx),
+        continuation_drop_count_o      => continuation_drop_count_o(idx),
+        covered_trigger_count_o      => covered_trigger_count_o(idx),
+        descriptor_overflow_count_o      => descriptor_overflow_count_o(idx),
         delayed_sample_o    => delayed_sample_o(idx),
         ready_o             => ready_o(idx),
         rd_en_i             => rd_en_i(idx),

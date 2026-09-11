@@ -99,6 +99,7 @@ begin
       offset_sync_n_o           => offset_sync_n_s,
       reset_st_counters_i       => '0',
       force_trigger_i           => '0',
+      force_calibration_tag_i => CALIBRATION_TAG_NORMAL_C,
       timestamp_i               => x"0011223344556677",
       version_i                 => x"3",
       signal_delay_i            => "00011",

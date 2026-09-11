@@ -94,6 +94,7 @@ begin
       offset_sync_n_o         => offset_sync_n_s,
       reset_st_counters_i     => '0',
       force_trigger_i         => '0',
+      force_calibration_tag_i => CALIBRATION_TAG_NORMAL_C,
       timestamp_i             => (others => '0'),
       version_i               => (others => '0'),
       signal_delay_i          => (others => '0'),

@@ -44,6 +44,10 @@ entity afe_subsystem_fabric is
     busy_count_o        : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     trigger_count_o     : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     packet_count_o      : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
+    continuation_count_o      : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
+    continuation_drop_count_o      : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
+    covered_trigger_count_o      : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
+    descriptor_overflow_count_o      : out slv64_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     delayed_sample_o    : out sample14_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     ready_o             : out std_logic_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
     rd_en_i             : in  std_logic_array_t(0 to (AFE_COUNT_G * CHANNELS_PER_AFE_G) - 1);
@@ -64,6 +68,10 @@ begin
     signal busy_count_afe_s        : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal trigger_count_afe_s     : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal packet_count_afe_s      : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    signal continuation_count_afe_s      : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    signal continuation_drop_count_afe_s      : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    signal covered_trigger_count_afe_s      : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    signal descriptor_overflow_count_afe_s      : slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal delayed_sample_afe_s    : sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal ready_afe_s             : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     signal rd_en_afe_s             : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -82,6 +90,10 @@ begin
       busy_count_o(CHANNEL_BASE_C + ch_idx) <= busy_count_afe_s(ch_idx);
       trigger_count_o(CHANNEL_BASE_C + ch_idx) <= trigger_count_afe_s(ch_idx);
       packet_count_o(CHANNEL_BASE_C + ch_idx) <= packet_count_afe_s(ch_idx);
+      continuation_count_o(CHANNEL_BASE_C + ch_idx) <= continuation_count_afe_s(ch_idx);
+      continuation_drop_count_o(CHANNEL_BASE_C + ch_idx) <= continuation_drop_count_afe_s(ch_idx);
+      covered_trigger_count_o(CHANNEL_BASE_C + ch_idx) <= covered_trigger_count_afe_s(ch_idx);
+      descriptor_overflow_count_o(CHANNEL_BASE_C + ch_idx) <= descriptor_overflow_count_afe_s(ch_idx);
       delayed_sample_o(CHANNEL_BASE_C + ch_idx) <= delayed_sample_afe_s(ch_idx);
       ready_o(CHANNEL_BASE_C + ch_idx) <= ready_afe_s(ch_idx);
       dout_o(CHANNEL_BASE_C + ch_idx) <= dout_afe_s(ch_idx);
@@ -127,6 +139,10 @@ begin
         busy_count_o        => busy_count_afe_s,
         trigger_count_o     => trigger_count_afe_s,
         packet_count_o      => packet_count_afe_s,
+        continuation_count_o      => continuation_count_afe_s,
+        continuation_drop_count_o      => continuation_drop_count_afe_s,
+        covered_trigger_count_o      => covered_trigger_count_afe_s,
+        descriptor_overflow_count_o      => descriptor_overflow_count_afe_s,
         delayed_sample_o    => delayed_sample_afe_s,
         ready_o             => ready_afe_s,
         rd_en_i             => rd_en_afe_s,

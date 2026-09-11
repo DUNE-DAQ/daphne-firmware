@@ -12,6 +12,7 @@ entity trigger_control_adapter is
     afe_comp_enable_i          : in  std_logic_vector(CHANNEL_COUNT_G - 1 downto 0);
     invert_enable_i            : in  std_logic_vector(CHANNEL_COUNT_G - 1 downto 0);
     threshold_xc_i             : in  slv28_array_t(0 to CHANNEL_COUNT_G - 1);
+    continuation_config_i      : in slv32_array_t(0 to CHANNEL_COUNT_G - 1) := (others => CONTINUATION_CONFIG_DEFAULT_C);
     adhoc_i                    : in  std_logic_vector(7 downto 0);
     filter_output_selector_i   : in  std_logic_vector(1 downto 0);
     ti_trigger_i               : in  std_logic_vector(7 downto 0);
@@ -39,6 +40,7 @@ begin
     trigger_control_o(idx).invert_enable          <= invert_enable_i(idx);
     trigger_control_o(idx).filter_output_selector <= filter_output_selector_i;
     trigger_control_o(idx).threshold_xc           <= threshold_xc_i(idx);
+    trigger_control_o(idx).continuation_config    <= continuation_config_i(idx);
     trigger_control_o(idx).adhoc                  <= adhoc_i;
     trigger_control_o(idx).ti_trigger             <= ti_trigger_i;
     trigger_control_o(idx).ti_trigger_stbr        <= ti_trigger_stbr_i;
