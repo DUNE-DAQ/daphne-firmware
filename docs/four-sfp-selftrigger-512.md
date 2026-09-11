@@ -46,6 +46,34 @@ cannot borrow an idle neighboring SFP's bandwidth.
 These rates exclude Hermes envelopes, UDP/Ethernet overhead and network outages.
 Four physical 10 Gb/s links do not establish lossless 40-channel continuous capture.
 
+## Measured resource baseline
+
+The latest completed full-device measurement is the one-link `0403d97`
+post-synthesis checkpoint produced by Vivado 2026.1 build 6511674. It is a
+reference for the shared acquisition logic and one Hermes link; it is not the
+four-link utilization result.
+
+| Resource | Used | Available | Utilization |
+|---|---:|---:|---:|
+| Total CLB LUTs | 109136 | 117120 | 93.18% |
+| LUTs as logic | 99349 | 117120 | 84.83% |
+| LUTs as memory | 9787 | 57600 | 16.99% |
+| CLB registers | 83450 | 234240 | 35.63% |
+| BRAM tiles | 83.5 | 144 | 57.99% |
+| URAM | 40 | 64 | 62.50% |
+| DSP blocks | 1080 | 1248 | 86.54% |
+
+The measured hierarchy attributes 70206 LUTs to the forty packet builders
+(including 12940 LUTs in their descriptor children), 15076 LUTs to the five
+trigger banks, 7226 LUTs to the self-trigger register bank, and 8663 LUTs to
+the one-link Hermes transport including shared IPbus control. Parent and child
+rows overlap and must not be added together. The complete design has 7984 LUTs
+of synthesis headroom before adding the remaining links.
+
+The corrected four-link `9ba0bd0` clean build is the authoritative fit test.
+Its report must replace projections based on the one-link hierarchy before
+claiming that four links fit the device.
+
 ## Control and commissioning
 
 The existing single AXI/IPbus transport window is retained. Hermes already has
