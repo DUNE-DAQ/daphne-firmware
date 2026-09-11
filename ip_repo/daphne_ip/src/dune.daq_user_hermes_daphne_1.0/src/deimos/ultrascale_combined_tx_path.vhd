@@ -66,6 +66,16 @@ end entity ultrascale_combined_tx_path;
 
 architecture rtl of ultrascale_combined_tx_path is
 
+    function tx_output_fifo_capacity(packet_words : natural) return natural is
+    begin
+        if packet_words = 0 then
+            return 2048;
+        end if;
+        return 0;
+    end function;
+
+    constant TX_OUTPUT_FIFO_CAP_C : natural := tx_output_fifo_capacity(PACKET_WORDS);
+
     type t_axi4s_miso_array is array (N_MGT - 1 downto 0) of t_axi4s_miso;
     type t_axi4s_mosi_array is array (N_MGT - 1 downto 0) of t_axi4s_mosi;
     
@@ -220,11 +230,17 @@ src_gen: for i in 0 to N_MGT-1 generate
         G_EXT_CLK_FIFOS        => true,           --! Generate Clk Crossing FIFOs At The I/O of Unsupported Packet Types
         G_TX_EXT_IP_FIFO_CAP   => 2048,           --! Capacity In Bytes Of Uns IPV4 Protocol Packets FIFOs in Tx Path
         G_TX_EXT_ETH_FIFO_CAP  => 2048,           --! Capacity In Bytes Of Uns Ethernet Type Packets FIFOs in Tx Path
-        G_TX_OUT_FIFO_CAP      => 2048,           --! Capacity Of FIFO at End Of Tx Path. Necessary For 100GbE But Less Important For 1/10GbE. Can Be Set to 0.
+        G_TX_OUT_FIFO_CAP      => TX_OUTPUT_FIFO_CAP_C, -- The fixed 10GbE path is already packet-buffered in tx_mux_ibuf.
         G_RX_IN_FIFO_CAP       => 2048,           --! Capacity Of FIFO at Start Of Rx Path. At least 16 Words Recommended.
         G_RX_INPUT_PIPE_STAGES => 1,              --! Pipeline Stages From External MAC/PHY To Rx Path
-        G_INC_PING             => true,           --! Generate Logic For Internal Ping Replies
-        G_INC_ARP              => true,           --! Generate Logic For Internal ARP Requests And Replies
+        -- Fixed DAPHNE records are carried on dedicated, statically configured
+        -- DAQ transmit links. Keep the full receive/ARP/ping/farm-mode feature
+        -- set for the legacy variable-length mode, but do not replicate it four
+        -- times in the PACKET_WORDS fixed sender.
+        G_INC_RX_PATH          => PACKET_WORDS = 0,
+        G_INC_PING             => PACKET_WORDS = 0,
+        G_INC_ARP              => PACKET_WORDS = 0,
+        G_INC_LUTS             => PACKET_WORDS = 0,
         G_CORE_FREQ_KHZ        => 156250,         --! KHz Of Tx Path, Only Used To Calibrate ARP Refresh Timers
         G_INC_ETH              => false,          --! Generate Logic To Transmit Externally Provided Ethernet Payloads
         G_INC_IPV4             => false           --! Generate Logic To Transmit Externally Provided IPV4 Payloads

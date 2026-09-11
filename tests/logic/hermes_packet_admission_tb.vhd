@@ -37,6 +37,7 @@ begin
         if re='1' and q.valid='1' then
           if index=0 then
             assert unsigned(q.d(11 downto 0))=120 report "Wrong complete-packet length" severity failure;
+            assert unsigned(q.d(23 downto 12))=packet report "Wrong fixed-packet sequence" severity failure;
             assert q.last='0' severity failure;
             index:=1;
           else
