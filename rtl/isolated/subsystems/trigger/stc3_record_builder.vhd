@@ -170,7 +170,7 @@ architecture rtl of stc3_record_builder is
   signal last_start_s : sample_seq_t := (others=>'0');
   signal last_start_valid_s : std_logic := '0';
   signal event_pulse_s, trigger_previous_s : std_logic := '0';
-  signal event_timestamp_s : std_logic_vector(63 downto 0);
+  signal event_sample0_ts_s : std_logic_vector(63 downto 0);
   -- One full-width age check protects the bounded local comparisons against
   -- stale/future tuples whose low sequence bits would otherwise alias.
   signal event_age_s : unsigned(63 downto 0);
@@ -188,7 +188,14 @@ begin
   -- share this epoch guard. Natural64-bit wrap is a normal increment.
   timestamp_jump_s <= '1' when timestamp_armed_s='1' and
     unsigned(timestamp_i)/=timestamp_previous_s+1 else '0';
-  event_age_s <= unsigned(timestamp_i)-unsigned(event_timestamp_s);
+  -- Place timestamp arithmetic before the channel-specific force selection.
+  -- The normal tuple timestamp is shared across board channels, so these
+  -- full-width subtractions can share without changing modulo64 semantics.
+  event_age_s <= (others=>'0') when force_trigger_i='1' else
+                 unsigned(timestamp_i)-unsigned(trigger_i.trigger_timestamp);
+  event_sample0_ts_s <= std_logic_vector(unsigned(timestamp_i)-PRETRIGGER_SAMPLES_C)
+                         when force_trigger_i='1' else
+                       std_logic_vector(unsigned(trigger_i.trigger_timestamp)-PRETRIGGER_SAMPLES_C);
   event_seq_s <= seq_s-resize(event_age_s,sample_seq_t'length);
   current_delta_s <= event_seq_s-current_s.start_seq;
   previous_delta_s <= event_seq_s-previous_s.start_seq;
@@ -212,7 +219,6 @@ begin
     end if;
   end process;
   event_pulse_s <= trigger_i.trigger_pulse or force_trigger_i;
-  event_timestamp_s <= timestamp_i when force_trigger_i='1' else trigger_i.trigger_timestamp;
   event_sample_s <= din_i when force_trigger_i='1' else trigger_i.trigger_sample;
   event_tag_s <= force_calibration_tag_i when force_trigger_i='1' else trigger_i.calibration_tag;
   -- Kept for legacy diagnostic calculator compatibility; packet descriptors use
@@ -476,7 +482,7 @@ begin
                 spacing_count_s<=spacing_count_s+1; busy_count_s<=busy_count_s+1;
               else
                 req:=META_NULL_C; req.start_seq:=seq_s-to_unsigned(age,sample_seq_t'length);
-                req.sample0_ts:=std_logic_vector(unsigned(event_timestamp_s)-64);
+                req.sample0_ts:=event_sample0_ts_s;
                 req.baseline:=trigger_i.baseline;
                 req.trigger_sample:=event_sample_s; req.threshold_lsb:=threshold_xc_i(13 downto 0);
                 req.activity_threshold:=activity_threshold_i;
