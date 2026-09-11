@@ -55,12 +55,10 @@ architecture rtl of stc3_record_builder is
   constant RING_DEPTH_C : positive := 2048;
   constant FRAME_QUEUE_DEPTH_C : positive := 4;
   constant PACKET_SLOT_COUNT_C : positive := 32;
-  constant SERIALIZER_CYCLES_C : positive := 393;
+  constant SERIALIZER_CYCLES_C : positive := 512;
   constant RETENTION_LIMIT_C : positive := RING_DEPTH_C - 64;
   subtype sample_seq_t is unsigned(31 downto 0);
   subtype slot_t is unsigned(4 downto 0);
-  type sample_block_t is array(0 to 31) of std_logic_vector(13 downto 0);
-  type serializer_state_t is (ser_idle, ser_load, ser_emit, ser_header);
   type frame_meta_t is record
     start_seq : sample_seq_t;
     sample0_ts : std_logic_vector(63 downto 0);
@@ -117,26 +115,6 @@ architecture rtl of stc3_record_builder is
   begin return slot & to_unsigned(word_idx,7); end;
   function inside_window(ts : std_logic_vector(63 downto 0); m : frame_meta_t) return boolean is
   begin return unsigned(ts)-unsigned(m.sample0_ts) < to_unsigned(FRAME_SAMPLE_COUNT_C,64); end;
-  function pack_block_word(samples : sample_block_t; word_idx : natural) return std_logic_vector is
-  begin
-    case word_idx is
-      when 0 =>
-        return samples(4)(7 downto 0) & samples(3) & samples(2) & samples(1) & samples(0);
-      when 1 =>
-        return samples(9)(1 downto 0) & samples(8) & samples(7) & samples(6) & samples(5) & samples(4)(13 downto 8);
-      when 2 =>
-        return samples(13)(9 downto 0) & samples(12) & samples(11) & samples(10) & samples(9)(13 downto 2);
-      when 3 =>
-        return samples(18)(3 downto 0) & samples(17) & samples(16) & samples(15) & samples(14) & samples(13)(13 downto 10);
-      when 4 =>
-        return samples(22)(11 downto 0) & samples(21) & samples(20) & samples(19) & samples(18)(13 downto 4);
-      when 5 =>
-        return samples(27)(5 downto 0) & samples(26) & samples(25) & samples(24) & samples(23) & samples(22)(13 downto 12);
-      when others =>
-        return samples(31) & samples(30) & samples(29) & samples(28) & samples(27)(13 downto 6);
-    end case;
-  end function;
-
   signal seq_s : sample_seq_t := (others=>'0');
   signal history_s : natural range 0 to RING_DEPTH_C := 0;
   signal queue_s : frame_queue_t := (others=>(others=>'0'));
@@ -147,7 +125,14 @@ architecture rtl of stc3_record_builder is
   signal queue_head_s, queue_next_s : frame_meta_t;
   signal active_s : frame_meta_t := META_NULL_C;
   signal active_valid_s : std_logic := '0';
-  signal state_s : serializer_state_t := ser_idle;
+  -- A read request and its returned sample are separate pipeline stages.
+  -- A next fragment can issue sample0 while the previous sample511 is consumed.
+  signal fetch_running_s, sample_valid_s, launch_s : std_logic := '0';
+  signal fetch_index_s, sample_index_s : unsigned(8 downto 0) := (others=>'0');
+  signal header_pending_s : std_logic := '0';
+  signal header_meta_s : frame_meta_t := META_NULL_C;
+  signal header_trailer_s : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
+  signal header_overflow_s : std_logic := '0';
   -- Publication is ordered, so slot liveness is represented by pointers and
   -- counts. Only exceptional stale-frame holes need a per-slot bit.
   signal dropped_s : std_logic_vector(PACKET_SLOT_COUNT_C-1 downto 0) := (others=>'0');
@@ -155,18 +140,18 @@ architecture rtl of stc3_record_builder is
   signal allocate_slot_s, read_slot_s : slot_t := (others=>'0');
   signal reserved_count_s, published_count_s : natural range 0 to PACKET_SLOT_COUNT_C := 0;
   signal read_word_s : natural range 0 to FRAME_WORD_COUNT_C-1 := 0;
-  signal block_s : natural range 0 to 15 := 0;
-  signal load_s : natural range 0 to 16 := 0;
-  signal emit_s : natural range 0 to 6 := 0;
   signal header_s : natural range 0 to 7 := 0;
-  signal samples_s : sample_block_t := (others=>(others=>'0'));
+  signal payload_word_s : natural range 0 to 111 := 0;
+  signal pack_shift_s : std_logic_vector(63 downto 0) := (others=>'0');
+  signal pack_window_s : std_logic_vector(77 downto 0);
+  signal payload_wr_s : std_logic;
+  signal payload_data_s : std_logic_vector(63 downto 0);
   signal ring_addr_s : unsigned(10 downto 0);
-  signal ring_data0_s, ring_data1_s : std_logic_vector(13 downto 0);
+  signal ring_data_s : std_logic_vector(13 downto 0);
   signal store_wr_s : std_logic;
   signal store_waddr_s, store_raddr_s : unsigned(11 downto 0);
   signal store_din_s : std_logic_vector(71 downto 0);
-  signal descriptor_start_s, descriptor_pair_valid_s, descriptor_done_s, descriptor_overflow_s : std_logic;
-  signal descriptor_pair_idx_s : unsigned(7 downto 0);
+  signal descriptor_start_s, descriptor_done_s, descriptor_overflow_s : std_logic;
   signal descriptor_trailer_s : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
   signal descriptor_baseline_s, activity_baseline_s : std_logic_vector(13 downto 0);
   signal chain_active_s, current_accepted_s, previous_accepted_s : std_logic := '0';
@@ -187,9 +172,9 @@ architecture rtl of stc3_record_builder is
 begin
   queue_head_s <= unpack_meta(queue_s(head_s));
   queue_next_s <= unpack_meta(queue_s(next_q(head_s)));
-  descriptor_baseline_s <= raw_baseline(queue_head_s.baseline,queue_head_s.positive_pulse);
+  descriptor_baseline_s <= raw_baseline(active_s.baseline,active_s.positive_pulse);
   activity_baseline_s <= raw_baseline(current_s.baseline,current_s.positive_pulse);
-  publish_drop_s <= '1' when state_s=ser_idle and queue_count_s>0 and
+  publish_drop_s <= '1' when active_valid_s='0' and header_pending_s='0' and queue_count_s>0 and
     seq_age(seq_s,queue_head_s.start_seq)>RETENTION_LIMIT_C else '0';
   consume_drop_s <= '1' when published_count_s>0 and dropped_s(to_integer(read_slot_s))='1' else '0';
   drop_bitmap_proc : process(clock_i)
@@ -209,18 +194,21 @@ begin
   event_sample_s <= din_i when force_trigger_i='1' else trigger_i.trigger_sample;
   event_tag_s <= force_calibration_tag_i when force_trigger_i='1' else trigger_i.calibration_tag;
   -- Kept for legacy diagnostic calculator compatibility; packet descriptors use
-  -- explicit fragment-local start/pair-valid handshakes below.
+  -- explicit fragment-local start/sample-valid handshakes below.
   frame_match_o <= '1' when enable_i='1' and queue_count_s<FRAME_QUEUE_DEPTH_C and
                    reserved_count_s<PACKET_SLOT_COUNT_C else '0';
   delayed_sample_o <= din_i;
   ready_o <= '1' when published_count_s>0 and dropped_s(to_integer(read_slot_s))='0' else '0';
 
-  ring_addr_s <= active_s.start_seq(10 downto 0)+to_unsigned(block_s*32+load_s*2,11)
-                 when state_s=ser_load and load_s<16 else active_s.start_seq(10 downto 0);
-  ring_inst : entity work.sample_ring_buffer
+  launch_s <= '1' when fetch_running_s='0' and queue_count_s>0 and
+    seq_age(seq_s,queue_head_s.start_seq)>=511 and
+    seq_age(seq_s,queue_head_s.start_seq)<=RETENTION_LIMIT_C else '0';
+  ring_addr_s <= queue_head_s.start_seq(10 downto 0) when launch_s='1'
+                 else active_s.start_seq(10 downto 0)+resize(fetch_index_s,11);
+  ring_inst : entity work.sample_ring_buffer_single
     generic map(DATA_WIDTH_G=>14, DEPTH_G=>RING_DEPTH_C, ADDR_WIDTH_G=>11)
     port map(clock_i=>clock_i, wr_en_i=>not reset_i, wr_addr_i=>seq_s(10 downto 0), din_i=>din_i,
-             rd_addr_i=>ring_addr_s, dout_o=>ring_data0_s, dout_next_o=>ring_data1_s);
+             rd_addr_i=>ring_addr_s, dout_o=>ring_data_s);
   store_inst : entity work.packet_frame_store
     port map(clock_i=>clock_i, wr_en_i=>store_wr_s, wr_addr_i=>store_waddr_s,
              din_i=>store_din_s, rd_addr_i=>store_raddr_s, dout_o=>dout_o);
@@ -234,44 +222,57 @@ begin
       else store_raddr_s<=slot_addr(read_slot_s,read_word_s+1); end if;
     end if;
   end process;
-  store_wr_s <= '1' when reset_i='0' and (state_s=ser_emit or state_s=ser_header) else '0';
-  store_waddr_s <= slot_addr(active_s.slot,8+block_s*7+emit_s) when state_s=ser_emit
-                   else slot_addr(active_s.slot,header_s);
+  -- Constant shifts and seven fixed slices serialize 32 samples into seven
+  -- words. There is no variable shift network or 32-sample staging array.
+  pack_window_s <= ring_data_s & pack_shift_s;
+  pack_proc : process(all)
+  begin
+    payload_wr_s <= sample_valid_s;
+    payload_data_s <= (others=>'0');
+    case to_integer(sample_index_s(4 downto 0)) is
+      when 4  => payload_data_s <= pack_window_s(71 downto 8);
+      when 9  => payload_data_s <= pack_window_s(65 downto 2);
+      when 13 => payload_data_s <= pack_window_s(73 downto 10);
+      when 18 => payload_data_s <= pack_window_s(67 downto 4);
+      when 22 => payload_data_s <= pack_window_s(75 downto 12);
+      when 27 => payload_data_s <= pack_window_s(69 downto 6);
+      when 31 => payload_data_s <= pack_window_s(77 downto 14);
+      when others => payload_wr_s <= '0';
+    end case;
+  end process;
+  store_wr_s <= (payload_wr_s or header_pending_s) and not reset_i;
+  store_waddr_s <= slot_addr(active_s.slot,8+payload_word_s) when payload_wr_s='1'
+                   else slot_addr(header_meta_s.slot,header_s);
   store_data_proc : process(all)
   begin
     store_din_s <= (others=>'0');
-    if state_s=ser_emit then
-      store_din_s(63 downto 0)<=pack_block_word(samples_s,emit_s);
-      if block_s=15 and emit_s=6 then store_din_s(71 downto 64)<=X"ED"; end if;
-    elsif state_s=ser_header then
+    if payload_wr_s='1' then
+      store_din_s(63 downto 0)<=payload_data_s;
+      if sample_index_s=511 then store_din_s(71 downto 64)<=X"ED"; end if;
+    elsif header_pending_s='1' then
       case header_s is
-        when 0 => store_din_s<=X"BE" & active_s.sample0_ts;
-        when 1 => store_din_s<=X"00" & ch_id_i & version_i & active_s.continuation & '1' &
-                    descriptor_overflow_s & '0' & active_s.calibration_tag & active_s.baseline &
-                    "00" & active_s.threshold_lsb & "00" & active_s.trigger_sample;
-        when others => store_din_s<=X"00" & descriptor_trailer_s((header_s-2)*2+1) & descriptor_trailer_s((header_s-2)*2);
+        when 0 => store_din_s<=X"BE" & header_meta_s.sample0_ts;
+        when 1 => store_din_s<=X"00" & ch_id_i & version_i & header_meta_s.continuation & '1' &
+                    header_overflow_s & '0' & header_meta_s.calibration_tag & header_meta_s.baseline &
+                    "00" & header_meta_s.threshold_lsb & "00" & header_meta_s.trigger_sample;
+        when others => store_din_s<=X"00" & header_trailer_s((header_s-2)*2+1) & header_trailer_s((header_s-2)*2);
       end case;
     end if;
   end process;
-  descriptor_start_s <= '1' when state_s=ser_idle and queue_count_s>0 and
-      seq_age(seq_s,queue_head_s.start_seq)>=511 and
-      seq_age(seq_s,queue_head_s.start_seq)<=RETENTION_LIMIT_C else '0';
-  descriptor_pair_valid_s <= '1' when state_s=ser_load and load_s>0 else '0';
-  descriptor_pair_idx_s <= to_unsigned(block_s*16+load_s-1,8) when load_s>0 else (others=>'0');
-  descriptor_inst : entity work.fragment_peak_descriptors
+  descriptor_start_s <= '1' when sample_valid_s='1' and sample_index_s=0 else '0';
+  descriptor_inst : entity work.fragment_peak_descriptors_serial
     port map(clock_i=>clock_i, reset_i=>reset_i, start_i=>descriptor_start_s,
-      baseline_i=>descriptor_baseline_s,
-      positive_pulse_i=>queue_head_s.positive_pulse,
-      threshold_i=>queue_head_s.activity_threshold,
-      pair_valid_i=>descriptor_pair_valid_s, sample0_i=>ring_data0_s, sample1_i=>ring_data1_s,
-      pair_index_i=>descriptor_pair_idx_s, trailer_o=>descriptor_trailer_s, done_o=>descriptor_done_s,
-      overflow_o=>descriptor_overflow_s);
+      baseline_i=>descriptor_baseline_s, positive_pulse_i=>active_s.positive_pulse,
+      threshold_i=>active_s.activity_threshold,
+      sample_valid_i=>sample_valid_s, sample_i=>ring_data_s,
+      sample_index_i=>sample_index_s, trailer_o=>descriptor_trailer_s,
+      done_o=>descriptor_done_s, overflow_o=>descriptor_overflow_s);
 
   main_proc : process(clock_i)
     variable pending_head : frame_meta_t;
     variable head, tail, count : natural range 0 to FRAME_QUEUE_DEPTH_C;
     variable reserved, published : natural range 0 to PACKET_SLOT_COUNT_C;
-    variable active_valid : std_logic;
+    variable active_valid, header_pending : std_logic;
     variable req : frame_meta_t;
     variable req_valid, req_cont, req_first, accepted, covered : boolean;
     variable trigger_age64 : unsigned(63 downto 0);
@@ -287,10 +288,13 @@ begin
     if rising_edge(clock_i) then
       if reset_i='1' then
         seq_s<=(others=>'0'); history_s<=0; head_s<=0; tail_s<=0; queue_count_s<=0;
-        active_s<=META_NULL_C; active_valid_s<='0'; state_s<=ser_idle;
+        active_s<=META_NULL_C; active_valid_s<='0'; fetch_running_s<='0'; sample_valid_s<='0';
+        fetch_index_s<=(others=>'0'); sample_index_s<=(others=>'0');
+        header_pending_s<='0'; header_meta_s<=META_NULL_C; header_trailer_s<=PEAK_DESCRIPTOR_TRAILER_NULL;
+        header_overflow_s<='0';
         allocate_slot_s<=(others=>'0'); read_slot_s<=(others=>'0');
         reserved_count_s<=0; published_count_s<=0; read_word_s<=0;
-        block_s<=0; load_s<=0; emit_s<=0; header_s<=0; samples_s<=(others=>(others=>'0'));
+        header_s<=0; payload_word_s<=0;
         chain_active_s<='0'; current_accepted_s<='0'; previous_accepted_s<='0';
         current_s<=META_NULL_C; previous_s<=META_NULL_C; activity_s<='0'; quiet_s<=0; chain_quiet_limit_s<=32;
         required_end_s<=(others=>'0'); last_start_s<=(others=>'0'); last_start_valid_s<='0'; trigger_previous_s<='0';
@@ -301,7 +305,7 @@ begin
       else
         pending_head:=queue_head_s; head:=head_s; tail:=tail_s; count:=queue_count_s;
         reserved:=reserved_count_s; published:=published_count_s;
-        active_valid:=active_valid_s;
+        active_valid:=active_valid_s; header_pending:=header_pending_s;
         seq_s<=seq_s+1;
         -- Expire the spacing reference before the32-bit local sample counter
         -- can wrap and make an ancient fragment appear recent again.
@@ -322,41 +326,49 @@ begin
             reserved:=reserved-1; published:=published-1;
           else read_word_s<=read_word_s+1; end if;
         end if;
-        -- Serialization drains admitted work even when acquisition is disabled.
-        case state_s is
-          when ser_idle =>
-            if count>0 then
-              age:=seq_age(seq_s,pending_head.start_seq);
-              if age>RETENTION_LIMIT_C then
-                published:=published+1;
-                ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
-                if pending_head.continuation='1' then continuation_drop_s<=continuation_drop_s+1; end if;
-                head:=next_q(head); count:=count-1; pending_head:=queue_next_s;
-              elsif age>=511 then
-                active_s<=pending_head; active_valid:='1'; block_s<=0; load_s<=0; emit_s<=0;
-                state_s<=ser_load; head:=next_q(head); count:=count-1;
-              end if;
-            end if;
-          when ser_load =>
-            if load_s=0 then load_s<=1;
-            else
-              samples_s((load_s-1)*2)<=ring_data0_s; samples_s((load_s-1)*2+1)<=ring_data1_s;
-              if load_s=16 then emit_s<=0; state_s<=ser_emit;
-              else load_s<=load_s+1; end if;
-            end if;
-          when ser_emit =>
-            if emit_s=6 then
-              if block_s=15 then
-                header_s<=0; state_s<=ser_header;
-              else block_s<=block_s+1; load_s<=0; state_s<=ser_load; end if;
-            else emit_s<=emit_s+1; end if;
-          when ser_header =>
-            if header_s=7 then
-              published:=published+1;
-              active_valid:='0'; state_s<=ser_idle; record_count_s<=record_count_s+1;
-              if descriptor_overflow_s='1' then descriptor_overflow_count_s<=descriptor_overflow_count_s+1; end if;
-            else header_s<=header_s+1; end if;
-        end case;
+        -- Header publication can overlap the next fragment's BRAM stream.
+        -- Payload words win the single URAM write port; eight headers finish
+        -- within nine clocks after sample511 during a contiguous stream.
+        if header_pending_s='1' and payload_wr_s='0' then
+          if header_s=7 then
+            published:=published+1; header_pending:='0'; record_count_s<=record_count_s+1;
+            if header_overflow_s='1' then descriptor_overflow_count_s<=descriptor_overflow_count_s+1; end if;
+          else header_s<=header_s+1; end if;
+        end if;
+        -- The helper updates its final trailer on sample511. Capture it on
+        -- the following edge, which may also start the next descriptor frame.
+        if descriptor_done_s='1' then
+          header_trailer_s<=descriptor_trailer_s; header_overflow_s<=descriptor_overflow_s;
+        end if;
+        if sample_valid_s='1' then
+          pack_shift_s<=pack_window_s(77 downto 14);
+          if payload_wr_s='1' then
+            if sample_index_s=511 then payload_word_s<=0;
+            else payload_word_s<=payload_word_s+1; end if;
+          end if;
+          if sample_index_s=511 then
+            assert header_pending_s='0' report "header writer overran one fragment" severity failure;
+            header_meta_s<=active_s; header_s<=0; header_pending:='1'; active_valid:='0';
+          end if;
+        end if;
+        -- Admitted work continues to drain while acquisition is disabled.
+        -- Launch sample0 at the edge consuming the previous sample511 to
+        -- achieve an exact 512-clock initiation interval without an idle gap.
+        sample_valid_s<=fetch_running_s or launch_s;
+        if launch_s='1' then
+          active_s<=pending_head; active_valid:='1'; fetch_running_s<='1';
+          fetch_index_s<=to_unsigned(1,9); sample_index_s<=(others=>'0');
+          head:=next_q(head); count:=count-1; pending_head:=queue_next_s;
+        elsif fetch_running_s='1' then
+          sample_index_s<=fetch_index_s;
+          if fetch_index_s=511 then fetch_running_s<='0';
+          else fetch_index_s<=fetch_index_s+1; end if;
+        elsif publish_drop_s='1' then
+          published:=published+1;
+          ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
+          if pending_head.continuation='1' then continuation_drop_s<=continuation_drop_s+1; end if;
+          head:=next_q(head); count:=count-1; pending_head:=queue_next_s;
+        end if;
 
         req:=META_NULL_C; req_valid:=false; req_cont:=false; req_first:=false;
         quiet_next:=quiet_s; activity_next:=activity_s;
@@ -447,15 +459,10 @@ begin
         end if;
         if req_valid then
           age:=seq_age(seq_s,req.start_seq);
-          -- Small explicit table: keep the work estimate out of generic
-          -- integer multiplication and expose its tight synthesis bounds.
-          case count is
-            when 0 => workload:=0;
-            when 1 => workload:=393;
-            when 2 => workload:=786;
-            when 3 => workload:=1179;
-            when others => workload:=1572;
-          end case;
+          -- A power-of-two service bound needs only a shift. Header writes
+          -- overlap the sample stream; the retention margin covers an idle
+          -- stale-head publication waiting for the previous header to finish.
+          workload:=count*SERIALIZER_CYCLES_C;
           if active_valid='1' then workload:=workload+SERIALIZER_CYCLES_C; end if;
           wait_cycles:=0;
           if active_valid='0' and count>0 and seq_age(seq_s,pending_head.start_seq)<511 then
@@ -494,14 +501,14 @@ begin
           continuation_drop_s<=(others=>'0'); covered_count_s<=(others=>'0'); descriptor_overflow_count_s<=(others=>'0');
         end if;
         -- synthesis translate_off
-        if active_valid='1' then
-          assert reserved=published+count+1 report "packet reservation conservation failed" severity failure;
-        else
-          assert reserved=published+count report "packet reservation conservation failed" severity failure;
-        end if;
+        workload:=0;
+        if active_valid='1' then workload:=workload+1; end if;
+        if header_pending='1' then workload:=workload+1; end if;
+        assert reserved=published+count+workload report "packet reservation conservation failed" severity failure;
         -- synthesis translate_on
         head_s<=head; tail_s<=tail; queue_count_s<=count;
         reserved_count_s<=reserved; published_count_s<=published; active_valid_s<=active_valid;
+        header_pending_s<=header_pending;
       end if;
     end if;
   end process;
