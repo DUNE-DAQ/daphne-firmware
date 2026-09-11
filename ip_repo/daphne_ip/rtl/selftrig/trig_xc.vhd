@@ -35,10 +35,13 @@ architecture trig_xc_arch of trig_xc is
 
 signal current_sample: std_logic_vector(13 downto 0) := (others => '0');
 signal din_trig: std_logic_vector(15 downto 0) := (others => '0');
-signal trig_sample_reg: std_logic_vector(13 downto 0) := (others => '0');
 signal dout_filter1, dout_filter2, k_lpf_baseline: std_logic_vector(15 downto 0);
-signal triggered_i, triggered_dly32_i, triggered_i_module: std_logic;
-signal ts_reg, trig_ts_reg: std_logic_vector(63 downto 0) := (others => '0');
+signal triggered_i, triggered_i_module: std_logic;
+-- All tuple fields have the same64-cycle latency. Updating a single capture
+-- register while only delaying the pulse corrupts closely spaced events.
+signal trigger_tuple_in, trigger_tuple_out: std_logic_vector(78 downto 0);
+signal valid_cycles: natural range 0 to 64 := 0;
+signal ts_reg: std_logic_vector(63 downto 0) := (others => '0');
 
 component hpf_pedestal_recovery_filter_trigger
 port(
@@ -87,44 +90,30 @@ begin
     -- trigger goes between the adhoc conditions or the EIA self trigger condition
     triggered_i <= '1' when ( ( ti_trigger=adhoc and ti_trigger_stbr='1' ) or ( triggered_i_module='1' ) ) else '0';
 
-    -- Keep the legacy synthetic trigger latency at 64 clocks, but express it
-    -- through a vendor-neutral fixed delay line so this path elaborates
-    -- without Xilinx primitive libraries.
-    trigger_latency_stage0_inst : entity work.fixed_delay_line
-    generic map (
-        WIDTH_G => 1,
-        DELAY_G => 32
-    )
-    port map (
-        clock_i    => clock,
-        din_i(0)   => triggered_i,
-        dout_o(0)  => triggered_dly32_i
-    );
+    -- Preserve the sample/timestamp sampled by the old event capture process:
+    -- current_sample and ts_reg refer to the preceding input clock. Shift them
+    -- together with each event, rather than reusing the most recent event's
+    -- metadata when another event arrives during the trigger latency.
+    trigger_tuple_in <= triggered_i & current_sample & ts_reg;
+    trigger_tuple_delay_inst : entity work.fixed_delay_line
+    generic map (WIDTH_G => 79, DELAY_G => 64)
+    port map (clock_i => clock, din_i => trigger_tuple_in, dout_o => trigger_tuple_out);
 
-    trigger_latency_stage1_inst : entity work.fixed_delay_line
-    generic map (
-        WIDTH_G => 1,
-        DELAY_G => 32
-    )
-    port map (
-        clock_i    => clock,
-        din_i(0)   => triggered_dly32_i,
-        dout_o(0)  => trig
-    );
-
-    -- store the sample and timestamp that caused the trigger
-    samplecap_proc: process(clock)
-    begin 
+    -- Keep reset off the sample/timestamp delay so Vivado can infer SRLs.
+    -- Suppress stale valid bits until all64 pre-reset entries have flushed.
+    valid_flush_proc : process(clock)
+    begin
         if rising_edge(clock) then
-            if (triggered_i='1') then
-                trig_sample_reg <= current_sample;
-                trig_ts_reg     <= ts_reg;
+            if reset='1' then valid_cycles <= 0;
+            elsif valid_cycles<64 then valid_cycles <= valid_cycles+1;
             end if;
         end if;
-    end process samplecap_proc;
-
-    trig_sample_dat       <= trig_sample_reg;
-    trig_sample_ts        <= trig_ts_reg;
+    end process;
+    trig <= trigger_tuple_out(78) when reset='0' and valid_cycles=64 else '0';
+    -- Metadata is meaningful on every asserted trigger clock, including
+    -- adjacent asserted clocks; it need not remain constant between events.
+    trig_sample_dat <= trigger_tuple_out(77 downto 64);
+    trig_sample_ts <= trigger_tuple_out(63 downto 0);
     dout1                 <= dout_filter1(13 downto 0);
     dout2                 <= dout_filter2(13 downto 0);
     baseline              <= k_lpf_baseline(13 downto 0);
