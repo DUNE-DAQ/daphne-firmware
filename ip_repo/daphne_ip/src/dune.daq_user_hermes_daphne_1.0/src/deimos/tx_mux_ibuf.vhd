@@ -46,6 +46,11 @@ entity tx_mux_ibuf is
 end entity tx_mux_ibuf;
 
 architecture rtl of tx_mux_ibuf is
+    function reserve_threshold return natural is
+    begin
+        if PACKET_WORDS = 0 then return 16; end if;
+        return IN_BUF_DEPTH - PACKET_WORDS - 4;
+    end function;
 
     signal ctrl: ipb_reg_v(0 downto 0);
     signal stat: ipb_reg_v(15 downto 0);
@@ -210,7 +215,7 @@ begin
             FIFO_MEMORY_TYPE => "distributed",
             FIFO_READ_LATENCY => 0,
             FIFO_WRITE_DEPTH => LBUF_DEPTH,
-            PROG_FULL_THRESH => LBUF_DEPTH - 4,
+            PROG_FULL_THRESH => LBUF_DEPTH - 5,
             WR_DATA_COUNT_WIDTH => LBUF_C_W,
             READ_DATA_WIDTH => 13,
             READ_MODE => "fwft",
@@ -248,7 +253,7 @@ begin
             FIFO_MEMORY_TYPE => "block",
             FIFO_READ_LATENCY => 0,
             FIFO_WRITE_DEPTH => IN_BUF_DEPTH,
-            PROG_FULL_THRESH => IN_BUF_DEPTH - PACKET_WORDS - 4,
+            PROG_FULL_THRESH => reserve_threshold,
             RD_DATA_COUNT_WIDTH => 8,
             WR_DATA_COUNT_WIDTH => 8,
             READ_DATA_WIDTH => 64,
