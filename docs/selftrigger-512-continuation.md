@@ -50,6 +50,23 @@ the chain grid. A rejected continuation is observable through counters and a
 flag. Disabling acquisition stops new requests and drains accepted packets.
 Counter reset leaves acquisition and packet ownership intact.
 
+Frame-relative coverage uses 13-bit local sample positions, with references
+expired after 2048 clocks. This gives an 8192-clock modulo and avoids two
+64-bit timestamp subtractors per channel. The external trigger-age check
+still uses the full timestamp and rejects future tuples or tuples older than
+447 clocks before matching. This includes stale tuples that an earlier
+candidate could count as covered long after their waveform had completed.
+Packet timestamps and continuation timestamp increments remain 64 bits.
+
+A non-unit timestamp step starts a new admission epoch. It closes the chain,
+invalidates matching/spacing references and clears admission history, while
+all reserved packets drain intact with their original timestamp headers.
+A trigger on the jump edge is counted as a ring/busy rejection. With the
+existing capture-edge convention, a new seed can be accepted at jump+65,
+after 64 new history samples. Natural 64-bit wrap is a valid +1 step.
+The timestamp-step detector has identical clock/reset/timestamp inputs across
+channels; full synthesis must verify sharing of this common logic.
+
 The trigger, ADC sample and timestamp now traverse the same 64-clock delay
 pipeline, so close trigger arrivals cannot overwrite an earlier trigger's
 metadata. A 64-clock valid flush after reset prevents stale events without
