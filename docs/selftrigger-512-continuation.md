@@ -11,14 +11,19 @@ in header word 1 bits 47:46. No extra transport word or variable length is used.
 
 ## Acquisition and admission
 
-Each channel continuously records 2048 samples in two interleaved BRAM banks,
-which provide two consecutive samples per read even for an odd start address.
-A four-entry descriptor queue feeds a serializer with a 393-clock service
-interval, below the 512-clock fragment interval. The existing 4096-by-72-bit
-UltraRAM capacity is organized into 32 reserved slots of 128 words each.
-The serializer writes the 112 payload words before the eight header words,
-then publishes the slot as complete. Readout sees the original header-first
-120-word order. A reader can never start an incomplete packet.
+Each channel continuously records 2048 samples in a native single-read BRAM.
+A four-entry descriptor queue feeds a serializer that consumes one original
+sample per clock, with an exact 512-clock initiation interval for ready
+consecutive fragments. Fixed slices pack each 32 samples into seven words;
+no sample block staging or variable shift network is required. The existing
+4096-by-72-bit UltraRAM holds 32 reserved slots of 128 words each.
+
+The first sample is consumed one clock after its read launch; sample511
+writes the final payload word at launch+512. The next fragment can launch on
+that edge. Eight header words use gaps between its payload writes, publishing
+the previous packet 8 or 9 clocks after its final sample. Fragment descriptors
+are captured before the helper starts the next frame. Readout sees the
+original header-first 120-word order and cannot start an incomplete packet.
 
 Continuation uses a baseline and polarity frozen at the chain's first trigger.
 The existing `invert_enable` selects positive raw pulses; the inverted filter
@@ -130,13 +135,19 @@ pulse/charge capture, and output drops when interpreting deadtime improvement.
 Reference baseline, new RTL, simulation source, waveform seeds and tool
 versions must be pinned in the final evidence.
 
-Cooper's Vivado 2026.1 vendor XPM simulation passed for RTL `355376f`: two
+Cooper's Vivado 2026.1 vendor XPM simulation passed for the earlier paired-read RTL `355376f`: two
 30-packet chains with even/odd starts, every ADC sample checked, plus the
 timestamp/admission/disable/reset boundary bench. The local evidence archive
 is `artifacts/continuation512/cooper-355376f/vendor-memory-sim.tar.gz` under
 the workspace firmware directory, accompanied by SHA256. The vendor memory
 source SHA256 is
 `2ffcfc104eae061b7fefc3bda9d123d466c12df6363748284c1ca349b00cf75a`.
+
+That earlier candidate failed implementation area DRC: 197918 LUTs as logic
+were required against 117120 available. Its synthesis total was 207820 LUTs.
+Queue/control optimization reduced the isolated builder from 4013 to 3332
+LUTs; this remained insufficient, motivating the current streaming design.
+These earlier resource and memory results do not qualify the streaming RTL.
 
 See [the Cooper build procedure](cooper-continuation-build.md). Resource fit,
 routed timing and DRC remain qualification steps until their reports are
