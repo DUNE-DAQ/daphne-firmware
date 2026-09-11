@@ -33,7 +33,9 @@ source, records source and vendor-memory hashes, and runs the native Linux
 implementation and overlay packaging chain. Its controlled PATH avoids the
 unrelated PetaLinux SDK in the account's login environment. The build log,
 tool version, exit status and start/finish times survive an SSH disconnect.
-The helper checks artifact presence and package checksums, but successful
+Git is available only through the SDK on this host, so the helper keeps the
+SDK's `usr/bin` as a fallback after system directories. The helper checks
+artifact presence and package checksums, but successful
 execution alone is not timing qualification.
 
 Review and retain the routed timing summary, utilization, DRC, methodology
@@ -56,5 +58,30 @@ The installed XPM memory source permits SDP UltraRAM with common clock,
 Vendor checks at lines 625–634 require at least one read stage, prohibit
 `no_change` for SDP UltraRAM, and require at least three stages only for
 `write_first`. The baseline evidence records the installed vendor-file hash
-and those checks. Vendor-model simulation still checks the actual packet
-store's behavior and sample ordering separately.
+and those checks.
+
+## Vendor memory simulation
+
+`scripts/remote/cooper_vendor_memory_sim.sh SOURCE_ROOT NEW_SIM_DIRECTORY`
+compiles the installed AMD XPM VHDL component declarations and SystemVerilog
+memory models into a simulation-local library. Explicit library mapping is
+required because Cooper's default XSim configuration otherwise maps `xpm`
+into the read-only tool installation. It then runs the real builder and
+two-lane output mux with even and odd frame starts, verifies every ADC sample
+in 30 consecutive packets per case, and checks boundary cases.
+
+This passed for candidate `355376f` on 2026-09-11 in
+`/tmp/arroyave/work/dsc512-cont-355376f-20260911/vendor-memory-sim-attempt02`.
+The initial simulation attempt stopped before design compilation because of
+the default library mapping; that failed attempt remains alongside the
+successful one. This is a targeted gateware/vendor-model check. The broader
+waveform simulator workload runs on the local workstation.
+
+## Hierarchical resource evidence
+
+After a synthesis or routed checkpoint is available, use
+`scripts/remote/cooper_report_resources.tcl CHECKPOINT NEW_REPORT_DIRECTORY`
+with Vivado batch mode. It produces total and hierarchical utilization plus
+a TSV naming every BRAM/URAM primitive. These reports identify the actual
+cost of the rings, packet stores and spy capture in the candidate instead of
+inferring it from historical build totals.
