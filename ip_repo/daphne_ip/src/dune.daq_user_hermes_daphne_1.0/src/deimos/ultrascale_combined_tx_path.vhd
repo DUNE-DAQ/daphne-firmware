@@ -241,6 +241,7 @@ src_gen: for i in 0 to N_MGT-1 generate
         G_INC_PING             => PACKET_WORDS = 0,
         G_INC_ARP              => PACKET_WORDS = 0,
         G_INC_LUTS             => PACKET_WORDS = 0,
+        G_FIXED_TX_ONLY        => PACKET_WORDS /= 0,
         G_CORE_FREQ_KHZ        => 156250,         --! KHz Of Tx Path, Only Used To Calibrate ARP Refresh Timers
         G_INC_ETH              => false,          --! Generate Logic To Transmit Externally Provided Ethernet Payloads
         G_INC_IPV4             => false           --! Generate Logic To Transmit Externally Provided IPV4 Payloads

@@ -60,6 +60,7 @@ entity udp_core_interface_withmac_ipbus_wrapper is
         G_INC_PING             : boolean := true; --!           Generate Logic For Internal Ping Replies
         G_INC_ARP              : boolean := true; --!           Generate Logic For Internal ARP Requests And Replies
         G_INC_LUTS             : boolean := true;
+        G_FIXED_TX_ONLY        : boolean := false; --!          Synchronize the MM header fields into tx_core_clk and omit asynchronous diagnostics
         G_CORE_FREQ_KHZ        : integer := 156250; --!         Clock frequency, in KHz, Of Tx Path, Only Used To Calibrate ARP Refresh Timers
         G_INC_ETH              : boolean := false; --!          Generate Logic To Transmit Externally Provided Ethernet Payloads
         G_INC_IPV4             : boolean := false; --!           Generate Logic To Transmit Externally Provided IPV4 Payloads
@@ -214,6 +215,7 @@ architecture wrapper of udp_core_interface_withmac_ipbus_wrapper is
     signal udp_core_settings_status_regs     : t_udp_core_settings;
     signal udp_core_settings_control_regs_we : t_udp_core_settings_decoded;
     signal udp_core_settings_control_regs    : t_udp_core_settings;
+    signal udp_core_settings_reg_bank_in     : t_udp_core_settings;
     signal arp_mode_status_regs_we           : t_arp_mode_control_decoded;
     signal arp_mode_status_regs              : t_arp_mode_control;
     signal arp_mode_control_regs_we          : t_arp_mode_control_decoded;
@@ -224,6 +226,7 @@ architecture wrapper of udp_core_interface_withmac_ipbus_wrapper is
     signal rx_in_axi4s_pre_pline_s_miso      : t_axi4s_miso;
 
     signal extern_src_addrs   : t_extern_src_addr;
+    signal core_use_ext_addr  : std_logic;
     
 begin
 
@@ -398,12 +401,15 @@ begin
             G_INC_PING            => G_INC_PING,
             G_INC_ARP             => G_INC_ARP,
             G_INC_LUTS            => G_INC_LUTS,
+            G_MM_TX_CDC           => G_FIXED_TX_ONLY,
             G_INC_ETH             => G_INC_ETH,
             G_INC_IPV4            => G_INC_IPV4,
             debug_arp             => debug_arp,
             debug_ping            => debug_ping
         )
         port map(
+            mm_clk                         => clk,
+            mm_rst                         => rst,
             tx_core_clk                    => tx_core_clk,
             rx_core_clk                    => rx_core_clk,
             tx_core_rst_s_n                => tx_core_rst_s_n,
@@ -444,8 +450,37 @@ begin
             ext_mac_addr                   => ext_mac_addr,
             ext_ip_addr                    => ext_ip_addr,
             ext_port_addr                  => ext_port_addr,
-            use_ext_addr                   => udp_core_settings_control_regs.use_ext_src_addr
+            use_ext_addr                   => core_use_ext_addr
         );
+
+    -- The production fixed-record path always uses the board-level source
+    -- addresses.  In legacy mode preserve the software-selectable source.
+    core_use_ext_addr <= use_ext_addr when G_FIXED_TX_ONLY else
+                         udp_core_settings_control_regs.use_ext_src_addr;
+
+    legacy_status_regs : if not G_FIXED_TX_ONLY generate
+        udp_core_settings_reg_bank_in <= udp_core_settings_status_regs;
+    end generate legacy_status_regs;
+
+    fixed_status_regs : if G_FIXED_TX_ONLY generate
+        -- UDP diagnostic counters are generated in tx_core_clk and were wired
+        -- directly into the IPBus clock domain.  The fixed sender accounts for
+        -- accepted and lost fragments at its packet admission boundary, so do
+        -- not retain these approximate, asynchronous duplicate counters.
+        udp_core_settings_reg_bank_in.rx_udp_count          <= (others => '0');
+        udp_core_settings_reg_bank_in.rx_ping_count         <= (others => '0');
+        udp_core_settings_reg_bank_in.rx_arp_count          <= (others => '0');
+        udp_core_settings_reg_bank_in.rx_uns_etype_count    <= (others => '0');
+        udp_core_settings_reg_bank_in.rx_uns_pro_count      <= (others => '0');
+        udp_core_settings_reg_bank_in.rx_dropped_mac_count  <= (others => '0');
+        udp_core_settings_reg_bank_in.rx_dropped_ip_count   <= (others => '0');
+        udp_core_settings_reg_bank_in.rx_dropped_port_count <= (others => '0');
+        udp_core_settings_reg_bank_in.tx_udp_count          <= (others => '0');
+        udp_core_settings_reg_bank_in.tx_ping_count         <= (others => '0');
+        udp_core_settings_reg_bank_in.tx_arp_count          <= (others => '0');
+        udp_core_settings_reg_bank_in.ip_id                 <= (others => '0');
+        udp_core_settings_reg_bank_in.udp_core_id           <= (others => '0');
+    end generate fixed_status_regs;
 
     ----------------------------------------------------------------------------
     -- I/O Pipelines For Interface With PHY
@@ -654,7 +689,7 @@ begin
             ipb_in                => ipb_in,
             ipb_out               => ipb_out,
             extern_src_addr_in    => extern_src_addrs,
-            udp_core_settings_in  => udp_core_settings_status_regs,
+            udp_core_settings_in  => udp_core_settings_reg_bank_in,
             udp_core_settings_out => udp_core_settings_control_regs,
             arp_mode_control_in   => arp_mode_status_regs,
             arp_mode_control_out  => arp_mode_control_regs,

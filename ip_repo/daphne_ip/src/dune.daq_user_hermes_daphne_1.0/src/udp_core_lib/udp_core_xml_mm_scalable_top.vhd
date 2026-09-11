@@ -30,6 +30,9 @@ use work.axi4s_pkg.all;
 library common_stfc_lib;
 use work.common_stfc_pkg.all;
 
+library xpm;
+use xpm.vcomponents.all;
+
 entity udp_core_xml_mm_scalable_top is
     generic(
         G_FPGA_VENDOR         : string  := "xilinx"; --! Selects the FPGA Vendor for Compilation
@@ -48,6 +51,7 @@ entity udp_core_xml_mm_scalable_top is
         G_INC_PING            : boolean := true; --! Generate Logic For Internal Ping Replies
         G_INC_ARP             : boolean := true; --! Generate Logic For Interal ARP Requests And Replies
         G_INC_LUTS            : boolean := true;
+        G_MM_TX_CDC           : boolean := false; --! Synchronize quasi-static MM header fields into tx_core_clk
         G_INC_ETH             : boolean := false; --! Generate Logic To Transmit Externally Provided Ethernet Payloads
         G_INC_IPV4            : boolean := false; --! Generate Logic To Transmit Externally Provided IPV4 Payloads
         debug_arp             : boolean := false;
@@ -64,6 +68,8 @@ entity udp_core_xml_mm_scalable_top is
         farm_mode_lut_status           : out t_farm_mode_lut_in;
         farm_mode_lut_control          : in  t_farm_mode_lut_out;
         -- Main Core Clocks and Synchronised Resets
+        mm_clk                         : in  std_logic := '0'; --! Memory-map register clock used as the CDC source clock
+        mm_rst                         : in  std_logic := '0'; --! Synchronous memory-map reset
         tx_core_clk                    : in  std_logic; --! UDP Core Tx Path Clock
         rx_core_clk                    : in  std_logic; --! UDP Core Rx Path Clock
         tx_core_rst_s_n                : in  std_logic; --! UDP Core Tx Synchronous Active-High Reset
@@ -111,6 +117,7 @@ entity udp_core_xml_mm_scalable_top is
 end entity udp_core_xml_mm_scalable_top;
 
 architecture struct of udp_core_xml_mm_scalable_top is
+    constant C_MM_TX_WIDTH : positive := 186;
     constant C_RX_TX_CROSS_FIFO_WIDTH : integer       := 5;
     constant C_PING_FIFO_DESC         : t_axi4s_descr := (tdata_nof_bytes => G_UDP_CORE_BYTES,
                                                           tid_width       => 8,
@@ -153,6 +160,14 @@ architecture struct of udp_core_xml_mm_scalable_top is
     signal fxd_pkt_sze        : std_logic;
     signal udp_chk_sum_zero   : std_logic;
     signal ip_hdr_checksum    : std_logic_vector(15 downto 0);
+    signal mm_tx_src           : std_logic_vector(C_MM_TX_WIDTH - 1 downto 0);
+    signal mm_tx_sync          : std_logic_vector(C_MM_TX_WIDTH - 1 downto 0);
+    signal mm_tx_hold          : std_logic_vector(C_MM_TX_WIDTH - 1 downto 0) := (others => '0');
+    signal mm_tx_last          : std_logic_vector(C_MM_TX_WIDTH - 1 downto 0) := (others => '0');
+    signal mm_tx_send          : std_logic := '0';
+    signal mm_tx_received      : std_logic;
+    type t_mm_tx_state is (MM_IDLE, MM_SEND, MM_WAIT_LOW);
+    signal mm_tx_state         : t_mm_tx_state := MM_IDLE;
 
     signal rx_dropped_mac_count  : std_logic_vector(31 downto 0);
     signal rx_dropped_ip_count   : std_logic_vector(31 downto 0);
@@ -205,6 +220,83 @@ architecture struct of udp_core_xml_mm_scalable_top is
     attribute mark_debug of debug_tx_ping_tvalid:signal is debug_ping;
 
 begin
+    -- The IPBus register bank uses clk while the packet constructor uses
+    -- tx_core_clk.  These fields are quasi-static network configuration.  An
+    -- XPM handshake transfers one coherent snapshot and contributes the vendor
+    -- CDC timing constraints. Packing only fields consumed by the transmit-only
+    -- core avoids replicating the receive/filter controls.
+    mm_tx_src <= udp_core_settings_control_regs.dst_mac_addr_upper &
+                 udp_core_settings_control_regs.dst_mac_addr_lower &
+                 udp_core_settings_control_regs.dst_ip_addr &
+                 udp_core_settings_control_regs.udp_ports.dst_port &
+                 udp_core_settings_control_regs.ethertype &
+                 udp_core_settings_control_regs.ipv4_header_0.ip_ver_hdr_len &
+                 udp_core_settings_control_regs.ipv4_header_0.ip_service &
+                 udp_core_settings_control_regs.ipv4_header_1.ip_count &
+                 udp_core_settings_control_regs.ipv4_header_1.ip_fragment &
+                 udp_core_settings_control_regs.ipv4_header_2.ip_ttl &
+                 udp_core_settings_control_regs.ipv4_header_2.ip_protocol &
+                 udp_core_settings_control_regs.ifg(7 downto 0) &
+                 udp_core_settings_control_regs.control.tuser_dst_prt &
+                 udp_core_settings_control_regs.control.tuser_src_prt;
+
+    gen_mm_tx_cdc : if G_MM_TX_CDC generate
+        mm_tx_source : process(mm_clk) is
+        begin
+            if rising_edge(mm_clk) then
+                if mm_rst = '1' then
+                    mm_tx_hold <= (others => '0');
+                    mm_tx_last <= (others => '0');
+                    mm_tx_send <= '0';
+                    mm_tx_state <= MM_IDLE;
+                else
+                    case mm_tx_state is
+                        when MM_IDLE =>
+                            if mm_tx_src /= mm_tx_last then
+                                mm_tx_hold <= mm_tx_src;
+                                mm_tx_send <= '1';
+                                mm_tx_state <= MM_SEND;
+                            end if;
+                        when MM_SEND =>
+                            if mm_tx_received = '1' then
+                                mm_tx_last <= mm_tx_hold;
+                                mm_tx_send <= '0';
+                                mm_tx_state <= MM_WAIT_LOW;
+                            end if;
+                        when MM_WAIT_LOW =>
+                            if mm_tx_received = '0' then
+                                mm_tx_state <= MM_IDLE;
+                            end if;
+                    end case;
+                end if;
+            end if;
+        end process mm_tx_source;
+
+        mm_tx_cdc_inst : xpm_cdc_handshake
+            generic map(
+                DEST_EXT_HSK   => 0,
+                DEST_SYNC_FF   => 3,
+                INIT_SYNC_FF   => 0,
+                SIM_ASSERT_CHK => 1,
+                SRC_SYNC_FF    => 3,
+                WIDTH          => C_MM_TX_WIDTH
+            )
+            port map(
+                src_clk  => mm_clk,
+                src_in   => mm_tx_hold,
+                src_send => mm_tx_send,
+                src_rcv  => mm_tx_received,
+                dest_out => mm_tx_sync,
+                dest_clk => tx_core_clk,
+                dest_req => open,
+                dest_ack => '0'
+            );
+    end generate gen_mm_tx_cdc;
+
+    gen_mm_tx_same_clock : if not G_MM_TX_CDC generate
+        mm_tx_sync <= mm_tx_src;
+    end generate gen_mm_tx_same_clock;
+
     ----------------------------------------------------------------------------
     -- Rx To Tx Path Clk Crossing FIFOs: ARP, Ping and Ping Addresses
     ----------------------------------------------------------------------------
@@ -464,25 +556,25 @@ begin
     -- DST ADDR (OTHER) From MM
     -- In the Tx Path These Will Be Substituted For LUT Values If Farm Mode Is Enabled
     -- Port Addresses Can Also Be Sourced From TUSER depending on tuser_dst_prt and tuser_src_prt but LUT have priority if farm_mode = '1'
-    mac_dst_addr      <= byte_reverse(udp_core_settings_control_regs.dst_mac_addr_lower) & byte_reverse(udp_core_settings_control_regs.dst_mac_addr_upper);
-    ip_dst_addr       <= byte_reverse(udp_core_settings_control_regs.dst_ip_addr);
-    udp_dst_port_addr <= byte_reverse(udp_core_settings_control_regs.udp_ports.dst_port);
+    mac_dst_addr      <= byte_reverse(mm_tx_sync(169 downto 138)) & byte_reverse(mm_tx_sync(185 downto 170));
+    ip_dst_addr       <= byte_reverse(mm_tx_sync(137 downto 106));
+    udp_dst_port_addr <= byte_reverse(mm_tx_sync(105 downto 90));
 
-    packet_type        <= udp_core_settings_control_regs.ethertype;
-    ip_ver_hdr_len     <= udp_core_settings_control_regs.ipv4_header_0.ip_ver_hdr_len;
-    ip_service         <= udp_core_settings_control_regs.ipv4_header_0.ip_service;
+    packet_type        <= mm_tx_sync(89 downto 74);
+    ip_ver_hdr_len     <= mm_tx_sync(73 downto 66);
+    ip_service         <= mm_tx_sync(65 downto 58);
     ip_pkt_length_base <= udp_core_settings_control_regs.ipv4_header_0.ip_packet_length;
-    ip_ident_count     <= udp_core_settings_control_regs.ipv4_header_1.ip_count;
-    ip_flag_frag       <= udp_core_settings_control_regs.ipv4_header_1.ip_fragment;
-    ip_time_to_live    <= udp_core_settings_control_regs.ipv4_header_2.ip_ttl;
-    ip_protocol        <= udp_core_settings_control_regs.ipv4_header_2.ip_protocol;
+    ip_ident_count     <= mm_tx_sync(57 downto 42);
+    ip_flag_frag       <= mm_tx_sync(41 downto 26);
+    ip_time_to_live    <= mm_tx_sync(25 downto 18);
+    ip_protocol        <= mm_tx_sync(17 downto 10);
     ip_hdr_checksum    <= udp_core_settings_control_regs.ipv4_header_2.header_checksum; --This Set Value Is Currently Unused As Actual Checksum Is Calculated in Tx Path
     udp_length_base    <= udp_core_settings_control_regs.control.udp_length;
     filter_controls    <= udp_core_settings_control_regs.filter_control;
     lut_mode           <= udp_core_settings_control_regs.control.lut_mode when G_INC_LUTS else '0';
-    tuser_dst_prt      <= udp_core_settings_control_regs.control.tuser_dst_prt;
-    tuser_src_prt      <= udp_core_settings_control_regs.control.tuser_src_prt;
-    ifg_val            <= udp_core_settings_control_regs.ifg;
+    tuser_dst_prt      <= mm_tx_sync(1);
+    tuser_src_prt      <= mm_tx_sync(0);
+    ifg_val            <= (15 downto 8 => '0') & mm_tx_sync(9 downto 2);
     fxd_pkt_sze        <= udp_core_settings_control_regs.control.fixed_pkt_size;
     udp_chk_sum_zero   <= udp_core_settings_control_regs.control.udp_checksum_zero;
 
