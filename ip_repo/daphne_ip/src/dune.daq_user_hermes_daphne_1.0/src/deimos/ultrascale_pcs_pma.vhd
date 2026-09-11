@@ -54,7 +54,7 @@ entity ultrascale_pcs_pma is
 
         clk_drp             : in  std_logic;
 
-        clk_156_o           : out std_logic_vector(N_MGT-1 downto 0);
+        tx_clk_o, rx_clk_o   : out std_logic_vector(N_MGT-1 downto 0);
 
         sfp_rxp_array       : in  std_logic_vector(N_MGT-1 downto 0);
         sfp_rxn_array       : in  std_logic_vector(N_MGT-1 downto 0);
@@ -63,9 +63,7 @@ entity ultrascale_pcs_pma is
         sfp_tx_dis_array    : out std_logic_vector(N_MGT-1 downto 0);
 
         tx_path_ready_array : out std_logic_vector(N_MGT-1 downto 0);
-        rst_156_25_array    : out std_logic_vector(N_MGT-1 downto 0);
-
-        xgmii_clk           : out std_logic;
+        tx_reset_o, rx_reset_o : out std_logic_vector(N_MGT-1 downto 0);
 
         tx_xgmii_d_array    : in xgmii_d_array(N_MGT-1 downto 0);
         tx_xgmii_c_array    : in xgmii_c_array(N_MGT-1 downto 0);
@@ -281,9 +279,10 @@ begin
             gt_ref_clk_out  => ref_clk_out
         );
         
---   clk_156_o <= ref_clk_out when (ref_freq = f156_25) else tx_mii_clk_array(0);
-    clk_156_o <= tx_mii_clk_array(N_MGT-1 downto 0);
-    xgmii_clk <= tx_mii_clk_array(0);
+    -- Every MAC/UDP path uses its own PHY clocks. The recovered RX clocks
+    -- must not be treated as phase-aligned with another lane or with TX.
+    tx_clk_o <= tx_mii_clk_array(N_MGT-1 downto 0);
+    rx_clk_o <= rx_clk_out_array(N_MGT-1 downto 0);
  
     gen_ref_156_25: if (ref_freq = f156_25) generate
         common_block: component xxv_ethernet_0_common_wrapper
@@ -319,8 +318,44 @@ begin
     or_reduce_qpll_1_reset(0) <= or_reduce(s_qpll_1_rst_logic_vector);
 
     sfp_tx_dis_array <= (others  => '0');
+    phy_reset_ipbus <= ipb_rst or debug_ctrl(0)(16);
     
     phy_gen: for i in 0 to N_MGT -1 generate
+        signal tx_reset_sync_s, rx_reset_sync_s : std_logic_vector(1 downto 0) := (others=>'1');
+        signal rx_ready_tx_sync_s : std_logic_vector(1 downto 0) := (others=>'0');
+        attribute ASYNC_REG : string;
+        attribute ASYNC_REG of tx_reset_sync_s, rx_reset_sync_s, rx_ready_tx_sync_s : signal is "TRUE";
+    begin
+        -- Asynchronous assertion, synchronous release in each destination domain.
+        process(tx_mii_clk_array(i), phy_reset_ipbus, gt_tx_reset_out_array(i))
+        begin
+            if phy_reset_ipbus='1' or gt_tx_reset_out_array(i)='1' then
+                tx_reset_sync_s <= (others=>'1');
+            elsif rising_edge(tx_mii_clk_array(i)) then
+                tx_reset_sync_s <= tx_reset_sync_s(0) & '0';
+            end if;
+        end process;
+        process(rx_clk_out_array(i), phy_reset_ipbus, gt_rx_reset_out_array(i))
+        begin
+            if phy_reset_ipbus='1' or gt_rx_reset_out_array(i)='1' then
+                rx_reset_sync_s <= (others=>'1');
+            elsif rising_edge(rx_clk_out_array(i)) then
+                rx_reset_sync_s <= rx_reset_sync_s(0) & '0';
+            end if;
+        end process;
+        process(tx_mii_clk_array(i), tx_reset_sync_s)
+        begin
+            if tx_reset_sync_s(1)='1' then
+                rx_ready_tx_sync_s <= (others=>'0');
+            elsif rising_edge(tx_mii_clk_array(i)) then
+                rx_ready_tx_sync_s <= rx_ready_tx_sync_s(0) & rx_status_vector(i);
+            end if;
+        end process;
+        -- Link status is generated in the RX core domain. Only its synchronized
+        -- copy controls TX admission/reset; RX reset stays in the RX domain.
+        tx_path_ready_array(i) <= rx_ready_tx_sync_s(1) and not tx_reset_sync_s(1);
+        tx_reset_o(i) <= tx_reset_sync_s(1) or not rx_ready_tx_sync_s(1);
+        rx_reset_o(i) <= rx_reset_sync_s(1) or not rx_status_vector(i);
     
     phy_reset: component xxv_ethernet_0_reset_wrapper
         port map(
@@ -421,10 +456,7 @@ begin
         
     
         s_gt_loopback_array(i) <= debug_ctrl(0)(2 downto 0);
-        phy_reset_ipbus <= debug_ctrl(0)(16);
     
-        tx_path_ready_array(i)    <= rx_status_vector(i);
-        rst_156_25_array(i)       <= not(gt_tx_rst_done_out_array(i) and rx_status_vector(i));
         
     end generate phy_gen;
     

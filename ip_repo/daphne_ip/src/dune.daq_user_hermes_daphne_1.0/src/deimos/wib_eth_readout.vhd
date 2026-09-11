@@ -99,11 +99,10 @@ architecture rtl of eth_readout is
     signal ipbr_mux: ipb_rbus_array(N_MGT - 1 downto 0);
     signal samp, mark: std_logic;
     signal ts_data_clk: std_logic_vector(63 downto 0);
-    signal xgmii_clk : std_logic; 
     signal tx_xgmii_d_array, rx_xgmii_d_array : xgmii_d_array(N_MGT-1 downto 0);
     signal tx_xgmii_c_array, rx_xgmii_c_array : xgmii_c_array(N_MGT-1 downto 0);
-    signal clk_156_o : std_logic_vector (N_MGT-1 downto 0);
-    signal rst_156_25_array : std_logic_vector (N_MGT-1 downto 0);
+    signal tx_clk_array, rx_clk_array : std_logic_vector(N_MGT-1 downto 0);
+    signal tx_reset_array, rx_reset_array : std_logic_vector(N_MGT-1 downto 0);
     signal txpath_ready_array : std_logic_vector(N_MGT-1 downto 0);
 
 begin
@@ -180,21 +179,20 @@ begin
         ipb_rst             => ipb_rst,
         ipb_in              => ipbw(N_SLV_TX_PATH),
         ipb_out             => ipbr(N_SLV_TX_PATH),
-        ref_clk_156_in      => clk_156_o (0), --global_ref_clk_in,
+        tx_clk_array        => tx_clk_array,
+        rx_clk_array        => rx_clk_array,
         data_clk            => data_clk,
         data_clk_rst        => data_clk_rst,
         ts                  => ts_data_clk,
         samp                => samp,
         mark                => mark,
-        xgmii_clk           => xgmii_clk,
-        tx_xgmii_rst        => rst_156_25_array(0), --gttxreset_out,
+        tx_reset_array      => tx_reset_array,
         tx_xgmii_d_array    => tx_xgmii_d_array,
         tx_xgmii_c_array    => tx_xgmii_c_array,
-        rx_xgmii_rst        => rst_156_25_array(0), --gtrxreset_out,
+        rx_reset_array      => rx_reset_array,
         rx_xgmii_d_array    => rx_xgmii_d_array,
         rx_xgmii_c_array    => rx_xgmii_c_array,
         phy_ready_array     => txpath_ready_array,
-        rst_156_25_array    => rst_156_25_array,
         d => d,
         packet_ready => packet_ready,
         ext_mac_addr    => ext_mac_addr,  
@@ -220,7 +218,8 @@ begin
         ipb_out => ipbr(N_SLV_PCS_PMA),
         clk_drp => ipb_clk,
 
-        clk_156_o => clk_156_o,
+        tx_clk_o => tx_clk_array,
+        rx_clk_o => rx_clk_array,
 
         sfp_rxp_array => eth_rx_p, --sfp_rxp_array,
         sfp_rxn_array => eth_rx_n, --sfp_rxn_array,
@@ -228,10 +227,10 @@ begin
         sfp_txn_array => eth_tx_n, --sfp_txn_array,
         sfp_tx_dis_array => eth_tx_dis, --sfp_tx_dis_array,
 
-        xgmii_clk => xgmii_clk,
 
         tx_path_ready_array  => txpath_ready_array,
-        rst_156_25_array   => rst_156_25_array,
+        tx_reset_o          => tx_reset_array,
+        rx_reset_o          => rx_reset_array,
 
         tx_xgmii_d_array => tx_xgmii_d_array,
         tx_xgmii_c_array => tx_xgmii_c_array,

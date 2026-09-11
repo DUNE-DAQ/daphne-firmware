@@ -37,7 +37,8 @@ entity ultrascale_combined_tx_path is
         ipb_in              : in  ipb_wbus;
         ipb_out             : out ipb_rbus;
 
-        ref_clk_156_in      : in std_logic;
+        tx_clk_array       : in std_logic_vector(N_MGT-1 downto 0);
+        rx_clk_array       : in std_logic_vector(N_MGT-1 downto 0);
         data_clk	        : in  std_logic; -- From infra
         data_clk_rst	    : in  std_logic; -- From infra
 
@@ -45,16 +46,14 @@ entity ultrascale_combined_tx_path is
         samp: in std_logic; 
         mark: in std_logic; 
  
-        xgmii_clk           : in std_logic;
-        tx_xgmii_rst        : in std_logic;
+        tx_reset_array     : in std_logic_vector(N_MGT-1 downto 0);
         tx_xgmii_d_array    : out xgmii_d_array(N_MGT-1 downto 0);
         tx_xgmii_c_array    : out xgmii_c_array(N_MGT-1 downto 0);
-        rx_xgmii_rst        : in std_logic;
+        rx_reset_array     : in std_logic_vector(N_MGT-1 downto 0);
         rx_xgmii_d_array    : in xgmii_d_array(N_MGT-1 downto 0);
         rx_xgmii_c_array    : in xgmii_c_array(N_MGT-1 downto 0);
 
         phy_ready_array      : in std_logic_vector(N_MGT-1 downto 0);
-        rst_156_25_array     : in std_logic_vector(N_MGT-1 downto 0);
  
         d : in array_of_src_d_arrays(N_MGT-1 downto 0) (N_SRC-1 downto 0);
         
@@ -217,7 +216,7 @@ src_gen: for i in 0 to N_MGT-1 generate
         G_FIFO_TYPE            => "inferred_mem", --! Selects how to implement the Core's FIFOs
         G_UDP_CORE_BYTES       => 8,              --! Width Of Data Busses In Bytes
         G_NUM_OF_ARP_POS       => 8,              --! Number Of Positions In ARP Table to treat as dynamic ARP Positions
-        G_UDP_CLK_FIFOS        => true,           --! Generate Clk Crossing FIFOs At The I/O of UDP Payloads
+        G_UDP_CLK_FIFOS        => false,           -- Same TX clock on tx_mux/shim and UDP input; RX output is consumed locally.
         G_EXT_CLK_FIFOS        => true,           --! Generate Clk Crossing FIFOs At The I/O of Unsupported Packet Types
         G_TX_EXT_IP_FIFO_CAP   => 2048,           --! Capacity In Bytes Of Uns IPV4 Protocol Packets FIFOs in Tx Path
         G_TX_EXT_ETH_FIFO_CAP  => 2048,           --! Capacity In Bytes Of Uns Ethernet Type Packets FIFOs in Tx Path
@@ -236,15 +235,15 @@ src_gen: for i in 0 to N_MGT-1 generate
         ipb_in  => ipbw_quad_udp_core(i), --ipbw(N_SLV_UDP_CORE0+i),
         ipb_out => ipbr_quad_udp_core(i), --ipbr(N_SLV_UDP_CORE0+i),
         --Main Core Clocks
-        tx_core_clk         => xgmii_clk, --! Tx Path Main Clock, Recommend Use PHY Clock
-        rx_core_clk         => xgmii_clk, --! Rx Path Main Clock, Reccomend Using PHY Clock For 1/10/40GbE. >200MHz for 100GbE
+        tx_core_clk         => tx_clk_array(i), --! Tx Path Main Clock, Recommend Use PHY Clock
+        rx_core_clk         => rx_clk_array(i), --! Rx Path Main Clock, Reccomend Using PHY Clock For 1/10/40GbE. >200MHz for 100GbE
         --PHY Axi4s Interfaces
-        rx_axi4s_s_aclk     => xgmii_clk,                     --! Rx PHY Clk
-        rx_axi4s_s_areset   => rx_xgmii_rst,                     --! Rx PHY Reset, always required
+        rx_axi4s_s_aclk     => rx_clk_array(i),                     --! Rx PHY Clk
+        rx_axi4s_s_areset   => rx_reset_array(i),                     --! Rx PHY Reset, always required
         rx_axi4s_s_mosi     => rx_xgmii_axi4s_s_mosi_array(i),  --! Rx Data From PHY Mosi
         rx_axi4s_s_miso     => open,                            --! Rx Backpressure (To) PHY, Will Be Ignored By a PHY, Included for Debug & Verification
-        tx_axi4s_m_aclk     => xgmii_clk,                     --! Tx PHY Clk
-        tx_axi4s_m_areset   => tx_xgmii_rst,                     --! Tx PHY reset, always required
+        tx_axi4s_m_aclk     => tx_clk_array(i),                     --! Tx PHY Clk
+        tx_axi4s_m_areset   => tx_reset_array(i),                     --! Tx PHY reset, always required
         tx_axi4s_m_mosi     => tx_xgmii_axi4s_m_mosi_array(i),  --! Tx Data To PHY
         tx_axi4s_m_miso     => tx_axi4s_m_miso_array(i),
         -- UDP Axi4s Interfaces
@@ -252,8 +251,8 @@ src_gen: for i in 0 to N_MGT-1 generate
         udp_axi4s_s_areset  => tx_out_axis_arst(i),     --! UDP Tx In Reset, Ignored if G_UDP_CLK_FIFOS = False
         udp_axi4s_s_mosi    => tx_shim_out_axis_mosi(i),     --! UDP Tx In Data
         udp_axi4s_s_miso    => tx_shim_out_axis_miso(i),     --! UDP Tx In Backpressure
-        udp_axi4s_m_aclk    => '0',    --! UDP Rx Out Clk, Ignored if G_UDP_CLK_FIFOS = False
-        udp_axi4s_m_areset  => '0',  --! UDP Rx Out Reset, Ignored if G_UDP_CLK_FIFOS = False
+        udp_axi4s_m_aclk    => rx_clk_array(i),    --! UDP Rx Out Clk, Ignored if G_UDP_CLK_FIFOS = False
+        udp_axi4s_m_areset  => rx_reset_array(i),  --! UDP Rx Out Reset, Ignored if G_UDP_CLK_FIFOS = False
         udp_axi4s_m_miso    => c_axi4s_miso_default,    --! UDP Rx Out Backpressure
         udp_axi4s_m_mosi    => open,    --! UDP Rx Out Data
         --Optional External Network Address Assignment Ports
@@ -284,7 +283,7 @@ port map(
     d => d_array((i*N_SRC)+N_SRC - 1 downto (i*N_SRC)),
     samp => samp,
     mark => mark,
-    eth_clk => ref_clk_156_in,
+    eth_clk => tx_clk_array(i),
     eth_rst => eth_rst(i),
     eth_q => eth_d(i),
     eth_ready => eth_ready(i),
@@ -300,10 +299,10 @@ port map(
     axi4s_miso => tx_shim_out_axis_miso(i)
 );
 
-eth_rst(i) <= rst_156_25_array(i);
+eth_rst(i) <= tx_reset_array(i);
 udp_ready(i) <= phy_ready_array(i);
 
-tx_out_axis_aclk(i) <= ref_clk_156_in;
+tx_out_axis_aclk(i) <= tx_clk_array(i);
 tx_out_axis_arst(i) <= eth_rst(i); 
 end generate;
 
