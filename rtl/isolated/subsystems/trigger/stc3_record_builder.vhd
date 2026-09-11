@@ -116,11 +116,9 @@ architecture rtl of stc3_record_builder is
   end;
   function slot_addr(slot : slot_t; word_idx : natural) return unsigned is
   begin return slot & to_unsigned(word_idx,7); end;
-  function inside_window(ts : std_logic_vector(63 downto 0); m : frame_meta_t;
+  function inside_window(delta : unsigned(63 downto 0);
                          continuation : std_logic) return boolean is
-    variable delta : unsigned(63 downto 0);
   begin
-    delta:=unsigned(ts)-unsigned(m.sample0_ts);
     -- The union of trigger-in-frame [0,511] and pretrigger-start-in-frame
     -- [64,575] is [0,575], including across the external timestamp wrap.
     if continuation='1' then return delta<to_unsigned(FRAME_SAMPLE_COUNT_C+PRETRIGGER_SAMPLES_C,64); end if;
@@ -173,12 +171,19 @@ architecture rtl of stc3_record_builder is
   signal last_start_valid_s : std_logic := '0';
   signal event_pulse_s, trigger_previous_s : std_logic := '0';
   signal event_timestamp_s : std_logic_vector(63 downto 0);
+  -- Use DSP arithmetic released by removal of the AFE compensator. These
+  -- combinational deltas preserve the existing event/coverage cycle exactly.
+  signal current_delta_s, previous_delta_s : unsigned(63 downto 0);
+  attribute use_dsp : string;
+  attribute use_dsp of current_delta_s, previous_delta_s : signal is "yes";
   signal event_sample_s : std_logic_vector(13 downto 0);
   signal event_tag_s : std_logic_vector(1 downto 0);
   signal record_count_s, full_count_s, busy_count_s, spacing_count_s, queue_drop_s, ring_drop_s,
          trigger_count_s, packet_count_s, continuation_count_s, continuation_drop_s,
          covered_count_s, descriptor_overflow_count_s : unsigned(31 downto 0) := (others=>'0');
 begin
+  current_delta_s <= unsigned(event_timestamp_s)-unsigned(current_s.sample0_ts);
+  previous_delta_s <= unsigned(event_timestamp_s)-unsigned(previous_s.sample0_ts);
   queue_head_s <= unpack_meta(queue_s(head_s));
   queue_next_s <= unpack_meta(queue_s(next_q(head_s)));
   descriptor_baseline_s <= raw_baseline(active_s.baseline,active_s.positive_pulse);
@@ -408,8 +413,8 @@ begin
         end if;
 
         if event_pulse_s='1' and enable_i='1' then
-          covered := (current_accepted_s='1' and inside_window(event_timestamp_s,current_s,continuation_enable_i)) or
-                     (previous_accepted_s='1' and inside_window(event_timestamp_s,previous_s,continuation_enable_i));
+          covered := (current_accepted_s='1' and inside_window(current_delta_s,continuation_enable_i)) or
+                     (previous_accepted_s='1' and inside_window(previous_delta_s,continuation_enable_i));
           if covered then
             covered_count_s<=covered_count_s+1;
             -- A coalesced trigger still owns its complete trigger..trigger+447
