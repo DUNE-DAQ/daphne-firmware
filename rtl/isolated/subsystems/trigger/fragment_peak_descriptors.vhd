@@ -47,7 +47,16 @@ begin
   overflow_o <= overflow_s;
 
   process(clock_i)
-    variable t : peak_descriptor_trailer_t;
+    -- At most two excursions can close in one input pair (the second only
+    -- when sample 511 starts a new excursion). Keep those events separate
+    -- from fixed-index slot writes to avoid cascaded variable-index updates
+    -- of the complete 384-bit trailer.
+    variable close0_valid_v, close1_valid_v : boolean;
+    variable close0_slot_v, close1_slot_v : integer range 0 to 4;
+    variable close0_data_v, close1_data_v : std_logic_vector(63 downto 0);
+    variable close0_start_v, close1_start_v : std_logic_vector(9 downto 0);
+    variable close_data_v : std_logic_vector(63 downto 0);
+    variable selected_start_v : std_logic_vector(9 downto 0);
     variable integral_v : unsigned(22 downto 0);
     variable peak_v : unsigned(13 downto 0);
     variable start_v, peak_time_v : unsigned(8 downto 0);
@@ -68,16 +77,18 @@ begin
             duration_field_v := resize(duration_v, 9);
           end if;
           -- Number_Peaks=1: one contiguous threshold excursion per slot.
-          t(2*slot_v) := '1' & std_logic_vector(integral_v) & "1111" & "0001";
-          t(2*slot_v+1) := std_logic_vector(duration_field_v) &
-                          std_logic_vector(peak_time_v) & std_logic_vector(peak_v);
-          case slot_v is
-            when 0 => t(10)(31 downto 22) := '0' & std_logic_vector(start_v);
-            when 1 => t(10)(21 downto 12) := '0' & std_logic_vector(start_v);
-            when 2 => t(10)(11 downto 2) := '0' & std_logic_vector(start_v);
-            when 3 => t(11)(31 downto 22) := '0' & std_logic_vector(start_v);
-            when others => t(11)(21 downto 12) := '0' & std_logic_vector(start_v);
-          end case;
+          close_data_v := std_logic_vector(duration_field_v) &
+                          std_logic_vector(peak_time_v) & std_logic_vector(peak_v) &
+                          '1' & std_logic_vector(integral_v) & "1111" & "0001";
+          if not close0_valid_v then
+            close0_valid_v := true; close0_slot_v := slot_v;
+            close0_data_v := close_data_v;
+            close0_start_v := '0' & std_logic_vector(start_v);
+          else
+            close1_valid_v := true; close1_slot_v := slot_v;
+            close1_data_v := close_data_v;
+            close1_start_v := '0' & std_logic_vector(start_v);
+          end if;
           slot_v := slot_v + 1;
         else
           overflow_v := '1';
@@ -103,7 +114,10 @@ begin
         threshold_s <= unsigned(threshold_i);
         positive_s <= positive_pulse_i;
       elsif pair_valid_i = '1' and running_s = '1' then
-        t := trailer_s;
+        close0_valid_v := false; close1_valid_v := false;
+        close0_slot_v := 0; close1_slot_v := 0;
+        close0_data_v := (others=>'0'); close1_data_v := (others=>'0');
+        close0_start_v := (others=>'0'); close1_start_v := (others=>'0');
         integral_v := integral_s;
         peak_v := peak_s;
         start_v := start_s;
@@ -152,7 +166,27 @@ begin
           running_s <= '0';
           done_o <= '1';
         end if;
-        trailer_s <= t;
+        for slot in 0 to 4 loop
+          if (close0_valid_v and close0_slot_v=slot) or
+             (close1_valid_v and close1_slot_v=slot) then
+            if close0_valid_v and close0_slot_v=slot then
+              trailer_s(2*slot) <= close0_data_v(31 downto 0);
+              trailer_s(2*slot+1) <= close0_data_v(63 downto 32);
+              selected_start_v := close0_start_v;
+            else
+              trailer_s(2*slot) <= close1_data_v(31 downto 0);
+              trailer_s(2*slot+1) <= close1_data_v(63 downto 32);
+              selected_start_v := close1_start_v;
+            end if;
+            case slot is
+              when 0 => trailer_s(10)(31 downto 22) <= selected_start_v;
+              when 1 => trailer_s(10)(21 downto 12) <= selected_start_v;
+              when 2 => trailer_s(10)(11 downto 2) <= selected_start_v;
+              when 3 => trailer_s(11)(31 downto 22) <= selected_start_v;
+              when others => trailer_s(11)(21 downto 12) <= selected_start_v;
+            end case;
+          end if;
+        end loop;
         integral_s <= integral_v;
         peak_s <= peak_v;
         start_s <= start_v;
