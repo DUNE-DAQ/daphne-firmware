@@ -432,10 +432,10 @@ begin
           chain_active_s<='0'; activity_s<='0'; quiet_s<=0;
         end if;
 
-        if event_pulse_s='1' and enable_i='1' and timestamp_jump_s='0' then
+        if event_pulse_s='1' and enable_i='1' then
           -- Supported tuples arrive at most447 clocks after the trigger;
-          -- older/future tuples are counted whole losses before local matching.
-          if event_age_s>447 then
+          -- jump-edge/older/future tuples are whole losses before local matching.
+          if timestamp_jump_s='1' or event_age_s>447 then
             ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
           else
             covered := (current_accepted_s='1' and seq_age(seq_s,current_s.start_seq)<=RING_DEPTH_C and

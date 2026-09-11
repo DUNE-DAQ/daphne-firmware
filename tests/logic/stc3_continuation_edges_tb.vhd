@@ -171,7 +171,7 @@ begin
       report "fresh delayed trigger failed around the low13-bit sequence wrap" severity failure;
 
     -- A discontinuous timestamp step creates a new admission epoch, without
-    -- aborting the earlier reserved packet. Ignore an event on the jump edge;
+    -- aborting the earlier reserved packet. Count/drop a jump-edge event;
     -- history=0 there means63 subsequent samples are insufficient,64 suffice.
     restart(8);
     for t in 0 to 2200 loop
@@ -180,7 +180,7 @@ begin
     end loop;
     assert observed_s=2 and unsigned(packets_s)=2 and unsigned(records_s)=2
       report "timestamp jump lost old ownership or failed to admit the new epoch" severity failure;
-    assert unsigned(cont_s)=0 and unsigned(covered_s)=0 and unsigned(ring_drop_s)=1 and unsigned(busy_s)=1
+    assert unsigned(cont_s)=0 and unsigned(covered_s)=0 and unsigned(ring_drop_s)=2 and unsigned(busy_s)=2
       report "timestamp jump merged epochs or bypassed the new-history requirement" severity failure;
 
     report "stc3_continuation_edges_tb PASS" severity note;
