@@ -120,6 +120,16 @@ set_property IOSTANDARD LVTTL [get_ports IIC_0_sda_io];
 set_property PACKAGE_PIN Y6       [get_ports -quiet {GTH0_REFCLK_P eth_clk_p}]  ; # pin location SOM240_2_C3
 set_property PACKAGE_PIN Y5       [get_ports -quiet {GTH0_REFCLK_N eth_clk_n}] ;  # pin location SOM240_2_C4
 
+# Shared external QPLL logic does not inherit a primary reference clock from
+# the one-channel XXV IP XDC. Declare the actual 156.25 MHz board source so
+# Vivado can derive and time every TX/RX user clock in the quad.
+set daphne_eth_refclk_ports [get_ports -quiet {GTH0_REFCLK_P eth_clk_p}]
+if {[llength $daphne_eth_refclk_ports] == 1} {
+    create_clock -name eth_refclk -period 6.400 $daphne_eth_refclk_ports
+} elseif {[llength $daphne_eth_refclk_ports] > 1} {
+    error "Ambiguous Ethernet reference clock ports"
+}
+
 #set_property IOSTANDARD LVDS [get_ports GTH0_REFCLK_P];
 #set_property IOSTANDARD LVDS [get_ports GTH0_REFCLK_N];
 
