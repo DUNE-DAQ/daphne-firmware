@@ -55,8 +55,11 @@ begin
   mux : entity work.two_lane_readout_mux
     generic map(CHANNEL_COUNT_G=>PHYSICAL_CHANNELS_G, LANE_COUNT_G=>LANES_G,
                 CHANNELS_PER_LANE_G=>PHYSICAL_CHANNELS_G/LANES_G)
-    port map(clock_i=>clk,reset_i=>rst,ready_i=>ready,dout_i=>data,
-    rd_en_o=>rd,dout_o=>outdata,valid_o=>valid,last_o=>last);
+    port map(clock_i=>clk,reset_i=>rst,
+    ready_i=>ready(0 to PHYSICAL_CHANNELS_G-1),
+    dout_i=>data(0 to PHYSICAL_CHANNELS_G-1),
+    rd_en_o=>rd(0 to PHYSICAL_CHANNELS_G-1),
+    dout_o=>outdata,valid_o=>valid,last_o=>last);
   replay : process
     file source : text open read_mode is TRACE_G;
     file sink : text open write_mode is OUTPUT_G;

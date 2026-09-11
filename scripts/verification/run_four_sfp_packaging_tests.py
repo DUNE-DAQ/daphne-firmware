@@ -36,6 +36,15 @@ def main():
     wrapper_ports = entity_ports(wrapper, "daphne_selftrigger_top")
     assert SFP_PORTS <= shell_ports.keys(), "Selected shell is missing SFP ports"
     assert shell_ports == wrapper_ports, "Packaged model and inferred shell interfaces differ"
+    xdc = ROOT / "xilinx/daphne_selftrigger_pin_map.xdc"
+    active_xdc = [(number, line) for number, line in enumerate(xdc.read_text().splitlines(), 1)
+                  if line.strip() and not line.lstrip().startswith("#")]
+    bad_inline_comments = [number for number, line in active_xdc if re.search(r"\]\s+#", line)]
+    unsupported_control = [number for number, line in active_xdc
+                           if re.match(r"\s*(if|for|foreach|while|switch)\b", line)]
+    assert not bad_inline_comments, f"XDC inline comments need a semicolon on lines {bad_inline_comments}"
+    assert not unsupported_control, f"XDC control flow is unsupported on lines {unsupported_control}"
+    assert "create_clock -name eth_refclk -period 6.400 [get_ports GTH0_REFCLK_P]" in xdc.read_text()
     with tempfile.TemporaryDirectory(prefix="daphne-four-sfp-package-") as directory:
         stage = Path(directory) / "ip_repo/daphne_ip"
         shutil.copytree(ROOT / "ip_repo/daphne_ip/rtl", stage / "rtl")
@@ -59,7 +68,7 @@ def main():
         assert (stage / "rtl/daphne_selftrigger_top.vhd").read_bytes() == wrapper.read_bytes()
         subprocess.run([sys.executable, str(ROOT / "scripts/verification/run_board_readout_elaboration.py"),
                         "--packaged-root", str(stage)], check=True)
-    print("PASS actual package staging: matching 20 SFP ports, model/file groups, copied wrapper and shell elaboration")
+    print("PASS actual package staging: matching 20 SFP ports, XDC syntax contract, model/file groups, copied wrapper and shell elaboration")
 
 
 if __name__ == "__main__":
