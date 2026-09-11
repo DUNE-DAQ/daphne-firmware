@@ -9,10 +9,10 @@ set selection both
 if {$argc == 3} { set selection [lindex $argv 2] }
 switch -- $selection {
     builder { set targets {stc3_record_builder} }
-    descriptor { set targets {fragment_peak_descriptors_serial} }
+    descriptor { set targets {fragment_peak_descriptors_banked} }
     registers { set targets {selftrigger_register_bank} }
-    both { set targets {fragment_peak_descriptors_serial stc3_record_builder} }
-    all { set targets {fragment_peak_descriptors_serial stc3_record_builder selftrigger_register_bank} }
+    both { set targets {fragment_peak_descriptors_banked stc3_record_builder} }
+    all { set targets {fragment_peak_descriptors_banked stc3_record_builder selftrigger_register_bank} }
     default { error "Unknown target selection: $selection" }
 }
 if {[file exists $output_root]} { error "Use a new output directory: $output_root" }
@@ -23,7 +23,7 @@ set_param general.maxThreads 2
 set packages [list \
     ip_repo/daphne_ip/rtl/daphne_package.vhd \
     rtl/isolated/common/daphne_subsystem_pkg.vhd]
-set descriptor rtl/isolated/subsystems/trigger/fragment_peak_descriptors_serial.vhd
+set descriptor rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd
 set builder_sources [list \
     rtl/isolated/common/primitives/sample_ring_buffer_single.vhd \
     rtl/isolated/common/primitives/packet_frame_store.vhd \

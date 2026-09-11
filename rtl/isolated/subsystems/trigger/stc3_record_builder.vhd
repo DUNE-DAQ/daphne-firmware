@@ -142,8 +142,6 @@ architecture rtl of stc3_record_builder is
   signal fetch_index_s, sample_index_s : unsigned(8 downto 0) := (others=>'0');
   signal header_pending_s : std_logic := '0';
   signal header_meta_s : frame_meta_t := META_NULL_C;
-  signal header_trailer_s : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
-  signal header_overflow_s : std_logic := '0';
   -- Publication is ordered, so slot liveness is represented by pointers and
   -- counts. Only exceptional stale-frame holes need a per-slot bit.
   signal dropped_s : std_logic_vector(PACKET_SLOT_COUNT_C-1 downto 0) := (others=>'0');
@@ -162,8 +160,8 @@ architecture rtl of stc3_record_builder is
   signal store_wr_s : std_logic;
   signal store_waddr_s, store_raddr_s : unsigned(11 downto 0);
   signal store_din_s : std_logic_vector(71 downto 0);
-  signal descriptor_start_s, descriptor_done_s, descriptor_overflow_s : std_logic;
-  signal descriptor_trailer_s : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
+  signal descriptor_start_s, descriptor_overflow_s : std_logic;
+  signal descriptor_word_s : std_logic_vector(63 downto 0);
   signal descriptor_baseline_s, activity_baseline_s : std_logic_vector(13 downto 0);
   signal chain_active_s, current_accepted_s, previous_accepted_s : std_logic := '0';
   signal current_s, previous_s : frame_meta_t := META_NULL_C;
@@ -264,20 +262,21 @@ begin
       case header_s is
         when 0 => store_din_s<=X"BE" & header_meta_s.sample0_ts;
         when 1 => store_din_s<=X"00" & ch_id_i & version_i & header_meta_s.continuation & '1' &
-                    header_overflow_s & '0' & header_meta_s.calibration_tag & header_meta_s.baseline &
+                    descriptor_overflow_s & '0' & header_meta_s.calibration_tag & header_meta_s.baseline &
                     "00" & header_meta_s.threshold_lsb & "00" & header_meta_s.trigger_sample;
-        when others => store_din_s<=X"00" & header_trailer_s((header_s-2)*2+1) & header_trailer_s((header_s-2)*2);
+        when others => store_din_s<=X"00" & descriptor_word_s;
       end case;
     end if;
   end process;
   descriptor_start_s <= '1' when sample_valid_s='1' and sample_index_s=0 else '0';
-  descriptor_inst : entity work.fragment_peak_descriptors_serial
+  descriptor_inst : entity work.fragment_peak_descriptors_banked
     port map(clock_i=>clock_i, reset_i=>reset_i, start_i=>descriptor_start_s,
       baseline_i=>descriptor_baseline_s, positive_pulse_i=>active_s.positive_pulse,
       threshold_i=>active_s.activity_threshold,
       sample_valid_i=>sample_valid_s, sample_i=>ring_data_s,
-      sample_index_i=>sample_index_s, trailer_o=>descriptor_trailer_s,
-      done_o=>descriptor_done_s, overflow_o=>descriptor_overflow_s);
+      sample_index_i=>sample_index_s,
+      read_index_i=>to_unsigned(header_s,3)-2, read_word_o=>descriptor_word_s,
+      done_o=>open, overflow_o=>descriptor_overflow_s);
 
   main_proc : process(clock_i)
     variable pending_head : frame_meta_t;
@@ -301,8 +300,7 @@ begin
         seq_s<=(others=>'0'); history_s<=0; head_s<=0; tail_s<=0; queue_count_s<=0;
         active_s<=META_NULL_C; active_valid_s<='0'; fetch_running_s<='0'; sample_valid_s<='0';
         fetch_index_s<=(others=>'0'); sample_index_s<=(others=>'0');
-        header_pending_s<='0'; header_meta_s<=META_NULL_C; header_trailer_s<=PEAK_DESCRIPTOR_TRAILER_NULL;
-        header_overflow_s<='0';
+        header_pending_s<='0'; header_meta_s<=META_NULL_C;
         allocate_slot_s<=(others=>'0'); read_slot_s<=(others=>'0');
         reserved_count_s<=0; published_count_s<=0; read_word_s<=0;
         header_s<=0; payload_word_s<=0;
@@ -343,14 +341,11 @@ begin
         if header_pending_s='1' and payload_wr_s='0' then
           if header_s=7 then
             published:=published+1; header_pending:='0'; record_count_s<=record_count_s+1;
-            if header_overflow_s='1' then descriptor_overflow_count_s<=descriptor_overflow_count_s+1; end if;
+            if descriptor_overflow_s='1' then descriptor_overflow_count_s<=descriptor_overflow_count_s+1; end if;
           else header_s<=header_s+1; end if;
         end if;
-        -- The helper updates its final trailer on sample511. Capture it on
-        -- the following edge, which may also start the next descriptor frame.
-        if descriptor_done_s='1' then
-          header_trailer_s<=descriptor_trailer_s; header_overflow_s<=descriptor_overflow_s;
-        end if;
+        -- The completed descriptor RAM bank stays readable until the next
+        -- sample511, so headers need no separate wide trailer snapshot.
         if sample_valid_s='1' then
           pack_shift_s<=pack_window_s(77 downto 14);
           if payload_wr_s='1' then

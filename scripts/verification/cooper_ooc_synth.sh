@@ -24,7 +24,7 @@ source_files=(
   rtl/isolated/common/daphne_subsystem_pkg.vhd
 )
 if [[ "$selection" != registers ]]; then
-  source_files+=(rtl/isolated/subsystems/trigger/fragment_peak_descriptors_serial.vhd)
+  source_files+=(rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd)
 fi
 if [[ "$selection" == builder || "$selection" == both || "$selection" == all ]]; then
   source_files+=(

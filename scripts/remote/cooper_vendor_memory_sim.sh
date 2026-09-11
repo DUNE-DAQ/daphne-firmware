@@ -22,7 +22,7 @@ xvlog --sv --work "$xpm_library" "$xpm_root/xpm_cdc/hdl/xpm_cdc.sv" "$xpm_root/x
 xvhdl --2008 --work work \
   "$source_root/ip_repo/daphne_ip/rtl/daphne_package.vhd" \
   "$source_root/rtl/isolated/common/daphne_subsystem_pkg.vhd" \
-  "$source_root/rtl/isolated/subsystems/trigger/fragment_peak_descriptors_serial.vhd" \
+  "$source_root/rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd" \
   "$source_root/rtl/isolated/common/primitives/sample_ring_buffer_single.vhd" \
   "$source_root/rtl/isolated/common/primitives/packet_frame_store.vhd" \
   "$source_root/rtl/isolated/subsystems/trigger/stc3_record_builder.vhd" \
