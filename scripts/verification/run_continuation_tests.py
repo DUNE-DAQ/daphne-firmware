@@ -46,6 +46,7 @@ def main():
         "tests/logic/continuation_registers_tb.vhd",
         "tests/logic/stc3_continuation_tb.vhd",
         "tests/logic/stc3_continuation_edges_tb.vhd",
+        "tests/logic/stc3_continuation_overload_tb.vhd",
         "tests/logic/stc3_trace_replay_tb.vhd",
     ]
     with tempfile.TemporaryDirectory(prefix="daphne-continuation-") as build_dir:
@@ -69,6 +70,8 @@ def main():
             run("-r", "--std=08", "stc3_continuation_tb", f"-gODD_START_G={odd}", "--assert-level=error", "--stop-time=1ms")
         run("-e", "--std=08", "stc3_continuation_edges_tb")
         run("-r", "--std=08", "stc3_continuation_edges_tb", "--assert-level=error", "--stop-time=1ms")
+        run("-e", "--std=08", "stc3_continuation_overload_tb")
+        run("-r", "--std=08", "stc3_continuation_overload_tb", "--assert-level=error", "--stop-time=1ms")
 
 if __name__ == "__main__":
     main()
