@@ -9,10 +9,10 @@ set selection both
 if {$argc == 3} { set selection [lindex $argv 2] }
 switch -- $selection {
     builder { set targets {stc3_record_builder} }
-    descriptor { set targets {fragment_peak_descriptors} }
+    descriptor { set targets {fragment_peak_descriptors_serial} }
     registers { set targets {selftrigger_register_bank} }
-    both { set targets {fragment_peak_descriptors stc3_record_builder} }
-    all { set targets {fragment_peak_descriptors stc3_record_builder selftrigger_register_bank} }
+    both { set targets {fragment_peak_descriptors_serial stc3_record_builder} }
+    all { set targets {fragment_peak_descriptors_serial stc3_record_builder selftrigger_register_bank} }
     default { error "Unknown target selection: $selection" }
 }
 if {[file exists $output_root]} { error "Use a new output directory: $output_root" }
@@ -23,9 +23,9 @@ set_param general.maxThreads 2
 set packages [list \
     ip_repo/daphne_ip/rtl/daphne_package.vhd \
     rtl/isolated/common/daphne_subsystem_pkg.vhd]
-set descriptor rtl/isolated/subsystems/trigger/fragment_peak_descriptors.vhd
+set descriptor rtl/isolated/subsystems/trigger/fragment_peak_descriptors_serial.vhd
 set builder_sources [list \
-    rtl/isolated/common/primitives/sample_ring_buffer.vhd \
+    rtl/isolated/common/primitives/sample_ring_buffer_single.vhd \
     rtl/isolated/common/primitives/packet_frame_store.vhd \
     rtl/isolated/subsystems/trigger/stc3_record_builder.vhd]
 set xpm_root [file join $::env(XILINX_VIVADO) data ip xpm]

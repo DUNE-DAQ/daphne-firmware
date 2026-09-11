@@ -24,11 +24,11 @@ source_files=(
   rtl/isolated/common/daphne_subsystem_pkg.vhd
 )
 if [[ "$selection" != registers ]]; then
-  source_files+=(rtl/isolated/subsystems/trigger/fragment_peak_descriptors.vhd)
+  source_files+=(rtl/isolated/subsystems/trigger/fragment_peak_descriptors_serial.vhd)
 fi
 if [[ "$selection" == builder || "$selection" == both || "$selection" == all ]]; then
   source_files+=(
-    rtl/isolated/common/primitives/sample_ring_buffer.vhd
+    rtl/isolated/common/primitives/sample_ring_buffer_single.vhd
     rtl/isolated/common/primitives/packet_frame_store.vhd
     rtl/isolated/subsystems/trigger/stc3_record_builder.vhd
   )
