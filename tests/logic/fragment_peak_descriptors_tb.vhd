@@ -44,6 +44,11 @@ begin
           when 3 =>
             if sample_index<12 and sample_index mod 2=0 then return 40;
             else return 0; end if;
+          when 5 | 6 =>
+            if sample_index=509 then return 200;
+            elsif sample_index=511 then return 300;
+            elsif mode=6 and sample_index<8 and sample_index mod 2=0 then return 40;
+            else return 0; end if;
           when others => return 10; -- exactly threshold is quiet
         end case;
       end;
@@ -97,6 +102,16 @@ begin
     tick;
     frame(4,'1');
     assert t(0)=x"7FFFFFFF" and overflow='0' severity failure;
+    tick;
+    frame(5,'1');
+    assert unsigned(t(0)(30 downto 8))=200 and unsigned(t(2)(30 downto 8))=300
+      report "two final-pair closure events were not stored separately" severity failure;
+    assert unsigned(t(10)(31 downto 22))=509 and unsigned(t(10)(21 downto 12))=511 severity failure;
+    assert unsigned(t(1)(31 downto 23))=1 and unsigned(t(3)(31 downto 23))=1 and overflow='0' severity failure;
+    tick;
+    frame(6,'0');
+    assert unsigned(t(8)(30 downto 8))=200 and unsigned(t(11)(21 downto 12))=509 and overflow='1'
+      report "last-pair overflow corrupted the fifth descriptor" severity failure;
     -- Reset in an unfinished fragment and ignore stray valid pairs afterward.
     start<='1'; tick; start<='0'; valid<='1'; idx<=to_unsigned(0,8); tick;
     rst<='1'; tick; rst<='0'; idx<=to_unsigned(255,8); tick;
