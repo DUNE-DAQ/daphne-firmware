@@ -9,7 +9,13 @@ use work.daphne_subsystem_pkg.all;
 -- Replay coherent builder-boundary candidates from the independent waveform
 -- simulator. Logical channels are balanced across the configured physical mux lanes.
 entity stc3_trace_replay_tb is
-  generic (TRACE_G : string; OUTPUT_G : string; CHANNELS_G : positive := 2; LANES_G : positive := 2);
+  generic (
+    TRACE_G             : string;
+    OUTPUT_G            : string;
+    CHANNELS_G          : positive := 2;
+    LANES_G             : positive := 2;
+    PHYSICAL_CHANNELS_G : positive := 40
+  );
 end;
 architecture test of stc3_trace_replay_tb is
   type samples_t is array(natural range <>) of std_logic_vector(13 downto 0);
@@ -24,9 +30,13 @@ architecture test of stc3_trace_replay_tb is
   signal valid,last : std_logic_vector(LANES_G-1 downto 0);
   signal records,packets,conts,drops,merged,fulls,busys : slv64_array_t(0 to CHANNELS_G-1);
   function physical(c : natural) return natural is
-  begin return (c/(CHANNELS_G/LANES_G))*(40/LANES_G)+c mod (CHANNELS_G/LANES_G); end;
+  begin
+    return (c/(CHANNELS_G/LANES_G))*(PHYSICAL_CHANNELS_G/LANES_G)+c mod (CHANNELS_G/LANES_G);
+  end;
 begin
-  assert (LANES_G=2 or LANES_G=8) and CHANNELS_G mod LANES_G=0 and CHANNELS_G<=40
+  assert (LANES_G=2 or LANES_G=8) and CHANNELS_G mod LANES_G=0 and
+         PHYSICAL_CHANNELS_G mod LANES_G=0 and CHANNELS_G<=PHYSICAL_CHANNELS_G and
+         PHYSICAL_CHANNELS_G<=40
     report "replay channels must divide into two or eight physical lanes" severity failure;
   clk <= not clk after 8 ns;
   channels : for c in 0 to CHANNELS_G-1 generate
@@ -43,7 +53,8 @@ begin
       continuation_drop_count_o=>drops(c),covered_trigger_count_o=>merged(c),descriptor_overflow_count_o=>open);
   end generate;
   mux : entity work.two_lane_readout_mux
-    generic map(CHANNEL_COUNT_G=>40, LANE_COUNT_G=>LANES_G, CHANNELS_PER_LANE_G=>40/LANES_G)
+    generic map(CHANNEL_COUNT_G=>PHYSICAL_CHANNELS_G, LANE_COUNT_G=>LANES_G,
+                CHANNELS_PER_LANE_G=>PHYSICAL_CHANNELS_G/LANES_G)
     port map(clock_i=>clk,reset_i=>rst,ready_i=>ready,dout_i=>data,
     rd_en_o=>rd,dout_o=>outdata,valid_o=>valid,last_o=>last);
   replay : process
