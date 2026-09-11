@@ -151,6 +151,19 @@ These earlier resource and memory results do not qualify the streaming RTL.
 
 See [the Cooper build procedure](cooper-continuation-build.md). Resource fit,
 routed timing and DRC remain qualification steps until their reports are
-recorded. Input
-spy buffers are still present in this candidate and may be removed if actual
-implementation results show that their resources are needed.
+recorded.
+
+## Removed diagnostic memories
+
+Input and output spy-buffer instances are removed from this board build,
+including the input capture trigger plane. The existing address windows
+(0x90000000 input, 0xA0000000 output) terminate in small AXI-Lite DECERR
+responders; no capture RAM or capture engine remains behind either window.
+Software must stop reading or writing these removed peripherals. The
+unbuffered readout debug taps and software/BNC calibration triggers remain
+functional. Historical spy source files remain available to reference targets
+but are not dependencies of this board shell or its output-monitor plane.
+
+The previous synthesized design attributed 3681 LUTs and 53 BRAM36 blocks
+to the two removed planes. Net savings require the next synthesized report,
+which will include the small replacement AXI responders.

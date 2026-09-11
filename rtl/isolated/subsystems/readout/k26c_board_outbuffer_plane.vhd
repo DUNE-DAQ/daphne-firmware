@@ -42,40 +42,31 @@ port(
 end k26c_board_outbuffer_plane;
 
 architecture rtl of k26c_board_outbuffer_plane is
-  signal outbuff_axi_in:  AXILITE_INREC;
-  signal outbuff_axi_out: AXILITE_OUTREC;
 begin
-  outbuff_axi_in.ACLK    <= outbuff_s_axi_aclk;
-  outbuff_axi_in.ARESETN <= outbuff_s_axi_aresetn;
-  outbuff_axi_in.AWADDR  <= outbuff_s_axi_awaddr;
-  outbuff_axi_in.AWPROT  <= outbuff_s_axi_awprot;
-  outbuff_axi_in.AWVALID <= outbuff_s_axi_awvalid;
-  outbuff_axi_in.WDATA   <= outbuff_s_axi_wdata;
-  outbuff_axi_in.WSTRB   <= outbuff_s_axi_wstrb;
-  outbuff_axi_in.WVALID  <= outbuff_s_axi_wvalid;
-  outbuff_axi_in.BREADY  <= outbuff_s_axi_bready;
-  outbuff_axi_in.ARADDR  <= outbuff_s_axi_araddr;
-  outbuff_axi_in.ARPROT  <= outbuff_s_axi_arprot;
-  outbuff_axi_in.ARVALID <= outbuff_s_axi_arvalid;
-  outbuff_axi_in.RREADY  <= outbuff_s_axi_rready;
-
-  outbuff_s_axi_awready <= outbuff_axi_out.AWREADY;
-  outbuff_s_axi_wready  <= outbuff_axi_out.WREADY;
-  outbuff_s_axi_bresp   <= outbuff_axi_out.BRESP;
-  outbuff_s_axi_bvalid  <= outbuff_axi_out.BVALID;
-  outbuff_s_axi_arready <= outbuff_axi_out.ARREADY;
-  outbuff_s_axi_rdata   <= outbuff_axi_out.RDATA;
-  outbuff_s_axi_rresp   <= outbuff_axi_out.RRESP;
-  outbuff_s_axi_rvalid  <= outbuff_axi_out.RVALID;
-
-  outbuff_inst : entity work.outspybuff
-    port map(
-      clock   => clock,
-      din     => readout_data_i,
-      valid   => readout_valid_i,
-      last    => readout_last_i,
-      AXI_IN  => outbuff_axi_in,
-      AXI_OUT => outbuff_axi_out
+  -- The readout monitor remains combinational; no output spy RAM exists.
+  removed_output_spy_inst : entity work.axi_lite_unavailable
+    port map (
+      s_axi_aclk => outbuff_s_axi_aclk,
+      s_axi_aresetn => outbuff_s_axi_aresetn,
+      s_axi_awaddr => outbuff_s_axi_awaddr,
+      s_axi_awprot => outbuff_s_axi_awprot,
+      s_axi_awvalid => outbuff_s_axi_awvalid,
+      s_axi_awready => outbuff_s_axi_awready,
+      s_axi_wdata => outbuff_s_axi_wdata,
+      s_axi_wstrb => outbuff_s_axi_wstrb,
+      s_axi_wvalid => outbuff_s_axi_wvalid,
+      s_axi_wready => outbuff_s_axi_wready,
+      s_axi_bresp => outbuff_s_axi_bresp,
+      s_axi_bvalid => outbuff_s_axi_bvalid,
+      s_axi_bready => outbuff_s_axi_bready,
+      s_axi_araddr => outbuff_s_axi_araddr,
+      s_axi_arprot => outbuff_s_axi_arprot,
+      s_axi_arvalid => outbuff_s_axi_arvalid,
+      s_axi_arready => outbuff_s_axi_arready,
+      s_axi_rdata => outbuff_s_axi_rdata,
+      s_axi_rresp => outbuff_s_axi_rresp,
+      s_axi_rvalid => outbuff_s_axi_rvalid,
+      s_axi_rready => outbuff_s_axi_rready
     );
 
   out_buff_data <= readout_data_i(0);

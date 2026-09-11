@@ -30,6 +30,9 @@ def main():
     sources = [
         "ip_repo/daphne_ip/rtl/daphne_package.vhd",
         "rtl/isolated/common/daphne_subsystem_pkg.vhd",
+        "rtl/isolated/common/primitives/axi_lite_unavailable.vhd",
+        "rtl/isolated/subsystems/readout/k26c_board_outbuffer_plane.vhd",
+        "tests/logic/axi_lite_unavailable_tb.vhd",
         "rtl/isolated/subsystems/trigger/fragment_peak_descriptors.vhd",
         "rtl/isolated/subsystems/trigger/fragment_peak_descriptors_serial.vhd",
         "rtl/isolated/subsystems/control/selftrigger_register_bank.vhd",
@@ -65,7 +68,7 @@ def main():
                 f"-gOUTPUT_G={args.output.resolve()}", f"-gCHANNELS_G={args.channels}", "--assert-level=error")
         if args.replay_only:
             return
-        for bench in ("fragment_peak_descriptors_tb", "fragment_peak_descriptors_serial_tb", "continuation_registers_tb", "trig_xc_alignment_tb"):
+        for bench in ("axi_lite_unavailable_tb", "fragment_peak_descriptors_tb", "fragment_peak_descriptors_serial_tb", "continuation_registers_tb", "trig_xc_alignment_tb"):
             run("-e", "--std=08", bench)
             run("-r", "--std=08", bench, "--assert-level=error", "--stop-time=100us")
         run("-e", "--std=08", "stc3_continuation_tb")

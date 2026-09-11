@@ -299,8 +299,6 @@ architecture rtl of k26c_board_shell is
   signal din_full_array          : array_5x9x16_type;
   signal software_spy_trigger    : std_logic;
   signal external_spy_trigger    : std_logic;
-  signal spy_trigger_source      : std_logic_vector(1 downto 0);
-  signal spy_trigger_inhibit     : std_logic;
   signal timestamp               : std_logic_vector(63 downto 0);
   signal clock                   : std_logic;
   signal clk125                  : std_logic;
@@ -348,8 +346,8 @@ begin
       frontend_trigger_o    => open,
       software_trigger_o    => software_spy_trigger,
       external_trigger_o    => external_spy_trigger,
-      spy_trigger_source_o  => spy_trigger_source,
-      spy_trigger_inhibit_o => spy_trigger_inhibit,
+      spy_trigger_source_o  => open,
+      spy_trigger_inhibit_o => open,
       din_debug_o           => din_debug_reg,
       s_axi_aclk     => FRONT_END_S_AXI_ACLK,
       s_axi_aresetn  => FRONT_END_S_AXI_ARESETN,
@@ -374,19 +372,9 @@ begin
       s_axi_rready   => FRONT_END_S_AXI_RREADY
     );
 
-  spy_capture_bridge_inst : entity work.k26c_board_spy_capture_plane
+  -- Spy capture RAM and its trigger/capture plumbing are removed.
+  removed_input_spy_inst : entity work.axi_lite_unavailable
     port map (
-      clock_i            => clock,
-      reset_i            => '0',
-      software_trigger_i => software_spy_trigger,
-      external_trigger_i => external_spy_trigger,
-      trigger_source_i   => spy_trigger_source,
-      trigger_inhibit_i  => spy_trigger_inhibit,
-      afe_dout_i         => din_full_array,
-      timestamp_i        => timestamp,
-      adhoc_i            => adhoc,
-      ti_trigger_i       => ti_trigger_reg,
-      ti_trigger_stbr_i  => ti_trigger_stbr_reg,
       s_axi_aclk          => SPY_BUF_S_S_AXI_ACLK,
       s_axi_aresetn       => SPY_BUF_S_S_AXI_ARESETN,
       s_axi_awaddr        => SPY_BUF_S_S_AXI_AWADDR,

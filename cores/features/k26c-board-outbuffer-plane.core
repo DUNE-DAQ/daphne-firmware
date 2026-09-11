@@ -9,7 +9,7 @@ filesets:
   rtl:
     depend:
       - dune-daq:daphne:daphne-package:0.1.0
-      - dune-daq:daphne:spy-buffer:0.1.0
+      - dune-daq:daphne:axi-lite-unavailable:0.1.0
     files:
       - rtl/isolated/subsystems/readout/k26c_board_outbuffer_plane.vhd
     file_type: vhdlSource-2008
