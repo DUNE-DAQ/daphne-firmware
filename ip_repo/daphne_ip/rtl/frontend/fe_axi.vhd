@@ -120,6 +120,11 @@ architecture fe_axi_arch of fe_axi is
     signal control_reg: std_logic_vector(31 downto 0) := (others=>'0');
     signal software_trig_reg: std_logic_vector(5 downto 0) := (others => '0');
     signal external_trig_reg: std_logic_vector(5 downto 0) := (others => '0');
+    -- The board trigger is unrelated to S_AXI_ACLK. Only the second stage
+    -- feeds the pulse stretcher; the raw pin must have one fabric load.
+    signal trig_in_meta, trig_in_sync: std_logic := '0';
+    attribute ASYNC_REG: string;
+    attribute ASYNC_REG of trig_in_meta, trig_in_sync: signal is "TRUE";
     signal software_trigger_s: std_logic;
     signal external_trigger_s: std_logic;
     signal spy_trigger_control_reg: std_logic_vector(2 downto 0) := "011";
@@ -147,6 +152,14 @@ architecture fe_axi_arch of fe_axi is
     constant TRIG_CTRL_OFFSET: std_logic_vector(5 downto 0) := "110100";
 
 begin
+
+    trig_input_cdc: process(S_AXI_ACLK)
+    begin
+        if rising_edge(S_AXI_ACLK) then
+            trig_in_meta <= trig_IN;
+            trig_in_sync <= trig_in_meta;
+        end if;
+    end process;
 
 	S_AXI_AWREADY <= axi_awready;
 	S_AXI_WREADY <= axi_wready;
@@ -288,14 +301,14 @@ begin
           software_trig_reg(5) <= software_trig_reg(4) or software_trig_reg(3) or
                                   software_trig_reg(2) or software_trig_reg(1) or
                                   software_trig_reg(0);
-          external_trig_reg(0) <= trig_IN;
-          external_trig_reg(1) <= external_trig_reg(0) or trig_IN;
-          external_trig_reg(2) <= external_trig_reg(1) or trig_IN;
-          external_trig_reg(3) <= external_trig_reg(2) or trig_IN;
-          external_trig_reg(4) <= external_trig_reg(3) or trig_IN;
+          external_trig_reg(0) <= trig_in_sync;
+          external_trig_reg(1) <= external_trig_reg(0) or trig_in_sync;
+          external_trig_reg(2) <= external_trig_reg(1) or trig_in_sync;
+          external_trig_reg(3) <= external_trig_reg(2) or trig_in_sync;
+          external_trig_reg(4) <= external_trig_reg(3) or trig_in_sync;
           external_trig_reg(5) <= external_trig_reg(4) or external_trig_reg(3) or
                                   external_trig_reg(2) or external_trig_reg(1) or
-                                  external_trig_reg(0) or trig_IN;
+                                  external_trig_reg(0) or trig_in_sync;
 
 	      if (reg_wren = '1' and S_AXI_WSTRB = "1111") then
 

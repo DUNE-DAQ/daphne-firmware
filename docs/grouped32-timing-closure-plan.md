@@ -195,3 +195,14 @@ The eight baseline PS EMIO `no_clock` pins have a
 the corresponding peripherals are disabled or routed through PS MIO rather
 than PL EMIO. Confirm zero fabric clock loads in the fresh netlist before
 signing off these warnings; no fabricated clocks or exceptions were added.
+
+The external `trig_IN` input was found feeding multiple AXI-clocked stretcher
+registers directly. A [focused CDC repair](reports/grouped32/external-trigger-cdc-20260914.md)
+adds a two-register synchronizer and a first-stage-only constraint; the GHDL
+trigger smoke test passes. It is not in the running `d1d07ac` build and needs
+a fresh pinned build before sign-off.
+
+The branch's two composable formal CI matrices failed at VHDL import because
+their harnesses omitted a required calibration-tag port. The
+[formal repair](reports/grouped32/formal-ci-repair-20260914.md) adds a symbolic
+tag input to the harnesses; all five CI matrices now pass on `a6728f2`.

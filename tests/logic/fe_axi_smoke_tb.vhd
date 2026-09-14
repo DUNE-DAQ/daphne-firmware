@@ -152,6 +152,7 @@ begin
     stimulus: process
         variable readback : std_logic_vector(31 downto 0);
         variable trigger_seen : boolean;
+        variable external_trigger_cycles : natural;
     begin
         wait for 3 * clk_period;
         aresetn <= '1';
@@ -281,16 +282,23 @@ begin
         wait until rising_edge(clk);
         wait for 1 ns;
         trig_in <= '0';
-        assert external_trig = '1' and trig = '1'
-            report "External trigger input did not assert its split and legacy outputs"
+        assert external_trig = '0' and trig = '0'
+            report "Raw external trigger bypassed its synchronizer"
             severity failure;
-        assert software_trig = '0'
-            report "External trigger input unexpectedly asserted the software source"
-            severity failure;
-        for i in 0 to 7 loop
+        external_trigger_cycles := 0;
+        for i in 0 to 9 loop
             wait until rising_edge(clk);
+            wait for 1 ns;
+            if external_trig = '1' then
+                external_trigger_cycles := external_trigger_cycles + 1;
+            end if;
+            assert trig = external_trig and software_trig = '0'
+                report "External trigger did not preserve its split and legacy outputs"
+                severity failure;
         end loop;
-        wait for 1 ns;
+        assert external_trigger_cycles = 6
+            report "Sampled external trigger did not produce the six-cycle stretched pulse"
+            severity failure;
         assert external_trig = '0' and trig = '0'
             report "External trigger pulse did not self-clear"
             severity failure;

@@ -11,6 +11,7 @@ CDC_TCL="$ROOT_DIR/xilinx/frontend_control_cdc.tcl"
 ENDPOINT_CDC_TCL="$ROOT_DIR/xilinx/timing_endpoint_cdc.tcl"
 HERMES_CDC_TCL="$ROOT_DIR/xilinx/hermes_control_cdc.tcl"
 FAN_TACH_CDC_TCL="$ROOT_DIR/xilinx/fan_tach_cdc.tcl"
+EXTERNAL_TRIGGER_CDC_TCL="$ROOT_DIR/xilinx/external_trigger_cdc.tcl"
 ENDPOINT_RTL="$ROOT_DIR/ip_repo/daphne_ip/rtl/timing/endpoint.vhd"
 ENDPOINT_CORE_RTL="$ROOT_DIR/ip_repo/daphne_ip/rtl/timing/pdts_ep_core.vhd"
 ENDPOINT_SM_RTL="$ROOT_DIR/ip_repo/daphne_ip/rtl/timing/pdts_ep_sm.vhd"
@@ -68,23 +69,28 @@ require_file "$CDC_TCL"
 require_file "$ENDPOINT_CDC_TCL"
 require_file "$HERMES_CDC_TCL"
 require_file "$FAN_TACH_CDC_TCL"
+require_file "$EXTERNAL_TRIGGER_CDC_TCL"
 require_file "$ENDPOINT_RTL"
 require_file "$ENDPOINT_CORE_RTL"
 require_file "$ENDPOINT_SM_RTL"
 require_file "$BATCH_HOOK"
 require_file "$MANUAL_RUNNER"
 
-require_fixed "constraint_files: xilinx/daphne_selftrigger_pin_map.xdc;xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl;xilinx/hermes_control_cdc.tcl;xilinx/fan_tach_cdc.tcl" "$BOARD_MANIFEST" \
+require_fixed "constraint_files: xilinx/daphne_selftrigger_pin_map.xdc;xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl;xilinx/hermes_control_cdc.tcl;xilinx/fan_tach_cdc.tcl;xilinx/external_trigger_cdc.tcl" "$BOARD_MANIFEST" \
   "board manifest does not stage the Tcl-backed AFE timing constraints."
-require_fixed "required_constraint_files: xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl;xilinx/hermes_control_cdc.tcl;xilinx/fan_tach_cdc.tcl" "$BOARD_MANIFEST" \
+require_fixed "required_constraint_files: xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl;xilinx/hermes_control_cdc.tcl;xilinx/fan_tach_cdc.tcl;xilinx/external_trigger_cdc.tcl" "$BOARD_MANIFEST" \
   "board manifest does not require the Tcl-backed AFE timing constraints."
 require_fixed "timing_clock_source: endpoint" "$BOARD_MANIFEST" \
   "board manifest does not select the endpoint clocking mode for AFE timing by default."
 
-require_fixed "if {\$constraint_basename in {\"afe_capture_timing.tcl\" \"frontend_control_cdc.tcl\" \"timing_endpoint_cdc.tcl\" \"hermes_control_cdc.tcl\" \"fan_tach_cdc.tcl\"}} {" "$FLOW_TCL" \
+require_fixed "if {\$constraint_basename in {\"afe_capture_timing.tcl\" \"frontend_control_cdc.tcl\" \"timing_endpoint_cdc.tcl\" \"hermes_control_cdc.tcl\" \"fan_tach_cdc.tcl\" \"external_trigger_cdc.tcl\"}} {" "$FLOW_TCL" \
   "Vivado flow no longer classifies the Tcl-backed AFE timing files for post-synth loading."
 require_fixed "read_xdc -unmanaged \$constraint_file" "$FLOW_TCL" \
   "Vivado flow no longer loads the Tcl-backed AFE timing files as unmanaged Tcl constraints."
+require_fixed "*trig_in_meta_reg/D" "$EXTERNAL_TRIGGER_CDC_TCL" \
+  "external trigger CDC Tcl no longer identifies its first synchronizer stage."
+require_fixed "set_false_path -to \$external_trigger_first_stage" "$EXTERNAL_TRIGGER_CDC_TCL" \
+  "external trigger CDC Tcl no longer cuts only its first-stage arrival."
 require_fixed "DAPHNE_TIMING_CLOCK_SOURCE timing_clock_source" "$FLOW_TCL" \
   "Vivado flow no longer seeds DAPHNE_TIMING_CLOCK_SOURCE from the board profile."
 require_fixed "append_env_tcl DAPHNE_TIMING_CLOCK_SOURCE" "$BATCH_HOOK" \

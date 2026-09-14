@@ -7,8 +7,10 @@ explains the receiver clock and PCB-skew considerations. This review uses the
 device specification supplied by the hardware owner; it is **not** a validated
 K26C timing model.
 
-The live RTL (`febit3.vhd`, `frontend_common.vhd`) requires 16-bit, LSB-first
-serialization and uses a 62.5 MHz AFE word/forwarded clock, a 500 MHz FPGA
+The hardware owner confirmed on 2026-09-14 that the board runs the AFE5808A in
+16-bit LVDS mode at 62.5 MHz. The live RTL (`febit3.vhd`,
+`frontend_common.vhd`) requires 16-bit, LSB-first serialization and uses a
+62.5 MHz AFE word/forwarded clock, a 500 MHz FPGA
 serial capture clock and a 125 MHz byte clock. This implies an 8× AFE DCLK and
 `16 × 62.5 MHz = 1.000 Gb/s` per LVDS data lane. The input port for each AFE
 contains eight data lanes plus FCLK; the current capture RTL has no incoming
@@ -46,10 +48,10 @@ that model.
 
 Before enabling AFE input delays for qualification:
 
-1. Confirm the fitted AFE part, its SPI serialization setting, and actual
-   sample/forwarded-clock frequency on the K26C board. If the intended mode is
-   16 bit at 62.5 MHz, obtain TI/hardware-owner validation for 1.000 Gb/s or
-   change the system mode/clock and requalify packet rate and capture logic.
+1. Record the fitted AFE part and SPI register readback for the confirmed
+   16-bit, 62.5 MHz setting. Obtain TI/hardware-owner validation for 1.000 Gb/s
+   operation across the required conditions, or change the system mode/clock
+   and requalify packet rate and capture logic.
 2. Obtain PCB propagation min/max (or routed length and stackup tolerance) for
    FPGA forwarded clock to each AFE and all eight data plus FCLK returns,
    including connector/interposer variation. Record the board revision.
