@@ -1,0 +1,13 @@
+GHDL 5.0.1 (Debian 5.0.1+dfsg-1+b1) [Dunoon edition]
+ Compiled with GNAT Version: 14.2.0
+ static elaboration, mcode JIT code generator
+Written by Tristan Gingold.
+
+Copyright (C) 2003 - 2025 Tristan Gingold.
+GHDL is free software, covered by the GNU General Public License.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_control_cdc_tb.vhd:111:5:@8190071ps:(report note): Default configuration and first whole packet passed
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_control_cdc_tb.vhd:76:13:@10515449ps:(assertion failure): Torn/stale configuration or mid-packet ID change: got ECA86 expected 13579
+ghdl:error: assertion failed
+  instance: /hermes_control_cdc_tb/P6
+ghdl:error: simulation failed

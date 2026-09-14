@@ -1,0 +1,84 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_VCOMP.vhd" into library xpm
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv" into library xpm
+INFO: [VRFC 10-311] analyzing module xpm_cdc_single
+INFO: [VRFC 10-311] analyzing module xpm_cdc_gray
+INFO: [VRFC 10-311] analyzing module xpm_cdc_handshake
+INFO: [VRFC 10-311] analyzing module xpm_cdc_pulse
+INFO: [VRFC 10-311] analyzing module xpm_cdc_array_single
+INFO: [VRFC 10-311] analyzing module xpm_cdc_sync_rst
+INFO: [VRFC 10-311] analyzing module xpm_cdc_async_rst
+INFO: [VRFC 10-311] analyzing module xpm_cdc_low_latency_handshake
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/marroyav/tools/Xilinx/2026.1/data/verilog/src/glbl.v" into library work
+INFO: [VRFC 10-311] analyzing module glbl
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/library_marker.vhd" into library udp_core_lib
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/library_marker.vhd" into library axi4_lib
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/library_marker.vhd" into library common_stfc_lib
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/udp_core_pkg.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/axi4s_pkg.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/axi4lite_pkg.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/common_stfc_pkg.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/datapath_observation_boundaries.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'axi4s_fifo'
+INFO: [VRFC 10-3107] analyzing entity 'rx_path_top'
+INFO: [VRFC 10-3107] analyzing entity 'udp_axi4s_pipe'
+INFO: [VRFC 10-3107] analyzing entity 'tx_path_top'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/udp_core_xml_mm_scalable_top.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'udp_core_xml_mm_scalable_top'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/hermes_network_config_cdc_tb.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'hermes_network_config_cdc_tb'
+Vivado Simulator v2026.1
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: /home/marroyav/tools/Xilinx/2026.1/Vivado/bin/unwrapped/lnx64.o/xelab --debug typical --relax --mt 4 -L xpm=/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/xpm -L unisims_ver work.hermes_network_config_cdc_tb work.glbl --snapshot network_config_cdc 
+INFO: [XSIM 43-3493] Using 4 slave threads.
+WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+    LIBRARY_PATH
+Starting static elaboration
+Pass Through NonSizing Optimizer
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package std.standard
+Compiling package std.textio
+Compiling package ieee.std_logic_1164
+Compiling package ieee.numeric_std
+Compiling package std.env
+Compiling package work.udp_core_pkg
+Compiling package work.axi4s_pkg
+Compiling package work.axi4lite_pkg
+Compiling package work.common_stfc_pkg
+Compiling package xpm.vcomponents
+Compiling package vl.vl_types
+Compiling module work.glbl
+Compiling module xpm.xpm_cdc_single(DEST_SYNC_FF=3,SR...
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=0...
+Compiling architecture observation of entity work.tx_path_top [\tx_path_top(g_inc_ping=false,g_...]
+Compiling architecture struct of entity work.udp_core_xml_mm_scalable_top [\udp_core_xml_mm_scalable_top(g_...]
+Compiling architecture test of entity work.hermes_network_config_cdc_tb
+Built simulation snapshot network_config_cdc
+
+****** xsim v2026.1 (64-bit)
+  **** SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
+  **** IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+  **** SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+  **** Start of session at: Mon Sep 14 14:46:22 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/network_config_cdc/xsim_script.tcl
+# xsim {network_config_cdc} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Note: Initial configuration and explicit zero/nonzero writes arrived coherently
+Time: 819594 ps  Iteration: 0  Process: /hermes_network_config_cdc_tb/line__99  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/hermes_network_config_cdc_tb.vhd
+
+Time: 875 ns Started: 875 ns Scope: /hermes_network_config_cdc_tb/dut/gen_mm_tx_cdc/mm_tx_cdc_inst File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv Line:675
+Error: [XPM_CDC_HANDSHAKE S-2] Source cannot complete acknowledgement that destination has received the data at 875000 until source receives acknowledgement from destination.   This violates the usage guidance for this module.  Please refer to the XPM_CDC documentation in the libraries guide.
+Time: 875 ns  Iteration: 0  Process: /hermes_network_config_cdc_tb/dut/gen_mm_tx_cdc/mm_tx_cdc_inst//hermes_network_config_cdc_tb/dut/gen_mm_tx_cdc/mm_tx_cdc_inst  Scope: hermes_network_config_cdc_tb.dut.gen_mm_tx_cdc.mm_tx_cdc_inst  File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv Line: 678
+Failure: Missing snapshot after mailbox reset: seed=2
+Time: 2117184 ps  Iteration: 0  Process: /hermes_network_config_cdc_tb/line__99  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/hermes_network_config_cdc_tb.vhd
+$finish called at time : 2117184 ps : File "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-network-cdc-baseline-negative/hermes_network_config_cdc_tb.vhd" Line 91
+exit
+INFO: xsimkernel Simulation Memory Usage: 294008 KB (Peak: 343340 KB), Simulation CPU Usage: 1000 ms
+INFO: [Common 17-206] Exiting xsim at Mon Sep 14 14:46:26 2026...

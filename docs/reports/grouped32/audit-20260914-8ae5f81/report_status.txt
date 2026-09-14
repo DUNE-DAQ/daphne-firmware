@@ -1,0 +1,2 @@
+failed_reports=
+Review the reports against source and interface contracts before qualification.

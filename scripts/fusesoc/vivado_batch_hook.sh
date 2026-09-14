@@ -151,6 +151,15 @@ resolve_edalize_project_base() {
 }
 
 stage_edalize_compat_outputs() {
+  # Match daphne_run_full_build's case-insensitive stop-after-synth values.
+  # Vivado has already returned successfully; this mode produces no bitstream.
+  case "${DAPHNE_STOP_AFTER_SYNTH:-0}" in
+    1|[tT][rR][uU][eE]|[yY][eE][sS]|[oO][nN])
+      echo "INFO: Synthesis-only build completed; skipping Edalize bitstream staging."
+      return 0
+      ;;
+  esac
+
   project_base="$(resolve_edalize_project_base)" || return 0
   output_dir_path="$(resolve_work_output_dir)"
   build_name_prefix="${DAPHNE_BUILD_NAME_PREFIX:-daphne_selftrigger}"

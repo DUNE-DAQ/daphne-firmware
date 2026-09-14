@@ -47,6 +47,7 @@ architecture rtl of pdts_ep_sm is
 	type state_t is (ST_RESET, ST_W_CLK, ST_W_FREQ, ST_W_CDR, ST_W_RX, ST_W_ADDR, ST_W_DESKEW, ST_W_TS, ST_READY, ST_ERR_P, ST_ERR_R, ST_ERR_T, ST_ERR_X);
 	signal state: state_t := ST_RESET;
 	signal reset_i, resync_i, clk_ok_a, clk_ok, f_ok, cdr_ok, rx_ok, ts_ok, pkt_err_i: std_logic;
+	signal addr_done_i, deskew_done_i: std_logic;
 	signal t, td: std_logic;
 	signal rctr: unsigned(7 downto 0);
 	signal sctr, cctr: unsigned(15 downto 0);
@@ -108,7 +109,7 @@ begin
 						state <= ST_ERR_P;
 					elsif rx_ok = '0' then
 						state <= ST_ERR_R;
-					elsif addr_done = '1' then
+					elsif addr_done_i = '1' then
 						state <= ST_W_DESKEW;
 					end if;
 -- Wait for phase adjustment; can leave this state only through a resync
@@ -119,7 +120,7 @@ begin
 						state <= ST_ERR_P;
 					elsif rx_ok = '0' then
 						state <= ST_ERR_R;
-					elsif deskew_done = '1' then
+					elsif deskew_done_i = '1' then
 						state <= ST_W_TS;
 					end if;
 -- Wait for timestamp
@@ -164,7 +165,7 @@ begin
 
 	sync_sys_clk: entity work.pdts_synchro
 		generic map(
-			N => 4
+			N => 6
 		)
 		port map(
 			clk => clk,
@@ -173,10 +174,14 @@ begin
 			d(1) => rx_rdy,
 			d(2) => tsrdy,
 			d(3) => pkt_err,
+			d(4) => addr_done,
+			d(5) => deskew_done,
 			q(0) => cdr_ok,
 			q(1) => rx_ok,
 			q(2) => ts_ok,
-			q(3) => pkt_err_i
+			q(3) => pkt_err_i,
+			q(4) => addr_done_i,
+			q(5) => deskew_done_i
 		);
 
 	sync_sys_clk_p: entity work.pdts_synchro_pulse

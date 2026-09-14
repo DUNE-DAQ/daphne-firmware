@@ -140,7 +140,9 @@ def test(build, ghdl):
     marker.write_text("package library_marker is end package;\n")
     unisim = build / "vcomponents.vhd"
     unisim.write_text("package vcomponents is end package;\n")
-    hashed = [*sources, pcs, bench, stub, Path(__file__).resolve(),
+    xpm_models = [ROOT / "tests/logic/models" / name for name in (
+        "xpm_vcomponents.vhd", "xpm_cdc_array_single.vhd")]
+    hashed = [*sources, *xpm_models, pcs, bench, stub, Path(__file__).resolve(),
               HERMES / "deimos/xxv_ethernet_0_clocking_wrapper.vhd"]
     (build / "sources.sha256").write_text("".join(
         f"{hashlib.sha256(source.read_bytes()).hexdigest()}  {source}\n" for source in hashed))
@@ -157,6 +159,7 @@ def test(build, ghdl):
         version = run("--version")
         (build / "ghdl-version.txt").write_text(version)
         run("-a", *flags, "--work=unisim", str(unisim))
+        run("-a", *flags, "--work=xpm", *(str(source) for source in xpm_models))
         for library in ("deimos", "ipbus", "udp_core_lib", "axi4_lib"):
             run("-a", *flags, f"--work={library}", str(marker))
         run("-a", *flags, *(str(source) for source in sources), str(stub), str(pcs), str(bench))

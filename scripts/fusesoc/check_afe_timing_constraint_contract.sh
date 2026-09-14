@@ -9,8 +9,10 @@ FLOW_TCL="$ROOT_DIR/xilinx/daphne_vivado_flow.tcl"
 TIMING_TCL="$ROOT_DIR/xilinx/afe_capture_timing.tcl"
 CDC_TCL="$ROOT_DIR/xilinx/frontend_control_cdc.tcl"
 ENDPOINT_CDC_TCL="$ROOT_DIR/xilinx/timing_endpoint_cdc.tcl"
+HERMES_CDC_TCL="$ROOT_DIR/xilinx/hermes_control_cdc.tcl"
 ENDPOINT_RTL="$ROOT_DIR/ip_repo/daphne_ip/rtl/timing/endpoint.vhd"
 ENDPOINT_CORE_RTL="$ROOT_DIR/ip_repo/daphne_ip/rtl/timing/pdts_ep_core.vhd"
+ENDPOINT_SM_RTL="$ROOT_DIR/ip_repo/daphne_ip/rtl/timing/pdts_ep_sm.vhd"
 BATCH_HOOK="$ROOT_DIR/scripts/fusesoc/vivado_batch_hook.sh"
 MANUAL_RUNNER="$ROOT_DIR/scripts/wsl/run_manual_vivado_pushd.sh"
 
@@ -63,19 +65,21 @@ require_file "$FLOW_TCL"
 require_file "$TIMING_TCL"
 require_file "$CDC_TCL"
 require_file "$ENDPOINT_CDC_TCL"
+require_file "$HERMES_CDC_TCL"
 require_file "$ENDPOINT_RTL"
 require_file "$ENDPOINT_CORE_RTL"
+require_file "$ENDPOINT_SM_RTL"
 require_file "$BATCH_HOOK"
 require_file "$MANUAL_RUNNER"
 
-require_fixed "constraint_files: xilinx/daphne_selftrigger_pin_map.xdc;xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl" "$BOARD_MANIFEST" \
+require_fixed "constraint_files: xilinx/daphne_selftrigger_pin_map.xdc;xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl;xilinx/hermes_control_cdc.tcl" "$BOARD_MANIFEST" \
   "board manifest does not stage the Tcl-backed AFE timing constraints."
-require_fixed "required_constraint_files: xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl" "$BOARD_MANIFEST" \
+require_fixed "required_constraint_files: xilinx/afe_capture_timing.tcl;xilinx/frontend_control_cdc.tcl;xilinx/timing_endpoint_cdc.tcl;xilinx/hermes_control_cdc.tcl" "$BOARD_MANIFEST" \
   "board manifest does not require the Tcl-backed AFE timing constraints."
 require_fixed "timing_clock_source: endpoint" "$BOARD_MANIFEST" \
   "board manifest does not select the endpoint clocking mode for AFE timing by default."
 
-require_fixed "if {\$constraint_basename in {\"afe_capture_timing.tcl\" \"frontend_control_cdc.tcl\" \"timing_endpoint_cdc.tcl\"}} {" "$FLOW_TCL" \
+require_fixed "if {\$constraint_basename in {\"afe_capture_timing.tcl\" \"frontend_control_cdc.tcl\" \"timing_endpoint_cdc.tcl\" \"hermes_control_cdc.tcl\"}} {" "$FLOW_TCL" \
   "Vivado flow no longer classifies the Tcl-backed AFE timing files for post-synth loading."
 require_fixed "read_xdc -unmanaged \$constraint_file" "$FLOW_TCL" \
   "Vivado flow no longer loads the Tcl-backed AFE timing files as unmanaged Tcl constraints."
@@ -128,24 +132,16 @@ require_fixed "set_false_path -to \$endpoint_sync_stage1_pins" "$ENDPOINT_CDC_TC
   "endpoint CDC Tcl no longer cuts the explicit PDTS synchronizer first-stage pins."
 require_fixed "set_false_path -from \$rx_tmg_port -to \$endpoint_raw_rx_sample_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the raw recovered-clock sample path into the PDTS CDR sampler."
-require_fixed "*/ep/regfile/adone_reg/Q" "$ENDPOINT_CDC_TCL" \
-  "endpoint CDC Tcl no longer identifies the PDTS addr_done completion flag crossing."
-require_fixed "*/ep/regfile/ddone_reg/Q" "$ENDPOINT_CDC_TCL" \
-  "endpoint CDC Tcl no longer identifies the PDTS deskew_done completion flag crossing."
-require_fixed "*/ep/sm/state_reg[*]/D" "$ENDPOINT_CDC_TCL" \
-  "endpoint CDC Tcl no longer targets the PDTS state-machine destination pins for async completion flags."
-require_fixed "*/ep/sm/FSM_onehot_state_reg[*]/CE" "$ENDPOINT_CDC_TCL" \
-  "endpoint CDC Tcl no longer targets Vivado one-hot PDTS state-machine enable pins for async completion flags."
-require_fixed "set_false_path -from \$endpoint_regfile_done_source_cells -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
-  "endpoint CDC Tcl no longer cuts the PDTS regfile completion flags into the sys_clk state machine."
-require_fixed "*/ep/sm/addr_done" "$ENDPOINT_CDC_TCL" \
-  "endpoint CDC Tcl no longer identifies the PDTS addr_done handoff net into the sys_clk state machine."
-require_fixed "*/ep/sm/deskew_done" "$ENDPOINT_CDC_TCL" \
-  "endpoint CDC Tcl no longer identifies the PDTS deskew_done handoff net into the sys_clk state machine."
-require_fixed "*/ep/sm/sync_sys_clk/deskew_done" "$ENDPOINT_CDC_TCL" \
-  "endpoint CDC Tcl no longer identifies the optimized PDTS deskew_done handoff net into the sys_clk state machine."
-require_fixed "set_false_path -through \$endpoint_state_machine_async_handoff_nets -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
-  "endpoint CDC Tcl no longer cuts the explicit PDTS addr_done/deskew_done handoff nets into the sys_clk state machine."
+require_fixed "d(4) => addr_done" "$ENDPOINT_SM_RTL" \
+  "PDTS address completion must enter the sys_clk level synchronizer."
+require_fixed "d(5) => deskew_done" "$ENDPOINT_SM_RTL" \
+  "PDTS deskew completion must enter the sys_clk level synchronizer."
+require_fixed "elsif addr_done_i = '1' then" "$ENDPOINT_SM_RTL" \
+  "PDTS state machine must consume synchronized address completion."
+require_fixed "elsif deskew_done_i = '1' then" "$ENDPOINT_SM_RTL" \
+  "PDTS state machine must consume synchronized deskew completion."
+forbid_fixed "endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
+  "PDTS completion CDC must not bypass timing of state-machine registers."
 require_fixed "post-place report_methodology" "$FLOW_TCL" \
   "Vivado flow no longer emits a post-place methodology report."
 require_fixed "post_route_methodology.rpt" "$FLOW_TCL" \

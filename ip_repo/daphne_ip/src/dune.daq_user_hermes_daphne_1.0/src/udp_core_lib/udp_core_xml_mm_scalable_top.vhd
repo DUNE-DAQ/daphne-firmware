@@ -166,6 +166,7 @@ architecture struct of udp_core_xml_mm_scalable_top is
     signal mm_tx_last          : std_logic_vector(C_MM_TX_WIDTH - 1 downto 0) := (others => '0');
     signal mm_tx_send          : std_logic := '0';
     signal mm_tx_received      : std_logic;
+    signal mm_tx_refresh       : std_logic := '1';
     type t_mm_tx_state is (MM_IDLE, MM_SEND, MM_WAIT_LOW);
     signal mm_tx_state         : t_mm_tx_state := MM_IDLE;
 
@@ -244,31 +245,33 @@ begin
         mm_tx_source : process(mm_clk) is
         begin
             if rising_edge(mm_clk) then
+                -- The XPM handshake has no reset. Finish any active exchange
+                -- with its original held data, then publish the register bank's
+                -- reset/current value. Clearing send/hold here during reset
+                -- could cancel a request before the destination sees it or
+                -- corrupt the snapshot while the request is still in flight.
                 if mm_rst = '1' then
-                    mm_tx_hold <= (others => '0');
-                    mm_tx_last <= (others => '0');
-                    mm_tx_send <= '0';
-                    mm_tx_state <= MM_IDLE;
-                else
-                    case mm_tx_state is
-                        when MM_IDLE =>
-                            if mm_tx_src /= mm_tx_last then
-                                mm_tx_hold <= mm_tx_src;
-                                mm_tx_send <= '1';
-                                mm_tx_state <= MM_SEND;
-                            end if;
-                        when MM_SEND =>
-                            if mm_tx_received = '1' then
-                                mm_tx_last <= mm_tx_hold;
-                                mm_tx_send <= '0';
-                                mm_tx_state <= MM_WAIT_LOW;
-                            end if;
-                        when MM_WAIT_LOW =>
-                            if mm_tx_received = '0' then
-                                mm_tx_state <= MM_IDLE;
-                            end if;
-                    end case;
+                    mm_tx_refresh <= '1';
                 end if;
+                case mm_tx_state is
+                    when MM_IDLE =>
+                        if mm_rst = '0' and (mm_tx_refresh = '1' or mm_tx_src /= mm_tx_last) then
+                            mm_tx_hold <= mm_tx_src;
+                            mm_tx_send <= '1';
+                            mm_tx_refresh <= '0';
+                            mm_tx_state <= MM_SEND;
+                        end if;
+                    when MM_SEND =>
+                        if mm_tx_received = '1' then
+                            mm_tx_last <= mm_tx_hold;
+                            mm_tx_send <= '0';
+                            mm_tx_state <= MM_WAIT_LOW;
+                        end if;
+                    when MM_WAIT_LOW =>
+                        if mm_tx_received = '0' then
+                            mm_tx_state <= MM_IDLE;
+                        end if;
+                end case;
             end if;
         end process mm_tx_source;
 
@@ -276,7 +279,7 @@ begin
             generic map(
                 DEST_EXT_HSK   => 0,
                 DEST_SYNC_FF   => 3,
-                INIT_SYNC_FF   => 0,
+                INIT_SYNC_FF   => 1,
                 SIM_ASSERT_CHK => 1,
                 SRC_SYNC_FF    => 3,
                 WIDTH          => C_MM_TX_WIDTH

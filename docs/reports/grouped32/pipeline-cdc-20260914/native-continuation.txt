@@ -1,0 +1,28 @@
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/axi_lite_unavailable_tb.vhd:68:5:@216ns:(report note): axi_lite_unavailable_tb PASS
+simulation stopped @216ns
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/fragment_peak_descriptors_tb.vhd:119:5:@35017ns:(report note): fragment_peak_descriptors_tb PASS
+simulation stopped @35017ns
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/fragment_peak_descriptors_serial_tb.vhd:124:5:@86089ns:(report note): fragment_peak_descriptors_serial_tb PASS
+simulation stopped @86089ns
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/fragment_peak_descriptors_banked_tb.vhd:208:5:@91249ns:(report note): fragment_peak_descriptors_banked_tb PASS
+simulation stopped @91249ns
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/continuation_registers_tb.vhd:67:5:@1206ns:(report note): continuation_registers_tb PASS
+simulation stopped @1206ns
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/trig_xc_alignment_tb.vhd:56:5:@6089ns:(report note): trig_xc_alignment_tb PASS: isolated, close, adjacent, reset, timestamp wrap
+simulation stopped @6089ns
+../../src/ieee2008/numeric_std-body.vhdl:1320:7:@0ms:(assertion warning): NUMERIC_STD."<": metavalue detected, returning FALSE
+../../src/ieee2008/numeric_std-body.vhdl:3036:7:@0ms:(assertion warning): NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/stc3_continuation_tb.vhd:68:5:@288048ns:(report note): stc3_continuation_tb PASS odd=0 packets=30
+simulation stopped @288048ns
+../../src/ieee2008/numeric_std-body.vhdl:1320:7:@0ms:(assertion warning): NUMERIC_STD."<": metavalue detected, returning FALSE
+../../src/ieee2008/numeric_std-body.vhdl:3036:7:@0ms:(assertion warning): NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/stc3_continuation_tb.vhd:68:5:@288048ns:(report note): stc3_continuation_tb PASS odd=1 packets=30
+simulation stopped @288048ns
+../../src/ieee2008/numeric_std-body.vhdl:1320:7:@0ms:(assertion warning): NUMERIC_STD."<": metavalue detected, returning FALSE
+../../src/ieee2008/numeric_std-body.vhdl:3036:7:@0ms:(assertion warning): NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/stc3_continuation_edges_tb.vhd:186:5:@678825ns:(report note): stc3_continuation_edges_tb PASS
+simulation stopped @678825ns
+../../src/ieee2008/numeric_std-body.vhdl:1320:7:@0ms:(assertion warning): NUMERIC_STD."<": metavalue detected, returning FALSE
+../../src/ieee2008/numeric_std-body.vhdl:3036:7:@0ms:(assertion warning): NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/stc3_continuation_overload_tb.vhd:119:5:@576041ns:(report note): stc3_continuation_overload_tb PASS:48 packets,13 whole-fragment drops, recovery
+simulation stopped @576041ns

@@ -17,6 +17,9 @@ use work.ipbus_reg_types.all;
 
 use work.tx_mux_decl.all;
 
+library xpm;
+use xpm.vcomponents.all;
+
 entity tx_mux_out is
     generic(
         N_SRC: positive;
@@ -44,8 +47,16 @@ architecture rtl of tx_mux_out is
 
     constant IFACE: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(IFACE_ID, 2));
 
-	signal ctrl, stat: ipb_reg_v(0 downto 0);
-    signal ctrl_id: std_logic_vector(19 downto 0);
+    signal ctrl, stat: ipb_reg_v(0 downto 0);
+    signal ctrl_id: std_logic_vector(19 downto 0) := (others => '0');
+    signal ctrl_hold, ctrl_last, ctrl_pending, ctrl_cdc : std_logic_vector(19 downto 0) := (others => '0');
+    signal ctrl_send, ctrl_received, ctrl_request, ctrl_ack : std_logic := '0';
+    signal ctrl_packet_open : std_logic := '0';
+    type cdc_state_t is (CDC_IDLE, CDC_SEND, CDC_WAIT_LOW);
+    signal ctrl_transfer : cdc_state_t := CDC_IDLE;
+    signal status_transfer : cdc_state_t := CDC_IDLE;
+    signal status_hold, status_cdc, status_ipb : std_logic_vector(5 downto 0) := (others => '0');
+    signal status_send, status_received, status_request, status_ack : std_logic := '0';
     signal src: std_logic_vector(5 downto 0);
     signal srcv, req: std_logic;
     signal srci: integer range N_SRC - 1 downto 0 := 0;
@@ -79,8 +90,96 @@ begin
 			q => ctrl
         );
 
-    ctrl_id <= ctrl(0)(19 downto 0);
-    stat(0) <= X"00000" & std_logic_vector(to_unsigned(state_t'pos(state), 4)) & X"0" & "00" & ready & oflow;
+    -- A software write is a coherent 20-bit value. Keep that snapshot stable
+    -- until the entire XPM exchange finishes, including across IPbus reset.
+    -- XPM handshakes have no reset input: cancelling a request or changing its
+    -- data during reset could publish a torn word or wedge the exchange.
+    process(ipb_clk)
+    begin
+        if rising_edge(ipb_clk) then
+            case ctrl_transfer is
+                when CDC_IDLE =>
+                    if ipb_rst = '0' and ctrl(0)(19 downto 0) /= ctrl_last then
+                        ctrl_hold <= ctrl(0)(19 downto 0);
+                        ctrl_send <= '1';
+                        ctrl_transfer <= CDC_SEND;
+                    end if;
+                when CDC_SEND =>
+                    if ctrl_received = '1' then
+                        ctrl_last <= ctrl_hold;
+                        ctrl_send <= '0';
+                        ctrl_transfer <= CDC_WAIT_LOW;
+                    end if;
+                when CDC_WAIT_LOW =>
+                    if ctrl_received = '0' then ctrl_transfer <= CDC_IDLE; end if;
+            end case;
+        end if;
+    end process;
+
+    ctrl_mailbox : xpm_cdc_handshake
+        generic map(DEST_EXT_HSK => 1, DEST_SYNC_FF => 3, INIT_SYNC_FF => 1,
+            SIM_ASSERT_CHK => 1, SRC_SYNC_FF => 3, WIDTH => 20)
+        port map(src_clk => ipb_clk, src_in => ctrl_hold, src_send => ctrl_send,
+            src_rcv => ctrl_received, dest_clk => clk, dest_out => ctrl_cdc,
+            dest_req => ctrl_request, dest_ack => ctrl_ack);
+
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            ctrl_ack <= ctrl_request;
+            if ctrl_request = '1' then ctrl_pending <= ctrl_cdc; end if;
+            -- ST_INIT also occurs between fragments within one UDP packet.
+            -- Unlike the length/content counters, an accepted packet remains
+            -- open when en drops. Change its ID only after the accepted end
+            -- marker (or reset), including through stalls and enable toggles.
+            if rst = '1' or (state = ST_SEND and ready = '1') then
+                ctrl_packet_open <= '0';
+            elsif sending = '1' and ready = '1' then
+                ctrl_packet_open <= '1';
+            end if;
+            -- The zero initial value is the IPbus reset default, valid even
+            -- before the first write reaches the destination.
+            if rst = '1' or (state = ST_INIT and ctrl_packet_open = '0') then
+                ctrl_id <= ctrl_pending;
+            end if;
+        end if;
+    end process;
+
+    -- The encoded FSM is a word, not independent status bits. Return coherent
+    -- snapshots to IPbus; an in-progress exchange also drains during TX reset.
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            case status_transfer is
+                when CDC_IDLE =>
+                    status_hold <= std_logic_vector(to_unsigned(state_t'pos(state), 4)) & ready & oflow;
+                    status_send <= '1';
+                    status_transfer <= CDC_SEND;
+                when CDC_SEND =>
+                    if status_received = '1' then
+                        status_send <= '0'; status_transfer <= CDC_WAIT_LOW;
+                    end if;
+                when CDC_WAIT_LOW =>
+                    if status_received = '0' then status_transfer <= CDC_IDLE; end if;
+            end case;
+        end if;
+    end process;
+
+    status_mailbox : xpm_cdc_handshake
+        generic map(DEST_EXT_HSK => 1, DEST_SYNC_FF => 3, INIT_SYNC_FF => 1,
+            SIM_ASSERT_CHK => 1, SRC_SYNC_FF => 3, WIDTH => 6)
+        port map(src_clk => clk, src_in => status_hold, src_send => status_send,
+            src_rcv => status_received, dest_clk => ipb_clk, dest_out => status_cdc,
+            dest_req => status_request, dest_ack => status_ack);
+
+    process(ipb_clk)
+    begin
+        if rising_edge(ipb_clk) then
+            status_ack <= status_request;
+            if status_request = '1' then status_ipb <= status_cdc; end if;
+        end if;
+    end process;
+    stat(0) <= X"00000" & status_ipb(5 downto 2) & "000000" & status_ipb(1 downto 0);
 
 -- Source selector
 
@@ -220,8 +319,8 @@ begin
 
 -- Output interface
 
-    hdr    <= d(srci).d(11 downto 0) & d(srci).d(23 downto 12)  & "000000" & IFACE & src      & ctrl_id & PROTO_VERSION; -- CDC (static levels)
-    hdr_hb <= X"000"                 & std_logic_vector(hb_seq) & "000001" & IFACE & "000000" & ctrl_id & PROTO_VERSION; -- CDC (static levels)
+    hdr    <= d(srci).d(11 downto 0) & d(srci).d(23 downto 12)  & "000000" & IFACE & src      & ctrl_id & PROTO_VERSION;
+    hdr_hb <= X"000"                 & std_logic_vector(hb_seq) & "000001" & IFACE & "000000" & ctrl_id & PROTO_VERSION;
 
     with state select q_swap <=
         hdr when ST_D_HDR,

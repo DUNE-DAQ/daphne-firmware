@@ -25,6 +25,7 @@ SOURCES=[
     'rtl/isolated/subsystems/trigger/stc3_frame_source.vhd',
     'rtl/isolated/subsystems/trigger/stc3_record_builder.vhd',
     'rtl/isolated/subsystems/trigger/afe_stc3_stream_serializer.vhd',
+    'tests/logic/afe_stc3_stream_serializer_tb.vhd',
     'rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd',
     'tests/logic/stc3_grouped_test_adapter.vhd',
     'tests/logic/grouped32_replay_tb.vhd',
@@ -110,20 +111,40 @@ def main():
     parser.add_argument('--output-dir',type=Path)
     args=parser.parse_args()
     with tempfile.TemporaryDirectory(prefix='daphne-grouped32-') as td:
+        output_dir=(args.output_dir or Path(td)).resolve()
+        output_dir.mkdir(parents=True,exist_ok=True)
+        source_root=Path(td)/'sources'
+        model_names=['xpm_vcomponents.vhd','xpm_memory_sdpram.vhd','xpm_cdc_handshake.vhd','xpm_fifo_async.vhd']
+        contract_benches=['stc3_continuation_tb','stc3_continuation_edges_tb','stc3_continuation_overload_tb']
+        source_paths=[*SOURCES,*[f'tests/logic/models/{name}' for name in model_names],
+                      *[f'tests/logic/{bench}.vhd' for bench in contract_benches]]
+        source_hashes={}
+        # GHDL checks analyzed source timestamps before each simulation. Freeze
+        # this run so an unrelated workspace edit cannot invalidate later modes.
+        for relative in source_paths:
+            snapshot=source_root/relative
+            snapshot.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(ROOT/relative,snapshot)
+            source_hashes[relative]=hashlib.sha256(snapshot.read_bytes()).hexdigest()
+        (output_dir/'source-manifest.json').write_text(json.dumps(source_hashes,indent=2)+'\n')
         def run(*args):
-            result = subprocess.run([GHDL, *map(str, args)], cwd=td, check=True,
+            result = subprocess.run([GHDL, *map(str, args)], cwd=td,
                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             print(result.stdout, end='', flush=True)
+            result.check_returncode()
             if args[0] == '-r' and ' PASS' not in result.stdout:
                 raise AssertionError('Simulation ended without its PASS marker')
-        models=ROOT/'tests/logic/models'
-        run('-a','--std=08','--work=xpm',*[models/x for x in ['xpm_vcomponents.vhd','xpm_memory_sdpram.vhd','xpm_cdc_handshake.vhd','xpm_fifo_async.vhd']])
-        run('-a','--std=08',*[ROOT/x for x in SOURCES])
+        models=source_root/'tests/logic/models'
+        run('-a','--std=08','--work=xpm',*[models/x for x in model_names])
+        run('-a','--std=08',*[source_root/x for x in SOURCES])
         run('-e', '--std=08', 'stream_reset_sync_tb')
         for stages in (2,4,8):
             run('-r', '--std=08', 'stream_reset_sync_tb', f'-gSTAGES_G={stages}', '--assert-level=error', '--stop-time=1us')
-        for bench in ([] if args.skip_existing else ['stc3_continuation_tb','stc3_continuation_edges_tb','stc3_continuation_overload_tb']):
-            src=(ROOT/'tests/logic'/f'{bench}.vhd').read_text().replace('entity work.stc3_record_builder','entity work.stc3_grouped_test_adapter')
+        run('-e', '--std=08', 'afe_stc3_stream_serializer_tb')
+        run('-r', '--std=08', 'afe_stc3_stream_serializer_tb', '--assert-level=error',
+            '--ieee-asserts=disable-at-0', '--stop-time=20us')
+        for bench in ([] if args.skip_existing else contract_benches):
+            src=(source_root/'tests/logic'/f'{bench}.vhd').read_text().replace('entity work.stc3_record_builder','entity work.stc3_grouped_test_adapter')
             path=Path(td)/f'{bench}.vhd'; path.write_text(src)
             run('-a','--std=08',path); run('-e','--std=08',bench)
             for opts in ([['-gODD_START_G=0'],['-gODD_START_G=1']] if bench=='stc3_continuation_tb' else [[]]):
@@ -131,8 +152,6 @@ def main():
         if args.contracts_only:
             print('Grouped builder reset and existing contracts PASS')
             return
-        output_dir=(args.output_dir or Path(td)).resolve()
-        output_dir.mkdir(parents=True,exist_ok=True)
         run('-e','--std=08','grouped32_replay_tb')
         results=[]
         for mode in (args.mode if args.mode is not None else range(5)):
@@ -141,6 +160,6 @@ def main():
                             f'-gOUTPUT_G={path}','--assert-level=error','--ieee-asserts=disable-at-0','--stop-time=2ms')
             result=check_packets(path,mode); result['phase_ps']=args.phase_ps; results.append(result)
             print(json.dumps(result),flush=True)
-        (output_dir/f'summary-phase{args.phase_ps}.json').write_text(json.dumps(results,indent=2)+'\n')
+            (output_dir/f'summary-phase{args.phase_ps}.json').write_text(json.dumps(results,indent=2)+'\n')
     print('Grouped builder local RTL regressions PASS')
 if __name__=='__main__': main()

@@ -1,0 +1,81 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_VCOMP.vhd" into library xpm
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv" into library xpm
+INFO: [VRFC 10-311] analyzing module xpm_cdc_single
+INFO: [VRFC 10-311] analyzing module xpm_cdc_gray
+INFO: [VRFC 10-311] analyzing module xpm_cdc_handshake
+INFO: [VRFC 10-311] analyzing module xpm_cdc_pulse
+INFO: [VRFC 10-311] analyzing module xpm_cdc_array_single
+INFO: [VRFC 10-311] analyzing module xpm_cdc_sync_rst
+INFO: [VRFC 10-311] analyzing module xpm_cdc_async_rst
+INFO: [VRFC 10-311] analyzing module xpm_cdc_low_latency_handshake
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/marroyav/tools/Xilinx/2026.1/data/verilog/src/glbl.v" into library work
+INFO: [VRFC 10-311] analyzing module glbl
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-control-boundary-vendor/library_marker.vhd" into library ipbus
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_package.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_reg_types.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/ipbus/ipbus_ctrlreg_v.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'ipbus_ctrlreg_v'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_decl.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_src_sel.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'tx_src_sel'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/tx_mux_out.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'tx_mux_out'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_control_cdc_tb.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'hermes_control_cdc_tb'
+Vivado Simulator v2026.1
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: /home/marroyav/tools/Xilinx/2026.1/Vivado/bin/unwrapped/lnx64.o/xelab --debug typical --relax --mt 4 -L xpm=/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/hermes-control-boundary-vendor/xpm -L unisims_ver work.hermes_control_cdc_tb work.glbl --snapshot control_cdc 
+INFO: [XSIM 43-3493] Using 4 slave threads.
+WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+    LIBRARY_PATH
+Starting static elaboration
+Pass Through NonSizing Optimizer
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package std.standard
+Compiling package std.textio
+Compiling package ieee.std_logic_1164
+Compiling package ieee.numeric_std
+Compiling package std.env
+Compiling package work.ipbus
+Compiling package work.tx_mux_decl
+Compiling package synopsys.attributes
+Compiling package ieee.std_logic_misc
+Compiling package work.ipbus_reg_types
+Compiling package xpm.vcomponents
+Compiling package vl.vl_types
+Compiling module work.glbl
+Compiling architecture rtl of entity work.ipbus_ctrlreg_v [ipbus_ctrlreg_v_default]
+Compiling module xpm.xpm_cdc_single(DEST_SYNC_FF=3,IN...
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling architecture rtl of entity work.tx_src_sel [\tx_src_sel(n_src=1)\]
+Compiling architecture rtl of entity work.tx_mux_out [\tx_mux_out(n_src=1,iface_id=2)\]
+Compiling architecture test of entity work.hermes_control_cdc_tb
+Built simulation snapshot control_cdc
+
+****** xsim v2026.1 (64-bit)
+  **** SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
+  **** IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+  **** SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+  **** Start of session at: Mon Sep 14 14:47:52 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/control_cdc/xsim_script.tcl
+# xsim {control_cdc} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Note: Default configuration and first whole packet passed
+Time: 8190071 ps  Iteration: 1  Process: /hermes_control_cdc_tb/line__97  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_control_cdc_tb.vhd
+Note: Writes and enable toggles during a stalled packet apply only after its accepted end marker
+Time: 25723293 ps  Iteration: 1  Process: /hermes_control_cdc_tb/line__97  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_control_cdc_tb.vhd
+Note: hermes_control_cdc_tb PASS: defaults, coherent writes, packet boundaries, enable toggles, stalls, reset in flight, payloads and status
+Time: 35151761 ps  Iteration: 0  Process: /hermes_control_cdc_tb/line__97  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_control_cdc_tb.vhd
+$stop called at time : 35151761 ps : File "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_control_cdc_tb.vhd" Line 149
+exit
+INFO: xsimkernel Simulation Memory Usage: 293960 KB (Peak: 343292 KB), Simulation CPU Usage: 1050 ms
+INFO: [Common 17-206] Exiting xsim at Mon Sep 14 14:47:56 2026...

@@ -14,7 +14,10 @@ use work.ipbus.all;
 use work.ipbus_reg_types.all;
 use work.ipbus_decode_tx_mux.all;
 
-use work.tx_mux_decl.all; 
+use work.tx_mux_decl.all;
+
+library xpm;
+use xpm.vcomponents.all;
 
 entity tx_mux is
     generic(
@@ -61,6 +64,7 @@ architecture rtl of tx_mux is
     signal sctr: unsigned(TIMESLICE_RADIX - 1 downto 0);
     signal ctr: unsigned(31 downto 0);
     signal ctr_samp: std_logic_vector(31 downto 0);
+    signal status_async, status_ipb : std_logic_vector(3 downto 0);
     signal ipbw_buf: ipb_wbus_array(N_SRC - 1 downto 0);
     signal ipbr_buf: ipb_rbus_array(N_SRC - 1 downto 0);
     signal q: src_d_array(N_SRC - 1 downto 0);
@@ -103,7 +107,15 @@ begin
     ctrl_en_buf <= ctrl(0)(1);
     ctrl_tx_en <= ctrl(0)(3);
     ctrl_sel_buf <= ctrl(0)(15 downto 8);
-    stat(0) <= X"0000000" & udp_ready & not src_rst & not eth_rst & err ; -- CDC
+    -- These four independent level flags originate in TX/acquisition clocks.
+    -- They are not a coherent bus; each bit is independently synchronized.
+    status_async <= udp_ready & not src_rst & not eth_rst & err;
+    status_cdc : xpm_cdc_array_single
+        generic map(DEST_SYNC_FF => 3, INIT_SYNC_FF => 1, SIM_ASSERT_CHK => 1,
+            SRC_INPUT_REG => 0, WIDTH => 4)
+        port map(src_clk => '0', src_in => status_async,
+            dest_clk => ipb_clk, dest_out => status_ipb);
+    stat(0) <= X"0000000" & status_ipb;
     -- stat(0) <= stat_reg_0_padding & err_buf & udp_ready & not src_rst & not eth_rst & err_mux ; -- CDC Erdem temporary change
     stat(1) <= ctr_samp;
 

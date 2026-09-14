@@ -1,0 +1,14 @@
+GHDL 5.0.1 (Debian 5.0.1+dfsg-1+b1) [Dunoon edition]
+ Compiled with GNAT Version: 14.2.0
+ static elaboration, mcode JIT code generator
+Written by Tristan Gingold.
+
+Copyright (C) 2003 - 2025 Tristan Gingold.
+GHDL is free software, covered by the GNU General Public License.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_phy_clock_reset_tb.vhd:110:5:@215001ps:(report note): Initial reset release and four distinct TX/RX clock mappings passed
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_phy_clock_reset_tb.vhd:133:5:@635500ps:(report note): PHY status CDC latency and IPbus bit mappings passed
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_phy_clock_reset_tb.vhd:158:5:@833001ps:(report note): Lane 2 link loss/recovery and two-stage RX-to-TX readiness passed
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_phy_clock_reset_tb.vhd:178:5:@932401ps:(report note): Lane 1 independent TX/RX resets and lane isolation passed
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/hermes_phy_clock_reset_tb.vhd:195:5:@1200001ps:(report note): hermes_phy_clock_reset_tb PASS: four clocks per direction, lane mapping, link recovery, isolated resets and stopped-clock global reset
+simulation stopped @1200001ps

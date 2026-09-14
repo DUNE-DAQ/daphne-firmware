@@ -1,0 +1,33 @@
+{
+  "clock_period_ns": 3.2,
+  "part": "xck26-sfvc784-2LV-c",
+  "vivado": "2026.1 build 6511674",
+  "synth_directive": "PerformanceOptimized",
+  "max_threads": 4,
+  "baseline": {
+    "source_commit": "8ae5f81",
+    "source_sha256": "1d76382c8e18faf5b7e18ff0a8d8e4da256204ee2469767c630e5ad43937c32e",
+    "wns_ns": -0.874,
+    "tns_ns": -40.545,
+    "setup_failing_endpoints": 149,
+    "luts": 534,
+    "registers": 204,
+    "dsps": 1
+  },
+  "pipeline": {
+    "PIPELINE_INPUT_G": true,
+    "source_sha256": "a3a9301d81aa84481b3fd481dcc46730e1892c982985de8060d923b6c0417203",
+    "wns_ns": 0.003,
+    "tns_ns": 0,
+    "setup_failing_endpoints": 0,
+    "luts": 486,
+    "registers": 300,
+    "dsps": 1
+  },
+  "limitations": [
+    "Synthesis-only out-of-context result; estimated/unplaced delays.",
+    "Only internal register paths constrained by clock; no external I/O delay budgets.",
+    "No full-board BRAM input source, clock network or surrounding placement congestion.",
+    "3 ps setup margin is not a timing-closure claim; full implementation remains required."
+  ]
+}

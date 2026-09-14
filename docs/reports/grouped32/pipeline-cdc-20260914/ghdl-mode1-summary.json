@@ -1,0 +1,15 @@
+[
+  {
+    "mode": 1,
+    "grouped_packets": 3372,
+    "reference_packets": 3372,
+    "byte_identical_common_packets": 3372,
+    "samples_checked": 3452928,
+    "independent_descriptor_words_checked": 80928,
+    "grouped_only": 0,
+    "reference_only": 0,
+    "max_grouped_packet_latency_adc_ticks": 1122,
+    "csv_sha256": "d2d4cf794e8693c62c0ebefd24cee5522b8d66b8b9aa858c406f04016df65f9a",
+    "phase_ps": 0
+  }
+]

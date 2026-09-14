@@ -1,0 +1,9 @@
+/tmp/daphne-grouped32-pjgmcp0l/sources/tests/logic/stream_reset_sync_tb.vhd:32:5:@106ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @106ns
+/tmp/daphne-grouped32-pjgmcp0l/sources/tests/logic/stream_reset_sync_tb.vhd:32:5:@146ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @146ns
+/tmp/daphne-grouped32-pjgmcp0l/sources/tests/logic/stream_reset_sync_tb.vhd:32:5:@226ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @226ns
+/tmp/daphne-grouped32-pjgmcp0l/sources/tests/logic/afe_stc3_stream_serializer_tb.vhd:92:5:@8072ns:(report note): afe_stc3_stream_serializer_tb PASS: four channels, 480 addressed writes and four complete commits
+simulation stopped @8072ns
+Grouped builder reset and existing contracts PASS

@@ -1,0 +1,37 @@
+{
+  "part": "xck26-sfvc784-2LV-c",
+  "vivado": "2026.1 build 6511674",
+  "clock_period_ns": 3.2,
+  "directive": "PerformanceOptimized",
+  "source_sha256": "a90f5d7491bb559cbe127911b414998edb80322aabc595ee1a127864e7ae4fb3",
+  "selected_grouped": {
+    "PIPELINE_INPUT_G": true,
+    "use_dsp": "no",
+    "wns_ns": 0.836,
+    "tns_ns": 0,
+    "setup_failing_endpoints": 0,
+    "whs_ns": 0.109,
+    "ths_ns": 0,
+    "luts": 506,
+    "registers": 300,
+    "dsps": 0,
+    "worst_data_delay_ns": 2.081,
+    "worst_logic_levels": 5,
+    "worst_source": "grouped_input.sample_start_s_reg_rep/C",
+    "worst_endpoint": "descriptor_memory_s_reg_0_15_0_13/RAMA/WE"
+  },
+  "native_mapping_check": {
+    "PIPELINE_INPUT_G": false,
+    "use_dsp": "yes",
+    "luts": 535,
+    "registers": 204,
+    "dsps": 1,
+    "note": "Native path is intended for 62.5 MHz; this comparison deliberately used 312.5 MHz and does not qualify native timing."
+  },
+  "limitations": [
+    "Out-of-context synthesis, unplaced estimated delays, no board clock/distribution/congestion.",
+    "Only clock-constrained internal register paths; no board input/output budgets.",
+    "Full board implementation and timing qualification remain required."
+  ],
+  "functional_provenance": "Frozen grouped32 and real-XPM replays use identical arithmetic/register/control logic; the subsequently selected use_dsp attribute has no simulation semantics. Final-source focused descriptor/serializer and native continuation tests were rerun."
+}

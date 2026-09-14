@@ -109,6 +109,29 @@ begin
     wait for 100 ns; healthy;
     report "Initial reset release and four distinct TX/RX clock mappings passed";
 
+    -- PHY status is independently synchronized into IPbus, preserving the
+    -- lane-0 debug register address and each historical low-bit meaning.
+    ipbw.ipb_addr<=X"00000001"; ipbw.ipb_strobe<='1'; wait for 1 ps;
+    assert ipbr.ipb_rdata=X"A000000F" and ipbr.ipb_ack='1'
+      report "PHY debug status mapping changed" severity failure;
+    wait until rising_edge(rx_clocks_s(0)); link_up_s(0)<='0'; settle;
+    for edge in 1 to 2 loop
+      wait until rising_edge(ipb_clk); settle;
+      assert ipbr.ipb_rdata(3)='1' report "RX status crossed to IPbus before three edges" severity failure;
+    end loop;
+    wait until rising_edge(ipb_clk); settle;
+    assert ipbr.ipb_rdata=X"A0000007" report "IPbus did not observe RX status" severity failure;
+    wait until rising_edge(rx_clocks_s(0)); link_up_s(0)<='1';
+    wait for 100 ns; healthy;
+    tx_done_s(0)<='0'; wait for 40 ns;
+    assert ipbr.ipb_rdata=X"A000000D" report "IPbus TX reset-done bit mapping changed" severity failure;
+    tx_done_s(0)<='1'; wait for 100 ns; healthy;
+    rx_done_s(0)<='0'; wait for 40 ns;
+    assert ipbr.ipb_rdata=X"A000000E" report "IPbus RX reset-done bit mapping changed" severity failure;
+    rx_done_s(0)<='1'; wait for 100 ns; healthy;
+    ipbw.ipb_strobe<='0';
+    report "PHY status CDC latency and IPbus bit mappings passed";
+
     -- Distinct changing signatures catch crossed TX XGMII lane connections.
     for active in 0 to 3 loop
       for i in 0 to 3 loop

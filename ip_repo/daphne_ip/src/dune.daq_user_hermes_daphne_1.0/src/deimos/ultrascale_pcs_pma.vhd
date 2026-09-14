@@ -18,6 +18,9 @@ use ieee.std_logic_misc.all;
 library unisim;
 use unisim.vcomponents.all;
 
+library xpm;
+use xpm.vcomponents.all;
+
 library udp_core_lib;
 use work.udp_core_pkg.all;
 
@@ -242,8 +245,7 @@ architecture rtl of ultrascale_pcs_pma is
     signal debug_tx_axis_data   : t_64b_debug_array;
     signal debug_rx_axis_data   : t_64b_debug_array;
 
-    signal rx_stat  : std_logic_vector(11 downto 0);
-    signal rx_error : std_logic_vector(7 downto 0);
+    signal debug_levels_async, debug_levels_ipb : std_logic_vector(3 downto 0);
     
     signal clk_in           : std_logic_vector(N_CLK_DEBUG -1 downto 0);
     --signal clk_debug_array  : debug_clk_array;
@@ -476,20 +478,17 @@ begin
             d => debug_stat
         );   
 
-    debug_stat(0) <= X"A" & b"000" &                -- 7 
-                     rx_error &                     -- 8
-                     rx_stat(11 downto 10) &        -- 2
-                     rx_stat(8 downto 6) &          -- 3
-                     rx_stat(4 downto 0) &          -- 5
-                     '0' &                          -- 1
-                     '0' &                          -- 1
-                     '0' &                          -- 1
-                     rx_status_vector(0) &          -- 1
-                     s_qpll_0_lock(0) &             -- 1
-                     gt_tx_rst_done_out_array(0) &  -- 1 
-                     gt_rx_rst_done_out_array(0);   -- 1 
-                                                    -----
-                                                    --32
+    -- The four low bits are independent PHY level indicators, each potentially
+    -- asynchronous to IPbus. Unimplemented diagnostic bits remain zero as in
+    -- the synthesized interface; keep the legacy lane-0 address/bit mapping.
+    debug_levels_async <= rx_status_vector(0) & s_qpll_0_lock(0) &
+                          gt_tx_rst_done_out_array(0) & gt_rx_rst_done_out_array(0);
+    debug_status_cdc : xpm_cdc_array_single
+        generic map(DEST_SYNC_FF => 3, INIT_SYNC_FF => 1, SIM_ASSERT_CHK => 1,
+            SRC_INPUT_REG => 0, WIDTH => 4)
+        port map(src_clk => '0', src_in => debug_levels_async,
+            dest_clk => ipb_clk, dest_out => debug_levels_ipb);
+    debug_stat(0) <= X"A000000" & debug_levels_ipb;
                                                     
     freqdiv: entity work.freq_ctr_div
         generic map(

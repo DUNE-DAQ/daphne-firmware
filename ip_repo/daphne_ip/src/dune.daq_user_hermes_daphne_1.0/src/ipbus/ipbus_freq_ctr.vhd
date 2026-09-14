@@ -75,6 +75,8 @@ architecture rtl of ipbus_freq_ctr is
 	
 	attribute SHREG_EXTRACT: string;
 	attribute SHREG_EXTRACT of t_in: signal is "no"; -- Synchroniser not to be optimised into shreg
+    attribute ASYNC_REG: string;
+    attribute ASYNC_REG of t_in, t: signal is "TRUE";
 
 begin
 

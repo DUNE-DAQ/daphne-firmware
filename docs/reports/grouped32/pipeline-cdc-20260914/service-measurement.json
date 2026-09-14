@@ -1,0 +1,20 @@
+{
+  "test": "afe_stc3_stream_serializer_tb",
+  "clock_period_ns": 3.2,
+  "descriptor_input_latency_cycles": 2,
+  "measured_start_to_start_cycles": [
+    525,
+    525,
+    525
+  ],
+  "service_records_per_second": 595238.0952380953,
+  "required_records_per_second_per_group": 488281.25,
+  "engine_utilization_fraction": 0.8203125,
+  "source_revision_base": "8ae5f81",
+  "modified_sources": [
+    "rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd",
+    "rtl/isolated/subsystems/trigger/afe_stc3_stream_serializer.vhd"
+  ],
+  "waveform": "serializer.vcd",
+  "interpretation": "Behavioral RTL measurement with four initially ready descriptors; full grouped32 sustainable and overload regressions are separate."
+}

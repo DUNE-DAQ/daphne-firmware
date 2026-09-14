@@ -25,7 +25,7 @@ entity afe_stc3_stream_serializer is
   );
 end entity;
 architecture rtl of afe_stc3_stream_serializer is
-  type state_t is (idle, prime, payload, header);
+  type state_t is (idle, prime, payload, descriptor_drain, header);
   signal state_s : state_t := idle;
   signal active_s : grouped_descriptor_t := (others=>'0');
   signal channel_s, next_channel_s : unsigned(1 downto 0) := (others=>'0');
@@ -35,7 +35,7 @@ architecture rtl of afe_stc3_stream_serializer is
   signal shift_s : std_logic_vector(63 downto 0) := (others=>'0');
   signal window_s : std_logic_vector(77 downto 0);
   signal sample_s : std_logic_vector(13 downto 0);
-  signal sample_valid_s, descriptor_start_s, overflow_s : std_logic;
+  signal sample_valid_s, descriptor_start_s, descriptor_done_s, overflow_s : std_logic;
   signal baseline_s : std_logic_vector(13 downto 0);
   signal descriptor_word_s, payload_data_s : std_logic_vector(63 downto 0);
   signal payload_wr_s : std_logic;
@@ -114,12 +114,13 @@ begin
   baseline_s <= std_logic_vector(to_unsigned(0,14)-unsigned(active_s(64 downto 51)))
     when active_s(8)='1' else active_s(64 downto 51);
   descriptors : entity work.fragment_peak_descriptors_banked
+    generic map(PIPELINE_INPUT_G=>true)
     port map(clock_i=>builder_clock_i, reset_i=>builder_reset_i,
       start_i=>descriptor_start_s, baseline_i=>baseline_s, positive_pulse_i=>active_s(8),
       threshold_i=>active_s(22 downto 9), sample_valid_i=>sample_valid_s,
       sample_i=>sample_s, sample_index_i=>sample_index_s,
       read_index_i=>header_index_s-2, read_word_o=>descriptor_word_s,
-      done_o=>open, overflow_o=>overflow_s);
+      done_o=>descriptor_done_s, overflow_o=>overflow_s);
   window_s <= sample_s & shift_s;
   process(all)
   begin
@@ -197,8 +198,13 @@ begin
             shift_s<=window_s(77 downto 14);
             if payload_wr_s='1' then payload_word_s<=payload_word_s+1; end if;
             issue_index_s<=issue_index_s+1;
-            if sample_index_s=511 then header_index_s<=(others=>'0'); state_s<=header;
+            if sample_index_s=511 then header_index_s<=(others=>'0'); state_s<=descriptor_drain;
             else sample_index_s<=sample_index_s+1; end if;
+          when descriptor_drain =>
+            -- Payload is already in the FIFO. Retain the descriptor, channel
+            -- and reserved slot until the final sample has left the arithmetic
+            -- pipeline; overflow/header data and commit must use that bank.
+            if descriptor_done_s='1' then state_s<=header; end if;
           when header =>
             if header_index_s=7 then ack_s(to_integer(channel_s))<='1'; state_s<=idle;
             else header_index_s<=header_index_s+1; end if;

@@ -104,6 +104,42 @@ Demonstrate equal sustained service and packet correctness before adopting it.
 Halving the existing engine's clock alone would halve capacity and does not
 satisfy this goal.
 
-Current phase: baseline evidence published; detailed checkpoint audit and the
-descriptor-pipeline experiment are next. No new implementation run was launched
-while preparing this plan.
+## Progress on 2026-09-14
+
+The [baseline checkpoint audit](reports/grouped32/audit-20260914-8ae5f81/README.md)
+confirms the intended hierarchy and shared URAM clocks. DRC has no errors at
+synthesis, but CDC/methodology and interface coverage require more work. The
+original CDC report truncated one large clock pair; the audit runner now raises
+the reporting threshold. No truncated report is accepted as CDC sign-off.
+
+The [first repair candidate](reports/grouped32/pipeline-cdc-20260914/README.md)
+adds two descriptor input stages, waits for pipeline drain in the serializer,
+and selects fabric addition for the fast grouped accumulator. Descriptor-only
+estimated setup WNS improves from -0.874 ns to +0.836 ns. Its measured 525-cycle
+service interval retains the required throughput. Real-XPM sustained 32-channel
+mode 0 replay passes with zero loss and byte-identical reference packets;
+selected-source focused tests also pass. GHDL modes 0 and 1 pass with zero loss.
+The remaining GHDL replay modes (2–4) are
+running and must be recorded separately when finished.
+
+This candidate also repairs Hermes header/status crossings and reset during a
+network configuration exchange, synchronizes PDTS completion flags, and removes
+the corresponding unsafe state-machine exceptions. Negative-control tests
+reproduce both mailbox reset and mid-packet header-ID failures in the old RTL.
+Build wrappers now preserve failed-stage exit codes and correctly accept a
+successful synthesis-only run without requiring a bitstream.
+
+**Next gate:** commit this reviewed candidate, synthesize it in a fresh directory
+with the commit's revision stamp, and compare full-board timing, resources and
+CDC reports. Use eight Vivado threads and only one full build at a time.
+Placement/routing follows the synthesis review; local out-of-context timing is
+not evidence of board timing closure.
+
+Remaining audit work includes the endpoint's AXI control/status crossings,
+frontend/selftrigger configuration and counters, external trigger pulse capture,
+fan tachometer synchronization, and the eight PS EMIO no-clock pins. The AFE
+capture min/max input-delay bounds are unset and require a validated timing XDC
+or device/board timing model from the hardware owner. Other SPI/I2C/static
+interfaces need their corresponding timing contracts. Continue internal timing
+and CDC work while that information is pending; do not invent interface bounds
+or blanket exceptions.

@@ -9,10 +9,12 @@ architecture test of fragment_peak_descriptors_banked_tb is
   signal clk : std_logic := '0';
   signal rst, start, positive, valid : std_logic := '0';
   signal done, overflow, reference_done, reference_overflow : std_logic;
+  signal pipeline_done, pipeline_overflow : std_logic;
   signal baseline, threshold, sample : std_logic_vector(13 downto 0) := (others=>'0');
   signal sample_index : unsigned(8 downto 0) := (others=>'0');
   signal read_index : unsigned(2 downto 0) := (others=>'0');
   signal read_word : std_logic_vector(63 downto 0);
+  signal pipeline_read_word : std_logic_vector(63 downto 0);
   signal reference_trailer : peak_descriptor_trailer_t;
 begin
   clk <= not clk after 8 ns;
@@ -21,6 +23,12 @@ begin
     positive_pulse_i=>positive, threshold_i=>threshold, sample_valid_i=>valid,
     sample_i=>sample, sample_index_i=>sample_index, read_index_i=>read_index,
     read_word_o=>read_word, done_o=>done, overflow_o=>overflow);
+  pipelined_dut : entity work.fragment_peak_descriptors_banked
+    generic map(PIPELINE_INPUT_G=>true)
+    port map(clock_i=>clk, reset_i=>rst, start_i=>start, baseline_i=>baseline,
+      positive_pulse_i=>positive, threshold_i=>threshold, sample_valid_i=>valid,
+      sample_i=>sample, sample_index_i=>sample_index, read_index_i=>read_index,
+      read_word_o=>pipeline_read_word, done_o=>pipeline_done, overflow_o=>pipeline_overflow);
   reference : entity work.fragment_peak_descriptors_serial port map(
     clock_i=>clk, reset_i=>rst, start_i=>start, baseline_i=>baseline,
     positive_pulse_i=>positive, threshold_i=>threshold, sample_valid_i=>valid,
@@ -30,27 +38,56 @@ begin
   process
     variable completed : peak_descriptor_trailer_t := (others=>(others=>'1'));
     variable completed_overflow : std_logic := '0';
+    type trailer_pipeline_t is array(0 to 1) of peak_descriptor_trailer_t;
+    variable expected_pipe : trailer_pipeline_t := (others=>(others=>(others=>'1')));
+    variable overflow_pipe, done_pipe : std_logic_vector(0 to 1) := (others=>'0');
+    variable pipeline_completed : peak_descriptor_trailer_t := (others=>(others=>'1'));
+    variable pipeline_completed_overflow : std_logic := '0';
+    variable reference_completed : peak_descriptor_trailer_t := (others=>(others=>'1'));
+    variable reference_completed_overflow : std_logic := '0';
     procedure tick is
     begin
       wait until rising_edge(clk);
       wait for 1 ns;
+      if rst='1' then
+        pipeline_completed := (others=>(others=>'1'));
+        for k in 0 to 4 loop pipeline_completed(2*k):=x"7FFFFFFF"; end loop;
+        expected_pipe := (others=>pipeline_completed);
+        reference_completed:=pipeline_completed; reference_completed_overflow:='0';
+        pipeline_completed_overflow:='0'; overflow_pipe:=(others=>'0'); done_pipe:=(others=>'0');
+        assert pipeline_done='0' report "pipeline completion survived reset" severity failure;
+      else
+        assert pipeline_done=done_pipe(1) report "pipeline done is not exactly two clocks after the serial helper" severity failure;
+        pipeline_completed:=expected_pipe(1); pipeline_completed_overflow:=overflow_pipe(1);
+        if reference_done='1' then
+          reference_completed:=reference_trailer; reference_completed_overflow:=reference_overflow;
+        end if;
+        expected_pipe(1):=expected_pipe(0); expected_pipe(0):=reference_completed;
+        overflow_pipe(1):=overflow_pipe(0); overflow_pipe(0):=reference_completed_overflow;
+        done_pipe(1):=done_pipe(0); done_pipe(0):=reference_done;
+      end if;
     end;
     procedure check_completed is
     begin
       assert overflow=completed_overflow report "completed overflow changed before the next done" severity failure;
+      assert pipeline_overflow=pipeline_completed_overflow report "pipelined completed overflow mismatch" severity failure;
       for word in 0 to 5 loop
         read_index <= to_unsigned(word,3);
         wait for 1 ns;
         assert read_word=completed(2*word+1)&completed(2*word)
           report "indexed completed word mismatch at index " & integer'image(word) severity failure;
+        assert pipeline_read_word=pipeline_completed(2*word+1)&pipeline_completed(2*word)
+          report "pipelined indexed word mismatch at index " & integer'image(word) severity failure;
       end loop;
       for word in 6 to 7 loop
         read_index <= to_unsigned(word,3);
         wait for 1 ns;
         assert read_word=x"FFFFFFFF7FFFFFFF" report "unused read index sentinel wrong" severity failure;
+        assert pipeline_read_word=x"FFFFFFFF7FFFFFFF" report "pipelined unused read index sentinel wrong" severity failure;
       end loop;
     end;
-    procedure frame(mode : natural; polarity : std_logic; stalls : boolean := false) is
+    procedure frame(mode : natural; polarity : std_logic; stalls : boolean := false;
+                    separate_start : boolean := false) is
       variable raw, base, level : integer;
       function amplitude(p : natural) return natural is
       begin
@@ -88,11 +125,18 @@ begin
       baseline <= std_logic_vector(to_unsigned(base,14));
       threshold <= std_logic_vector(to_unsigned(level,14));
       positive <= polarity;
+      if separate_start then
+        start<='1'; valid<='0'; tick; check_completed;
+        baseline<=(others=>'1'); threshold<=(others=>'1'); positive<=not polarity;
+      end if;
       for p in 0 to 511 loop
-        if p=0 then start<='1'; else start<='0'; end if;
+        if p=0 and not separate_start then start<='1'; else start<='0'; end if;
         if polarity='1' then raw := base+amplitude(p); else raw := base-amplitude(p); end if;
         sample <= std_logic_vector(to_unsigned(raw,14));
         sample_index <= to_unsigned(p,9); valid <= '1'; tick;
+        -- Only start captures configuration; changing the input pins during
+        -- the frame must not change a pending sample's amplitude or threshold.
+        baseline <= (others=>'1'); threshold <= (others=>'1'); positive <= not polarity;
         assert done=reference_done report "done differs from serial helper" severity failure;
         if p=511 then
           assert done='1' report "last sample did not publish a bank" severity failure;
@@ -148,6 +192,8 @@ begin
     start <= '0'; sample_index <= to_unsigned(1,9); sample <= std_logic_vector(to_unsigned(8000,14));
     tick; check_completed;
     frame(2,'0');
+    -- Start alone must carry its configuration through a bubble before sample0.
+    frame(0,'0',true,true);
     -- Reset masks both banks without resetting the payload RAM.
     rst <= '1'; tick; rst <= '0';
     completed := (others=>(others=>'1')); completed_overflow := '0';
@@ -156,6 +202,9 @@ begin
     valid <= '1'; sample_index <= to_unsigned(511,9); tick;
     assert done='0' report "stray sample after reset published a bank" severity failure;
     check_completed;
+    valid <= '0';
+    for k in 0 to 2 loop tick; check_completed; end loop;
+    assert pipeline_done='0' report "stray delayed sample after reset published a bank" severity failure;
     report "fragment_peak_descriptors_banked_tb PASS" severity note;
     stop;
     wait;

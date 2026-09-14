@@ -1,0 +1,84 @@
+{
+  "checkpoint_sha256": "d87215c793a53236dbad4d304c43b0152b20936b73f91d2a8a42776d1217f355",
+  "baseline_evidence": "../synth-20260914-8ae5f81/manifest.json",
+  "design_state": "Synthesized",
+  "cdc_clock_pair_limit": 100000,
+  "cdc_truncation": "clk_pl0 to frontend_clock exceeded the original 100000 clock-pair reporting threshold; this CDC report is incomplete. The runner now requests 1000000 for subsequent audits.",
+  "files": {
+    "bus_skew.rpt": {
+      "published_as": "bus_skew.rpt.gz",
+      "uncompressed_bytes": 3870023,
+      "uncompressed_sha256": "dbffdaeb8f90030ccc8c2fdee07f7ba8d192162545bd1e8884d3d004c9b0566b"
+    },
+    "cdc.rpt": {
+      "published_as": "cdc.rpt.gz",
+      "uncompressed_bytes": 62139345,
+      "uncompressed_sha256": "a6e7767b3df77a82491b9551b8e031c242f3aa5702b57f5124755b28e3764130"
+    },
+    "check_timing.rpt": {
+      "published_as": "check_timing.rpt",
+      "uncompressed_bytes": 5046,
+      "uncompressed_sha256": "fce7dcd5c3d68e9507a8745517658d60bc06f50a98f447be8e7232ee9a4c06c2"
+    },
+    "clock_interaction.rpt": {
+      "published_as": "clock_interaction.rpt",
+      "uncompressed_bytes": 17508,
+      "uncompressed_sha256": "115a51cdad8a606bbfa043fadac96a9d5c96be9948dfb7780fe6d01ae6b351ce"
+    },
+    "clocks.rpt": {
+      "published_as": "clocks.rpt",
+      "uncompressed_bytes": 63307,
+      "uncompressed_sha256": "d6eda4759eea7c03707adb4e8e4f34f30bb0b2f6ac9d4bce53bf8c83764cb15b"
+    },
+    "drc.rpt": {
+      "published_as": "drc.rpt.gz",
+      "uncompressed_bytes": 685601,
+      "uncompressed_sha256": "8b77bc0caaf8686529be52a7e500b31e1ba41b7c66833e9b0ee7f3d1f36cda4e"
+    },
+    "exceptions_coverage.rpt": {
+      "published_as": "exceptions_coverage.rpt",
+      "uncompressed_bytes": 78997,
+      "uncompressed_sha256": "96dc5c7400f84c7e977423fec588598d5a059793e9659b6154d64943f7863987"
+    },
+    "hierarchical_utilization.rpt": {
+      "published_as": "hierarchical_utilization.rpt.gz",
+      "uncompressed_bytes": 248021,
+      "uncompressed_sha256": "c8f27b4a20ee00f90cb20411201df81b0cc491c7ab06054f8eec5e6d649341a0"
+    },
+    "hierarchy.tsv": {
+      "published_as": "hierarchy.tsv.gz",
+      "uncompressed_bytes": 1283744,
+      "uncompressed_sha256": "61379901f69258d48a4823881760d0defb26636d6844c38350a010757f67d27a"
+    },
+    "memory_clocks.tsv": {
+      "published_as": "memory_clocks.tsv.gz",
+      "uncompressed_bytes": 212330,
+      "uncompressed_sha256": "871671e8c9db0981be42694cbfa9a4104f2371c90fc4f7ff57eeaa6277996394"
+    },
+    "methodology.rpt": {
+      "published_as": "methodology.rpt.gz",
+      "uncompressed_bytes": 1027349,
+      "uncompressed_sha256": "e93ffecef21e6ffc6685293aacb5f82d4f6cbedf39e88f47beb136515451a568"
+    },
+    "provenance.txt": {
+      "published_as": "provenance.txt",
+      "uncompressed_bytes": 168,
+      "uncompressed_sha256": "a961592e5bdcf217f7852f92b4f81ed399762c6a9d3c459a7f0a5c28ac2edb19"
+    },
+    "report_status.txt": {
+      "published_as": "report_status.txt",
+      "uncompressed_bytes": 96,
+      "uncompressed_sha256": "884f1b36badbd3fe8e2668ce6c1da949be4b6611d1d01a13c4796905d251c97b"
+    },
+    "timing_summary.rpt": {
+      "published_as": "timing_summary.rpt.gz",
+      "uncompressed_bytes": 2740093,
+      "uncompressed_sha256": "97cedebf0316adcbdba782fbb2f9d1e8cfca1ac51e4041169208990bb92b5e1c"
+    },
+    "utilization.rpt": {
+      "published_as": "utilization.rpt",
+      "uncompressed_bytes": 12660,
+      "uncompressed_sha256": "02f01d83effda546dfef86b6310d2c92966f988561f5e814e7e50f001a1b8677"
+    }
+  }
+}

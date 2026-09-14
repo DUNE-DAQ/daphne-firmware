@@ -48,6 +48,12 @@ package vcomponents is
       wea             : in  std_logic_vector((WRITE_DATA_WIDTH_A / BYTE_WRITE_WIDTH_A) - 1 downto 0)
     );
   end component;
+component xpm_cdc_array_single is
+  generic(DEST_SYNC_FF:integer:=4; INIT_SYNC_FF:integer:=0; SIM_ASSERT_CHK:integer:=0;
+    SRC_INPUT_REG:integer:=1; WIDTH:integer:=2);
+  port(src_clk:in std_logic; src_in:in std_logic_vector(WIDTH-1 downto 0);
+    dest_clk:in std_logic; dest_out:out std_logic_vector(WIDTH-1 downto 0));
+end component;
 component xpm_cdc_handshake is
   generic(DEST_EXT_HSK:integer:=1; DEST_SYNC_FF:integer:=2; INIT_SYNC_FF:integer:=1;
     SIM_ASSERT_CHK:integer:=1; SRC_SYNC_FF:integer:=2; WIDTH:integer:=1);
