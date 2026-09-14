@@ -181,3 +181,11 @@ Other SPI/I2C/static
 interfaces need their corresponding timing contracts. Continue internal timing
 and CDC work while that information is pending; do not invent interface bounds
 or blanket exceptions.
+
+The new `d1d07ac` pinned implementation passed packaging and entered
+`synth_design`. Its XXV Ethernet IP is reported locked because mandatory
+feature keys are unlicensed, although the Vivado Synthesis feature checks out.
+The [license review](reports/grouped32/xxv-license-review-20260914.md) records
+the server query and delivery implication. Preserve all four Hermes PHY paths;
+do not treat a successful synthesis report as evidence of a usable bitstream
+until that licensing gate is resolved.
