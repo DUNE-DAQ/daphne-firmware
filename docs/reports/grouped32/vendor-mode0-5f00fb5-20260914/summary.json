@@ -1,0 +1,591 @@
+{
+  "started_utc": "2026-09-14T22:54:46.711772+00:00",
+  "source_commit": "5f00fb55f1d6fb22497c06cae1e3c020ece48599",
+  "source_status": " M daphne-ip-export.core\n M daphne-ip.core\n",
+  "vivado_root": "/home/marroyav/tools/Xilinx/2026.1/Vivado",
+  "phase_ps": 700,
+  "source_sha256": {
+    "rtl/isolated/common/primitives/stream_reset_sync.vhd": "0cb660ffc6dd610fd90574f3eb06dff36581987a63378e484280a7936cc4f3bb",
+    "tests/logic/stream_reset_sync_tb.vhd": "128ef5c4b31a805ede8c15e114f09b82e2d1c5b5d1cdecc44e6d382f80a9e046",
+    "ip_repo/daphne_ip/rtl/daphne_package.vhd": "4809b8b372eb542a771eac913d9eef5b52134457dadf249ef29ef0cb58299107",
+    "rtl/isolated/common/daphne_subsystem_pkg.vhd": "7ad5de16aa73d3828628092cd467bebb01a12ecd93bf285ca1aeeaf8cf38c10a",
+    "rtl/isolated/subsystems/trigger/grouped_frame_pkg.vhd": "f2f24429ff995ab442cd73efc31e1e643fe763415694689af96da7bdb8be457d",
+    "rtl/isolated/common/primitives/grouped_sample_ring.vhd": "7a01c1f1fde04db0800a1299d0d97a647f93d5840fb164807dabb6d3a268be31",
+    "rtl/isolated/common/primitives/sample_ring_buffer_single.vhd": "9b3c11247f031cd1d8ba4671a2c7178570113d110ca259d68daf3b27e2407489",
+    "rtl/isolated/common/primitives/packet_frame_store.vhd": "778658422556a72c7456593335f1c2a1675494918bb017c8884d9c70327758cd",
+    "rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd": "a90f5d7491bb559cbe127911b414998edb80322aabc595ee1a127864e7ae4fb3",
+    "rtl/isolated/subsystems/trigger/stc3_frame_source.vhd": "03c2c1937e7d5e18405384db278de62216148db91f927a6f7016ff7ee460d1bc",
+    "rtl/isolated/subsystems/trigger/stc3_record_builder.vhd": "7b33be6cd90e0280b73815c3ef4b1104e01821ff8048b3edcc71d82c5678b720",
+    "rtl/isolated/subsystems/trigger/afe_stc3_stream_serializer.vhd": "146447485fac688af80800ae585d14df14bcbfb1c0f55234c28a126ca5ca6f9f",
+    "tests/logic/afe_stc3_stream_serializer_tb.vhd": "80674d495726e0228665bcaed216fe196fe1078c272609539ea96cba900636fc",
+    "rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd": "f4dfe062cbb25e60d5a80f0c22f72c5739b69dedac4d3110e1ed90d511d4b431",
+    "tests/logic/stc3_grouped_test_adapter.vhd": "38da010ff6de8b64df640bebe3d147b77eae712a3844ab8615d8e4f9f7011b43",
+    "tests/logic/grouped32_replay_tb.vhd": "8ebdef4d552b3e1973de4b393b28d7a68b783c730b2c1a98ebb0b042bdc05656",
+    "scripts/verification/run_grouped32_vendor_tests.py": "efdafdf491aa700a907b18bb814a3978db0c0b2953ce0f008b70e518b409c86c",
+    "scripts/verification/run_grouped32_tests.py": "ea0fc870f02d03b08ff6b6c0ee12e11a147a603dc48c6f92a9e87b417aeb97b3",
+    "tests/logic/stc3_continuation_tb.vhd": "ae25e6b3ee738fa10f8a8177b980b3f4f377d3d3a1e59f15cb326924b29ee8d7",
+    "tests/logic/stc3_continuation_edges_tb.vhd": "3f7575089da2ba3d81f0cd4ab924b5b48e9b10382fc9d91449340e0e6cef362a",
+    "tests/logic/stc3_continuation_overload_tb.vhd": "99c1d50da7c88a0d434013c2935c950221074c4c727f998d1514dac04bfefb79"
+  },
+  "vendor_sha256": {
+    "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/ip/xpm/xpm_VCOMP.vhd": "fe7fe7ff97fb8e698efb06453959b1397e268cf18d91a586a3e3cfd3f2eed9a8",
+    "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv": "27592359d8363d7e6575298f9d0faa7c9f9258ea77f19c9a38946fbaf3783f09",
+    "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv": "2ffcfc104eae061b7fefc3bda9d123d466c12df6363748284c1ca349b00cf75a",
+    "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv": "6cca60982fce0a6315dcc4c2f41082603efe40dbd77f52a5aebdbcb975aeaeb1",
+    "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/verilog/src/glbl.v": "6270251cf35e1fce3119fc79f8fb968912f7983027e43cf030409ba68f048936"
+  },
+  "toolchain": {
+    "host_gcc": "/usr/bin/gcc",
+    "host_gcc_version": "gcc (Debian 14.2.0-19) 14.2.0\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+    "LIBRARY_PATH": "/usr/lib/x86_64-linux-gnu",
+    "startup_sha256": {
+      "/usr/lib/x86_64-linux-gnu/crt1.o": "8cd1a50edd44a4ded5856bf2254dc106401b37c285dcc55a594475438cd6ec1a",
+      "/usr/lib/x86_64-linux-gnu/crti.o": "78acef26a7007f5320c98633376f2903e33895e694fbc2b91d189b38addbca8a",
+      "/usr/lib/x86_64-linux-gnu/crtn.o": "121f2a5f12b13471dd8c7dabe3ff334df08540c270564d1a2b3c47ecbd8d3101"
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xvhdl",
+        "--2008",
+        "--work",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/ip/xpm/xpm_VCOMP.vhd",
+        "--log",
+        "compile-xpm-vhdl.log"
+      ],
+      "returncode": 0,
+      "console_log": "01-xvhdl-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xvlog",
+        "--sv",
+        "--work",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv",
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv",
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv",
+        "--log",
+        "compile-xpm-verilog.log"
+      ],
+      "returncode": 0,
+      "console_log": "02-xvlog-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xvlog",
+        "--work",
+        "work",
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/data/verilog/src/glbl.v",
+        "--log",
+        "compile-glbl.log"
+      ],
+      "returncode": 0,
+      "console_log": "03-xvlog-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xvhdl",
+        "--2008",
+        "--work",
+        "work",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/common/primitives/stream_reset_sync.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/tests/logic/stream_reset_sync_tb.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/ip_repo/daphne_ip/rtl/daphne_package.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/common/daphne_subsystem_pkg.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/subsystems/trigger/grouped_frame_pkg.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/common/primitives/grouped_sample_ring.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/common/primitives/sample_ring_buffer_single.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/common/primitives/packet_frame_store.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/subsystems/trigger/stc3_frame_source.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/subsystems/trigger/stc3_record_builder.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/subsystems/trigger/afe_stc3_stream_serializer.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/tests/logic/afe_stc3_stream_serializer_tb.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/tests/logic/stc3_grouped_test_adapter.vhd",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/sources/tests/logic/grouped32_replay_tb.vhd",
+        "--log",
+        "compile-design.log"
+      ],
+      "returncode": 0,
+      "console_log": "04-xvhdl-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xelab",
+        "--debug",
+        "typical",
+        "--relax",
+        "--verbose",
+        "2",
+        "--mt",
+        "4",
+        "-L",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "-L",
+        "unisims_ver",
+        "--generic_top",
+        "STAGES_G=2",
+        "work.stream_reset_sync_tb",
+        "work.glbl",
+        "--snapshot",
+        "stream_reset_stages2",
+        "--log",
+        "elaborate-stream_reset_stages2.log"
+      ],
+      "returncode": 0,
+      "console_log": "05-xelab-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xsim",
+        "stream_reset_stages2",
+        "--runall",
+        "--onerror",
+        "quit",
+        "--log",
+        "simulate-stream_reset_stages2.log"
+      ],
+      "returncode": 0,
+      "console_log": "06-xsim-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xelab",
+        "--debug",
+        "typical",
+        "--relax",
+        "--verbose",
+        "2",
+        "--mt",
+        "4",
+        "-L",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "-L",
+        "unisims_ver",
+        "--generic_top",
+        "STAGES_G=4",
+        "work.stream_reset_sync_tb",
+        "work.glbl",
+        "--snapshot",
+        "stream_reset_stages4",
+        "--log",
+        "elaborate-stream_reset_stages4.log"
+      ],
+      "returncode": 0,
+      "console_log": "07-xelab-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xsim",
+        "stream_reset_stages4",
+        "--runall",
+        "--onerror",
+        "quit",
+        "--log",
+        "simulate-stream_reset_stages4.log"
+      ],
+      "returncode": 0,
+      "console_log": "08-xsim-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xelab",
+        "--debug",
+        "typical",
+        "--relax",
+        "--verbose",
+        "2",
+        "--mt",
+        "4",
+        "-L",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "-L",
+        "unisims_ver",
+        "--generic_top",
+        "STAGES_G=8",
+        "work.stream_reset_sync_tb",
+        "work.glbl",
+        "--snapshot",
+        "stream_reset_stages8",
+        "--log",
+        "elaborate-stream_reset_stages8.log"
+      ],
+      "returncode": 0,
+      "console_log": "09-xelab-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xsim",
+        "stream_reset_stages8",
+        "--runall",
+        "--onerror",
+        "quit",
+        "--log",
+        "simulate-stream_reset_stages8.log"
+      ],
+      "returncode": 0,
+      "console_log": "10-xsim-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xelab",
+        "--debug",
+        "typical",
+        "--relax",
+        "--verbose",
+        "2",
+        "--mt",
+        "4",
+        "-L",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "-L",
+        "unisims_ver",
+        "work.afe_stc3_stream_serializer_tb",
+        "work.glbl",
+        "--snapshot",
+        "serializer_contract",
+        "--log",
+        "elaborate-serializer_contract.log"
+      ],
+      "returncode": 0,
+      "console_log": "11-xelab-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xsim",
+        "serializer_contract",
+        "--runall",
+        "--onerror",
+        "quit",
+        "--log",
+        "simulate-serializer_contract.log"
+      ],
+      "returncode": 0,
+      "console_log": "12-xsim-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xvhdl",
+        "--2008",
+        "--work",
+        "work",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/stc3_continuation_tb.vhd",
+        "--log",
+        "compile-stc3_continuation_tb.log"
+      ],
+      "returncode": 0,
+      "console_log": "13-xvhdl-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xelab",
+        "--debug",
+        "typical",
+        "--relax",
+        "--verbose",
+        "2",
+        "--mt",
+        "4",
+        "-L",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "-L",
+        "unisims_ver",
+        "--generic_top",
+        "ODD_START_G=0",
+        "work.stc3_continuation_tb",
+        "work.glbl",
+        "--snapshot",
+        "stc3_continuation_tb_odd0",
+        "--log",
+        "elaborate-stc3_continuation_tb_odd0.log"
+      ],
+      "returncode": 0,
+      "console_log": "14-xelab-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xsim",
+        "stc3_continuation_tb_odd0",
+        "--runall",
+        "--onerror",
+        "quit",
+        "--log",
+        "simulate-stc3_continuation_tb_odd0.log"
+      ],
+      "returncode": 0,
+      "console_log": "15-xsim-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xelab",
+        "--debug",
+        "typical",
+        "--relax",
+        "--verbose",
+        "2",
+        "--mt",
+        "4",
+        "-L",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "-L",
+        "unisims_ver",
+        "--generic_top",
+        "ODD_START_G=1",
+        "work.stc3_continuation_tb",
+        "work.glbl",
+        "--snapshot",
+        "stc3_continuation_tb_odd1",
+        "--log",
+        "elaborate-stc3_continuation_tb_odd1.log"
+      ],
+      "returncode": 0,
+      "console_log": "16-xelab-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xsim",
+        "stc3_continuation_tb_odd1",
+        "--runall",
+        "--onerror",
+        "quit",
+        "--log",
+        "simulate-stc3_continuation_tb_odd1.log"
+      ],
+      "returncode": 0,
+      "console_log": "17-xsim-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xvhdl",
+        "--2008",
+        "--work",
+        "work",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/stc3_continuation_edges_tb.vhd",
+        "--log",
+        "compile-stc3_continuation_edges_tb.log"
+      ],
+      "returncode": 0,
+      "console_log": "18-xvhdl-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xelab",
+        "--debug",
+        "typical",
+        "--relax",
+        "--verbose",
+        "2",
+        "--mt",
+        "4",
+        "-L",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "-L",
+        "unisims_ver",
+        "work.stc3_continuation_edges_tb",
+        "work.glbl",
+        "--snapshot",
+        "stc3_continuation_edges_tb",
+        "--log",
+        "elaborate-stc3_continuation_edges_tb.log"
+      ],
+      "returncode": 0,
+      "console_log": "19-xelab-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xsim",
+        "stc3_continuation_edges_tb",
+        "--runall",
+        "--onerror",
+        "quit",
+        "--log",
+        "simulate-stc3_continuation_edges_tb.log"
+      ],
+      "returncode": 0,
+      "console_log": "20-xsim-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xvhdl",
+        "--2008",
+        "--work",
+        "work",
+        "/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/stc3_continuation_overload_tb.vhd",
+        "--log",
+        "compile-stc3_continuation_overload_tb.log"
+      ],
+      "returncode": 0,
+      "console_log": "21-xvhdl-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xelab",
+        "--debug",
+        "typical",
+        "--relax",
+        "--verbose",
+        "2",
+        "--mt",
+        "4",
+        "-L",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "-L",
+        "unisims_ver",
+        "work.stc3_continuation_overload_tb",
+        "work.glbl",
+        "--snapshot",
+        "stc3_continuation_overload_tb",
+        "--log",
+        "elaborate-stc3_continuation_overload_tb.log"
+      ],
+      "returncode": 0,
+      "console_log": "22-xelab-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xsim",
+        "stc3_continuation_overload_tb",
+        "--runall",
+        "--onerror",
+        "quit",
+        "--log",
+        "simulate-stc3_continuation_overload_tb.log"
+      ],
+      "returncode": 0,
+      "console_log": "23-xsim-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xelab",
+        "--debug",
+        "typical",
+        "--relax",
+        "--verbose",
+        "2",
+        "--mt",
+        "4",
+        "-L",
+        "xpm=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/xpm",
+        "-L",
+        "unisims_ver",
+        "--generic_top",
+        "MODE_G=0",
+        "--generic_top",
+        "PHASE_PS_G=700",
+        "--generic_top",
+        "OUTPUT_G=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/mode0.csv",
+        "work.grouped32_replay_tb",
+        "work.glbl",
+        "--snapshot",
+        "grouped32_mode0",
+        "--log",
+        "elaborate-grouped32_mode0.log"
+      ],
+      "returncode": 0,
+      "console_log": "24-xelab-console.log"
+    },
+    {
+      "argv": [
+        "/home/marroyav/tools/Xilinx/2026.1/Vivado/bin/xsim",
+        "grouped32_mode0",
+        "--runall",
+        "--onerror",
+        "quit",
+        "--log",
+        "simulate-grouped32_mode0.log"
+      ],
+      "returncode": 0,
+      "console_log": "25-xsim-console.log"
+    }
+  ],
+  "contracts": [
+    {
+      "bench": "stream_reset_sync_tb",
+      "snapshot": "stream_reset_stages2",
+      "generics": [
+        "STAGES_G=2"
+      ],
+      "result": "PASS"
+    },
+    {
+      "bench": "stream_reset_sync_tb",
+      "snapshot": "stream_reset_stages4",
+      "generics": [
+        "STAGES_G=4"
+      ],
+      "result": "PASS"
+    },
+    {
+      "bench": "stream_reset_sync_tb",
+      "snapshot": "stream_reset_stages8",
+      "generics": [
+        "STAGES_G=8"
+      ],
+      "result": "PASS"
+    },
+    {
+      "bench": "afe_stc3_stream_serializer_tb",
+      "snapshot": "serializer_contract",
+      "generics": [],
+      "result": "PASS"
+    },
+    {
+      "bench": "stc3_continuation_tb",
+      "snapshot": "stc3_continuation_tb_odd0",
+      "generics": [
+        "ODD_START_G=0"
+      ],
+      "result": "PASS"
+    },
+    {
+      "bench": "stc3_continuation_tb",
+      "snapshot": "stc3_continuation_tb_odd1",
+      "generics": [
+        "ODD_START_G=1"
+      ],
+      "result": "PASS"
+    },
+    {
+      "bench": "stc3_continuation_edges_tb",
+      "snapshot": "stc3_continuation_edges_tb",
+      "generics": [],
+      "result": "PASS"
+    },
+    {
+      "bench": "stc3_continuation_overload_tb",
+      "snapshot": "stc3_continuation_overload_tb",
+      "generics": [],
+      "result": "PASS"
+    },
+    {
+      "bench": "grouped32_replay_tb",
+      "snapshot": "grouped32_mode0",
+      "generics": [
+        "MODE_G=0",
+        "PHASE_PS_G=700",
+        "OUTPUT_G=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/build/vendor-mode0-20260914/mode0.csv"
+      ],
+      "result": "PASS"
+    }
+  ],
+  "cases": [
+    {
+      "mode": 0,
+      "grouped_packets": 3392,
+      "reference_packets": 3392,
+      "byte_identical_common_packets": 3392,
+      "samples_checked": 3473408,
+      "independent_descriptor_words_checked": 81408,
+      "grouped_only": 0,
+      "reference_only": 0,
+      "max_grouped_packet_latency_adc_ticks": 1128,
+      "csv_sha256": "2f4362cae6d17464e319e5567db41ee353fedaef202b921c9ffd91e634bca949"
+    }
+  ],
+  "result": "PASS",
+  "finished_utc": "2026-09-14T22:59:01.218941+00:00"
+}
