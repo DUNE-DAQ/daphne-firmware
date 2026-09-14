@@ -1,0 +1,12 @@
+=== *timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/bclk* ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/clku* ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*clk125* ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*clk500* ===
+<none>
+

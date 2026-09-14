@@ -1,0 +1,9 @@
+output_dir=/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes/clocks.rpt
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes/daphne_selftrigger_bd_synth.dcp
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes/debug/endpoint_nets_pre_constraints.txt
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes/debug/endpoint_pins_pre_constraints.txt
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes/debug/post_synth_clocks_pre_constraints.rpt
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes/post_synth_power.rpt
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes/post_synth_timing_summary.rpt
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes/post_synth_util.rpt

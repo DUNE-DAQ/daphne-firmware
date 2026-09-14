@@ -1,0 +1,64 @@
+{
+  "source_revision": "8ae5f8150a05e3e79ccc9f21b118142431d3de5d",
+  "build_revision_tag": "1bae1c8",
+  "provenance": "Build ran from 1bae1c8 plus the working-tree RTL fixes later committed in 8ae5f81. The four source files listed below were checked byte-for-byte against both the committed source and Vivado ipshared staging. This was a retry in the existing workspace, not a fresh clone of 8ae5f81. The artifact paths and firmware Git generic retain 1bae1c8.",
+  "clean_clone_build": false,
+  "run_id": "synth-typefixes-20260914",
+  "stage": "post_synthesis_with_constraints",
+  "result": "synthesis_completed_timing_not_closed",
+  "vivado": "2026.1 build 6511674",
+  "fpga_part": "xck26-sfvc784-2LV-c",
+  "board": "k26c",
+  "top": "daphne_selftrigger_bd_wrapper",
+  "synth_directive": "PerformanceOptimized",
+  "requested_threads": 8,
+  "license_server_used": "2100@xilinx-lic",
+  "resource_usage": {
+    "lut": 106249,
+    "lut_percent": 90.72,
+    "register": 88200,
+    "register_percent": 37.65,
+    "bram_tiles": 91,
+    "bram_percent": 63.19,
+    "uram": 32,
+    "uram_percent": 50.0,
+    "dsp": 840,
+    "dsp_percent": 67.31
+  },
+  "timing": {
+    "wns_ns": -2.764,
+    "tns_ns": -7301.498,
+    "failing_setup_endpoints": 3711,
+    "whs_ns": -0.58,
+    "ths_ns": -3650.446,
+    "failing_hold_endpoints": 94354,
+    "wpws_ns": 0.28,
+    "failing_pulse_width_endpoints": 0
+  },
+  "clock_coverage": {
+    "no_clock_pins": 8,
+    "no_input_delay_ports": 54,
+    "no_output_delay_ports": 51,
+    "unconstrained_internal_endpoints": 0
+  },
+  "source_sha256": {
+    "rtl/isolated/subsystems/trigger/grouped_builder_clock.vhd": "b331bc94deee60399ef5713549b67f25cc7a287a327f692c2b25d0a7af5dafc7",
+    "ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/common_stfc_lib/common_stfc_pkg.vhd": "1afbc44cd7eae3eb5a55b0380b8c44671361253d9111025a82809c40fcd20541",
+    "rtl/isolated/subsystems/trigger/afe_stc3_stream_serializer.vhd": "f5e97eb94a43e8c23b985a1faac04a1f53d7e4100c1fe5b7f2f5758d56c58dee",
+    "rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd": "1d76382c8e18faf5b7e18ff0a8d8e4da256204ee2469767c630e5ad43937c32e"
+  },
+  "checkpoint": {
+    "committed": false,
+    "local_path": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/xilinx/output-1bae1c8-typefixes/daphne_selftrigger_bd_synth.dcp",
+    "sha256": "d87215c793a53236dbad4d304c43b0152b20936b73f91d2a8a42776d1217f355"
+  },
+  "not_yet_measured": [
+    "placed/routed timing",
+    "hierarchical utilization",
+    "report_cdc",
+    "report_clock_interaction",
+    "detailed check_timing object list",
+    "report_methodology",
+    "implementation DRC"
+  ]
+}

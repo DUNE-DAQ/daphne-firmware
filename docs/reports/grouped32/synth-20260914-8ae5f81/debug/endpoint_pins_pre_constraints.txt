@@ -1,0 +1,33 @@
+=== *timing_bridge_inst/endpoint_inst/*mmcm0_inst/CLKOUT0 ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*mmcm0_inst/CLKOUT2 ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*mmcm0_inst/CLKFBOUT ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*mmcm1_inst/CLKOUT0 ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*mmcm1_inst/CLKOUT1 ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*mmcm1_inst/CLKFBOUT ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*mmcm1_clk1_inst/O ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*mmcm1_clk2_inst/O ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/mmcm/CLKOUT0 ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/mmcm/CLKOUT1 ===
+<none>
+
+=== *timing_bridge_inst/endpoint_inst/*pdts_endpoint_inst/*rxcdr/mmcm/CLKFBOUT ===
+<none>
+

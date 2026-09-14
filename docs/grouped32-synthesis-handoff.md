@@ -1,6 +1,11 @@
 # Grouped32 synthesis handoff
 
-The coding task stops before synthesis. Use the exact committed revision of
+Synthesis now completes with the RTL fixes in `8ae5f81`; timing is not closed.
+See the [captured reports](reports/grouped32/synth-20260914-8ae5f81/README.md) for
+provenance and the [implementation goal and plan](grouped32-timing-closure-plan.md)
+for the next steps.
+
+The original coding handoff stopped before synthesis. Use the exact committed revision of
 `codex/selftrigger-512-32ch-grouped4`; the final handoff supplies the commit and
 bundle checksum. Read [the implementation](grouped32-implementation.md) and
 [local validation](grouped32-validation.json) first.
