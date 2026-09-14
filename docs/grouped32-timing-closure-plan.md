@@ -189,3 +189,9 @@ The [license review](reports/grouped32/xxv-license-review-20260914.md) records
 the server query and delivery implication. Preserve all four Hermes PHY paths;
 do not treat a successful synthesis report as evidence of a usable bitstream
 until that licensing gate is resolved.
+
+The eight baseline PS EMIO `no_clock` pins have a
+[source-level classification](reports/grouped32/ps-emio-no-clock-review-20260914.md):
+the corresponding peripherals are disabled or routed through PS MIO rather
+than PL EMIO. Confirm zero fabric clock loads in the fresh netlist before
+signing off these warnings; no fabricated clocks or exceptions were added.
