@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.daphne_package.all;
+use std.env.all;
 
 entity fe_axi_smoke_tb is
 end fe_axi_smoke_tb;
@@ -41,6 +42,10 @@ architecture tb of fe_axi_smoke_tb is
     signal idelayctrl_reset : std_logic;
     signal idelay_en_vtc : std_logic;
     signal trig : std_logic;
+    signal software_trig : std_logic;
+    signal external_trig : std_logic;
+    signal spy_trigger_source : std_logic_vector(1 downto 0);
+    signal spy_trigger_inhibit : std_logic;
 
     constant all_zeros_9 : std_logic_vector(8 downto 0) := (others => '0');
     constant all_zeros_4 : std_logic_vector(3 downto 0) := (others => '0');
@@ -53,9 +58,11 @@ architecture tb of fe_axi_smoke_tb is
         constant strobe : in std_logic_vector(3 downto 0);
         signal awaddr_s : out std_logic_vector(31 downto 0);
         signal awvalid_s : out std_logic;
+        signal awready_s : in std_logic;
         signal wdata_s : out std_logic_vector(31 downto 0);
         signal wstrb_s : out std_logic_vector(3 downto 0);
         signal wvalid_s : out std_logic;
+        signal wready_s : in std_logic;
         signal bvalid_s : in std_logic;
         signal clk_s : in std_logic
     ) is
@@ -65,10 +72,15 @@ architecture tb of fe_axi_smoke_tb is
         wdata_s <= data;
         wstrb_s <= strobe;
         wvalid_s <= '1';
-        wait until rising_edge(clk_s);
+        loop
+            wait until rising_edge(clk_s);
+            exit when awready_s = '1' and wready_s = '1';
+        end loop;
         awvalid_s <= '0';
         wvalid_s <= '0';
-        wait until bvalid_s = '1';
+        if bvalid_s /= '1' then
+            wait until bvalid_s = '1';
+        end if;
         wait until rising_edge(clk_s);
     end procedure;
 
@@ -76,6 +88,7 @@ architecture tb of fe_axi_smoke_tb is
         constant addr : in std_logic_vector(31 downto 0);
         signal araddr_s : out std_logic_vector(31 downto 0);
         signal arvalid_s : out std_logic;
+        signal arready_s : in std_logic;
         signal rdata_s : in std_logic_vector(31 downto 0);
         signal rvalid_s : in std_logic;
         signal clk_s : in std_logic;
@@ -84,9 +97,14 @@ architecture tb of fe_axi_smoke_tb is
     begin
         araddr_s <= addr;
         arvalid_s <= '1';
-        wait until rising_edge(clk_s);
+        loop
+            wait until rising_edge(clk_s);
+            exit when arready_s = '1';
+        end loop;
         arvalid_s <= '0';
-        wait until rvalid_s = '1';
+        if rvalid_s /= '1' then
+            wait until rvalid_s = '1';
+        end if;
         data := rdata_s;
         wait until rising_edge(clk_s);
     end procedure;
@@ -124,7 +142,11 @@ begin
             iserdes_reset => iserdes_reset,
             idelayctrl_reset => idelayctrl_reset,
             idelay_en_vtc => idelay_en_vtc,
-            trig => trig
+            trig => trig,
+            software_trig => software_trig,
+            external_trig => external_trig,
+            spy_trigger_source => spy_trigger_source,
+            spy_trigger_inhibit => spy_trigger_inhibit
         );
 
     stimulus: process
@@ -153,17 +175,23 @@ begin
         assert trig = '0'
             report "Trigger output should be low after reset"
             severity failure;
+        assert software_trig = '0' and external_trig = '0'
+            report "Split trigger outputs should be low after reset"
+            severity failure;
+        assert spy_trigger_source = "11" and spy_trigger_inhibit = '0'
+            report "Spy trigger control did not reset to legacy OR mode"
+            severity failure;
         assert idelay_load = "00000"
             report "IDELAY load pulse should be low after reset"
             severity failure;
 
         idelayctrl_ready <= '1';
-        axi_read(x"00000004", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000004", araddr, arvalid, arready, rdata, rvalid, clk, readback);
         assert readback = x"00000001"
             report "Status register did not mirror idelayctrl_ready"
             severity failure;
 
-        axi_write(x"00000000", x"00000007", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000000", x"00000007", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
         assert idelay_en_vtc = '1'
             report "Control register write did not set idelay_en_vtc"
             severity failure;
@@ -173,18 +201,19 @@ begin
         assert idelayctrl_reset = '1'
             report "Control register write did not set idelayctrl_reset"
             severity failure;
-        axi_read(x"00000000", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000000", araddr, arvalid, arready, rdata, rvalid, clk, readback);
         assert readback = x"00000007"
             report "Control register readback mismatch"
             severity failure;
 
-        axi_write(x"00000000", x"00000000", "0011", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
-        axi_read(x"00000000", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_write(x"00000000", x"00000000", "0011", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+        axi_read(x"00000000", araddr, arvalid, arready, rdata, rvalid, clk, readback);
         assert readback = x"00000007"
             report "Partial-strobe control write unexpectedly modified the register"
             severity failure;
 
-        axi_write(x"00000014", x"00000155", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000014", x"00000155", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+        wait for 1 ns;
         assert idelay_tap(2) = tap2_value
             report "Tap register 2 write did not update the exported value"
             severity failure;
@@ -192,39 +221,82 @@ begin
             report "Tap register 2 write did not generate an IDELAY load pulse"
             severity failure;
         wait until rising_edge(clk);
+        wait for 1 ns;
         assert idelay_load(2) = '1'
             report "IDELAY load pulse did not stretch to a second cycle"
             severity failure;
         wait until rising_edge(clk);
+        wait for 1 ns;
         assert idelay_load(2) = '0'
             report "IDELAY load pulse did not self-clear"
             severity failure;
 
-        axi_write(x"00000030", x"0000000A", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_write(x"00000030", x"0000000A", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
         assert iserdes_bitslip(4) = bitslip4_value
             report "Bitslip register 4 write did not update the exported value"
             severity failure;
-        axi_read(x"00000030", araddr, arvalid, rdata, rvalid, clk, readback);
+        axi_read(x"00000030", araddr, arvalid, arready, rdata, rvalid, clk, readback);
         assert readback(3 downto 0) = bitslip4_value
             report "Bitslip register 4 readback mismatch"
             severity failure;
 
-        axi_write(x"00000008", x"0000BABA", "1111", awaddr, awvalid, wdata, wstrb, wvalid, bvalid, clk);
+        axi_read(x"00000034", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+        assert readback = x"00000003"
+            report "Spy trigger control reset readback mismatch"
+            severity failure;
+
+        axi_write(x"00000034", x"00000006", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+        assert spy_trigger_source = "10" and spy_trigger_inhibit = '1'
+            report "Spy trigger control full write did not update outputs"
+            severity failure;
+        axi_read(x"00000034", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+        assert readback = x"00000006"
+            report "Spy trigger control readback mismatch"
+            severity failure;
+
+        axi_write(x"00000034", x"00000001", "0011", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+        assert spy_trigger_source = "10" and spy_trigger_inhibit = '1'
+            report "Partial-strobe spy trigger control write unexpectedly modified the register"
+            severity failure;
+
+        axi_write(x"00000008", x"0000BABA", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
         trigger_seen := false;
         for i in 0 to 7 loop
-            if trig = '1' then
+            if trig = '1' and software_trig = '1' then
                 trigger_seen := true;
             end if;
+            assert external_trig = '0'
+                report "Software trigger write unexpectedly asserted the external source"
+                severity failure;
             wait until rising_edge(clk);
         end loop;
         assert trigger_seen
-            report "Frontend trigger register write did not generate a pulse"
+            report "Frontend trigger register write did not generate a software pulse"
             severity failure;
-        assert trig = '0'
+        assert trig = '0' and software_trig = '0'
             report "Frontend trigger pulse did not self-clear"
             severity failure;
 
+        trig_in <= '1';
+        wait until rising_edge(clk);
+        wait for 1 ns;
+        trig_in <= '0';
+        assert external_trig = '1' and trig = '1'
+            report "External trigger input did not assert its split and legacy outputs"
+            severity failure;
+        assert software_trig = '0'
+            report "External trigger input unexpectedly asserted the software source"
+            severity failure;
+        for i in 0 to 7 loop
+            wait until rising_edge(clk);
+        end loop;
+        wait for 1 ns;
+        assert external_trig = '0' and trig = '0'
+            report "External trigger pulse did not self-clear"
+            severity failure;
+
         assert false report "fe_axi_smoke_tb completed successfully" severity note;
+        stop;
         wait;
     end process;
 end tb;

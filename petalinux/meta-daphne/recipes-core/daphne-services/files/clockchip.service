@@ -1,0 +1,17 @@
+[Unit]
+Description=Validate DAPHNE timing clock path
+After=firmware.service
+Requires=firmware.service
+PartOf=firmware.service
+Before=endpoint.service hermes.service daphne.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/default/firmware
+EnvironmentFile=-/etc/daphne-board.env
+ExecStart=/usr/local/bin/daphne-clockchip.sh
+TimeoutStartSec=300
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

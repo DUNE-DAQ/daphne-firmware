@@ -14,7 +14,7 @@ use work.pdts_clock_defs.all;
 
 entity pdts_ep_core is
 	generic(
-		SCLK_FREQ: real:=100.00; -- Frequency (MHz) of the system clock
+		SCLK_FREQ: real; -- Frequency (MHz) of the system clock
 		FORCE_TX: boolean := false; -- Turn on transmit permanently
 		SKIP_FREQ: boolean := false; -- Skip the frequency check step (e.g. for simulation)
 		EXT_ADDR: boolean := true; -- Skip the address setting step
@@ -31,8 +31,11 @@ entity pdts_ep_core is
 		clk: in std_logic; -- Base clock
 		rst: in std_logic; -- Base clock reset (clk domain)
 		phase: out std_logic_vector(11 downto 0); -- Fine deskew setting
+		phase_stb: out std_logic; -- Apply phase marker
 		phase_done: in std_logic := '0'; -- Fine deskew done flag
-		cdr_rst: out std_logic; -- CDR reset signal
+		clk_rst: out std_logic; -- CDR PLL reset (sys_clk domain)
+		clk_lock: in std_logic; -- CDR PLL locked
+		cdr_rst: out std_logic; -- CDR reset signal (sys_clk)
 		locked: in std_logic := '1'; -- CDR lock input
 		d: in std_logic; -- Timing input (clk domain)
 		q: out std_logic; -- Timing output (clk domain)
@@ -40,9 +43,6 @@ entity pdts_ep_core is
 		ready: out std_logic; -- Endpoint ready flag (clk domain)
 		tstamp: out std_logic_vector(63 downto 0); -- Timestamp (clk domain)
 		sync: out std_logic_vector(7 downto 0); -- Sync command output (clk domain)
-		F_OK_DEBUG: out std_logic ;
-		SCTR_DEBUG: OUT std_logic_vector (15 downto 0);
-		CCTR_DEBUG: OUT std_logic_vector (15 downto 0);
 		sync_stb: out std_logic -- Sync command strobe (clk domain)
 	);
 
@@ -51,7 +51,7 @@ end pdts_ep_core;
 architecture rtl of pdts_ep_core is
 
 	signal stati, stati_clk: std_logic_vector(3 downto 0);
-	signal resync, rx_en, rx_rdy, addr_done, deskew_done, tsrdy, reset, trst, reg_rst, rrst,f_ok: std_logic;
+	signal resync, rx_en, rx_rdy, addr_done, deskew_done, tsrdy, reset, trst, reg_rst, rrst: std_logic;
 	signal delay: std_logic_vector(3 downto 0);
 	signal addr: std_logic_vector(15 downto 0);
 	signal stb, tx_err, pkt_err: std_logic;
@@ -61,11 +61,10 @@ architecture rtl of pdts_ep_core is
 	signal ctrl_r, rctrl_r: pdts_cmi;
 	signal ts_stb: std_logic;
 	signal tstamp_i: std_logic_vector(63 downto 0);
-	signal sctr, cctr: std_logic_vector (15 downto 0);
 
-	attribute MARK_DEBUG: string;
-	attribute MARK_DEBUG of txenb, rst, rrst, trst, resync, locked, rx_en, d, q: signal is "TRUE";
-	attribute MARK_DEBUG of ctrl_out, ctrl_in, ctrl_w, ctrl_r: signal is "TRUE";
+	--attribute MARK_DEBUG: string;
+	--attribute MARK_DEBUG of txenb, rst, rrst, trst, resync, locked, rx_en, d, q: signal is "TRUE";
+	--attribute MARK_DEBUG of ctrl_out, ctrl_in, ctrl_w, ctrl_r: signal is "TRUE";
 
 begin
 
@@ -82,6 +81,8 @@ begin
 			sys_rst => sys_rst,
 			clk => clk,
 			rst => rst,
+			clk_rst => clk_rst,
+			clk_lock => clk_lock,
 			cdr_rst => cdr_rst,
 			cdr_locked => locked,
 			rx_en => rx_en,
@@ -94,13 +95,11 @@ begin
 			reg_rst => reg_rst,
 			tsrdy => tsrdy,
 			ready => ready,
-			F_OK_DEBUG => f_ok,
-		    SCTR_DEBUG=> sctr,
-		    CCTR_DEBUG => cctr,
 			stat => stati
 		);
-		
+
 	sys_stat <= stati;
+	phase_stb <= resync;
 
 	-- The register file and control transport live in the endpoint base-clock
 	-- domain; resynchronise the state-machine status bits out of sys_clk before
@@ -181,7 +180,7 @@ begin
 			ctrl_out => rctrl_r,
 			sys_addr => sys_addr,
 			addr => addr,
-				stat => stati_clk,
+			stat => stati_clk,
 			phase => phase,
 			phase_done => phase_done,
 			delay => delay,
@@ -225,7 +224,5 @@ begin
 			ts_out => tstamp,
 			rdy => tsrdy
 		);
-F_OK_DEBUG <= f_ok;
-    SCTR_DEBUG <= sctr;
-    cCTR_DEBUG <= cctr;
+
 end rtl;

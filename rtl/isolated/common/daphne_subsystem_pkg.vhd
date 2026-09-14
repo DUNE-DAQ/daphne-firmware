@@ -6,7 +6,7 @@ package daphne_subsystem_pkg is
   type sample14_array_t is array (natural range <>) of std_logic_vector(13 downto 0);
   type std_logic_array_t is array (natural range <>) of std_logic;
   type slv28_array_t is array (natural range <>) of std_logic_vector(27 downto 0);
-  type slv11_array_t is array (natural range <>) of std_logic_vector(10 downto 0);
+  type slv32_array_t is array (natural range <>) of std_logic_vector(31 downto 0);
   type slv64_array_t is array (natural range <>) of std_logic_vector(63 downto 0);
   type slv72_array_t is array (natural range <>) of std_logic_vector(71 downto 0);
 
@@ -105,12 +105,22 @@ package daphne_subsystem_pkg is
     alignment_ready : std_logic;
   end record;
 
+  constant CALIBRATION_TAG_NORMAL_C   : std_logic_vector(1 downto 0) := "00";
+  constant CALIBRATION_TAG_BNC_C      : std_logic_vector(1 downto 0) := "01";
+  constant CALIBRATION_TAG_TIMING_C   : std_logic_vector(1 downto 0) := "10";
+  constant CALIBRATION_TAG_SOFTWARE_C : std_logic_vector(1 downto 0) := "11";
+
+  -- Per-channel ST register +0x1C: enable31, quiet24:16, threshold13:0.
+  -- Provisional engineering defaults: continuation on,32 quiet samples,64 ADC.
+  constant CONTINUATION_CONFIG_DEFAULT_C : std_logic_vector(31 downto 0) := x"80200040";
+
   type trigger_xcorr_control_t is record
     enable                 : std_logic;
     afe_comp_enable        : std_logic;
     invert_enable          : std_logic;
     filter_output_selector : std_logic_vector(1 downto 0);
     threshold_xc           : std_logic_vector(27 downto 0);
+    continuation_config    : std_logic_vector(31 downto 0);
     adhoc                  : std_logic_vector(7 downto 0);
     ti_trigger             : std_logic_vector(7 downto 0);
     ti_trigger_stbr        : std_logic;
@@ -124,6 +134,7 @@ package daphne_subsystem_pkg is
     descriptor_sample : std_logic_vector(13 downto 0);
     trigger_sample    : std_logic_vector(13 downto 0);
     trigger_timestamp : std_logic_vector(63 downto 0);
+    calibration_tag   : std_logic_vector(1 downto 0);
   end record;
 
   type peak_descriptor_control_t is record
@@ -157,19 +168,6 @@ package daphne_subsystem_pkg is
   type peak_descriptor_control_array_t is array (natural range <>) of peak_descriptor_control_t;
   type peak_descriptor_result_array_t is array (natural range <>) of peak_descriptor_result_t;
   type peak_descriptor_trailer_bank_t is array (natural range <>) of peak_descriptor_trailer_t;
-
-  type stc3_frame_descriptor_t is record
-    valid          : std_logic;
-    ch_id          : std_logic_vector(7 downto 0);
-    version        : std_logic_vector(3 downto 0);
-    start_ptr      : std_logic_vector(10 downto 0);
-    sample0_ts     : std_logic_vector(63 downto 0);
-    baseline       : std_logic_vector(13 downto 0);
-    trigger_sample : std_logic_vector(13 downto 0);
-    threshold_lsb  : std_logic_vector(13 downto 0);
-  end record;
-
-  type stc3_frame_descriptor_array_t is array (natural range <>) of stc3_frame_descriptor_t;
 
   type trigger_descriptor_t is record
     valid      : std_logic;
@@ -275,6 +273,7 @@ package daphne_subsystem_pkg is
     invert_enable          => '0',
     filter_output_selector => (others => '0'),
     threshold_xc           => (others => '0'),
+    continuation_config    => CONTINUATION_CONFIG_DEFAULT_C,
     adhoc                  => (others => '0'),
     ti_trigger             => (others => '0'),
     ti_trigger_stbr        => '0'
@@ -287,7 +286,8 @@ package daphne_subsystem_pkg is
     monitor_sample    => (others => '0'),
     descriptor_sample => (others => '0'),
     trigger_sample    => (others => '0'),
-    trigger_timestamp => (others => '0')
+    trigger_timestamp => (others => '0'),
+    calibration_tag   => CALIBRATION_TAG_NORMAL_C
   );
 
   constant PEAK_DESCRIPTOR_CONTROL_NULL : peak_descriptor_control_t := (
@@ -316,17 +316,6 @@ package daphne_subsystem_pkg is
 
   constant PEAK_DESCRIPTOR_TRAILER_NULL : peak_descriptor_trailer_t := (
     others => (others => '0')
-  );
-
-  constant STC3_FRAME_DESCRIPTOR_NULL : stc3_frame_descriptor_t := (
-    valid          => '0',
-    ch_id          => (others => '0'),
-    version        => (others => '0'),
-    start_ptr      => (others => '0'),
-    sample0_ts     => (others => '0'),
-    baseline       => (others => '0'),
-    trigger_sample => (others => '0'),
-    threshold_lsb  => (others => '0')
   );
 
   constant TRIGGER_DESCRIPTOR_NULL : trigger_descriptor_t := (

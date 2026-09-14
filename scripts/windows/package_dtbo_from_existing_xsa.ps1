@@ -7,8 +7,8 @@ param(
     [string]$OverlayPrefix = 'daphne_selftrigger_ol',
     [string]$Board = 'k26c',
     [string]$WslDistro = 'Debian',
-    [string]$VitisRoot = 'C:\Xilinx\Vitis\2024.1',
-    [string]$DtgGitBranch = 'xlnx_rel_v2024.1',
+    [string]$VitisRoot = 'C:\Xilinx\2026.1\Vitis',
+    [string]$DtgGitBranch = '',
     [switch]$ForceRegenerateDtg
 )
 
@@ -76,10 +76,11 @@ if ([string]::IsNullOrEmpty($OutputDir)) {
 }
 
 $OutputDir = Resolve-FullPath -PathValue $OutputDir
+$SdtgenBat = Join-Path $VitisRoot 'bin\sdtgen.bat'
 $XsctBat = Join-Path $VitisRoot 'bin\xsct.bat'
 
-if (-not (Test-Path -LiteralPath $XsctBat)) {
-    throw "XSCT launcher not found at $XsctBat"
+if (-not (Test-Path -LiteralPath $SdtgenBat) -and -not (Test-Path -LiteralPath $XsctBat)) {
+    throw "Neither SDTGen nor XSCT launcher was found under $VitisRoot\bin"
 }
 
 $XsaFile = Find-BuildArtifact -SearchDir $OutputDir -Prefix $ArtifactPrefix
@@ -103,18 +104,30 @@ if ($ForceRegenerateDtg -or -not $PlDtsi) {
         Remove-GeneratedDeviceTreeDir -GeneratedDir $GeneratedDir
     }
 
-    $OutputDirUnix = $OutputDir -replace '\\', '/'
     $PlatformName = "${ArtifactPrefix}_${GitSha}"
-    $XsctEval = "createdts -hw `"$($XsaFile.Name)`" -zocl -platform-name `"$PlatformName`" -git-branch `"$DtgGitBranch`" -overlay -out `"$OutputDirUnix`"; exit"
 
-    Write-Host "INFO: bootstrapping pl.dtsi with Windows XSCT"
-    Write-Host "INFO: xsct dir   = $OutputDir"
+    Write-Host "INFO: bootstrapping pl.dtsi with Windows device-tree generator"
+    Write-Host "INFO: dtgen dir  = $OutputDir"
     Write-Host "INFO: xsa       = $($XsaFile.Name)"
     Push-Location $OutputDir
     try {
-        & $XsctBat -eval $XsctEval
-        if ($LASTEXITCODE -ne 0) {
-            throw "XSCT createdts failed with exit code $LASTEXITCODE"
+        if (Test-Path -LiteralPath $SdtgenBat) {
+            & $SdtgenBat -xsa $XsaFile.FullName -dir $GeneratedDir -zocl enable
+            if ($LASTEXITCODE -ne 0) {
+                throw "SDTGen failed with exit code $LASTEXITCODE"
+            }
+        } else {
+            $OutputDirUnix = $OutputDir -replace '\\', '/'
+            $XsctEval = "createdts -hw `"$($XsaFile.Name)`" -zocl -platform-name `"$PlatformName`""
+            if (-not [string]::IsNullOrEmpty($DtgGitBranch)) {
+                $XsctEval += " -git-branch `"$DtgGitBranch`""
+            }
+            $XsctEval += " -overlay -out `"$OutputDirUnix`"; exit"
+
+            & $XsctBat -eval $XsctEval
+            if ($LASTEXITCODE -ne 0) {
+                throw "XSCT createdts failed with exit code $LASTEXITCODE"
+            }
         }
     } finally {
         Pop-Location
@@ -122,7 +135,7 @@ if ($ForceRegenerateDtg -or -not $PlDtsi) {
 
     $PlDtsi = Get-ChildItem -LiteralPath $GeneratedDir -Recurse -Filter 'pl.dtsi' -File -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $PlDtsi) {
-        throw "XSCT completed but no pl.dtsi was generated under $GeneratedDir"
+        throw "Device-tree generator completed but no pl.dtsi was generated under $GeneratedDir"
     }
 } else {
     Write-Host "INFO: reusing existing pl.dtsi at $($PlDtsi.FullName)"

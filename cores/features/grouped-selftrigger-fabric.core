@@ -1,15 +1,13 @@
 CAPI=2:
 
 name: dune-daq:daphne:grouped-selftrigger-fabric:0.1.0
-description: Flat grouped self-trigger export fabric built from per-AFE grouped islands
+description: 32 channels and eight shared fixed512 builders
 provider:
   name: local
 
 filesets:
   rtl:
     depend:
-      - dune-daq:daphne:daphne-subsystem-types:0.1.0
-      - dune-daq:daphne:grouped-transport-types:0.1.0
       - dune-daq:daphne:afe-grouped-selftrigger-island:0.1.0
     files:
       - rtl/isolated/subsystems/trigger/grouped_selftrigger_fabric.vhd

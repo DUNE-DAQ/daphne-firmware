@@ -94,7 +94,7 @@ Interpretation:
 
 - FuseSoC is the intent layer
 - Linux and WSL/Windows are two qualified entrypoint families
-- Vivado + XSCT remain the implementation backend
+- Vivado and Vitis device-tree tooling remain the implementation backend
 - the current product boundary is:
   - `.bit`
   - `.bin`
@@ -122,7 +122,7 @@ Interpretation:
 - the fixed bug was a same-channel collision in `sample_start`, not a
   cross-channel timestamp-sharing issue
 - the detailed failure analysis and fix live in
-  [peak-descriptor-id-uniqueness.md](/Users/marroyav/repo/daphne-firmware/docs/peak-descriptor-id-uniqueness.md)
+  [peak-descriptor-id-uniqueness.md](peak-descriptor-id-uniqueness.md)
 
 ## 7. Dead-Time Bottleneck Cascade
 
@@ -140,7 +140,7 @@ Interpretation:
   builder-driven `busy_count` term in the current `10–14 kHz/channel` region
 - the detailed table, quantitative split, and recommended architecture changes
   live in
-  [deadtime-bottleneck-cascade.md](/Users/marroyav/repo/daphne-firmware/docs/deadtime-bottleneck-cascade.md)
+  [deadtime-bottleneck-cascade.md](deadtime-bottleneck-cascade.md)
 
 ## Notes
 

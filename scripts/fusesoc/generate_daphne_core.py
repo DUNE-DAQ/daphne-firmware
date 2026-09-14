@@ -30,15 +30,6 @@ def core_relative(paths: list[str]) -> list[str]:
     return [f"{CORE_PREFIX}{p}" for p in paths]
 
 
-def place_before(paths: list[str], earlier: str, later: str) -> list[str]:
-    ordered = [path for path in paths if path != earlier]
-    if earlier not in paths or later not in ordered:
-        return paths
-    insert_at = ordered.index(later)
-    ordered.insert(insert_at, earlier)
-    return ordered
-
-
 def extract_quoted_list(text: str, pattern: str) -> list[str]:
     match = re.search(pattern, text, flags=re.S)
     if not match:
@@ -86,12 +77,7 @@ def expand_manifest_vhdl_entries(entries: list[str]) -> list[str]:
             expanded.append(entry)
         else:
             raise RuntimeError(f"Missing legacy support entry: {resolved}")
-    expanded = sorted(set(expanded))
-    return place_before(
-        expanded,
-        "rtl/isolated/subsystems/trigger/peak_descriptor_compact.vhd",
-        "rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd",
-    )
+    return sorted(set(expanded))
 
 
 def load_manifest_scalar(path: Path, key: str) -> str | None:

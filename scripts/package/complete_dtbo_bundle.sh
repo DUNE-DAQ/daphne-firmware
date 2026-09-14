@@ -50,7 +50,7 @@ find_latest_xsa() {
   return 0
 }
 
-select_xsct_output_dir() {
+select_dtgen_output_dir() {
   local requested_dir mirror_dir
 
   requested_dir="$1"
@@ -91,7 +91,11 @@ from pathlib import Path
 import sys
 
 path = Path(sys.argv[1])
-lines = path.read_text().splitlines()
+lines = [
+    line
+    for line in path.read_text().splitlines()
+    if line.strip() not in {"/dts-v1/;", "/plugin/;"}
+]
 out = []
 
 def block_indent(block_lines, default):
@@ -171,12 +175,32 @@ while i < len(lines):
     out.append(line)
     i += 1
 
+# Vitis 2026.1 emits pl.dtsi as an includable fragment without either
+# directive.  This helper compiles the fragment directly, so make it a
+# standalone overlay while keeping the rewrite idempotent for older output.
+out = ["/dts-v1/;", "/plugin/;"] + out
 path.write_text("\n".join(out) + "\n")
 PY
 }
 
-ensure_xsct() {
+select_dtgen_tool() {
+  if command -v sdtgen >/dev/null 2>&1; then
+    DTGEN_CMD="sdtgen"
+    DTGEN_KIND="sdtgen"
+    return 0
+  fi
+
   if command -v xsct >/dev/null 2>&1; then
+    DTGEN_CMD="xsct"
+    DTGEN_KIND="xsct"
+    return 0
+  fi
+
+  return 1
+}
+
+ensure_dtgen() {
+  if select_dtgen_tool; then
     return 0
   fi
 
@@ -186,11 +210,33 @@ ensure_xsct() {
     . "$setup_script"
   fi
 
-  if ! command -v xsct >/dev/null 2>&1; then
-    echo "ERROR: required command 'xsct' not found on PATH" >&2
+  if ! select_dtgen_tool; then
+    echo "ERROR: required command 'sdtgen' or legacy 'xsct' not found on PATH" >&2
     echo "ERROR: if you are running from WSL, source scripts/wsl/setup_windows_xilinx.sh first" >&2
     exit 2
   fi
+}
+
+generate_pl_dtsi() {
+  local hw_xsa="$1"
+  local dtgen_output_dir="$2"
+  local git_sha="$3"
+  local artifact_prefix="$4"
+  local overlay_prefix="$5"
+  local generated_dir="$dtgen_output_dir/${artifact_prefix}_${git_sha}"
+
+  case "$DTGEN_KIND" in
+    sdtgen)
+      "$DTGEN_CMD" -xsa "$hw_xsa" -dir "$generated_dir" -zocl enable
+      ;;
+    xsct)
+      "$DTGEN_CMD" "$DTBO_GEN_TCL" "$hw_xsa" "$dtgen_output_dir" "$git_sha" "$artifact_prefix" "$overlay_prefix"
+      ;;
+    *)
+      echo "ERROR: no device-tree generator selected" >&2
+      exit 2
+      ;;
+  esac
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -212,7 +258,7 @@ else
   OUTPUT_DIR_INPUT="$ROOT_DIR/xilinx/output"
 fi
 OUTPUT_DIR="$(CDPATH= cd -- "$OUTPUT_DIR_INPUT" && pwd)"
-XSCT_OUTPUT_DIR="$(select_xsct_output_dir "$OUTPUT_DIR")"
+DTGEN_OUTPUT_DIR="$(select_dtgen_output_dir "$OUTPUT_DIR")"
 DTBO_GEN_TCL="$ROOT_DIR/xilinx/daphne_dtbo_gen.tcl"
 AXI_SPI_PATCH="$ROOT_DIR/xilinx/scripts/axi_quad_spi_dtbo_patch.sed"
 BUILD_NAME_PREFIX="${DAPHNE_BUILD_NAME_PREFIX:-daphne_selftrigger}"
@@ -229,7 +275,7 @@ else
   exit 2
 fi
 
-ensure_xsct
+ensure_dtgen
 need_cmd dtc
 need_cmd zip
 need_cmd python3
@@ -240,7 +286,7 @@ if [[ ! -d "$OUTPUT_DIR" ]]; then
 fi
 
 if [[ ! -f "$DTBO_GEN_TCL" ]]; then
-  echo "ERROR: missing XSCT helper: $DTBO_GEN_TCL" >&2
+  echo "ERROR: missing legacy XSCT helper: $DTBO_GEN_TCL" >&2
   exit 2
 fi
 
@@ -251,12 +297,12 @@ fi
 
 latest_xsa="$(find_latest_xsa "$OUTPUT_DIR")"
 
-if [[ -z "$latest_xsa" && "$XSCT_OUTPUT_DIR" != "$OUTPUT_DIR" ]]; then
-  latest_xsa="$(find_latest_xsa "$XSCT_OUTPUT_DIR")"
+if [[ -z "$latest_xsa" && "$DTGEN_OUTPUT_DIR" != "$OUTPUT_DIR" ]]; then
+  latest_xsa="$(find_latest_xsa "$DTGEN_OUTPUT_DIR")"
 fi
 
 if [[ -z "$latest_xsa" ]]; then
-  echo "ERROR: no ${BUILD_NAME_PREFIX}_*.xsa found in $OUTPUT_DIR or $XSCT_OUTPUT_DIR" >&2
+  echo "ERROR: no ${BUILD_NAME_PREFIX}_*.xsa found in $OUTPUT_DIR or $DTGEN_OUTPUT_DIR" >&2
   if [[ "$ACCEPT_LEGACY_ARTIFACT_ALIASES" == "1" ]]; then
     echo "ERROR: legacy ${LEGACY_ARTIFACT_PREFIX}_*.xsa aliases were also checked" >&2
   fi
@@ -287,7 +333,7 @@ esac
 bin_file="$OUTPUT_DIR/${artifact_prefix}_${git_sha}.bin"
 bin_input_file="$bin_file"
 if [[ ! -f "$bin_input_file" ]]; then
-  bin_input_file="$XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}.bin"
+  bin_input_file="$DTGEN_OUTPUT_DIR/${artifact_prefix}_${git_sha}.bin"
 fi
 dtbo_file="$OUTPUT_DIR/${artifact_prefix}_${git_sha}.dtbo"
 overlay_dir="$OUTPUT_DIR/${overlay_prefix}_${git_sha}"
@@ -295,38 +341,35 @@ overlay_zip="$OUTPUT_DIR/${overlay_prefix}_${git_sha}.zip"
 json_file="$OUTPUT_DIR/shell.json"
 
 if [[ ! -f "$bin_input_file" ]]; then
-  echo "ERROR: expected bitstream binary not found in $OUTPUT_DIR or $XSCT_OUTPUT_DIR" >&2
+  echo "ERROR: expected bitstream binary not found in $OUTPUT_DIR or $DTGEN_OUTPUT_DIR" >&2
   exit 2
 fi
 
 echo "INFO: completing DTBO bundle for git SHA $git_sha"
 echo "INFO: output dir = $OUTPUT_DIR"
-if [[ "$XSCT_OUTPUT_DIR" != "$OUTPUT_DIR" ]]; then
-  echo "INFO: xsct dir   = $XSCT_OUTPUT_DIR"
+if [[ "$DTGEN_OUTPUT_DIR" != "$OUTPUT_DIR" ]]; then
+  echo "INFO: dtgen dir  = $DTGEN_OUTPUT_DIR"
 fi
+echo "INFO: dtgen tool = $DTGEN_CMD"
 echo "INFO: xsa        = $latest_xsa"
 echo "INFO: bin        = $bin_input_file"
 
-pl_dtsi_dir="$XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}"
-pl_dtsi_path=""
-if [[ -d "$pl_dtsi_dir" ]]; then
-  pl_dtsi_path="$(
-    find "$pl_dtsi_dir" -type f -name 'pl.dtsi' 2>/dev/null | sort | head -n 1 || true
-  )"
-fi
+pl_dtsi_path="$(
+  find "$DTGEN_OUTPUT_DIR/${artifact_prefix}_${git_sha}" -type f -name 'pl.dtsi' 2>/dev/null | sort | head -n 1 || true
+)"
 
 if [[ -n "$pl_dtsi_path" ]]; then
   echo "INFO: reusing existing pl.dtsi at $pl_dtsi_path"
 else
-  xsct "$DTBO_GEN_TCL" "$latest_xsa" "$XSCT_OUTPUT_DIR" "$git_sha" "$artifact_prefix" "$overlay_prefix"
+  generate_pl_dtsi "$latest_xsa" "$DTGEN_OUTPUT_DIR" "$git_sha" "$artifact_prefix" "$overlay_prefix"
 
   pl_dtsi_path="$(
-    find "$pl_dtsi_dir" -type f -name 'pl.dtsi' 2>/dev/null | sort | head -n 1 || true
+    find "$DTGEN_OUTPUT_DIR/${artifact_prefix}_${git_sha}" -type f -name 'pl.dtsi' 2>/dev/null | sort | head -n 1 || true
   )"
 fi
 
 if [[ -z "$pl_dtsi_path" ]]; then
-  echo "ERROR: XSCT completed but no pl.dtsi was generated under $XSCT_OUTPUT_DIR/${artifact_prefix}_${git_sha}" >&2
+  echo "ERROR: device-tree generator completed but no pl.dtsi was generated under $DTGEN_OUTPUT_DIR/${artifact_prefix}_${git_sha}" >&2
   exit 2
 fi
 

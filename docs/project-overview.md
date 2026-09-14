@@ -8,8 +8,8 @@ basis for a GitHub wiki page later.
 
 For the reusable generated figure set itself, see:
 
-- [architecture-reference.md](/Users/marroyav/repo/daphne-firmware/docs/architecture-reference.md)
-- [peak-descriptor-id-uniqueness.md](/Users/marroyav/repo/daphne-firmware/docs/peak-descriptor-id-uniqueness.md)
+- [architecture-reference.md](architecture-reference.md)
+- [peak-descriptor-id-uniqueness.md](peak-descriptor-id-uniqueness.md)
 
 ## Philosophy
 
@@ -72,7 +72,7 @@ boundaries before trying to retire the compatibility path.
 What the repo owns today:
 
 - the K26C hardware build path
-- the Vivado/XSCT/DT overlay packaging flow
+- the Vivado/Vitis device-tree overlay packaging flow
 - the FuseSoC source graph and smoke/formal targets
 - the first repo-owned PetaLinux scaffolding
 - the runtime contract needed by `daphne-server`
@@ -123,14 +123,14 @@ the repo-owned formal/contracts/integration work.
 Either:
 
 - WSL2
-- Windows Vivado 2024.1
-- Windows Vitis 2024.1
+- Windows Vivado 2026.1
+- Windows Vitis 2026.1
 
 Or:
 
 - native Linux host
-- Vivado 2024.1
-- Vitis 2024.1
+- Vivado 2026.1
+- Vitis 2026.1
 
 Recommended path discipline:
 
@@ -220,7 +220,7 @@ Current contract note:
   `(geo_id, channel_id, frame_timestamp + sample_start)`
 - the repo now documents and fixes the same-channel `sample_start` reuse bug in
   the peak-descriptor path; see
-  [peak-descriptor-id-uniqueness.md](/Users/marroyav/repo/daphne-firmware/docs/peak-descriptor-id-uniqueness.md)
+  [peak-descriptor-id-uniqueness.md](peak-descriptor-id-uniqueness.md)
 
 Examples:
 
@@ -269,7 +269,7 @@ These are what make the firmware repo more than a raw HDL import.
 
 Use the end-to-end manual:
 
-- [build-manual.md](/Users/marroyav/repo/daphne-firmware/docs/build-manual.md)
+- [build-manual.md](build-manual.md)
 
 Build flow view:
 
@@ -309,9 +309,9 @@ The highest-value remaining work is:
 
 ## Related Documents
 
-- [build-manual.md](/Users/marroyav/repo/daphne-firmware/docs/build-manual.md)
-- [build-baseline.md](/Users/marroyav/repo/daphne-firmware/docs/build-baseline.md)
-- [firmware-delivery.md](/Users/marroyav/repo/daphne-firmware/docs/firmware-delivery.md)
-- [remote-vivado.md](/Users/marroyav/repo/daphne-firmware/docs/remote-vivado.md)
-- [wsl-windows-vivado.md](/Users/marroyav/repo/daphne-firmware/docs/wsl-windows-vivado.md)
-- [gap-analysis.md](/Users/marroyav/repo/daphne-firmware/docs/gap-analysis.md)
+- [build-manual.md](build-manual.md)
+- [build-baseline.md](build-baseline.md)
+- [firmware-delivery.md](firmware-delivery.md)
+- [remote-vivado.md](remote-vivado.md)
+- [wsl-windows-vivado.md](wsl-windows-vivado.md)
+- [gap-analysis.md](gap-analysis.md)

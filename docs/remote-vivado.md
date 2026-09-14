@@ -27,8 +27,8 @@ If the remote host does not already source Vivado/Vitis globally, pass the
 settings scripts explicitly:
 
 ```bash
-export XILINX_SETTINGS_SH=/path/to/Vivado/2024.1/settings64.sh
-export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2024.1/settings64.sh
+export XILINX_SETTINGS_SH=/path/to/Vivado/2026.1/settings64.sh
+export XILINX_VITIS_SETTINGS_SH=/path/to/Vitis/2026.1/settings64.sh
 ```
 
 Then run:
@@ -37,6 +37,14 @@ Then run:
 cd ~/repo/daphne-firmware
 export DAPHNE_BOARD=k26c
 ./scripts/remote/run_remote_vivado_chain.sh
+```
+
+If the Linux Vivado/Vitis install is local to the current WSL/Linux host, use
+the convenience wrapper instead:
+
+```bash
+cd ~/repo/daphne-firmware
+./scripts/wsl/run_native_vivado_chain.sh --threads 24
 ```
 
 This runs:

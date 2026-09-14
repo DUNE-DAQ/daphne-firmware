@@ -23,6 +23,7 @@ port(
     timestamp: in std_logic_vector(63 downto 0);
     enable: in std_logic_vector(39 downto 0);
     forcetrig: in std_logic;
+    force_calibration_tag: in std_logic_vector(1 downto 0);
     st_trigger_signal: out std_logic_vector(39 downto 0);
     adhoc: in std_logic_vector(7 downto 0);
     ti_trigger: in std_logic_vector(7 downto 0);
@@ -102,6 +103,21 @@ port(
     eth0_tx_p: out std_logic_vector(0 downto 0);
     eth0_tx_n: out std_logic_vector(0 downto 0);
     eth0_tx_dis: out std_logic_vector(0 downto 0);
+    eth1_rx_p: in std_logic_vector(0 downto 0);
+    eth1_rx_n: in std_logic_vector(0 downto 0);
+    eth1_tx_p: out std_logic_vector(0 downto 0);
+    eth1_tx_n: out std_logic_vector(0 downto 0);
+    eth1_tx_dis: out std_logic_vector(0 downto 0);
+    eth2_rx_p: in std_logic_vector(0 downto 0);
+    eth2_rx_n: in std_logic_vector(0 downto 0);
+    eth2_tx_p: out std_logic_vector(0 downto 0);
+    eth2_tx_n: out std_logic_vector(0 downto 0);
+    eth2_tx_dis: out std_logic_vector(0 downto 0);
+    eth3_rx_p: in std_logic_vector(0 downto 0);
+    eth3_rx_n: in std_logic_vector(0 downto 0);
+    eth3_tx_p: out std_logic_vector(0 downto 0);
+    eth3_tx_n: out std_logic_vector(0 downto 0);
+    eth3_tx_dis: out std_logic_vector(0 downto 0);
 
     out_buff_data: out std_logic_vector(63 downto 0);
     out_buff_trig: out std_logic;
@@ -111,9 +127,11 @@ port(
 end k26c_board_selftrigger_plane;
 
 architecture rtl of k26c_board_selftrigger_plane is
-  signal out_buff_data_reg:  array_2x64_type;
-  signal valid_debug_reg:    std_logic_vector(1 downto 0);
-  signal last_debug_reg:     std_logic_vector(1 downto 0);
+  signal out_buff_data_reg:  array_8x64_type;
+  signal valid_debug_reg:    std_logic_vector(7 downto 0);
+  signal last_debug_reg:     std_logic_vector(7 downto 0);
+  signal readout_reset_s: std_logic;
+  signal readout_ready_s:    std_logic_vector(7 downto 0);
 begin
   datapath_plane_inst : entity work.k26c_selftrigger_datapath_plane
     port map(
@@ -129,6 +147,7 @@ begin
       timestamp              => timestamp,
       enable                 => enable,
       forcetrig              => forcetrig,
+      force_calibration_tag  => force_calibration_tag,
       st_trigger_signal      => st_trigger_signal,
       adhoc                  => adhoc,
       ti_trigger             => ti_trigger,
@@ -157,13 +176,15 @@ begin
       thresh_s_axi_rready    => thresh_s_axi_rready,
       readout_data_o         => out_buff_data_reg,
       readout_valid_o        => valid_debug_reg,
-      readout_last_o         => last_debug_reg
+      readout_last_o         => last_debug_reg,
+      readout_ready_i        => readout_ready_s,
+      readout_reset_o        => readout_reset_s
     );
 
   transport_plane_inst : entity work.k26c_board_transport_plane
     port map(
       clock                => clock,
-      reset                => reset,
+      reset                => readout_reset_s,
       timestamp            => timestamp,
       trirg_s_axi_aclk     => trirg_s_axi_aclk,
       trirg_s_axi_aresetn  => trirg_s_axi_aresetn,
@@ -214,9 +235,25 @@ begin
       eth0_tx_p            => eth0_tx_p,
       eth0_tx_n            => eth0_tx_n,
       eth0_tx_dis          => eth0_tx_dis,
+      eth1_rx_p => eth1_rx_p,
+      eth1_rx_n => eth1_rx_n,
+      eth1_tx_p => eth1_tx_p,
+      eth1_tx_n => eth1_tx_n,
+      eth1_tx_dis => eth1_tx_dis,
+      eth2_rx_p => eth2_rx_p,
+      eth2_rx_n => eth2_rx_n,
+      eth2_tx_p => eth2_tx_p,
+      eth2_tx_n => eth2_tx_n,
+      eth2_tx_dis => eth2_tx_dis,
+      eth3_rx_p => eth3_rx_p,
+      eth3_rx_n => eth3_rx_n,
+      eth3_tx_p => eth3_tx_p,
+      eth3_tx_n => eth3_tx_n,
+      eth3_tx_dis => eth3_tx_dis,
       readout_data_i       => out_buff_data_reg,
       readout_valid_i      => valid_debug_reg,
       readout_last_i       => last_debug_reg,
+      readout_ready_o      => readout_ready_s,
       out_buff_data        => out_buff_data,
       out_buff_trig        => out_buff_trig,
       valid_debug          => valid_debug,

@@ -118,14 +118,9 @@ if {[file exists $bramFolDir]} {
 
 # delete the XXV Ethernet IP files only in create_ip mode
 if {$daphne_eth_mode eq "create_ip" && [file exists $ethFolDir]} {
-    if {[file exists $ethXCIDir]} {
-        puts "INFO: Reusing existing IP 'XXV Ethernet' from $ethXCIDir."
-    } else {
-        # check if the IP's folder already exists. If so, delete it
-        puts "INFO: IP 'XXV Ethernet' already exists at $ethFolDir."
-        puts "INFO: Deleting older version of IP XXV Ethernet..."
-        file delete -force $ethFolDir
-    }
+    puts "INFO: IP 'XXV Ethernet' already exists at $ethFolDir."
+    puts "INFO: Deleting older version of IP XXV Ethernet..."
+    file delete -force $ethFolDir
 }
 
 if {$daphne_eth_mode eq "vendored_hdl"} {
@@ -307,6 +302,12 @@ if {$daphne_eth_mode eq "create_ip"} {
     set_property -dict [list \
         CONFIG.CORE {Ethernet PCS/PMA 64-bit} \
         CONFIG.BASE_R_KR {BASE-R} \
+        CONFIG.LINE_RATE {10} \
+        CONFIG.NUM_OF_CORES {1} \
+        CONFIG.GT_TYPE {GTH} \
+        CONFIG.GT_REF_CLK_FREQ {156.25} \
+        CONFIG.GT_GROUP_SELECT {Quad_X0Y1} \
+        CONFIG.LANE1_GT_LOC {X0Y4} \
         CONFIG.INCLUDE_AXI4_INTERFACE {0} \
         CONFIG.INCLUDE_STATISTICS_COUNTERS {0} \
         CONFIG.INCLUDE_SHARED_LOGIC {0} \
@@ -336,6 +337,9 @@ set_property TAXONOMY /UserIP $daphne
 # create file groups for the IP
 
 # RTL file groups
+# The public IP model deliberately retains the daphne_selftrigger_top wrapper
+# and its k26c_board_shell_inst hierarchy used by the timing constraints. The
+# wrapper ports must match the selected board shell used to infer IP ports.
 set lang_synth [ipx::add_file_group xilinx_anylanguagesynthesis $daphne]
 set_property LANGUAGE VHDL $lang_synth
 set_property MODEL_NAME $componentIdentifier $lang_synth
@@ -365,9 +369,9 @@ set xpgui_files [ipx::add_file_group xilinx_xpgui $daphne]
 # list IP VLNVs
 set ipVlnv [list $axi_bram_ctrl_vlnv]
 if {$daphne_eth_mode eq "create_ip"} {
-    lappend ipVlnv $xxv_ethernet_vlnv
+    puts "INFO: XXV Ethernet remains a project-level IP and will not be embedded as a DAPHNE subcore."
 } elseif {$daphne_eth_mode eq "seeded_xci"} {
-    puts "INFO: XXV Ethernet will be packaged from a seeded XCI."
+    puts "INFO: Seeded XXV Ethernet remains external to the packaged DAPHNE core."
 } else {
     puts "INFO: XXV Ethernet will be packaged from vendored HDL, not as a regeneratable subcore."
 }
@@ -426,6 +430,15 @@ set tbFilesVerilog [get_files_recursive $tbDir "*.v"]
 set vhdlDAQFiles [get_files_recursive $rtlDAQDir "*.vhd"]
 set verilogDAQFiles [get_files_recursive $rtlDAQDir "*.v"]
 set systemVerilogDAQFiles [get_files_recursive $rtlDAQDir "*.sv"]
+if {$daphne_eth_mode eq "create_ip"} {
+    # Generate XXV products while it is still an ordinary, unlocked project IP.
+    # Packaging the surrounding DAPHNE core can make Vivado re-evaluate the
+    # optional XXV feature licenses and lock the XCI even for the license-free
+    # PCS/PMA-only configuration. The source lists above were captured first so
+    # these generated products remain owned by the outer project, not component.xml.
+    puts "INFO: Generating project-level XXV Ethernet output products before DAPHNE packaging."
+    generate_target all [get_ips xxv_ethernet_0]
+}
 # define the vhdl sources that use vhdl Source by default as type, the rest use whdl source 2008 version
 set wibTypeExceptionList {
     "freq_ctr_div.vhd"
@@ -487,17 +500,7 @@ if {$daphne_eth_mode eq "create_ip" || $daphne_eth_mode eq "seeded_xci"} {
     if {![file exists $ethXCIDir]} {
         error "ERROR: DAPHNE_ETH_MODE=$daphne_eth_mode but XXV Ethernet XCI is missing at $ethXCIDir"
     }
-    # The deimos pcs/pma wrapper expects the Ethernet core as an IP-backed cell, so
-    # package the regenerated/seeded XCI explicitly in synth, sim, and impl groups.
-    ipx::add_file -name $ethXCIDir -file_group $lang_synth
-    ipx::add_file -name $ethXCIDir -file_group $lang_sim
-    ipx::add_file -name $ethXCIDir -file_group $impl_files
-    set ethFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anylanguageSynthFg]
-    set ethFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $anybehavioralSynthFg]
-    set implFileObj [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci" -of_objects $implFg]
-    set_property CELL_NAME ${daphne_ip_cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjLan
-    set_property CELL_NAME ${daphne_ip_cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe $ethFileObjSim
-    set_property CELL_NAME ${daphne_ip_cell_bind_root}/mux/pcs_pma/phy_gen[0].phy_10gbe $implFileObj
+    puts "INFO: Leaving XXV Ethernet XCI outside component.xml for project-level synthesis: $ethXCIDir"
 }
 set bramFileObjLan [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anylanguageSynthFg]
 set bramFileObjSim [ipx::get_files "src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci" -of_objects $anybehavioralSynthFg]
@@ -594,6 +597,16 @@ ipx::update_checksums $daphne
 
 # create the ports based on the TOP level design and the subcores
 set daphne_ports [ipx::add_ports_from_hdl -top_level_hdl_file $daphne_ip_top_hdl_file -top_module_name $daphne_ip_top_module -include_dirs $daphne_ip_include_dirs $daphne]
+
+# Fail packaging immediately if any required four-SFP physical port is absent.
+foreach sfp {0 1 2 3} {
+    foreach suffix {rx_p rx_n tx_p tx_n tx_dis} {
+        set sfp_port eth${sfp}_${suffix}
+        if {[llength [ipx::get_ports $sfp_port -of_objects $daphne]] != 1} {
+            error "ERROR: packaged IP is missing required four-SFP port $sfp_port."
+        }
+    }
+}
 
 # create the generic parameters of the design based on the TOP level generic
 set daphne_generics [ipx::add_model_parameters_from_hdl -top_level_hdl_file $daphne_ip_top_hdl_file -top_module_name $daphne_ip_top_module -include_dirs $daphne_ip_include_dirs $daphne]

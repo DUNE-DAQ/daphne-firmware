@@ -20,3 +20,7 @@ Status: documentation target first
 - disabled capture does not perturb the main acquisition path
 - boundary-facing gating should be expressed through the same typed readiness
   contract used by the trigger pipeline
+- the runtime inhibit blocks software, external, and timing/ad-hoc spy-buffer
+  trigger sources at their common boundary
+- the runtime selector forwards only the programmed source, with legacy OR mode
+  retained as the reset-compatible setting

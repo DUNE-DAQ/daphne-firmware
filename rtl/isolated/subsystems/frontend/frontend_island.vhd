@@ -17,6 +17,10 @@ entity frontend_island is
     clock          : in  std_logic;
     dout           : out array_5x9x16_type;
     trig           : out std_logic;
+    software_trig  : out std_logic;
+    external_trig  : out std_logic;
+    spy_trigger_source  : out std_logic_vector(1 downto 0);
+    spy_trigger_inhibit : out std_logic;
     trig_IN        : in  std_logic;
     S_AXI_ACLK     : in  std_logic;
     S_AXI_ARESETN  : in  std_logic;
@@ -51,7 +55,10 @@ architecture rtl of frontend_island is
   signal idelay_en_vtc       : std_logic;
   signal iserdes_bitslip     : array_5x4_type;
   signal iserdes_reset       : std_logic;
-  signal trig_axi            : std_logic;
+  signal software_trig_axi        : std_logic;
+  signal external_trig_axi        : std_logic;
+  signal spy_trigger_source_axi   : std_logic_vector(1 downto 0);
+  signal spy_trigger_inhibit_axi  : std_logic;
 begin
   frontend_common_inst : entity work.frontend_common
     port map (
@@ -62,10 +69,17 @@ begin
       clock_i              => clock,
       idelayctrl_reset_i   => idelayctrl_reset,
       idelayctrl_ready_o   => idelayctrl_ready,
-      idelay_load_i        => idelay_load,
-      idelay_load_clk125_o => idelay_load_clk125,
-      trig_axi_i           => trig_axi,
-      trig_o               => trig
+      idelay_load_i             => idelay_load,
+      idelay_load_clk125_o      => idelay_load_clk125,
+      software_trig_axi_i       => software_trig_axi,
+      external_trig_axi_i       => external_trig_axi,
+      spy_trigger_source_axi_i  => spy_trigger_source_axi,
+      spy_trigger_inhibit_axi_i => spy_trigger_inhibit_axi,
+      software_trig_o           => software_trig,
+      external_trig_o           => external_trig,
+      spy_trigger_source_o      => spy_trigger_source,
+      spy_trigger_inhibit_o     => spy_trigger_inhibit,
+      trig_o                    => trig
     );
 
   capture_bank_inst : entity work.frontend_capture_bank
@@ -113,10 +127,14 @@ begin
       idelayctrl_ready => idelayctrl_ready,
       idelayctrl_reset => idelayctrl_reset,
       idelay_tap       => idelay_tap,
-      idelay_en_vtc    => idelay_en_vtc,
-      idelay_load      => idelay_load,
-      iserdes_bitslip  => iserdes_bitslip,
-      iserdes_reset    => iserdes_reset,
-      trig             => trig_axi
+      idelay_en_vtc       => idelay_en_vtc,
+      idelay_load         => idelay_load,
+      iserdes_bitslip     => iserdes_bitslip,
+      iserdes_reset       => iserdes_reset,
+      trig                => open,
+      software_trig       => software_trig_axi,
+      external_trig       => external_trig_axi,
+      spy_trigger_source  => spy_trigger_source_axi,
+      spy_trigger_inhibit => spy_trigger_inhibit_axi
     );
 end architecture rtl;

@@ -1,9 +1,9 @@
-This package is the repo-owned hook point for installing DAPHNE firmware
-overlay assets into a PetaLinux image.
+This package installs the staged DAPHNE overlay payload into the runtime path
+used by `dfx-mgr-client` / `xmutil`.
 
-Planned payload once the build handoff is wired:
-- daphne_selftrigger_ol_<gitsha>.dtbo
-- daphne_selftrigger_ol_<gitsha>.bin
+Installed payload:
+- `/lib/firmware/xilinx/daphne_selftrigger_ol_a389fcd/`
+- compatibility aliases for the legacy app names used on older boards
 - shell.json
 
 Source of truth:

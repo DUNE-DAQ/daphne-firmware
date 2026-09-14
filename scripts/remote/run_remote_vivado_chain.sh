@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 set -eu
 
 ROOT_DIR="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}"
@@ -37,15 +37,14 @@ if ! command -v vivado >/dev/null 2>&1; then
   exit 2
 fi
 
-if ! command -v xsct >/dev/null 2>&1; then
-  echo "WARNING: xsct is not on PATH. The build may succeed, but dtbo generation will fail later." >&2
+if ! command -v sdtgen >/dev/null 2>&1 && ! command -v xsct >/dev/null 2>&1; then
+  echo "WARNING: neither sdtgen nor xsct is on PATH. The build may succeed, but dtbo generation will fail later." >&2
 fi
 
 branch_name="$(git -C "$ROOT_DIR" rev-parse --abbrev-ref HEAD)"
 commit_sha="$(git -C "$ROOT_DIR" rev-parse --short=7 HEAD)"
 
 export DAPHNE_BOARD="$BOARD"
-export DAPHNE_FIRMWARE_ROOT="$ROOT_DIR"
 export DAPHNE_ETH_MODE="$ETH_MODE"
 export DAPHNE_GIT_SHA="${DAPHNE_GIT_SHA:-$commit_sha}"
 export DAPHNE_PLATFORM_CORE="$PLATFORM_CORE"
@@ -112,6 +111,7 @@ FLOW_WORK_DIR="${DAPHNE_FUSESOC_WORK_ROOT:-$(daphne_platform_flow_work_dir "$ROO
   echo "flow_work_dir=$FLOW_WORK_DIR"
   echo "package_dtbo=$PACKAGE_DTBO"
   echo "vivado=$(command -v vivado)"
+  echo "sdtgen=$(command -v sdtgen || true)"
   echo "xsct=$(command -v xsct || true)"
 } >"$RUN_DIR/run.env"
 
@@ -124,30 +124,11 @@ run_stage() {
   stage_name="$1"
   log_path="$2"
   shift 2
-  status_path="$RUN_DIR/.${stage_name}.status.$$"
-  rm -f "$status_path"
 
   (
-    set +e
-    if ! cd "$ROOT_DIR"; then
-      printf '%s\n' 125 >"$status_path"
-      exit 0
-    fi
+    cd "$ROOT_DIR"
     "$@"
-    printf '%s\n' "$?" >"$status_path"
   ) 2>&1 | tee "$log_path"
-
-  if [ -f "$status_path" ]; then
-    stage_status="$(cat "$status_path")"
-    rm -f "$status_path"
-  else
-    stage_status=125
-  fi
-
-  if [ "$stage_status" -ne 0 ]; then
-    echo "ERROR: stage '$stage_name' failed with exit status $stage_status; see $log_path." >&2
-    return "$stage_status"
-  fi
 }
 
 if [ "$PREFLIGHT_REQUIRED" = "1" ]; then

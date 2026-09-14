@@ -1,16 +1,17 @@
 CAPI=2:
 
 name: dune-daq:daphne:stc3-frame-source:0.1.0
-description: Descriptor-first STC3 frame source with channel-local ring storage
+description: ADC-domain continuation admission and packet reservation
 provider:
   name: local
 
 filesets:
   rtl:
     depend:
-      - dune-daq:daphne:daphne-subsystem-types:0.1.0
-      - dune-daq:daphne:daphne-subsystem-primitives:0.1.0
+      - dune-daq:daphne:grouped-frame-types:0.1.0
+      - dune-daq:daphne:stc3-record-builder:0.1.0
     files:
+      - rtl/isolated/common/primitives/grouped_sample_ring.vhd
       - rtl/isolated/subsystems/trigger/stc3_frame_source.vhd
     file_type: vhdlSource-2008
 

@@ -22,11 +22,11 @@ use work.tx_mux_decl.all;
 
 entity tx_mux_ibuf is
     generic(
-        IN_BUF_DEPTH: natural:= 2048;
-        IN_BUF_MEMORY_TYPE_G: string := "block";
-        READY_AWARE_G: boolean := false
+        PACKET_WORDS: natural := 0;
+        IN_BUF_DEPTH: natural:= 2048
     );
     port(
+        packet_ready: out std_logic := '0';
         ipb_clk: in std_logic;
         ipb_rst: in std_logic;
         ipb_in: in ipb_wbus;
@@ -40,26 +40,17 @@ entity tx_mux_ibuf is
         eth_rst: in std_logic; -- Output clock sync reset (eth_clk)
         re: in std_logic; -- Read enable (eth_clk)
         q: out src_d; -- Data to mux (eth_clk)
-        ready: out std_logic; -- Source-side backpressure (src_clk)
         err: out std_logic -- Error flag (eth_clk)
     );
 
 end entity tx_mux_ibuf;
 
 architecture rtl of tx_mux_ibuf is
-
-    function prog_full_threshold(depth_i : natural) return natural is
+    function reserve_threshold return natural is
     begin
-        if depth_i > 32 then
-            return depth_i - 16;
-        elsif depth_i > 8 then
-            return depth_i - 4;
-        else
-            return depth_i - 1;
-        end if;
+        if PACKET_WORDS = 0 then return 16; end if;
+        return IN_BUF_DEPTH - PACKET_WORDS - 4;
     end function;
-
-    constant FIFO_PROG_FULL_THRESH_C: natural := prog_full_threshold(IN_BUF_DEPTH);
 
     signal ctrl: ipb_reg_v(0 downto 0);
     signal stat: ipb_reg_v(15 downto 0);
@@ -73,7 +64,7 @@ architecture rtl of tx_mux_ibuf is
     type rx_state_t is (ST_INIT, ST_DISC, ST_RUN);
     signal rx_state: rx_state_t;
     signal lfifo_busy_rx, fifo_busy_rx, lfifo_full, fifo_full, lfifo_we, fifo_we: std_logic;
-    signal fifo_prog_full, lfifo_near_full, ready_i, accept_i, rx_last: std_logic;
+    signal fifo_reserve_full, lfifo_reserve_full: std_logic;
     signal rx_run, oflow: std_logic;
     signal rx_ctr: unsigned(11 downto 0);
     signal lfifo_d, lfifo_q: std_logic_vector(12 downto 0);
@@ -95,6 +86,184 @@ architecture rtl of tx_mux_ibuf is
     attribute mark_debug of rx_state, d, lfifo_we, lfifo_d, rx_ctr, fifo_we, lfifo_full, fifo_full, oflow, tx_state, txw, last: signal is true;
 
 begin
+    fixed_packet_gen : if PACKET_WORDS /= 0 generate
+        type fixed_rx_state_t is (FIXED_RX_WAIT_IDLE, FIXED_RX_RUN);
+        type fixed_tx_state_t is (FIXED_TX_INIT, FIXED_TX_WAIT, FIXED_TX_SEND, FIXED_TX_ERR);
+        signal fixed_rx_state : fixed_rx_state_t := FIXED_RX_WAIT_IDLE;
+        signal fixed_tx_state : fixed_tx_state_t := FIXED_TX_INIT;
+        signal fixed_fifo_full, fixed_fifo_prog_full : std_logic;
+        signal fixed_fifo_wr_busy, fixed_fifo_rd_busy : std_logic;
+        signal fixed_fifo_valid, fixed_fifo_we, fixed_fifo_re : std_logic;
+        signal fixed_fifo_q : std_logic_vector(63 downto 0);
+        signal fixed_token_full, fixed_token_prog_full : std_logic;
+        signal fixed_token_wr_busy, fixed_token_rd_busy : std_logic;
+        signal fixed_token_valid, fixed_token_we, fixed_token_re : std_logic;
+        signal fixed_token_q : std_logic_vector(0 downto 0);
+        signal fixed_tx_count : natural range 0 to PACKET_WORDS := 0;
+        signal fixed_tx_sequence : unsigned(11 downto 0) := (others => '0');
+        signal fixed_error : std_logic := '0';
+    begin
+        assert PACKET_WORDS <= MAX_BLK_SIZE and PACKET_WORDS + 16 < IN_BUF_DEPTH
+            report "Invalid Hermes fixed-packet reservation" severity failure;
+
+        -- The upstream scheduler observes this only before starting a packet.
+        -- Once admitted, PACKET_WORDS plus four pipeline locations are reserved,
+        -- so the complete packet crosses the clock boundary without a mid-packet
+        -- stall or partial write.
+        packet_ready <= '1' when fixed_rx_state = FIXED_RX_RUN and src_rst = '0' and
+            fixed_fifo_wr_busy = '0' and fixed_token_wr_busy = '0' and
+            fixed_fifo_prog_full = '0' and fixed_token_prog_full = '0' else '0';
+
+        process(src_clk)
+        begin
+            if rising_edge(src_clk) then
+                if src_rst = '1' then
+                    fixed_rx_state <= FIXED_RX_WAIT_IDLE;
+                elsif fixed_rx_state = FIXED_RX_WAIT_IDLE then
+                    -- Discard a possible tail left by reset and arm only at an
+                    -- idle packet boundary.
+                    if d.valid = '0' and fixed_fifo_wr_busy = '0' and
+                       fixed_token_wr_busy = '0' then
+                        fixed_rx_state <= FIXED_RX_RUN;
+                    end if;
+                end if;
+            end if;
+        end process;
+
+        fixed_fifo_we <= d.valid when fixed_rx_state = FIXED_RX_RUN else '0';
+        fixed_token_we <= fixed_fifo_we and d.last;
+
+        fixed_fifo : xpm_fifo_async
+            generic map(
+                FIFO_MEMORY_TYPE => "block",
+                FIFO_READ_LATENCY => 0,
+                FIFO_WRITE_DEPTH => IN_BUF_DEPTH,
+                PROG_FULL_THRESH => IN_BUF_DEPTH - PACKET_WORDS - 4,
+                READ_DATA_WIDTH => 64,
+                READ_MODE => "fwft",
+                SIM_ASSERT_CHK => 1,
+                USE_ADV_FEATURES => "1006",
+                WRITE_DATA_WIDTH => 64
+            )
+            port map(
+                data_valid => fixed_fifo_valid,
+                dout => fixed_fifo_q,
+                full => fixed_fifo_full,
+                prog_full => fixed_fifo_prog_full,
+                rd_rst_busy => fixed_fifo_rd_busy,
+                wr_rst_busy => fixed_fifo_wr_busy,
+                din => d.d,
+                injectdbiterr => '0',
+                injectsbiterr => '0',
+                rd_clk => eth_clk,
+                rd_en => fixed_fifo_re,
+                rst => src_rst,
+                sleep => '0',
+                wr_clk => src_clk,
+                wr_en => fixed_fifo_we
+            );
+
+        -- One token publishes one complete fixed-length packet. Keeping packet
+        -- completion separate from the data FIFO prevents the Ethernet side
+        -- from observing or draining a partially written packet.
+        fixed_token_fifo : xpm_fifo_async
+            generic map(
+                FIFO_MEMORY_TYPE => "distributed",
+                FIFO_READ_LATENCY => 0,
+                FIFO_WRITE_DEPTH => LBUF_DEPTH,
+                PROG_FULL_THRESH => LBUF_DEPTH - 5,
+                READ_DATA_WIDTH => 1,
+                READ_MODE => "fwft",
+                SIM_ASSERT_CHK => 1,
+                USE_ADV_FEATURES => "1006",
+                WRITE_DATA_WIDTH => 1
+            )
+            port map(
+                data_valid => fixed_token_valid,
+                dout => fixed_token_q,
+                full => fixed_token_full,
+                prog_full => fixed_token_prog_full,
+                rd_rst_busy => fixed_token_rd_busy,
+                wr_rst_busy => fixed_token_wr_busy,
+                din => "1",
+                injectdbiterr => '0',
+                injectsbiterr => '0',
+                rd_clk => eth_clk,
+                rd_en => fixed_token_re,
+                rst => src_rst,
+                sleep => '0',
+                wr_clk => src_clk,
+                wr_en => fixed_token_we
+            );
+
+        process(eth_clk)
+        begin
+            if rising_edge(eth_clk) then
+                if eth_rst = '1' then
+                    fixed_tx_state <= FIXED_TX_INIT;
+                    fixed_tx_count <= 0;
+                    fixed_tx_sequence <= (others => '0');
+                    fixed_error <= '0';
+                else
+                    case fixed_tx_state is
+                        when FIXED_TX_INIT =>
+                            if fixed_fifo_rd_busy = '0' and fixed_token_rd_busy = '0' then
+                                fixed_tx_state <= FIXED_TX_WAIT;
+                            end if;
+                        when FIXED_TX_WAIT =>
+                            if fixed_token_valid = '1' and re = '1' then
+                                fixed_tx_count <= PACKET_WORDS;
+                                fixed_tx_state <= FIXED_TX_SEND;
+                            end if;
+                        when FIXED_TX_SEND =>
+                            if fixed_fifo_valid = '0' then
+                                fixed_error <= '1';
+                                fixed_tx_state <= FIXED_TX_ERR;
+                            elsif re = '1' then
+                                if fixed_tx_count = 1 then
+                                    fixed_tx_count <= 0;
+                                    fixed_tx_sequence <= fixed_tx_sequence + 1;
+                                    fixed_tx_state <= FIXED_TX_WAIT;
+                                else
+                                    fixed_tx_count <= fixed_tx_count - 1;
+                                end if;
+                            end if;
+                        when FIXED_TX_ERR =>
+                            fixed_error <= '1';
+                    end case;
+                end if;
+            end if;
+        end process;
+
+        fixed_fifo_re <= '1' when fixed_tx_state = FIXED_TX_SEND and re = '1' else '0';
+        fixed_token_re <= '1' when fixed_tx_state = FIXED_TX_SEND and re = '1' and
+            fixed_tx_count = 1 else '0';
+
+        q.d <= fixed_fifo_q when fixed_tx_state = FIXED_TX_SEND else
+            X"0000000000" & std_logic_vector(fixed_tx_sequence) &
+            std_logic_vector(to_unsigned(PACKET_WORDS, 12));
+        q.valid <= fixed_token_valid when fixed_tx_state = FIXED_TX_WAIT else
+            '1' when fixed_tx_state = FIXED_TX_SEND else '0';
+        q.last <= '1' when fixed_tx_state = FIXED_TX_SEND and fixed_tx_count = 1 else '0';
+        err <= fixed_error;
+
+        -- Preserve the IPbus address contract while dropping the legacy fake
+        -- source and sixteen-register diagnostic plane in fixed-packet builds.
+        ipb_out.ipb_rdata <= (others => '0');
+        ipb_out.ipb_ack <= ipb_in.ipb_strobe;
+        ipb_out.ipb_err <= '0';
+    end generate fixed_packet_gen;
+
+    variable_packet_gen : if PACKET_WORDS = 0 generate
+    begin
+    assert PACKET_WORDS = 0 or (PACKET_WORDS <= MAX_BLK_SIZE and PACKET_WORDS + 16 < IN_BUF_DEPTH)
+        report "Invalid Hermes fixed-packet reservation" severity failure;
+    -- Source-domain programmable-full flags reserve a whole block plus four
+    -- pipeline words. Only the packet scheduler consumes this admission signal.
+    packet_ready <= '1' when PACKET_WORDS /= 0 and rx_state = ST_RUN and
+        src_rst = '0' and fifo_busy_rx = '0' and lfifo_busy_rx = '0' and
+        fifo_reserve_full = '0' and lfifo_reserve_full = '0' and
+        ctrl_fake_en = '0' else '0';
 
 -- Registers
 
@@ -171,16 +340,16 @@ begin
                 case rx_state is
                 when ST_INIT =>  -- Starting state
                     if fifo_busy_rx = '0' and lfifo_busy_rx = '0' then
-                        if READY_AWARE_G then
-                            rx_state <= ST_RUN;
+                        if PACKET_WORDS /= 0 then
+                            -- After reset, wait for an idle source boundary so a
+                            -- tail of an interrupted packet cannot be published.
+                            if di.valid = '0' then rx_state <= ST_RUN; end if;
                         else
                             rx_state <= ST_DISC;
                         end if;
                     end if;
                 when ST_DISC => -- Discard packets
-                    if READY_AWARE_G and fifo_full = '0' and lfifo_full = '0' then
-                        rx_state <= ST_RUN;
-                    elsif di.last = '1' and fifo_full = '0' and lfifo_full = '0' then
+                    if (di.last = '1' or (PACKET_WORDS /= 0 and di.valid = '0')) and fifo_full = '0' and lfifo_full = '0' then
                         rx_state <= ST_RUN;
                     end if;
                 when ST_RUN => -- Operating
@@ -193,19 +362,13 @@ begin
     end process;
 
     rx_run <= '1' when rx_state = ST_RUN else '0';
-    lfifo_near_full <= '1' when unsigned(lfifo_c) >= to_unsigned(LBUF_DEPTH - 2, lfifo_c'length) else '0';
-    ready_i <= '1' when rx_state = ST_RUN and fifo_prog_full = '0' and lfifo_near_full = '0' and
-        fifo_busy_rx = '0' and lfifo_busy_rx = '0' else '0';
-    accept_i <= ready_i when READY_AWARE_G else '1';
-    ready <= ready_i when READY_AWARE_G else '1';
-    rx_last <= (di.last and di.valid and accept_i) when READY_AWARE_G else di.last;
 
 -- Length buffer
 
     process(src_clk)
     begin
         if rising_edge(src_clk) then
-            if src_rst = '1' or rx_last = '1' then
+            if src_rst = '1' or di.last = '1' then
                 rx_ctr <= to_unsigned(1, rx_ctr'length);
             elsif fifo_we = '1' then
                 rx_ctr <= rx_ctr + 1;
@@ -214,7 +377,7 @@ begin
     end process;
 
     oflow <= '1' when rx_ctr = MAX_BLK_SIZE + 1 else '0';
-    lfifo_we <= rx_run and (rx_last or (fifo_full or oflow));
+    lfifo_we <= rx_run and (di.last or (fifo_full or oflow));
     lfifo_d <= (fifo_full or oflow) & std_logic_vector(rx_ctr);
 
     lfifo: xpm_fifo_async
@@ -222,17 +385,19 @@ begin
             FIFO_MEMORY_TYPE => "distributed",
             FIFO_READ_LATENCY => 0,
             FIFO_WRITE_DEPTH => LBUF_DEPTH,
+            PROG_FULL_THRESH => LBUF_DEPTH - 5,
             WR_DATA_COUNT_WIDTH => LBUF_C_W,
             READ_DATA_WIDTH => 13,
             READ_MODE => "fwft",
             SIM_ASSERT_CHK => 1,
-            USE_ADV_FEATURES => "1004",
+            USE_ADV_FEATURES => "1006",
             WRITE_DATA_WIDTH => 13
         )
         port map(
             data_valid => lfifo_valid,
             dout => lfifo_q,
             full => lfifo_full,
+            prog_full => lfifo_reserve_full,
             wr_data_count => lfifo_c(LBUF_C_W - 1 downto 0),
             rd_rst_busy => lfifo_busy_tx,
             wr_rst_busy => lfifo_busy_rx,
@@ -251,27 +416,27 @@ begin
 
 -- Main buffer
 
-    fifo_we <= di.valid and rx_run and accept_i;
+    fifo_we <= di.valid and rx_run;
 
     fifo: xpm_fifo_async
         generic map(
-            FIFO_MEMORY_TYPE => IN_BUF_MEMORY_TYPE_G,
+            FIFO_MEMORY_TYPE => "block",
             FIFO_READ_LATENCY => 0,
             FIFO_WRITE_DEPTH => IN_BUF_DEPTH,
-            PROG_FULL_THRESH => FIFO_PROG_FULL_THRESH_C,
+            PROG_FULL_THRESH => reserve_threshold,
             RD_DATA_COUNT_WIDTH => 8,
             WR_DATA_COUNT_WIDTH => 8,
             READ_DATA_WIDTH => 64,
             READ_MODE => "fwft",
             SIM_ASSERT_CHK => 1,
-            USE_ADV_FEATURES => "1404",
+            USE_ADV_FEATURES => "1406",
             WRITE_DATA_WIDTH => 64
         )
         port map(
             data_valid => fifo_valid,
             dout => fifo_q,
             full => fifo_full,
-            prog_full => fifo_prog_full,
+            prog_full => fifo_reserve_full,
             rd_data_count => fifo_cw,
             wr_data_count => fifo_c,
             rd_rst_busy => fifo_busy_tx,
@@ -501,5 +666,7 @@ begin
     q.valid <= '1' when (tx_state = ST_WAIT and lfifo_valid = '1' and lfifo_q(12) = '0') or tx_state = ST_SEND else '0';
     q.last <= '1' when tx_state = ST_SEND and tx_ctr = 1 else '0';
     err <= '1' when tx_state = ST_ERR else '0';
+
+    end generate variable_packet_gen;
 
 end architecture rtl;

@@ -126,6 +126,7 @@ begin
       signal_delay_i      => signal_delay_s,
       descriptor_config_i => descriptor_config_s,
       force_trigger_i     => force_trigger_i,
+      force_calibration_tag_i => CALIBRATION_TAG_NORMAL_C,
       din_i               => trigger_samples_s,
       trigger_control_i   => trigger_control_s,
       trigger_result_o    => trigger_result_o,

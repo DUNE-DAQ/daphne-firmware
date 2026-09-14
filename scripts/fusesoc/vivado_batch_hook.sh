@@ -3,7 +3,7 @@ set -eu
 
 WORK_ROOT="${PWD}"
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-PLATFORM_ROOT="${DAPHNE_FIRMWARE_ROOT:-$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)}"
+PLATFORM_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 BOARD="${DAPHNE_BOARD:-k26c}"
 ETH_MODE="${DAPHNE_ETH_MODE:-create_ip}"
 
@@ -33,38 +33,21 @@ running_under_wsl() {
   [ -n "${WSL_DISTRO_NAME-}" ] || [ -n "${WSL_INTEROP-}" ]
 }
 
-vivado_requires_windows_paths() {
-  case "${DAPHNE_HOST_PATH_STYLE:-auto}" in
-    windows)
-      return 0
-      ;;
-    linux|native)
-      return 1
-      ;;
-    auto)
-      ;;
-    *)
-      echo "ERROR: unsupported DAPHNE_HOST_PATH_STYLE=$DAPHNE_HOST_PATH_STYLE; use auto, linux, native, or windows." >&2
-      exit 2
-      ;;
-  esac
-
-  running_under_wsl || return 1
-
+using_native_linux_vivado() {
   vivado_path="$(command -v vivado 2>/dev/null || true)"
   [ -n "$vivado_path" ] || return 1
 
   case "$vivado_path" in
-    "${DAPHNE_WSL_XILINX_WRAPPER_DIR:-__unset__}"/*|*.bat|*.cmd|*.exe)
+    /mnt/*|"$HOME"/.local/bin/*|"$HOME"/.cache/daphne-wsl-xilinx/*)
+      return 1
+      ;;
+    /*)
       return 0
       ;;
+    *)
+      return 1
+      ;;
   esac
-
-  if [ -f "$vivado_path" ] && grep -Fq "run_windows_batch_tool.sh" "$vivado_path" 2>/dev/null; then
-    return 0
-  fi
-
-  return 1
 }
 
 is_windows_style_path() {
@@ -96,7 +79,12 @@ convert_host_path() {
   raw_path="$1"
   [ -n "$raw_path" ] || return 0
 
-  if vivado_requires_windows_paths && command -v wslpath >/dev/null 2>&1; then
+  if using_native_linux_vivado; then
+    printf '%s\n' "$raw_path"
+    return 0
+  fi
+
+  if running_under_wsl && command -v wslpath >/dev/null 2>&1; then
     case "$raw_path" in
       /*)
         if converted_path=$(wslpath -w "$raw_path" 2>/dev/null); then
@@ -213,9 +201,7 @@ find_first_file_dir() {
 }
 
 if [ -z "${DAPHNE_IP_REPO_ROOT-}" ]; then
-  if [ -d "$PLATFORM_ROOT/ip_repo/daphne_ip" ]; then
-    DAPHNE_IP_REPO_ROOT="$PLATFORM_ROOT/ip_repo/daphne_ip"
-  elif [ -d "$WORK_ROOT/ip_repo/daphne_ip" ]; then
+  if [ -d "$WORK_ROOT/ip_repo/daphne_ip" ]; then
     DAPHNE_IP_REPO_ROOT="$WORK_ROOT/ip_repo/daphne_ip"
   elif [ -d "$WORK_ROOT/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip" ]; then
     DAPHNE_IP_REPO_ROOT="$WORK_ROOT/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
@@ -229,14 +215,14 @@ fi
 if [ -z "${DAPHNE_IP_EXTRA_SOURCE_ROOTS-}" ]; then
   auto_extra_roots=""
   for candidate_dir in \
-    "$PLATFORM_ROOT/rtl/isolated/common" \
-    "$PLATFORM_ROOT/rtl/isolated/common/primitives" \
-    "$PLATFORM_ROOT/rtl/isolated/subsystems/control" \
-    "$PLATFORM_ROOT/rtl/isolated/subsystems/frontend" \
-    "$PLATFORM_ROOT/rtl/isolated/subsystems/readout" \
-    "$PLATFORM_ROOT/rtl/isolated/subsystems/spy" \
-    "$PLATFORM_ROOT/rtl/isolated/subsystems/timing" \
-    "$PLATFORM_ROOT/rtl/isolated/subsystems/trigger"
+    "$WORK_ROOT/rtl/isolated/common" \
+    "$WORK_ROOT/rtl/isolated/common/primitives" \
+    "$WORK_ROOT/rtl/isolated/subsystems/control" \
+    "$WORK_ROOT/rtl/isolated/subsystems/frontend" \
+    "$WORK_ROOT/rtl/isolated/subsystems/readout" \
+    "$WORK_ROOT/rtl/isolated/subsystems/spy" \
+    "$WORK_ROOT/rtl/isolated/subsystems/timing" \
+    "$WORK_ROOT/rtl/isolated/subsystems/trigger"
   do
     if [ -d "$candidate_dir" ]; then
       auto_extra_roots="$(append_unique_path "$auto_extra_roots" "$candidate_dir")"

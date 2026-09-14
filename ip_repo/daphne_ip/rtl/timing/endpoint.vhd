@@ -47,9 +47,6 @@ port(
     sync: out std_logic_vector(7 downto 0);
     sync_stb: out std_logic;
 
-    F_OK_DEBUG: out std_logic ;
-	SCTR_DEBUG: OUT std_logic_vector (15 downto 0);
-	CCTR_DEBUG: OUT std_logic_vector (15 downto 0);
     mmcm0_locked_o: out std_logic;
     mmcm1_locked_o: out std_logic;
     endpoint_ready_o: out std_logic;
@@ -98,9 +95,6 @@ port(
     ready: out std_logic; -- Endpoint ready flag (clk domain)
     sync: out std_logic_vector(7 downto 0);
     sync_stb: out std_logic; 
-    F_OK_DEBUG: out std_logic ;
-    SCTR_DEBUG: OUT std_logic_vector (15 downto 0);
-	CCTR_DEBUG: OUT std_logic_vector (15 downto 0);
     tstamp: out std_logic_vector(63 downto 0) -- Timestamp (clk domain)
 );
 end component;
@@ -165,8 +159,6 @@ signal ep_stat: std_logic_vector(3 downto 0);
 signal ep_reset: std_logic;
 signal ep_ts_rdy: std_logic;
 signal ep_addr: std_logic_vector(15 downto 0);
-signal f_ok: std_logic ;
-signal sctr, cctr: std_logic_vector (15 downto 0);
 signal real_timestamp, fake_timestamp, timestamp_reg: std_logic_vector(63 downto 0);
 
 begin
@@ -274,9 +266,6 @@ pdts_endpoint_inst: pdts_endpoint_wrapper
 		ready => ep_ts_rdy,
 		sync => sync,
         sync_stb => sync_stb,
-        F_OK_DEBUG => f_ok,
-		SCTR_DEBUG=> sctr,
-		CCTR_DEBUG => cctr,
 		tstamp => real_timestamp
 	);
 
@@ -439,16 +428,12 @@ port map(
     mmcm0_reset => mmcm0_reset,
     use_ep => use_ep
 );
-F_OK_DEBUG <= f_ok;
 mmcm0_locked_o <= mmcm0_locked;
 mmcm1_locked_o <= mmcm1_locked;
 endpoint_ready_o <= ep_ts_rdy;
 endpoint_state_o <= ep_stat;
-timestamp_valid_o <= f_ok;
+timestamp_valid_o <= ep_ts_rdy;
 clock_gen_debug  <= sysclk_ibuf;
 mmcm0_100MHZ_CLK_debug   <= mmcm0_clkout2;
 ep_62p5MHZ_CLK_debug   <=   ep_clk62p5 ;
-
-    SCTR_DEBUG <= sctr;
-    cCTR_DEBUG <= cctr;
 end endpoint_arch;

@@ -9,12 +9,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity trig_xc is
-generic(
-    ENABLE_AFE_COMPENSATOR_G : boolean := true;
-    ENABLE_INVERT_CONTROL_G: boolean := true;
-    FIXED_CFD_G: boolean := false;
-    TRIGGER_LATENCY_G: natural := 64
-);
 port(
     clock: in std_logic;
     reset: in std_logic; 
@@ -41,17 +35,15 @@ architecture trig_xc_arch of trig_xc is
 
 signal current_sample: std_logic_vector(13 downto 0) := (others => '0');
 signal din_trig: std_logic_vector(15 downto 0) := (others => '0');
-signal trig_sample_reg: std_logic_vector(13 downto 0) := (others => '0');
 signal dout_filter1, dout_filter2, k_lpf_baseline: std_logic_vector(15 downto 0);
 signal triggered_i, triggered_i_module: std_logic;
-signal ts_reg, trig_ts_reg: std_logic_vector(63 downto 0) := (others => '0');
+-- All tuple fields have the same64-cycle latency. Updating a single capture
+-- register while only delaying the pulse corrupts closely spaced events.
+signal trigger_tuple_in, trigger_tuple_out: std_logic_vector(78 downto 0);
+signal valid_cycles: natural range 0 to 64 := 0;
+signal ts_reg: std_logic_vector(63 downto 0) := (others => '0');
 
 component hpf_pedestal_recovery_filter_trigger
-generic(
-    ENABLE_AFE_COMPENSATOR_G : boolean := true;
-    ENABLE_INVERT_CONTROL_G: boolean := true;
-    FIXED_CFD_G: boolean := false
-);
 port(
     clk : in std_logic;
     reset : in std_logic;
@@ -80,11 +72,6 @@ begin
 
     -- filtering stages and self trigger module
     xcorr_filter_trigger_inst: hpf_pedestal_recovery_filter_trigger
-    generic map (
-        ENABLE_AFE_COMPENSATOR_G => ENABLE_AFE_COMPENSATOR_G,
-        ENABLE_INVERT_CONTROL_G  => ENABLE_INVERT_CONTROL_G,
-        FIXED_CFD_G              => FIXED_CFD_G
-    )
     port map (
         clk => clock,
         reset => reset,
@@ -103,38 +90,30 @@ begin
     -- trigger goes between the adhoc conditions or the EIA self trigger condition
     triggered_i <= '1' when ( ( ti_trigger=adhoc and ti_trigger_stbr='1' ) or ( triggered_i_module='1' ) ) else '0';
 
-    gen_no_trigger_latency : if TRIGGER_LATENCY_G = 0 generate
-    begin
-        trig <= triggered_i;
-    end generate gen_no_trigger_latency;
+    -- Preserve the sample/timestamp sampled by the old event capture process:
+    -- current_sample and ts_reg refer to the preceding input clock. Shift them
+    -- together with each event, rather than reusing the most recent event's
+    -- metadata when another event arrives during the trigger latency.
+    trigger_tuple_in <= triggered_i & current_sample & ts_reg;
+    trigger_tuple_delay_inst : entity work.fixed_delay_line
+    generic map (WIDTH_G => 79, DELAY_G => 64)
+    port map (clock_i => clock, din_i => trigger_tuple_in, dout_o => trigger_tuple_out);
 
-    gen_trigger_latency : if TRIGGER_LATENCY_G > 0 generate
+    -- Keep reset off the sample/timestamp delay so Vivado can infer SRLs.
+    -- Suppress stale valid bits until all64 pre-reset entries have flushed.
+    valid_flush_proc : process(clock)
     begin
-        trigger_latency_inst : entity work.fixed_delay_line
-        generic map (
-            WIDTH_G => 1,
-            DELAY_G => TRIGGER_LATENCY_G
-        )
-        port map (
-            clock_i    => clock,
-            din_i(0)   => triggered_i,
-            dout_o(0)  => trig
-        );
-    end generate gen_trigger_latency;
-
-    -- store the sample and timestamp that caused the trigger
-    samplecap_proc: process(clock)
-    begin 
         if rising_edge(clock) then
-            if (triggered_i='1') then
-                trig_sample_reg <= current_sample;
-                trig_ts_reg     <= ts_reg;
+            if reset='1' then valid_cycles <= 0;
+            elsif valid_cycles<64 then valid_cycles <= valid_cycles+1;
             end if;
         end if;
-    end process samplecap_proc;
-
-    trig_sample_dat       <= trig_sample_reg;
-    trig_sample_ts        <= trig_ts_reg;
+    end process;
+    trig <= trigger_tuple_out(78) when reset='0' and valid_cycles=64 else '0';
+    -- Metadata is meaningful on every asserted trigger clock, including
+    -- adjacent asserted clocks; it need not remain constant between events.
+    trig_sample_dat <= trigger_tuple_out(77 downto 64);
+    trig_sample_ts <= trigger_tuple_out(63 downto 0);
     dout1                 <= dout_filter1(13 downto 0);
     dout2                 <= dout_filter2(13 downto 0);
     baseline              <= k_lpf_baseline(13 downto 0);

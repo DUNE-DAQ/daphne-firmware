@@ -13,6 +13,7 @@ fi
 
 echo "INFO: Vivado batch launcher: $DAPHNE_WSL_VIVADO_BAT"
 echo "INFO: XSCT batch launcher: $DAPHNE_WSL_XSCT_BAT"
+echo "INFO: SDTGen batch launcher: $DAPHNE_WSL_SDTGEN_BAT"
 printf 'INFO: XILINX_VITIS=%s\n' "${XILINX_VITIS-}"
 echo "INFO: PATH wrapper dir: $DAPHNE_WSL_XILINX_WRAPPER_DIR"
 
@@ -31,7 +32,15 @@ else
   fi
 fi
 
-if command -v xsct >/dev/null 2>&1; then
+if command -v sdtgen >/dev/null 2>&1; then
+  if sdtgen --help >/dev/null 2>&1; then
+    echo "INFO: SDTGen is callable from WSL."
+  else
+    sdtgen_rc=$?
+    echo "WARNING: SDTGen wrapper returned exit code $sdtgen_rc." >&2
+    echo "WARNING: Device-tree helper steps may still need manual verification." >&2
+  fi
+elif command -v xsct >/dev/null 2>&1; then
   if xsct -help >/dev/null 2>&1; then
     echo "INFO: XSCT is callable from WSL."
   else
@@ -40,9 +49,9 @@ if command -v xsct >/dev/null 2>&1; then
     echo "WARNING: Device-tree helper steps may still need manual verification." >&2
   fi
 else
-  echo "WARNING: XSCT is not available from WSL." >&2
+  echo "WARNING: neither SDTGen nor XSCT is available from WSL." >&2
   echo "WARNING: This is acceptable for bitstream/XSA generation." >&2
-  echo "WARNING: Device-tree helper steps will be skipped until Vitis/XSCT is reachable." >&2
+  echo "WARNING: Device-tree helper steps will be skipped until Vitis SDTGen/XSCT is reachable." >&2
 fi
 
 echo "INFO: Vivado is callable from WSL."

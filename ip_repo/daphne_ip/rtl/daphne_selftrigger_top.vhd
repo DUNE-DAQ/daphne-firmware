@@ -266,6 +266,21 @@ port(
     eth0_tx_p: out std_logic_vector (0 downto 0);
     eth0_tx_n: out std_logic_vector (0 downto 0);
     eth0_tx_dis: out std_logic_vector (0 downto 0);
+    eth1_rx_p: in std_logic_vector (0 downto 0);
+    eth1_rx_n: in std_logic_vector (0 downto 0);
+    eth1_tx_p: out std_logic_vector (0 downto 0);
+    eth1_tx_n: out std_logic_vector (0 downto 0);
+    eth1_tx_dis: out std_logic_vector (0 downto 0);
+    eth2_rx_p: in std_logic_vector (0 downto 0);
+    eth2_rx_n: in std_logic_vector (0 downto 0);
+    eth2_tx_p: out std_logic_vector (0 downto 0);
+    eth2_tx_n: out std_logic_vector (0 downto 0);
+    eth2_tx_dis: out std_logic_vector (0 downto 0);
+    eth3_rx_p: in std_logic_vector (0 downto 0);
+    eth3_rx_n: in std_logic_vector (0 downto 0);
+    eth3_tx_p: out std_logic_vector (0 downto 0);
+    eth3_tx_n: out std_logic_vector (0 downto 0);
+    eth3_tx_dis: out std_logic_vector (0 downto 0);
 
     out_buff_trig: out std_logic;
     out_buff_clk: out std_logic;
@@ -278,9 +293,6 @@ port(
     clock_gen_debug: out std_logic;
     mmcm0_100MHZ_CLK_debug: out std_logic;
     ep_62p5MHZ_CLK_debug: out std_logic;
-    F_OK_DEBUG: out std_logic;
-    SCTR_DEBUG: OUT std_logic_vector (15 downto 0);
-    CCTR_DEBUG: OUT std_logic_vector (15 downto 0);
     Trigered_debug: out std_logic
   );
 end daphne_selftrigger_top;
@@ -541,6 +553,21 @@ begin
       eth0_tx_p                 => eth0_tx_p,
       eth0_tx_n                 => eth0_tx_n,
       eth0_tx_dis               => eth0_tx_dis,
+      eth1_rx_p                 => eth1_rx_p,
+      eth1_rx_n                 => eth1_rx_n,
+      eth1_tx_p                 => eth1_tx_p,
+      eth1_tx_n                 => eth1_tx_n,
+      eth1_tx_dis               => eth1_tx_dis,
+      eth2_rx_p                 => eth2_rx_p,
+      eth2_rx_n                 => eth2_rx_n,
+      eth2_tx_p                 => eth2_tx_p,
+      eth2_tx_n                 => eth2_tx_n,
+      eth2_tx_dis               => eth2_tx_dis,
+      eth3_rx_p                 => eth3_rx_p,
+      eth3_rx_n                 => eth3_rx_n,
+      eth3_tx_p                 => eth3_tx_p,
+      eth3_tx_n                 => eth3_tx_n,
+      eth3_tx_dis               => eth3_tx_dis,
       out_buff_trig             => out_buff_trig,
       out_buff_clk              => out_buff_clk,
       out_buff_data             => out_buff_data,
@@ -551,9 +578,6 @@ begin
       clock_gen_debug           => clock_gen_debug,
       mmcm0_100MHZ_CLK_debug    => mmcm0_100MHZ_CLK_debug,
       ep_62p5MHZ_CLK_debug      => ep_62p5MHZ_CLK_debug,
-      F_OK_DEBUG                => F_OK_DEBUG,
-      SCTR_DEBUG                => SCTR_DEBUG,
-      CCTR_DEBUG                => CCTR_DEBUG,
       Trigered_debug            => Trigered_debug
     );
 end architecture rtl;

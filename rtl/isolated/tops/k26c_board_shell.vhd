@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 
 library work;
 use work.daphne_package.all;
+use work.daphne_subsystem_pkg.all;
 
 entity k26c_board_shell is
   generic (
@@ -11,9 +12,7 @@ entity k26c_board_shell is
     slot_id     : std_logic_vector(3 downto 0)  := X"2";
     crate_id    : std_logic_vector(9 downto 0)  := "0000000011";
     detector_id : std_logic_vector(5 downto 0)  := "000010";
-    version_id  : std_logic_vector(5 downto 0)  := "000001";
-    ENABLE_SPY_CAPTURE_G : boolean := false;
-    ENABLE_OUTBUFFER_G   : boolean := false
+    version_id  : std_logic_vector(5 downto 0)  := "000001"
   );
   port (
     sysclk100 : in std_logic;
@@ -280,6 +279,21 @@ entity k26c_board_shell is
     eth0_tx_p : out std_logic_vector(0 downto 0);
     eth0_tx_n : out std_logic_vector(0 downto 0);
     eth0_tx_dis : out std_logic_vector(0 downto 0);
+    eth1_rx_p: in std_logic_vector(0 downto 0);
+    eth1_rx_n: in std_logic_vector(0 downto 0);
+    eth1_tx_p: out std_logic_vector(0 downto 0);
+    eth1_tx_n: out std_logic_vector(0 downto 0);
+    eth1_tx_dis: out std_logic_vector(0 downto 0);
+    eth2_rx_p: in std_logic_vector(0 downto 0);
+    eth2_rx_n: in std_logic_vector(0 downto 0);
+    eth2_tx_p: out std_logic_vector(0 downto 0);
+    eth2_tx_n: out std_logic_vector(0 downto 0);
+    eth2_tx_dis: out std_logic_vector(0 downto 0);
+    eth3_rx_p: in std_logic_vector(0 downto 0);
+    eth3_rx_n: in std_logic_vector(0 downto 0);
+    eth3_tx_p: out std_logic_vector(0 downto 0);
+    eth3_tx_n: out std_logic_vector(0 downto 0);
+    eth3_tx_dis: out std_logic_vector(0 downto 0);
 
     out_buff_trig : out std_logic;
     out_buff_clk  : out std_logic;
@@ -292,16 +306,14 @@ entity k26c_board_shell is
     clock_gen_debug : out std_logic;
     mmcm0_100MHZ_CLK_debug : out std_logic;
     ep_62p5MHZ_CLK_debug : out std_logic;
-    F_OK_DEBUG : out std_logic;
-    SCTR_DEBUG : out std_logic_vector(15 downto 0);
-    CCTR_DEBUG : out std_logic_vector(15 downto 0);
     Trigered_debug : out std_logic
   );
 end entity k26c_board_shell;
 
 architecture rtl of k26c_board_shell is
   signal din_full_array          : array_5x9x16_type;
-  signal trig                    : std_logic;
+  signal software_spy_trigger    : std_logic;
+  signal external_spy_trigger    : std_logic;
   signal timestamp               : std_logic_vector(63 downto 0);
   signal clock                   : std_logic;
   signal clk125                  : std_logic;
@@ -318,7 +330,15 @@ architecture rtl of k26c_board_shell is
   signal reset_st_counters       : std_logic;
   signal din_debug_reg           : std_logic_vector(13 downto 0);
   signal out_buff_trig_s         : std_logic;
+  signal calibration_frame_trigger : std_logic;
+  signal force_calibration_tag   : std_logic_vector(1 downto 0);
 begin
+  calibration_frame_trigger <= FORCE_TRIG or software_spy_trigger or external_spy_trigger;
+
+  force_calibration_tag <= CALIBRATION_TAG_SOFTWARE_C when (FORCE_TRIG = '1' or software_spy_trigger = '1') else
+                           CALIBRATION_TAG_BNC_C when external_spy_trigger = '1' else
+                           CALIBRATION_TAG_NORMAL_C;
+
   frontend_plane_inst : entity work.k26c_board_frontend_plane
     port map (
       afe0_p         => afe0_p,
@@ -337,9 +357,13 @@ begin
       clk125_i       => clk125,
       clk500_i       => clk500,
       trig_in_i      => trig_IN,
-      frontend_dout_o    => din_full_array,
-      frontend_trigger_o => trig,
-      din_debug_o        => din_debug_reg,
+      frontend_dout_o       => din_full_array,
+      frontend_trigger_o    => open,
+      software_trigger_o    => software_spy_trigger,
+      external_trigger_o    => external_spy_trigger,
+      spy_trigger_source_o  => open,
+      spy_trigger_inhibit_o => open,
+      din_debug_o           => din_debug_reg,
       s_axi_aclk     => FRONT_END_S_AXI_ACLK,
       s_axi_aresetn  => FRONT_END_S_AXI_ARESETN,
       s_axi_awaddr   => FRONT_END_S_AXI_AWADDR,
@@ -363,69 +387,31 @@ begin
       s_axi_rready   => FRONT_END_S_AXI_RREADY
     );
 
-  gen_spy_capture_enabled : if ENABLE_SPY_CAPTURE_G generate
-  begin
-    spy_capture_bridge_inst : entity work.k26c_board_spy_capture_plane
-      port map (
-        clock_i             => clock,
-        reset_i             => '0',
-        frontend_trigger_i  => trig,
-        afe_dout_i          => din_full_array,
-        timestamp_i         => timestamp,
-        adhoc_i             => adhoc,
-        ti_trigger_i        => ti_trigger_reg,
-        ti_trigger_stbr_i   => ti_trigger_stbr_reg,
-        s_axi_aclk          => SPY_BUF_S_S_AXI_ACLK,
-        s_axi_aresetn       => SPY_BUF_S_S_AXI_ARESETN,
-        s_axi_awaddr        => SPY_BUF_S_S_AXI_AWADDR,
-        s_axi_awprot        => SPY_BUF_S_S_AXI_AWPROT,
-        s_axi_awvalid       => SPY_BUF_S_S_AXI_AWVALID,
-        s_axi_awready       => SPY_BUF_S_S_AXI_AWREADY,
-        s_axi_wdata         => SPY_BUF_S_S_AXI_WDATA,
-        s_axi_wstrb         => SPY_BUF_S_S_AXI_WSTRB,
-        s_axi_wvalid        => SPY_BUF_S_S_AXI_WVALID,
-        s_axi_wready        => SPY_BUF_S_S_AXI_WREADY,
-        s_axi_bresp         => SPY_BUF_S_S_AXI_BRESP,
-        s_axi_bvalid        => SPY_BUF_S_S_AXI_BVALID,
-        s_axi_bready        => SPY_BUF_S_S_AXI_BREADY,
-        s_axi_araddr        => SPY_BUF_S_S_AXI_ARADDR,
-        s_axi_arprot        => SPY_BUF_S_S_AXI_ARPROT,
-        s_axi_arvalid       => SPY_BUF_S_S_AXI_ARVALID,
-        s_axi_arready       => SPY_BUF_S_S_AXI_ARREADY,
-        s_axi_rdata         => SPY_BUF_S_S_AXI_RDATA,
-        s_axi_rresp         => SPY_BUF_S_S_AXI_RRESP,
-        s_axi_rvalid        => SPY_BUF_S_S_AXI_RVALID,
-        s_axi_rready        => SPY_BUF_S_S_AXI_RREADY
-      );
-  end generate gen_spy_capture_enabled;
-
-  gen_spy_capture_disabled : if ENABLE_SPY_CAPTURE_G = false generate
-  begin
-    spy_null_slave_inst : entity work.axilite_null_slave
-      port map (
-        s_axi_aclk    => SPY_BUF_S_S_AXI_ACLK,
-        s_axi_aresetn => SPY_BUF_S_S_AXI_ARESETN,
-        s_axi_awaddr  => SPY_BUF_S_S_AXI_AWADDR,
-        s_axi_awprot  => SPY_BUF_S_S_AXI_AWPROT,
-        s_axi_awvalid => SPY_BUF_S_S_AXI_AWVALID,
-        s_axi_awready => SPY_BUF_S_S_AXI_AWREADY,
-        s_axi_wdata   => SPY_BUF_S_S_AXI_WDATA,
-        s_axi_wstrb   => SPY_BUF_S_S_AXI_WSTRB,
-        s_axi_wvalid  => SPY_BUF_S_S_AXI_WVALID,
-        s_axi_wready  => SPY_BUF_S_S_AXI_WREADY,
-        s_axi_bresp   => SPY_BUF_S_S_AXI_BRESP,
-        s_axi_bvalid  => SPY_BUF_S_S_AXI_BVALID,
-        s_axi_bready  => SPY_BUF_S_S_AXI_BREADY,
-        s_axi_araddr  => SPY_BUF_S_S_AXI_ARADDR,
-        s_axi_arprot  => SPY_BUF_S_S_AXI_ARPROT,
-        s_axi_arvalid => SPY_BUF_S_S_AXI_ARVALID,
-        s_axi_arready => SPY_BUF_S_S_AXI_ARREADY,
-        s_axi_rdata   => SPY_BUF_S_S_AXI_RDATA,
-        s_axi_rresp   => SPY_BUF_S_S_AXI_RRESP,
-        s_axi_rvalid  => SPY_BUF_S_S_AXI_RVALID,
-        s_axi_rready  => SPY_BUF_S_S_AXI_RREADY
-      );
-  end generate gen_spy_capture_disabled;
+  -- Spy capture RAM and its trigger/capture plumbing are removed.
+  removed_input_spy_inst : entity work.axi_lite_unavailable
+    port map (
+      s_axi_aclk          => SPY_BUF_S_S_AXI_ACLK,
+      s_axi_aresetn       => SPY_BUF_S_S_AXI_ARESETN,
+      s_axi_awaddr        => SPY_BUF_S_S_AXI_AWADDR,
+      s_axi_awprot        => SPY_BUF_S_S_AXI_AWPROT,
+      s_axi_awvalid       => SPY_BUF_S_S_AXI_AWVALID,
+      s_axi_awready       => SPY_BUF_S_S_AXI_AWREADY,
+      s_axi_wdata         => SPY_BUF_S_S_AXI_WDATA,
+      s_axi_wstrb         => SPY_BUF_S_S_AXI_WSTRB,
+      s_axi_wvalid        => SPY_BUF_S_S_AXI_WVALID,
+      s_axi_wready        => SPY_BUF_S_S_AXI_WREADY,
+      s_axi_bresp         => SPY_BUF_S_S_AXI_BRESP,
+      s_axi_bvalid        => SPY_BUF_S_S_AXI_BVALID,
+      s_axi_bready        => SPY_BUF_S_S_AXI_BREADY,
+      s_axi_araddr        => SPY_BUF_S_S_AXI_ARADDR,
+      s_axi_arprot        => SPY_BUF_S_S_AXI_ARPROT,
+      s_axi_arvalid       => SPY_BUF_S_S_AXI_ARVALID,
+      s_axi_arready       => SPY_BUF_S_S_AXI_ARREADY,
+      s_axi_rdata         => SPY_BUF_S_S_AXI_RDATA,
+      s_axi_rresp         => SPY_BUF_S_S_AXI_RRESP,
+      s_axi_rvalid        => SPY_BUF_S_S_AXI_RVALID,
+      s_axi_rready        => SPY_BUF_S_S_AXI_RREADY
+    );
 
   timing_bridge_inst : entity work.k26c_board_timing_plane
     port map (
@@ -440,9 +426,6 @@ begin
       clock_gen_debug         => clock_gen_debug,
       mmcm0_100mhz_clk_debug  => mmcm0_100MHZ_CLK_debug,
       ep_62p5mhz_clk_debug    => ep_62p5MHZ_CLK_debug,
-      f_ok_debug              => F_OK_DEBUG,
-      sctr_debug              => SCTR_DEBUG,
-      cctr_debug              => CCTR_DEBUG,
       clock_o                 => clock,
       clk500_o                => clk500,
       clk125_o                => clk125,
@@ -575,10 +558,7 @@ begin
       stuff_s_axi_rready     => STUFF_S_AXI_RREADY
     );
 
-  selftrigger_plane_inst : entity work.k26c_board_grouped_selftrigger_plane
-    generic map (
-      ENABLE_OUTBUFFER_G => ENABLE_OUTBUFFER_G
-    )
+  selftrigger_plane_inst : entity work.k26c_board_selftrigger_plane
     port map (
       link_id                => link_id,
       slot_id                => slot_id,
@@ -596,7 +576,8 @@ begin
       timestamp              => timestamp,
       din_core               => din_full_array,
       enable                 => core_chan_enable,
-      forcetrig              => FORCE_TRIG,
+      forcetrig              => calibration_frame_trigger,
+      force_calibration_tag  => force_calibration_tag,
       st_trigger_signal      => open,
       adhoc                  => adhoc,
       ti_trigger             => ti_trigger_reg,
@@ -671,6 +652,21 @@ begin
       eth0_tx_p              => eth0_tx_p,
       eth0_tx_n              => eth0_tx_n,
       eth0_tx_dis            => eth0_tx_dis,
+      eth1_rx_p => eth1_rx_p,
+      eth1_rx_n => eth1_rx_n,
+      eth1_tx_p => eth1_tx_p,
+      eth1_tx_n => eth1_tx_n,
+      eth1_tx_dis => eth1_tx_dis,
+      eth2_rx_p => eth2_rx_p,
+      eth2_rx_n => eth2_rx_n,
+      eth2_tx_p => eth2_tx_p,
+      eth2_tx_n => eth2_tx_n,
+      eth2_tx_dis => eth2_tx_dis,
+      eth3_rx_p => eth3_rx_p,
+      eth3_rx_n => eth3_rx_n,
+      eth3_tx_p => eth3_tx_p,
+      eth3_tx_n => eth3_tx_n,
+      eth3_tx_dis => eth3_tx_dis,
       out_buff_data          => out_buff_data,
       out_buff_trig          => out_buff_trig_s,
       valid_debug            => VALID_DEBUG,

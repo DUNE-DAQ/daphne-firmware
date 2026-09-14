@@ -1,233 +1,209 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
+library xpm;
+use xpm.vcomponents.all;
 use work.daphne_subsystem_pkg.all;
+use work.grouped_frame_pkg.all;
 
+-- One fixed-slice packer and one fragment descriptor calculator per four
+-- channels. ADC-domain reserved URAM slots are filled through an addressed
+-- write FIFO. Only the final header write publishes a complete record.
 entity afe_stc3_stream_serializer is
-  generic (
-    CHANNELS_PER_AFE_G : positive := 8
-  );
   port (
-    clock_i             : in  std_logic;
-    reset_i             : in  std_logic;
-    reset_st_counters_i : in  std_logic;
-    desc_valid_i        : in  std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
-    desc_i              : in  stc3_frame_descriptor_array_t(0 to CHANNELS_PER_AFE_G - 1);
-    desc_trailer_i      : in  peak_descriptor_trailer_bank_t(0 to CHANNELS_PER_AFE_G - 1);
-    desc_taken_o        : out std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
-    desc_released_o     : out std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
-    ring_rd_addr_o      : out slv11_array_t(0 to CHANNELS_PER_AFE_G - 1);
-    ring_dout_i         : in  sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
-    ready_o             : out std_logic;
-    rd_en_i             : in  std_logic;
-    dout_o              : out std_logic_vector(71 downto 0)
+    clock_i, reset_i : in std_logic;
+    builder_clock_i, builder_reset_i : in std_logic;
+    desc_i : in grouped_descriptor_array_t(0 to 3);
+    desc_valid_i : in std_logic_array_t(0 to 3);
+    desc_busy_o : out std_logic_array_t(0 to 3);
+    ring_rd_addr_o : out ring_address_array_t(0 to 3);
+    ring_data_i : in sample14_array_t(0 to 3);
+    packet_wr_o, packet_commit_o : out std_logic_array_t(0 to 3);
+    packet_addr_o : out unsigned(11 downto 0);
+    packet_data_o : out std_logic_vector(71 downto 0);
+    packet_overflow_o : out std_logic
   );
-end entity afe_stc3_stream_serializer;
-
+end entity;
 architecture rtl of afe_stc3_stream_serializer is
-  constant FRAME_SAMPLE_COUNT_C       : natural := 512;
-  constant FRAME_BLOCK_COUNT_C        : natural := FRAME_SAMPLE_COUNT_C / 32;
-  constant FINAL_BLOCK_INDEX_C        : natural := FRAME_BLOCK_COUNT_C - 1;
-  constant BLOCK_SAMPLE_COUNT_C       : natural := 32;
-  constant WORDS_PER_BLOCK_C          : natural := 7;
-  constant HEADER_WORD_COUNT_C        : natural := 8;
-  constant WORDS_PER_PACKET_C         : natural := HEADER_WORD_COUNT_C + FRAME_BLOCK_COUNT_C * WORDS_PER_BLOCK_C;
-  constant OUTPUT_FIFO_DEPTH_C        : positive := 256;
-  constant OUTPUT_FIFO_COUNT_WIDTH_C  : positive := 8;
-  constant OUTPUT_FIFO_ACCEPT_LIMIT_C : natural := OUTPUT_FIFO_DEPTH_C - WORDS_PER_PACKET_C;
-
-  type serializer_state_t is (ser_idle, ser_header, ser_load, ser_emit);
-  type sample_block_t is array (0 to BLOCK_SAMPLE_COUNT_C - 1) of std_logic_vector(13 downto 0);
-
-  function pack_block_word(samples : sample_block_t; word_idx : natural) return std_logic_vector is
-  begin
-    case word_idx is
-      when 0 =>
-        return samples(4)(7 downto 0) & samples(3) & samples(2) & samples(1) & samples(0);
-      when 1 =>
-        return samples(9)(1 downto 0) & samples(8) & samples(7) & samples(6) & samples(5) & samples(4)(13 downto 8);
-      when 2 =>
-        return samples(13)(9 downto 0) & samples(12) & samples(11) & samples(10) & samples(9)(13 downto 2);
-      when 3 =>
-        return samples(18)(3 downto 0) & samples(17) & samples(16) & samples(15) & samples(14) & samples(13)(13 downto 10);
-      when 4 =>
-        return samples(22)(11 downto 0) & samples(21) & samples(20) & samples(19) & samples(18)(13 downto 4);
-      when 5 =>
-        return samples(27)(5 downto 0) & samples(26) & samples(25) & samples(24) & samples(23) & samples(22)(13 downto 12);
-      when others =>
-        return samples(31) & samples(30) & samples(29) & samples(28) & samples(27)(13 downto 6);
-    end case;
-  end function;
-
-  signal serializer_state_s   : serializer_state_t := ser_idle;
-  signal active_desc_s        : stc3_frame_descriptor_t := STC3_FRAME_DESCRIPTOR_NULL;
-  signal active_trailer_s     : peak_descriptor_trailer_t := PEAK_DESCRIPTOR_TRAILER_NULL;
-  signal active_channel_s     : integer range 0 to CHANNELS_PER_AFE_G - 1 := 0;
-  signal next_channel_s       : integer range 0 to CHANNELS_PER_AFE_G - 1 := 0;
-  signal block_samples_s      : sample_block_t := (others => (others => '0'));
-  signal header_index_s       : integer range 0 to HEADER_WORD_COUNT_C - 1 := 0;
-  signal block_index_s        : integer range 0 to FINAL_BLOCK_INDEX_C := 0;
-  signal load_issue_index_s   : integer range 0 to BLOCK_SAMPLE_COUNT_C := 0;
-  signal emit_index_s         : integer range 0 to WORDS_PER_BLOCK_C - 1 := 0;
-  signal fifo_din_s           : std_logic_vector(71 downto 0) := (others => '0');
-  signal fifo_dout_s          : std_logic_vector(71 downto 0);
-  signal fifo_wr_en_s         : std_logic := '0';
-  signal fifo_sleep_s         : std_logic := '1';
-  signal fifo_wr_data_count_s : std_logic_vector(OUTPUT_FIFO_COUNT_WIDTH_C - 1 downto 0);
-  signal output_space_ok_s    : std_logic;
-  signal desc_taken_s         : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1) := (others => '0');
-  signal desc_released_s      : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1) := (others => '0');
+  type state_t is (idle, prime, payload, header);
+  signal state_s : state_t := idle;
+  signal active_s : grouped_descriptor_t := (others=>'0');
+  signal channel_s, next_channel_s : unsigned(1 downto 0) := (others=>'0');
+  signal sample_index_s, issue_index_s : unsigned(8 downto 0) := (others=>'0');
+  signal header_index_s : unsigned(2 downto 0) := (others=>'0');
+  signal payload_word_s : unsigned(6 downto 0) := (others=>'0');
+  signal shift_s : std_logic_vector(63 downto 0) := (others=>'0');
+  signal window_s : std_logic_vector(77 downto 0);
+  signal sample_s : std_logic_vector(13 downto 0);
+  signal sample_valid_s, descriptor_start_s, overflow_s : std_logic;
+  signal baseline_s : std_logic_vector(13 downto 0);
+  signal descriptor_word_s, payload_data_s : std_logic_vector(63 downto 0);
+  signal payload_wr_s : std_logic;
+  signal wr_en_s, full_s, empty_s, wr_busy_s, rd_busy_s, rd_en_s : std_logic;
+  signal write_count_s : std_logic_vector(9 downto 0);
+  signal write_s, read_s : std_logic_vector(87 downto 0);
+  signal dest_desc_s, held_desc_s : grouped_descriptor_array_t(0 to 3);
+  signal request_s, ack_s, received_s, send_s : std_logic_vector(0 to 3) := (others=>'0');
+  signal armed_s : std_logic_vector(0 to 3) := (others=>'0');
+  signal commit_s : std_logic_array_t(0 to 3);
+  type source_state_t is (src_idle, src_ack, src_clear);
+  type source_states_t is array(0 to 3) of source_state_t;
+  signal source_state_s : source_states_t := (others=>src_clear);
+  signal committed_s : std_logic_vector(0 to 3) := (others=>'1');
 begin
-  desc_taken_o <= desc_taken_s;
-  desc_released_o <= desc_released_s;
-
-  ring_addr_gen : for idx in 0 to CHANNELS_PER_AFE_G - 1 generate
+  channels : for ch in 0 to 3 generate
   begin
-    ring_rd_addr_o(idx) <= std_logic_vector(unsigned(active_desc_s.start_ptr) + to_unsigned(block_index_s * BLOCK_SAMPLE_COUNT_C + load_issue_index_s, active_desc_s.start_ptr'length))
-      when (idx = active_channel_s and serializer_state_s = ser_load and load_issue_index_s < BLOCK_SAMPLE_COUNT_C)
-      else active_desc_s.start_ptr when idx = active_channel_s
-      else (others => '0');
-  end generate ring_addr_gen;
+    desc_busy_o(ch) <= '0' when source_state_s(ch)=src_idle else '1';
+    mailbox : xpm_cdc_handshake
+      generic map(DEST_EXT_HSK=>1, DEST_SYNC_FF=>2, INIT_SYNC_FF=>1,
+        SIM_ASSERT_CHK=>1, SRC_SYNC_FF=>2, WIDTH=>154)
+      port map(src_clk=>clock_i, src_in=>held_desc_s(ch), src_send=>send_s(ch),
+        src_rcv=>received_s(ch), dest_clk=>builder_clock_i,
+        dest_out=>dest_desc_s(ch), dest_req=>request_s(ch), dest_ack=>ack_s(ch));
+    -- Both descriptor bits and source ownership remain stable for the full
+    -- request/ack exchange. A returned commit is also required before reuse.
+    process(clock_i)
+    begin
+      if rising_edge(clock_i) then
+        if reset_i='1' then
+          send_s(ch)<='0'; source_state_s(ch)<=src_clear; committed_s(ch)<='1';
+        else
+          if commit_s(ch)='1' then committed_s(ch)<='1'; end if;
+          case source_state_s(ch) is
+            when src_idle =>
+              if desc_valid_i(ch)='1' then
+                held_desc_s(ch)<=desc_i(ch); send_s(ch)<='1';
+                committed_s(ch)<='0'; source_state_s(ch)<=src_ack;
+              end if;
+            when src_ack =>
+              if received_s(ch)='1' then send_s(ch)<='0'; source_state_s(ch)<=src_clear; end if;
+            when src_clear =>
+              if received_s(ch)='0' and committed_s(ch)='1' then source_state_s(ch)<=src_idle; end if;
+          end case;
+        end if;
+      end if;
+    end process;
+    ring_rd_addr_o(ch) <= unsigned(active_s(139 downto 129)) + resize(issue_index_s,11);
+    packet_wr_o(ch) <= rd_en_s when unsigned(read_s(85 downto 84))=ch else '0';
+    commit_s(ch) <= rd_en_s and read_s(86) when unsigned(read_s(85 downto 84))=ch else '0';
+    packet_commit_o(ch) <= commit_s(ch);
+  end generate;
+  packet_addr_o <= unsigned(read_s(83 downto 72));
+  packet_data_o <= read_s(71 downto 0);
+  packet_overflow_o <= read_s(87);
+  rd_en_s <= not empty_s and not rd_busy_s and not reset_i;
 
-  output_fifo_inst : entity work.sync_fifo_fwft
-    generic map (
-      DATA_WIDTH_G        => 72,
-      DEPTH_G             => OUTPUT_FIFO_DEPTH_C,
-      COUNT_WIDTH_G       => OUTPUT_FIFO_COUNT_WIDTH_C,
-      MEMORY_TYPE_G       => "auto",
-      PROG_EMPTY_THRESH_G => 5,
-      PROG_FULL_THRESH_G  => OUTPUT_FIFO_ACCEPT_LIMIT_C + 1
-    )
-    port map (
-      clock_i         => clock_i,
-      reset_i         => reset_i,
-      sleep_i         => fifo_sleep_s,
-      wr_en_i         => fifo_wr_en_s,
-      din_i           => fifo_din_s,
-      rd_en_i         => rd_en_i,
-      dout_o          => fifo_dout_s,
-      prog_empty_o    => open,
-      prog_full_o     => open,
-      wr_data_count_o => fifo_wr_data_count_s
-    );
+  write_fifo : xpm_fifo_async
+    generic map(CDC_SYNC_STAGES=>2, DOUT_RESET_VALUE=>"0", ECC_MODE=>"no_ecc",
+      FIFO_MEMORY_TYPE=>"block", FIFO_READ_LATENCY=>0, FIFO_WRITE_DEPTH=>512,
+      FULL_RESET_VALUE=>0, PROG_EMPTY_THRESH=>10, PROG_FULL_THRESH=>385,
+      RD_DATA_COUNT_WIDTH=>10, READ_DATA_WIDTH=>88, READ_MODE=>"fwft",
+      RELATED_CLOCKS=>0, SIM_ASSERT_CHK=>1, USE_ADV_FEATURES=>"0004",
+      WAKEUP_TIME=>0, WRITE_DATA_WIDTH=>88, WR_DATA_COUNT_WIDTH=>10)
+    port map(rst=>builder_reset_i, wr_clk=>builder_clock_i, wr_en=>wr_en_s,
+      din=>write_s, full=>full_s, wr_ack=>open, overflow=>open,
+      prog_full=>open, wr_data_count=>write_count_s, almost_full=>open,
+      wr_rst_busy=>wr_busy_s, rd_clk=>clock_i, rd_en=>rd_en_s, dout=>read_s,
+      empty=>empty_s, underflow=>open, prog_empty=>open, rd_data_count=>open,
+      almost_empty=>open, data_valid=>open, rd_rst_busy=>rd_busy_s,
+      sleep=>'0', injectsbiterr=>'0', injectdbiterr=>'0', sbiterr=>open, dbiterr=>open);
 
-  output_space_ok_s <= '1' when to_integer(unsigned(fifo_wr_data_count_s)) <= OUTPUT_FIFO_ACCEPT_LIMIT_C else '0';
-  fifo_sleep_s      <= '1' when serializer_state_s = ser_idle else '0';
-  fifo_wr_en_s      <= '1' when (serializer_state_s = ser_header or serializer_state_s = ser_emit) else '0';
-
-  fifo_din_s <= X"BE" & active_desc_s.sample0_ts when (serializer_state_s = ser_header and header_index_s = 0) else
-                X"00" & active_desc_s.ch_id & active_desc_s.version & "000000" &
-                active_desc_s.baseline & "00" & active_desc_s.threshold_lsb &
-                "00" & active_desc_s.trigger_sample when (serializer_state_s = ser_header and header_index_s = 1) else
-                X"00" & active_trailer_s(1) & active_trailer_s(0) when (serializer_state_s = ser_header and header_index_s = 2) else
-                X"00" & active_trailer_s(3) & active_trailer_s(2) when (serializer_state_s = ser_header and header_index_s = 3) else
-                X"00" & active_trailer_s(5) & active_trailer_s(4) when (serializer_state_s = ser_header and header_index_s = 4) else
-                X"00" & active_trailer_s(7) & active_trailer_s(6) when (serializer_state_s = ser_header and header_index_s = 5) else
-                X"00" & active_trailer_s(9) & active_trailer_s(8) when (serializer_state_s = ser_header and header_index_s = 6) else
-                X"00" & active_trailer_s(11) & active_trailer_s(10) when (serializer_state_s = ser_header and header_index_s = 7) else
-                X"ED" & pack_block_word(block_samples_s, emit_index_s) when (
-                  serializer_state_s = ser_emit and
-                  block_index_s = FINAL_BLOCK_INDEX_C and
-                  emit_index_s = WORDS_PER_BLOCK_C - 1
-                ) else
-                X"00" & pack_block_word(block_samples_s, emit_index_s) when serializer_state_s = ser_emit else
-                (others => '0');
-
-  main_proc : process(clock_i)
-    variable desc_taken_v : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
-    variable desc_released_v : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
-    variable found_v      : boolean;
-    variable found_idx_v  : integer range 0 to CHANNELS_PER_AFE_G - 1;
+  sample_s <= ring_data_i(to_integer(channel_s));
+  sample_valid_s <= '1' when state_s=payload else '0';
+  descriptor_start_s <= '1' when state_s=payload and sample_index_s=0 else '0';
+  baseline_s <= std_logic_vector(to_unsigned(0,14)-unsigned(active_s(64 downto 51)))
+    when active_s(8)='1' else active_s(64 downto 51);
+  descriptors : entity work.fragment_peak_descriptors_banked
+    port map(clock_i=>builder_clock_i, reset_i=>builder_reset_i,
+      start_i=>descriptor_start_s, baseline_i=>baseline_s, positive_pulse_i=>active_s(8),
+      threshold_i=>active_s(22 downto 9), sample_valid_i=>sample_valid_s,
+      sample_i=>sample_s, sample_index_i=>sample_index_s,
+      read_index_i=>header_index_s-2, read_word_o=>descriptor_word_s,
+      done_o=>open, overflow_o=>overflow_s);
+  window_s <= sample_s & shift_s;
+  process(all)
   begin
-    if rising_edge(clock_i) then
-      desc_taken_v := (others => '0');
-      desc_released_v := (others => '0');
+    payload_wr_s<=sample_valid_s; payload_data_s<=(others=>'0');
+    case to_integer(sample_index_s(4 downto 0)) is
+      when 4 => payload_data_s<=window_s(71 downto 8);
+      when 9 => payload_data_s<=window_s(65 downto 2);
+      when 13 => payload_data_s<=window_s(73 downto 10);
+      when 18 => payload_data_s<=window_s(67 downto 4);
+      when 22 => payload_data_s<=window_s(75 downto 12);
+      when 27 => payload_data_s<=window_s(69 downto 6);
+      when 31 => payload_data_s<=window_s(77 downto 14);
+      when others => payload_wr_s<='0';
+    end case;
+  end process;
+  process(all)
+  begin
+    write_s<=(others=>'0'); wr_en_s<='0';
+    write_s(85 downto 84)<=std_logic_vector(channel_s);
+    write_s(83 downto 79)<=active_s(4 downto 0);
+    if payload_wr_s='1' then
+      wr_en_s<=not builder_reset_i;
+      write_s(78 downto 72)<=std_logic_vector(payload_word_s+8);
+      write_s(63 downto 0)<=payload_data_s;
+      if sample_index_s=511 then write_s(71 downto 64)<=X"ED"; end if;
+    elsif state_s=header then
+      wr_en_s<=not builder_reset_i;
+      write_s(78 downto 72)<=std_logic_vector(resize(header_index_s,7));
+      case to_integer(header_index_s) is
+        when 0 => write_s(71 downto 0)<=X"BE" & active_s(128 downto 65);
+        when 1 => write_s(71 downto 0)<=X"00" & active_s(153 downto 146) &
+          active_s(145 downto 142) & active_s(5) & '1' & overflow_s & '0' &
+          active_s(7 downto 6) & active_s(64 downto 51) & "00" &
+          active_s(36 downto 23) & "00" & active_s(50 downto 37);
+        when others => write_s(63 downto 0)<=descriptor_word_s;
+      end case;
+      if header_index_s=7 then write_s(86)<='1'; write_s(87)<=overflow_s; end if;
+    end if;
+  end process;
 
-      if (reset_i = '1' or reset_st_counters_i = '1') then
-        serializer_state_s <= ser_idle;
-        active_desc_s      <= STC3_FRAME_DESCRIPTOR_NULL;
-        active_trailer_s   <= PEAK_DESCRIPTOR_TRAILER_NULL;
-        active_channel_s   <= 0;
-        next_channel_s     <= 0;
-        block_samples_s    <= (others => (others => '0'));
-        header_index_s     <= 0;
-        block_index_s      <= 0;
-        load_issue_index_s <= 0;
-        emit_index_s       <= 0;
+  process(builder_clock_i)
+    variable candidate : unsigned(1 downto 0);
+  begin
+    if rising_edge(builder_clock_i) then
+      if builder_reset_i='1' then
+        state_s<=idle; active_s<=(others=>'0'); channel_s<=(others=>'0'); next_channel_s<=(others=>'0');
+        issue_index_s<=(others=>'0'); sample_index_s<=(others=>'0');
+        header_index_s<=(others=>'0'); payload_word_s<=(others=>'0');
+        shift_s<=(others=>'0'); ack_s<=request_s; armed_s<=(others=>'0');
       else
-        case serializer_state_s is
-          when ser_idle =>
-            if active_desc_s.valid = '0' and output_space_ok_s = '1' then
-              found_v := false;
-              found_idx_v := next_channel_s;
-              for offset in 0 to CHANNELS_PER_AFE_G - 1 loop
-                found_idx_v := (next_channel_s + offset) mod CHANNELS_PER_AFE_G;
-                if desc_valid_i(found_idx_v) = '1' then
-                  found_v := true;
+        for ch in 0 to 3 loop
+          if request_s(ch)='0' then ack_s(ch)<='0'; armed_s(ch)<='1'; end if;
+        end loop;
+        assert not(wr_en_s='1' and (full_s='1' or wr_busy_s='1'))
+          report "grouped serializer exceeded reserved write FIFO space" severity failure;
+        case state_s is
+          when idle =>
+            -- Reserve 128 words for 120 writes plus write-count pipeline latency.
+            -- Remote read-pointer latency makes this count conservative.
+            if wr_busy_s='0' and full_s='0' and unsigned(write_count_s)<=384 then
+              for offset in 0 to 3 loop
+                candidate:=next_channel_s+to_unsigned(offset,2);
+                if request_s(to_integer(candidate))='1' and ack_s(to_integer(candidate))='0'
+                  and armed_s(to_integer(candidate))='1' then
+                  active_s<=dest_desc_s(to_integer(candidate)); channel_s<=candidate;
+                  next_channel_s<=candidate+1; issue_index_s<=(others=>'0');
+                  sample_index_s<=(others=>'0'); payload_word_s<=(others=>'0');
+                  shift_s<=(others=>'0'); state_s<=prime;
                   exit;
                 end if;
               end loop;
-
-              if found_v then
-                active_desc_s      <= desc_i(found_idx_v);
-                active_trailer_s   <= desc_trailer_i(found_idx_v);
-                active_channel_s   <= found_idx_v;
-                next_channel_s     <= (found_idx_v + 1) mod CHANNELS_PER_AFE_G;
-                header_index_s     <= 0;
-                block_index_s      <= 0;
-                load_issue_index_s <= 0;
-                emit_index_s       <= 0;
-                serializer_state_s <= ser_header;
-                desc_taken_v(found_idx_v) := '1';
-              end if;
             end if;
-
-          when ser_header =>
-            if header_index_s = HEADER_WORD_COUNT_C - 1 then
-              header_index_s     <= 0;
-              block_index_s      <= 0;
-              load_issue_index_s <= 0;
-              serializer_state_s <= ser_load;
-            else
-              header_index_s <= header_index_s + 1;
-            end if;
-
-          when ser_load =>
-            if load_issue_index_s = 0 then
-              load_issue_index_s <= 1;
-            elsif load_issue_index_s < BLOCK_SAMPLE_COUNT_C then
-              block_samples_s(load_issue_index_s - 1) <= ring_dout_i(active_channel_s);
-              load_issue_index_s <= load_issue_index_s + 1;
-            else
-              block_samples_s(BLOCK_SAMPLE_COUNT_C - 1) <= ring_dout_i(active_channel_s);
-              emit_index_s <= 0;
-              serializer_state_s <= ser_emit;
-            end if;
-
-          when ser_emit =>
-            if emit_index_s = WORDS_PER_BLOCK_C - 1 then
-              if block_index_s = FINAL_BLOCK_INDEX_C then
-                desc_released_v(active_channel_s) := '1';
-                active_desc_s      <= STC3_FRAME_DESCRIPTOR_NULL;
-                active_trailer_s   <= PEAK_DESCRIPTOR_TRAILER_NULL;
-                serializer_state_s <= ser_idle;
-              else
-                block_index_s      <= block_index_s + 1;
-                load_issue_index_s <= 0;
-                serializer_state_s <= ser_load;
-              end if;
-            else
-              emit_index_s <= emit_index_s + 1;
-            end if;
+          when prime => issue_index_s<=to_unsigned(1,9); state_s<=payload;
+          when payload =>
+            shift_s<=window_s(77 downto 14);
+            if payload_wr_s='1' then payload_word_s<=payload_word_s+1; end if;
+            issue_index_s<=issue_index_s+1;
+            if sample_index_s=511 then header_index_s<=(others=>'0'); state_s<=header;
+            else sample_index_s<=sample_index_s+1; end if;
+          when header =>
+            if header_index_s=7 then ack_s(to_integer(channel_s))<='1'; state_s<=idle;
+            else header_index_s<=header_index_s+1; end if;
         end case;
       end if;
-
-      desc_taken_s <= desc_taken_v;
-      desc_released_s <= desc_released_v;
     end if;
-  end process main_proc;
-
-  ready_o <= '1' when to_integer(unsigned(fifo_wr_data_count_s)) > 0 else '0';
-  dout_o  <= fifo_dout_s;
-end architecture rtl;
+  end process;
+end architecture;

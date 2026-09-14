@@ -1,9 +1,21 @@
-This package is the repo-owned hook point for installing daphne-server into
-the PetaLinux image once the userspace build and dependency handoff are
-stabilized.
+This package installs the current prebuilt DAPHNE userspace runtime into the
+PetaLinux image.
 
-Planned payload:
-- daphneServer binary
-- dependency runtime bundle
-- configuration files
-- service-unit dependencies
+Installed payload:
+- `/usr/bin/daphneServer`
+- `/usr/bin/hermes_udp_srv`
+- private runtime libraries under `/usr/lib/daphne-server`
+- `BUILD-METADATA.txt` describing the staged source bundle
+
+Provenance status:
+- the checked-in payload is a legacy external binary import
+- its digest is verified, but it is not reproducible from this repository
+- production release therefore requires a separately qualified runtime bundle
+- `scripts/petalinux/stage_runtime_into_project.sh` is the only staging entry
+  point
+
+Design intent:
+- keep the package layout independent of `/home/petalinux`
+- preserve deterministic runtime libraries via a private libdir
+- let the service layer start `daphneServer` and Hermes from normal system
+  paths

@@ -109,3 +109,71 @@ find /sys/bus/platform/devices -maxdepth 1 | egrep '9c000000|i2c|xiic'
 
 The service-chain validation should only continue after the expected PL I2C
 device is present again.
+
+## May 9, 2026 update
+
+The blocker is now narrower than the original statement above.
+
+Current comparison:
+
+- `NP04-DAPHNE-014` is booting with `/dev/mmcblk0p2` as the real `/` rootfs,
+  and exposes both `/dev/i2c-1` and `/dev/i2c-2`.
+- `NP04-DAPHNE-015` now has one persistent mixed deploy that boots with
+  `/dev/mmcblk0p2` as the real `/` rootfs.
+- The first repo-owned `firmware.service` implementation on `015` appeared to
+  succeed, but the overlay had actually failed to apply because the DT overlay
+  requested `daphne_selftrigger_7353a17.bit.bin` and that firmware alias was
+  missing under `/lib/firmware/`.
+- Once that alias was installed, `015` immediately reached FPGA state
+  `operating`, exposed `/dev/i2c-2`, and bound both
+  `/sys/bus/platform/devices/9c000000.i2c` and
+  `/sys/bus/platform/devices/9c010000.interrupt-controller`.
+- The repo-owned service no longer hardcodes one fixed bus number: on `014` it
+  auto-discovers bus `2`, and on `015` it now does the same after the overlay
+  bind succeeds.
+
+So this is not simply "the overlay can never expose the timing I2C bus".
+The stronger working hypothesis is now:
+
+- the `014` boot payload and device-tree/runtime combination bind the
+  PL timing I2C path correctly;
+- the current repo overlay package originally missed one required firmware-name
+  alias for the `015` DT overlay path;
+- the remaining `015` work has moved up-stack from Linux I2C visibility to
+  service/runtime packaging, not PL I2C binding itself.
+
+## May 9, 2026 later update
+
+The next boot-side root cause is now also understood.
+
+What changed:
+
+- the original repo-built `system.dtb` for `015` baked the generated base
+  `pl-bus` into the non-overlay DT, including:
+  - `interrupt-controller@9c010000`
+  - `i2c@9c000000`
+  - `axi_quad_spi@9c020000`
+- that base DT arrangement reproduced the old early-boot `rcu_sched` stall
+  before root handoff on `015`;
+- removing the generated base PL bus from the repo-owned
+  `system-user.dtsi` fixes that early-boot failure;
+- with that DT fix in place, a one-shot serial/U-Boot boot on `015` using the
+  proven older kernel plus the fixed repo-owned DTB and current ramdisk now:
+  - boots through ext4-root userspace,
+  - loads the overlay,
+  - binds the PL timing path again,
+  - and starts `firmware`, `clockchip`, `endpoint`, `hermes`, and `daphne`.
+- after making `gem0` explicitly boot as the management `sgmii` fixed-link and
+  installing that rebuilt DTB into `/boot/system.dtb`, the same full service
+  chain now also comes back on the normal persistent reboot path.
+- after replacing the live top-level boot `Image` with the repo-built one, the
+  same normal reboot path still comes back on `015` with the full timing
+  service chain active.
+
+So the blocker is no longer "Linux can never see the PL I2C bus". The current
+remaining gap is narrower:
+
+- preserve the expected management-network identity while we move to the
+  longer-term fleet update and rollback model;
+- qualify the A/B boot and rescue contract around this now-working kernel/DT
+  and timing path.

@@ -42,6 +42,7 @@ entity daphne_composable_frontend_shell is
     offset_sync_n_o           : out std_logic_vector(AFE_COUNT_G - 1 downto 0);
     reset_st_counters_i       : in  std_logic;
     force_trigger_i           : in  std_logic;
+    force_calibration_tag_i   : in  std_logic_vector(1 downto 0);
     timestamp_i               : in  std_logic_vector(63 downto 0);
     version_i                 : in  std_logic_vector(3 downto 0);
     signal_delay_i            : in  std_logic_vector(4 downto 0);
@@ -59,6 +60,10 @@ entity daphne_composable_frontend_shell is
     busy_count_o              : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
     trigger_count_o           : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
     packet_count_o            : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
+    continuation_count_o            : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
+    continuation_drop_count_o            : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
+    covered_trigger_count_o            : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
+    descriptor_overflow_count_o            : out slv64_array_t(0 to (AFE_COUNT_G * 8) - 1);
     delayed_sample_o          : out sample14_array_t(0 to (AFE_COUNT_G * 8) - 1);
     ready_o                   : out std_logic_array_t(0 to (AFE_COUNT_G * 8) - 1);
     dout_o                    : out slv72_array_t(0 to (AFE_COUNT_G * 8) - 1)
@@ -117,6 +122,7 @@ begin
       offset_sync_n_o           => offset_sync_n_o,
       reset_st_counters_i       => reset_st_counters_i,
       force_trigger_i           => force_trigger_i,
+      force_calibration_tag_i   => force_calibration_tag_i,
       timestamp_i               => timestamp_i,
       version_i                 => version_i,
       signal_delay_i            => signal_delay_i,
@@ -131,6 +137,10 @@ begin
       busy_count_o              => busy_count_o,
       trigger_count_o           => trigger_count_o,
       packet_count_o            => packet_count_o,
+      continuation_count_o            => continuation_count_o,
+      continuation_drop_count_o            => continuation_drop_count_o,
+      covered_trigger_count_o            => covered_trigger_count_o,
+      descriptor_overflow_count_o            => descriptor_overflow_count_o,
       delayed_sample_o          => delayed_sample_o,
       ready_o                   => ready_o,
       dout_o                    => dout_o

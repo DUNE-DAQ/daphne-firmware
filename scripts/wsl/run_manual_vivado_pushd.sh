@@ -23,9 +23,9 @@ Environment overrides:
   DAPHNE_DUMP_POST_SYNTH_DEBUG         default: DAPHNE_STOP_AFTER_SYNTH
   DAPHNE_PRE_PLACE_POWER_OPT           default: 0
   DAPHNE_POST_PLACE_POWER_OPT          default: 0
-  DAPHNE_DTG_GIT_BRANCH                default: xlnx_rel_v$DAPHNE_VITIS_VERSION
+  DAPHNE_DTG_GIT_BRANCH                default: unset, legacy XSCT only
   DAPHNE_WINDOWS_XILINX_ROOT           default: /mnt/c/Xilinx
-  DAPHNE_VIVADO_VERSION                default: 2024.1
+  DAPHNE_VIVADO_VERSION                default: 2026.1
   DAPHNE_VITIS_VERSION                 default: DAPHNE_VIVADO_VERSION
   DAPHNE_WSL_WINDOWS_CMD_CWD           default: /mnt/c/Windows/System32
 EOF
@@ -63,6 +63,22 @@ require_path() {
   fi
 }
 
+resolve_windows_product_dir() {
+  product="$1"
+  version="$2"
+
+  for candidate in \
+    "$DAPHNE_WINDOWS_XILINX_ROOT/$version/$product" \
+    "$DAPHNE_WINDOWS_XILINX_ROOT/$product/$version"; do
+    if [ -d "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 tcl_escape() {
   printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
 }
@@ -84,7 +100,7 @@ if [ "$DAPHNE_ETH_MODE" != "create_ip" ]; then
 fi
 
 : "${DAPHNE_WINDOWS_XILINX_ROOT:=/mnt/c/Xilinx}"
-: "${DAPHNE_VIVADO_VERSION:=2024.1}"
+: "${DAPHNE_VIVADO_VERSION:=2026.1}"
 : "${DAPHNE_VITIS_VERSION:=$DAPHNE_VIVADO_VERSION}"
 : "${DAPHNE_MAX_THREADS:=12}"
 : "${DAPHNE_SKIP_POST_SYNTH_REPORTS:=1}"
@@ -94,7 +110,7 @@ fi
 : "${DAPHNE_DUMP_POST_SYNTH_DEBUG:=$DAPHNE_STOP_AFTER_SYNTH}"
 : "${DAPHNE_PRE_PLACE_POWER_OPT:=0}"
 : "${DAPHNE_POST_PLACE_POWER_OPT:=0}"
-: "${DAPHNE_DTG_GIT_BRANCH:=xlnx_rel_v$DAPHNE_VITIS_VERSION}"
+: "${DAPHNE_DTG_GIT_BRANCH:=}"
 : "${DAPHNE_WSL_WINDOWS_CMD_CWD:=/mnt/c/Windows/System32}"
 
 if [ -z "${DAPHNE_GIT_SHA-}" ]; then
@@ -104,8 +120,9 @@ export DAPHNE_GIT_SHA
 
 : "${DAPHNE_OUTPUT_DIR:=./output-$DAPHNE_GIT_SHA}"
 
-VIVADO_BAT_WSL="$DAPHNE_WINDOWS_XILINX_ROOT/Vivado/$DAPHNE_VIVADO_VERSION/bin/vivado.bat"
-VITIS_ROOT_WSL="$DAPHNE_WINDOWS_XILINX_ROOT/Vitis/$DAPHNE_VITIS_VERSION"
+VIVADO_ROOT_WSL="$(resolve_windows_product_dir Vivado "$DAPHNE_VIVADO_VERSION" || printf '%s\n' "$DAPHNE_WINDOWS_XILINX_ROOT/$DAPHNE_VIVADO_VERSION/Vivado")"
+VITIS_ROOT_WSL="$(resolve_windows_product_dir Vitis "$DAPHNE_VITIS_VERSION" || printf '%s\n' "$DAPHNE_WINDOWS_XILINX_ROOT/$DAPHNE_VITIS_VERSION/Vitis")"
+VIVADO_BAT_WSL="$VIVADO_ROOT_WSL/bin/vivado.bat"
 
 require_path "$ROOT_DIR/.git"
 require_path "$XILINX_DIR"

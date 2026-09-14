@@ -5,7 +5,7 @@
 -- Jamieson Olsen <jamieson@fnal.gov>
 --
 -- all register access is 32 bit data (AXI-LITE requirement)
--- there are 13 32-bit registers here
+-- there are 14 32-bit registers here
 --
 -- base + 0 = Control Register R/W
 --    bit 2 = idelay_en_vtc 
@@ -39,6 +39,14 @@
 -- base + 40 = AFE2 Bitslip Register
 -- base + 44 = AFE3 Bitslip Register
 -- base + 48 = AFE4 Bitslip Register
+
+-- Spy-buffer trigger control is the lower 3 bits of this 32-bit register.
+-- The register is R/W and resets to legacy OR mode with inhibit disabled.
+--
+-- base + 52 = Spy-buffer Trigger Control Register
+--    bit 2 = trigger inhibit
+--    bits 1:0 = trigger source: 00 software, 01 external,
+--               10 timing/ad-hoc, 11 legacy OR/all
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -80,7 +88,11 @@ entity fe_axi is
         iserdes_reset: out std_logic;
         idelayctrl_reset: out std_logic;
         idelay_en_vtc: out std_logic;
-        trig: out std_logic
+        trig: out std_logic;
+        software_trig: out std_logic;
+        external_trig: out std_logic;
+        spy_trigger_source: out std_logic_vector(1 downto 0);
+        spy_trigger_inhibit: out std_logic
 	);
 end fe_axi;
 
@@ -106,7 +118,11 @@ architecture fe_axi_arch of fe_axi is
     signal idelay_load_reg: std_logic_vector(4 downto 0);
     signal iserdes_bitslip_reg: array_5x4_type;
     signal control_reg: std_logic_vector(31 downto 0) := (others=>'0');
-    signal trig_reg: std_logic_vector(5 downto 0) := "000000";
+    signal software_trig_reg: std_logic_vector(5 downto 0) := (others => '0');
+    signal external_trig_reg: std_logic_vector(5 downto 0) := (others => '0');
+    signal software_trigger_s: std_logic;
+    signal external_trigger_s: std_logic;
+    signal spy_trigger_control_reg: std_logic_vector(2 downto 0) := "011";
     signal register_advance: std_logic;
     signal tap_write_reg: std_logic_vector(4 downto 0);
     signal tap_write_data: array_5x9_type;
@@ -128,6 +144,7 @@ architecture fe_axi_arch of fe_axi is
     constant SLP2_OFFSET: std_logic_vector(5 downto 0) := "101000";
     constant SLP3_OFFSET: std_logic_vector(5 downto 0) := "101100";
     constant SLP4_OFFSET: std_logic_vector(5 downto 0) := "110000";
+    constant TRIG_CTRL_OFFSET: std_logic_vector(5 downto 0) := "110100";
 
 begin
 
@@ -255,8 +272,31 @@ begin
 	  if rising_edge(S_AXI_ACLK) then 
 	    if (S_AXI_ARESETN = '0') then
           control_reg <= (others=>'0');
-          trig_reg <= "000000";
+          software_trig_reg <= (others => '0');
+          external_trig_reg <= (others => '0');
+          spy_trigger_control_reg <= "011";
 	    else
+
+          -- Keep software and external triggers separate so the spy-buffer
+          -- trigger plane can select either source. Stretch both pulses long
+          -- enough to cross safely into the 62.5 MHz acquisition domain.
+          software_trig_reg(0) <= '0';
+          software_trig_reg(1) <= software_trig_reg(0);
+          software_trig_reg(2) <= software_trig_reg(1);
+          software_trig_reg(3) <= software_trig_reg(2);
+          software_trig_reg(4) <= software_trig_reg(3);
+          software_trig_reg(5) <= software_trig_reg(4) or software_trig_reg(3) or
+                                  software_trig_reg(2) or software_trig_reg(1) or
+                                  software_trig_reg(0);
+          external_trig_reg(0) <= trig_IN;
+          external_trig_reg(1) <= external_trig_reg(0) or trig_IN;
+          external_trig_reg(2) <= external_trig_reg(1) or trig_IN;
+          external_trig_reg(3) <= external_trig_reg(2) or trig_IN;
+          external_trig_reg(4) <= external_trig_reg(3) or trig_IN;
+          external_trig_reg(5) <= external_trig_reg(4) or external_trig_reg(3) or
+                                  external_trig_reg(2) or external_trig_reg(1) or
+                                  external_trig_reg(0) or trig_IN;
+
 	      if (reg_wren = '1' and S_AXI_WSTRB = "1111") then
 
             -- treat all of these register writes as if they are full 32 bits
@@ -268,30 +308,14 @@ begin
                 control_reg <= S_AXI_WDATA;
 
 	          when TRIG_OFFSET => 
-                trig_reg(0) <= '1';
+                software_trig_reg(0) <= '1';
+
+	          when TRIG_CTRL_OFFSET =>
+                spy_trigger_control_reg <= S_AXI_WDATA(2 downto 0);
 
 	          when others =>
                 null;
 	        end case;
-
-          else 
-
-            -- handle the momentary, self clearing outputs
-            -- trigger pulse originates in AXICLK domain (100MHz) and crosses into master clock domain (62.5MHz)
-            -- make this pulse FOUR AXICLKs wide just to be safe, and make it come from a single register 
-            -- (not a combi function of multiple registers) to be clean...
-
-            trig_reg(0) <= '0' or trig_IN;
-            trig_reg(1) <= trig_reg(0)or trig_IN;
-            trig_reg(2) <= trig_reg(1)or trig_IN;
-            trig_reg(3) <= trig_reg(2)or trig_IN;
-            trig_reg(4) <= trig_reg(3)or trig_IN;
-            trig_reg(5) <= trig_reg(4) or trig_reg(3) or trig_reg(2) or trig_reg(1) or trig_reg(0)or trig_IN;
-
-            -- idelay load pulse comes from AXICLK 100MHz and crosses into clk125 domain
-            -- OK to make this two AXICLKs wide, and again, make this signal from a single register (idelay_load2_reg)
-            -- and NOT a combi function of multiple registers to be cleaner.
-
 	      end if;
 	    end if;
 	  end if;                   
@@ -395,6 +419,8 @@ begin
                     X"0000000" & iserdes_bitslip_reg(3) when (axi_araddr(5 downto 0)=SLP3_OFFSET) else
                     X"0000000" & iserdes_bitslip_reg(4) when (axi_araddr(5 downto 0)=SLP4_OFFSET) else
 
+                    X"0000000" & '0' & spy_trigger_control_reg when (axi_araddr(5 downto 0)=TRIG_CTRL_OFFSET) else
+
                     X"00000000";
 
 	-- Output register or memory read data
@@ -431,7 +457,16 @@ begin
     -- should be stable one clk cycle before LOAD is asserted. using an extra register stage 
     -- (idelay_load2_reg) guarantees this is the case.
 
-    trig <= trig_reg(5);
+    software_trigger_s <= software_trig_reg(5);
+    external_trigger_s <= external_trig_reg(5);
+
+    -- Preserve the legacy merged trigger output for wrappers which have not
+    -- opted into source selection. The K26C board path uses the split outputs.
+    trig <= software_trigger_s or external_trigger_s;
+    software_trig <= software_trigger_s;
+    external_trig <= external_trigger_s;
+    spy_trigger_source <= spy_trigger_control_reg(1 downto 0);
+    spy_trigger_inhibit <= spy_trigger_control_reg(2);
     idelay_load <= idelay_load_reg; 
 
     iserdes_bitslip(0) <= iserdes_bitslip_reg(0);

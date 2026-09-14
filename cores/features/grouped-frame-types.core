@@ -1,0 +1,19 @@
+CAPI=2:
+
+name: dune-daq:daphne:grouped-frame-types:0.1.0
+description: Fixed512 grouped source metadata
+provider:
+  name: local
+
+filesets:
+  rtl:
+    depend:
+      - dune-daq:daphne:daphne-subsystem-types:0.1.0
+    files:
+      - rtl/isolated/subsystems/trigger/grouped_frame_pkg.vhd
+    file_type: vhdlSource-2008
+
+targets:
+  default:
+    filesets:
+      - rtl

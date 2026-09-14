@@ -16,9 +16,6 @@ entity k26c_board_timing_plane is
     clock_gen_debug         : out std_logic;
     mmcm0_100mhz_clk_debug  : out std_logic;
     ep_62p5mhz_clk_debug    : out std_logic;
-    f_ok_debug              : out std_logic;
-    sctr_debug              : out std_logic_vector(15 downto 0);
-    cctr_debug              : out std_logic_vector(15 downto 0);
     clock_o                 : out std_logic;
     clk500_o                : out std_logic;
     clk125_o                : out std_logic;
@@ -74,9 +71,6 @@ begin
       timestamp                => timestamp_o,
       sync                     => sync_o,
       sync_stb                 => sync_stb_o,
-      F_OK_DEBUG               => f_ok_debug,
-      SCTR_DEBUG               => sctr_debug,
-      CCTR_DEBUG               => cctr_debug,
       mmcm0_locked_o           => timing_status_s.mmcm0_locked,
       mmcm1_locked_o           => timing_status_s.mmcm1_locked,
       endpoint_ready_o         => timing_status_s.endpoint_ready,

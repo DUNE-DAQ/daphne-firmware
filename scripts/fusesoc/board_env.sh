@@ -20,34 +20,38 @@ daphne_legacy_support_manifest_path() {
   printf '%s/xilinx/legacy_flow_support_sources.txt' "$root_dir"
 }
 
-daphne_resolve_ip_repo_root() {
+daphne_resolve_repo_relative_path() {
   root_dir="$1"
-  repo_ip_root="$root_dir/ip_repo/daphne_ip"
-  staged_ip_root="$root_dir/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
+  path_value="$2"
 
-  case "${DAPHNE_IP_REPO_ROOT-}" in
-    */src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip|*/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip/)
+  case "$path_value" in
+    "")
+      return 1
+      ;;
+    /*)
+      printf '%s\n' "$path_value"
       ;;
     *)
-      if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -d "${DAPHNE_IP_REPO_ROOT}" ]; then
-        printf '%s\n' "$DAPHNE_IP_REPO_ROOT"
-        return 0
-      fi
+      printf '%s/%s\n' "$root_dir" "$path_value"
       ;;
   esac
+}
 
-  if [ -d "$repo_ip_root" ]; then
-    printf '%s\n' "$repo_ip_root"
-    return 0
-  fi
+daphne_resolve_ip_repo_root() {
+  root_dir="$1"
 
   if [ -n "${DAPHNE_IP_REPO_ROOT-}" ] && [ -d "${DAPHNE_IP_REPO_ROOT}" ]; then
     printf '%s\n' "$DAPHNE_IP_REPO_ROOT"
     return 0
   fi
 
-  if [ -d "$staged_ip_root" ]; then
-    printf '%s\n' "$staged_ip_root"
+  if [ -d "$root_dir/ip_repo/daphne_ip" ]; then
+    printf '%s\n' "$root_dir/ip_repo/daphne_ip"
+    return 0
+  fi
+
+  if [ -d "$root_dir/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip" ]; then
+    printf '%s\n' "$root_dir/src/dune-daq_daphne_daphne-ip_0.1.0/ip_repo/daphne_ip"
     return 0
   fi
 
@@ -60,6 +64,7 @@ daphne_generated_hermes_ip_ready() {
   ip_repo_root="$(daphne_resolve_ip_repo_root "$root_dir")" || return 1
   component_xml="$ip_repo_root/component.xml"
   eth_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/xxv_ethernet_0.xci"
+  eth_synth_hdl="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/xxv_ethernet_0/hdl/xxv_ethernet_v5_1_rfs.sv"
   bram_xci="$ip_repo_root/src/dune.daq_user_hermes_daphne_1.0/src/axi4_lite_bram_ctrl_0/axi4_lite_bram_ctrl_0.xci"
   cell_bind_root="$(daphne_board_manifest_value_with_fallback "$root_dir" "$board_name" legacy_ip_cell_bind_root ip_cell_bind_root)"
   : "${cell_bind_root:=selftrigger_plane_inst/legacy_deimos_readout_bridge_inst/daphne_top_inst}"
@@ -71,9 +76,14 @@ daphne_generated_hermes_ip_ready() {
   [ -f "$component_xml" ] || return 1
   [ -f "$bram_xci" ] || return 1
   [ -f "$eth_xci" ] || return 1
-  grep -Fq "$eth_xci_ref" "$component_xml" || return 1
+  [ -f "$eth_synth_hdl" ] || return 1
+  if grep -Fq "$eth_xci_ref" "$component_xml"; then
+    return 1
+  fi
   grep -Fq "$bram_xci_ref" "$component_xml" || return 1
-  grep -Fq "$eth_binding" "$component_xml" || return 1
+  if grep -Fq "$eth_binding" "$component_xml"; then
+    return 1
+  fi
   grep -Fq "$bram_binding" "$component_xml" || return 1
 
   for support_path in $(daphne_legacy_support_source_list "$root_dir"); do
@@ -484,6 +494,12 @@ daphne_resolve_board_defaults() {
   fi
   if [ -n "$afe_capture_input_delay_max_ns" ]; then
     : "${DAPHNE_AFE_CAPTURE_INPUT_DELAY_MAX_NS:=$afe_capture_input_delay_max_ns}"
+  fi
+  if [ -n "${DAPHNE_IP_TOP_HDL_FILE-}" ]; then
+    DAPHNE_IP_TOP_HDL_FILE="$(daphne_resolve_repo_relative_path "$root_dir" "$DAPHNE_IP_TOP_HDL_FILE")"
+  fi
+  if [ -n "${DAPHNE_PUBLIC_TOP_HDL_FILE-}" ]; then
+    DAPHNE_PUBLIC_TOP_HDL_FILE="$(daphne_resolve_repo_relative_path "$root_dir" "$DAPHNE_PUBLIC_TOP_HDL_FILE")"
   fi
   DAPHNE_BOARD="$board_name"
 

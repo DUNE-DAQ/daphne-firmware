@@ -114,12 +114,16 @@ require_fixed "    mmcm1_clkout0" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend bit clock in its async-group family."
 require_fixed "    clk125" "$TIMING_TCL" \
   "AFE timing Tcl no longer carries Vivado's auto-derived frontend byte clock in its async-group family."
-require_fixed "    clk125_1" "$TIMING_TCL" \
-  "AFE timing Tcl no longer carries Vivado's legacy local clk125 alias in its async-group family."
-require_fixed "set_false_path -to \$frontend_first_sync_stage_pins" "$CDC_TCL" \
-  "frontend control CDC Tcl no longer cuts the explicit frontend_common synchronizer first-stage pins."
+require_fixed "set_false_path -to \$frontend_sync_stage1_pins" "$CDC_TCL" \
+  "frontend CDC Tcl no longer cuts the explicit frontend synchronizer first-stage pins."
 require_fixed "*frontend_common_inst/idelay_load_clk125_meta_reg*/D" "$CDC_TCL" \
-  "frontend control CDC Tcl no longer targets the idelay_load clk125 first-stage synchronizer pins."
+  "frontend CDC Tcl no longer identifies the idelay-load synchronizer first stage."
+require_fixed "*frontend_common_inst/software_trig_meta_reg/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the software-trigger synchronizer first stage."
+require_fixed "*frontend_common_inst/external_trig_meta_reg/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the external-trigger synchronizer first stage."
+require_fixed "*frontend_common_inst/spy_trigger_control_meta_reg*/D" "$CDC_TCL" \
+  "frontend CDC Tcl no longer identifies the spy-trigger control synchronizer first stage."
 require_fixed "set_false_path -to \$endpoint_sync_stage1_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the explicit PDTS synchronizer first-stage pins."
 require_fixed "set_false_path -from \$rx_tmg_port -to \$endpoint_raw_rx_sample_pins" "$ENDPOINT_CDC_TCL" \
@@ -130,12 +134,16 @@ require_fixed "*/ep/regfile/ddone_reg/Q" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS deskew_done completion flag crossing."
 require_fixed "*/ep/sm/state_reg[*]/D" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer targets the PDTS state-machine destination pins for async completion flags."
-require_fixed "set_false_path -from \$endpoint_regfile_done_source_pins -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
+require_fixed "*/ep/sm/FSM_onehot_state_reg[*]/CE" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer targets Vivado one-hot PDTS state-machine enable pins for async completion flags."
+require_fixed "set_false_path -from \$endpoint_regfile_done_source_cells -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the PDTS regfile completion flags into the sys_clk state machine."
 require_fixed "*/ep/sm/addr_done" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS addr_done handoff net into the sys_clk state machine."
 require_fixed "*/ep/sm/deskew_done" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer identifies the PDTS deskew_done handoff net into the sys_clk state machine."
+require_fixed "*/ep/sm/sync_sys_clk/deskew_done" "$ENDPOINT_CDC_TCL" \
+  "endpoint CDC Tcl no longer identifies the optimized PDTS deskew_done handoff net into the sys_clk state machine."
 require_fixed "set_false_path -through \$endpoint_state_machine_async_handoff_nets -to \$endpoint_state_machine_pins" "$ENDPOINT_CDC_TCL" \
   "endpoint CDC Tcl no longer cuts the explicit PDTS addr_done/deskew_done handoff nets into the sys_clk state machine."
 require_fixed "post-place report_methodology" "$FLOW_TCL" \
@@ -156,4 +164,4 @@ require_regex "sync_stat:[[:space:]]*entity work\\.pdts_synchro" "$ENDPOINT_CORE
 require_regex "stat[[:space:]]*=>[[:space:]]*stati_clk" "$ENDPOINT_CORE_RTL" \
   "pdts_ep_core.vhd no longer feeds the register file with the synchronised status bus."
 
-echo "INFO: AFE timing constraint contract matches the live endpoint clocking and the Vivado 2024.1 unmanaged-Tcl flow."
+echo "INFO: AFE timing constraint contract matches the live endpoint clocking and the Vivado unmanaged-Tcl flow."

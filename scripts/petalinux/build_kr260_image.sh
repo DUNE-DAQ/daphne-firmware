@@ -6,19 +6,23 @@ usage() {
 Usage: build_kr260_image.sh PETALINUX_PROJECT_DIR HW_HANDOFF_DIR [options]
 
 Create or reuse a KR260-compatible PetaLinux project, apply the hardware
-handoff, attach the repo-owned layer, optionally stage the overlay payload,
-run petalinux-build, package BOOT.BIN, and collect the resulting artifacts.
+handoff, attach the repo-owned layer, optionally stage the overlay payload and
+runtime bundle, run petalinux-build, and collect an eMMC deployment bundle.
 
 Project creation/config options:
   --bsp BSP_PATH          Create the project from a BSP
   --template NAME        PetaLinux template when --bsp is not given
+  --image-profile NAME   DAPHNE image profile: provisioning|minimal|developer
+                         (default: minimal)
   --output-dir DIR       Firmware xilinx/output directory for overlay staging
+  --runtime-bundle TGZ   Qualified DAPHNE runtime bundle for image staging
   --skip-stage-overlay   Do not stage overlay artifacts
+  --skip-stage-runtime   Do not stage the runtime bundle
   --copy-layer           Copy meta-daphne instead of symlinking it
 
 Build/package options:
   --bundle-dir DIR       Repo-owned collection directory for resulting images
-  --skip-package-boot    Do not run petalinux-package --boot
+  --package-boot         Also create BOOT.BIN for separate boot-firmware work
   --skip-collect         Do not collect artifacts after the build
   -h, --help             Show this help
 
@@ -47,29 +51,27 @@ PROJECT_NAME="$(basename "$PROJECT_ARG")"
 BUNDLE_DIR="$ROOT_DIR/petalinux/output/$PROJECT_NAME"
 
 INIT_ARGS=("$PROJECT_ARG" "$HW_HANDOFF_ARG")
-STAGE_OVERLAY=1
-PACKAGE_BOOT=1
+PACKAGE_BOOT=0
 COLLECT=1
 BUILD_ARGS="${DAPHNE_PETALINUX_BUILD_ARGS:-}"
 PACKAGE_ARGS="${DAPHNE_PETALINUX_PACKAGE_ARGS:-}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --bsp|--template|--output-dir)
+    --bsp|--template|--output-dir|--runtime-bundle|--image-profile)
       INIT_ARGS+=("$1" "$2")
       shift 2
       ;;
-    --skip-stage-overlay|--copy-layer)
+    --skip-stage-overlay|--skip-stage-runtime|--copy-layer)
       INIT_ARGS+=("$1")
-      [[ "$1" == "--skip-stage-overlay" ]] && STAGE_OVERLAY=0
       shift
       ;;
     --bundle-dir)
       BUNDLE_DIR="$2"
       shift 2
       ;;
-    --skip-package-boot)
-      PACKAGE_BOOT=0
+    --package-boot)
+      PACKAGE_BOOT=1
       shift
       ;;
     --skip-collect)
@@ -123,11 +125,18 @@ if (( COLLECT )); then
 fi
 
 missing=()
-for rel in "boot/BOOT.BIN" "boot/Image" "boot/system.dtb"; do
-  if [[ ! -f "$BUNDLE_DIR/$rel" ]]; then
-    missing+=("$rel")
-  fi
-done
+if (( COLLECT )); then
+  for rel in \
+    "boot/Image" \
+    "boot/system.dtb" \
+    "boot/ramdisk.cpio.gz.u-boot" \
+    "rootfs/rootfs.ext4"
+  do
+    if [[ ! -f "$BUNDLE_DIR/$rel" ]]; then
+      missing+=("$rel")
+    fi
+  done
+fi
 
 if (( ${#missing[@]} > 0 )); then
   printf 'ERROR: build completed but the collected bundle is still missing expected artifacts:\n' >&2
@@ -136,9 +145,9 @@ if (( ${#missing[@]} > 0 )); then
 fi
 
 cat <<EOF
-Full PetaLinux image bundle available under:
+PetaLinux eMMC deployment bundle available under:
   $BUNDLE_DIR
 
 Next validation step:
-  review boot/, rootfs/, and overlay/ against ~/golden/daphne14-2026-03-12/
+  run scripts/deploy/daphne_deploy.sh with --dry-run
 EOF

@@ -1,15 +1,13 @@
 CAPI=2:
 
 name: dune-daq:daphne:afe-grouped-selftrigger-island:0.1.0
-description: Per-AFE grouped self-trigger island with descriptor-first capture and grouped packet producers
+description: Eight XC channels and two shared four-channel builders
 provider:
   name: local
 
 filesets:
   rtl:
     depend:
-      - dune-daq:daphne:daphne-subsystem-types:0.1.0
-      - dune-daq:daphne:grouped-transport-types:0.1.0
       - dune-daq:daphne:afe-trigger-bank:0.1.0
       - dune-daq:daphne:stc3-frame-source:0.1.0
       - dune-daq:daphne:afe-stc3-stream-serializer:0.1.0

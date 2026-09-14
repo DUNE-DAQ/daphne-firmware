@@ -33,6 +33,7 @@ entity afe_subsystem_island is
     signal_delay_i      : in  std_logic_vector(4 downto 0);
     descriptor_config_i : in  std_logic_vector(13 downto 0);
     force_trigger_i     : in  std_logic;
+    force_calibration_tag_i : in std_logic_vector(1 downto 0);
     din_i               : in  sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
     trigger_control_i   : in  trigger_xcorr_control_array_t(0 to CHANNELS_PER_AFE_G - 1);
     trigger_result_o    : out trigger_xcorr_result_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -42,6 +43,10 @@ entity afe_subsystem_island is
     busy_count_o        : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     trigger_count_o     : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     packet_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    continuation_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    continuation_drop_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    covered_trigger_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
+    descriptor_overflow_count_o      : out slv64_array_t(0 to CHANNELS_PER_AFE_G - 1);
     delayed_sample_o    : out sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
     ready_o             : out std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
     rd_en_i             : in  std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -86,9 +91,10 @@ begin
         timestamp_i         => timestamp_i,
         version_i           => version_i,
         signal_delay_i      => signal_delay_i,
-        descriptor_config_i => descriptor_config_i,
-        force_trigger_i     => force_trigger_i,
-        din_i               => din_i,
+	        descriptor_config_i => descriptor_config_i,
+	        force_trigger_i     => force_trigger_i,
+	        force_calibration_tag_i => force_calibration_tag_i,
+	        din_i               => din_i,
         trigger_control_i   => trigger_control_i,
         trigger_result_o    => trigger_result_o,
         descriptor_result_o => descriptor_result_o,
@@ -97,6 +103,10 @@ begin
         busy_count_o        => busy_count_o,
         trigger_count_o     => trigger_count_o,
         packet_count_o      => packet_count_o,
+        continuation_count_o      => continuation_count_o,
+        continuation_drop_count_o      => continuation_drop_count_o,
+        covered_trigger_count_o      => covered_trigger_count_o,
+        descriptor_overflow_count_o      => descriptor_overflow_count_o,
         delayed_sample_o    => delayed_sample_o,
         ready_o             => ready_o,
         rd_en_i             => rd_en_i,
@@ -113,6 +123,10 @@ begin
     busy_count_o        <= (others => (others => '0'));
     trigger_count_o     <= (others => (others => '0'));
     packet_count_o      <= (others => (others => '0'));
+    continuation_count_o      <= (others => (others => '0'));
+    continuation_drop_count_o      <= (others => (others => '0'));
+    covered_trigger_count_o      <= (others => (others => '0'));
+    descriptor_overflow_count_o      <= (others => (others => '0'));
     delayed_sample_o    <= (others => (others => '0'));
     ready_o             <= (others => '0');
     dout_o              <= (others => (others => '0'));

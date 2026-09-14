@@ -60,6 +60,10 @@ architecture formal of fe_axi_axi_formal is
   signal idelayctrl_reset  : std_logic;
   signal idelay_en_vtc     : std_logic;
   signal trig              : std_logic;
+  signal software_trig     : std_logic;
+  signal external_trig     : std_logic;
+  signal spy_trigger_source  : std_logic_vector(1 downto 0);
+  signal spy_trigger_inhibit : std_logic;
 
   function tap_addr(index : std_logic_vector(2 downto 0)) return std_logic_vector is
   begin
@@ -149,7 +153,11 @@ begin
       iserdes_reset     => iserdes_reset,
       idelayctrl_reset  => idelayctrl_reset,
       idelay_en_vtc     => idelay_en_vtc,
-      trig              => trig
+      trig              => trig,
+      software_trig     => software_trig,
+      external_trig     => external_trig,
+      spy_trigger_source  => spy_trigger_source,
+      spy_trigger_inhibit => spy_trigger_inhibit
     );
 
   drive_axi : process(all)
@@ -283,6 +291,12 @@ begin
           severity failure;
         assert trig = '0'
           report "trigger output must reset low"
+          severity failure;
+        assert software_trig = '0' and external_trig = '0'
+          report "split trigger outputs must reset low"
+          severity failure;
+        assert spy_trigger_source = "11" and spy_trigger_inhibit = '0'
+          report "spy trigger control must reset to uninhibited legacy OR mode"
           severity failure;
         assert idelay_load = "00000"
           report "IDELAY load outputs must reset low"

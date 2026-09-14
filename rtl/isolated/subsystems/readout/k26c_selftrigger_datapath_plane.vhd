@@ -19,6 +19,7 @@ port(
     timestamp: in std_logic_vector(63 downto 0);
     enable: in std_logic_vector(39 downto 0);
     forcetrig: in std_logic;
+    force_calibration_tag: in std_logic_vector(1 downto 0);
     st_trigger_signal: out std_logic_vector(39 downto 0);
     adhoc: in std_logic_vector(7 downto 0);
     ti_trigger: in std_logic_vector(7 downto 0);
@@ -47,42 +48,39 @@ port(
     thresh_s_axi_rvalid: out std_logic;
     thresh_s_axi_rready: in std_logic;
 
-    readout_data_o: out array_2x64_type;
-    readout_valid_o: out std_logic_vector(1 downto 0);
-    readout_last_o: out std_logic_vector(1 downto 0)
+    readout_data_o: out array_8x64_type;
+    readout_valid_o: out std_logic_vector(7 downto 0);
+    readout_last_o: out std_logic_vector(7 downto 0);
+    readout_ready_i: in std_logic_vector(7 downto 0) := (others => '1');
+    readout_reset_o: out std_logic
 );
 end k26c_selftrigger_datapath_plane;
 
 architecture rtl of k26c_selftrigger_datapath_plane is
+  constant ACTIVE_AFE_COUNT_C     : positive := 4;
+  constant ACTIVE_CHANNEL_COUNT_C : positive := 32;
+  constant READOUT_LANE_COUNT_C   : positive := 8;
+  constant CHANNELS_PER_LANE_C    : positive := 4;
+  signal builder_clock_s, builder_reset_s, acquisition_reset_s : std_logic;
   signal threshold_axi_in:   AXILITE_INREC;
   signal threshold_axi_out:  AXILITE_OUTREC;
-  signal threshold_xc:       slv28_array_t(0 to 39);
-  signal TCount:             slv64_array_t(0 to 39);
-  signal PCount:             slv64_array_t(0 to 39);
-  signal record_count:       slv64_array_t(0 to 39);
-  signal full_count:         slv64_array_t(0 to 39);
-  signal busy_count:         slv64_array_t(0 to 39);
-  signal trigger_samples:    sample14_array_t(0 to 39);
-  signal trigger_control:    trigger_xcorr_control_array_t(0 to 39);
-  signal trigger_result:     trigger_xcorr_result_array_t(0 to 39);
-  signal config_valid:       std_logic_vector(4 downto 0) := (others => '0');
-  signal config_cmd:         afe_config_command_bank_t(0 to 4) := (others => AFE_CONFIG_COMMAND_NULL);
-  signal config_status:      afe_config_status_bank_t(0 to 4);
-  signal afe_miso:           std_logic_vector(4 downto 0) := (others => '0');
-  signal afe_sclk:           std_logic_vector(4 downto 0);
-  signal afe_sen:            std_logic_vector(4 downto 0);
-  signal afe_mosi:           std_logic_vector(4 downto 0);
-  signal trim_sclk:          std_logic_vector(4 downto 0);
-  signal trim_mosi:          std_logic_vector(4 downto 0);
-  signal trim_ldac_n:        std_logic_vector(4 downto 0);
-  signal trim_sync_n:        std_logic_vector(4 downto 0);
-  signal offset_sclk:        std_logic_vector(4 downto 0);
-  signal offset_mosi:        std_logic_vector(4 downto 0);
-  signal offset_ldac_n:      std_logic_vector(4 downto 0);
-  signal offset_sync_n:      std_logic_vector(4 downto 0);
-  signal ready:              std_logic_array_t(0 to 39);
-  signal rd_en:              std_logic_array_t(0 to 39);
-  signal fabric_dout:        slv72_array_t(0 to 39);
+  signal threshold_xc:       slv28_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal continuation_config: slv32_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal TCount:             slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal PCount:             slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal continuation_count: slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal continuation_drop_count: slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal covered_trigger_count: slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal descriptor_overflow_count: slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal record_count:       slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal full_count:         slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal busy_count:         slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal trigger_samples:    sample14_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal trigger_control:    trigger_xcorr_control_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal trigger_result:     trigger_xcorr_result_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal ready:              std_logic_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal rd_en:              std_logic_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal fabric_dout:        slv72_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
 begin
   threshold_axi_in.ACLK    <= thresh_s_axi_aclk;
   threshold_axi_in.ARESETN <= thresh_s_axi_aresetn;
@@ -107,14 +105,15 @@ begin
   thresh_s_axi_rresp   <= threshold_axi_out.RRESP;
   thresh_s_axi_rvalid  <= threshold_axi_out.RVALID;
 
-  gen_legacy_monitor_outputs : for idx in 0 to 39 generate
+  gen_legacy_monitor_outputs : for idx in 0 to ACTIVE_CHANNEL_COUNT_C - 1 generate
   begin
     st_trigger_signal(idx) <= trigger_result(idx).trigger_pulse;
   end generate gen_legacy_monitor_outputs;
+  st_trigger_signal(39 downto ACTIVE_CHANNEL_COUNT_C) <= (others => '0');
 
   frontend_adapter_inst : entity work.frontend_to_selftrigger_adapter
     generic map (
-      AFE_COUNT_G => 5
+      AFE_COUNT_G => ACTIVE_AFE_COUNT_C
     )
     port map(
       afe_dout_i        => din_core,
@@ -123,13 +122,14 @@ begin
 
   control_adapter_inst : entity work.trigger_control_adapter
     generic map (
-      CHANNEL_COUNT_G => 40
+      CHANNEL_COUNT_G => ACTIVE_CHANNEL_COUNT_C
     )
     port map(
-      core_chan_enable_i       => enable,
-      afe_comp_enable_i        => afe_comp_enable,
-      invert_enable_i          => invert_enable,
+      core_chan_enable_i       => enable(ACTIVE_CHANNEL_COUNT_C - 1 downto 0),
+      afe_comp_enable_i        => afe_comp_enable(ACTIVE_CHANNEL_COUNT_C - 1 downto 0),
+      invert_enable_i          => invert_enable(ACTIVE_CHANNEL_COUNT_C - 1 downto 0),
       threshold_xc_i           => threshold_xc,
+      continuation_config_i    => continuation_config,
       adhoc_i                  => adhoc,
       filter_output_selector_i => filter_output_selector,
       ti_trigger_i             => ti_trigger,
@@ -143,43 +143,20 @@ begin
       reset_st_counters_o      => open
     );
 
-  daphne_composable_core_top_inst : entity work.daphne_composable_core_top
-    generic map (
-      AFE_COUNT_G          => 5,
-      ENABLE_SELFTRIGGER_G => true,
-      ENABLE_TIMING_G      => false,
-      ENABLE_HERMES_G      => false
-    )
+  readout_reset_o <= acquisition_reset_s;
+
+  grouped_clock_inst : entity work.grouped_builder_clock
+    port map(clock_i=>clock, reset_i=>reset, builder_clock_o=>builder_clock_s,
+      builder_reset_o=>builder_reset_s, acquisition_reset_o=>acquisition_reset_s);
+
+  grouped_fabric_inst : entity work.grouped_selftrigger_fabric
+    generic map (AFE_COUNT_G=>ACTIVE_AFE_COUNT_C)
     port map (
-      clock_i                   => clock,
-      reset_i                   => reset,
-      timing_clk_axi_i          => clock,
-      timing_resetn_axi_i       => not reset,
-      timing_ctrl_i             => TIMING_CONTROL_NULL,
-      timing_stat_o             => open,
-      timing_timestamp_o        => open,
-      timing_sync_o             => open,
-      timing_sync_stb_o         => open,
-      hermes_descriptor_i       => TRIGGER_DESCRIPTOR_NULL,
-      hermes_descriptor_taken_o => open,
-      hermes_stat_o             => open,
-      config_valid_i            => config_valid,
-      config_cmd_i              => config_cmd,
-      config_status_o           => config_status,
-      afe_miso_i                => afe_miso,
-      afe_sclk_o                => afe_sclk,
-      afe_sen_o                 => afe_sen,
-      afe_mosi_o                => afe_mosi,
-      trim_sclk_o               => trim_sclk,
-      trim_mosi_o               => trim_mosi,
-      trim_ldac_n_o             => trim_ldac_n,
-      trim_sync_n_o             => trim_sync_n,
-      offset_sclk_o             => offset_sclk,
-      offset_mosi_o             => offset_mosi,
-      offset_ldac_n_o           => offset_ldac_n,
-      offset_sync_n_o           => offset_sync_n,
+      clock_i=>clock, reset_i=>acquisition_reset_s,
+      builder_clock_i=>builder_clock_s, builder_reset_i=>builder_reset_s,
       reset_st_counters_i       => reset_st_counters,
       force_trigger_i           => forcetrig,
+      force_calibration_tag_i   => force_calibration_tag,
       timestamp_i               => timestamp,
       version_i                 => version(3 downto 0),
       signal_delay_i            => signal_delay,
@@ -194,32 +171,53 @@ begin
       busy_count_o              => busy_count,
       trigger_count_o           => TCount,
       packet_count_o            => PCount,
+      continuation_count_o            => continuation_count,
+      continuation_drop_count_o            => continuation_drop_count,
+      covered_trigger_count_o            => covered_trigger_count,
+      descriptor_overflow_count_o            => descriptor_overflow_count,
       delayed_sample_o          => open,
       ready_o                   => ready,
       dout_o                    => fabric_dout
     );
 
+  -- Two adjacent four-channel lanes feed each Hermes link:0..7,8..15,
+  --16..23 and24..31. The public monitor/config ports remain 40 bits wide;
+  --channels32..39 are intentionally unavailable in this resource-fit build.
   two_lane_readout_mux_inst : entity work.two_lane_readout_mux
+    generic map(
+      CHANNEL_COUNT_G     => ACTIVE_CHANNEL_COUNT_C,
+      LANE_COUNT_G        => READOUT_LANE_COUNT_C,
+      CHANNELS_PER_LANE_G => CHANNELS_PER_LANE_C
+    )
     port map (
       clock_i => clock,
-      reset_i => reset,
+      reset_i => acquisition_reset_s,
       ready_i => ready,
       dout_i  => fabric_dout,
       rd_en_o => rd_en,
       dout_o  => readout_data_o,
       valid_o => readout_valid_o,
-      last_o  => readout_last_o
+      last_o  => readout_last_o,
+      packet_ready_i => readout_ready_i
     );
 
   selftrigger_register_bank_inst : entity work.selftrigger_register_bank
+    generic map (
+      CHANNEL_COUNT_G => ACTIVE_CHANNEL_COUNT_C
+    )
     port map (
       AXI_IN         => threshold_axi_in,
       AXI_OUT        => threshold_axi_out,
       threshold_xc_o => threshold_xc,
+      continuation_config_o => continuation_config,
       record_count_i => record_count,
       full_count_i   => full_count,
       busy_count_i   => busy_count,
       tcount_i       => TCount,
-      pcount_i       => PCount
+      pcount_i       => PCount,
+      continuation_count_i       => continuation_count,
+      continuation_drop_count_i       => continuation_drop_count,
+      covered_trigger_count_i       => covered_trigger_count,
+      descriptor_overflow_count_i       => descriptor_overflow_count
     );
 end architecture rtl;

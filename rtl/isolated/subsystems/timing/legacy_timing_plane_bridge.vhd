@@ -16,9 +16,6 @@ entity legacy_timing_plane_bridge is
     clock_gen_debug         : out std_logic;
     mmcm0_100mhz_clk_debug  : out std_logic;
     ep_62p5mhz_clk_debug    : out std_logic;
-    f_ok_debug              : out std_logic;
-    sctr_debug              : out std_logic_vector(15 downto 0);
-    cctr_debug              : out std_logic_vector(15 downto 0);
     clock_o                 : out std_logic;
     clk500_o                : out std_logic;
     clk125_o                : out std_logic;
@@ -65,9 +62,6 @@ begin
       clock_gen_debug_o        => clock_gen_debug,
       mmcm0_100mhz_clk_debug_o => mmcm0_100mhz_clk_debug,
       ep_62p5mhz_clk_debug_o   => ep_62p5mhz_clk_debug,
-      f_ok_debug_o             => f_ok_debug,
-      sctr_debug_o             => sctr_debug,
-      cctr_debug_o             => cctr_debug,
       mclk_o                   => open,
       clock_o                  => clock_o,
       clk500_o                 => clk500_o,

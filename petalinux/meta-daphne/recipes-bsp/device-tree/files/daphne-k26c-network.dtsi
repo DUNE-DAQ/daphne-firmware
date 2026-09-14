@@ -1,27 +1,30 @@
 / {
 	/*
-	 * Board-owned network defaults belong in the platform software layer, not
-	 * in PL RTL.
-	 *
-	 * This file is intentionally conservative. It shows where KR260/DAPHNE
-	 * network identity will be owned once the repo controls the full DT build.
-	 *
-	 * Replace the placeholder MAC with board-inventory-driven values or a
-	 * reproducible derivation rule before enabling it for production.
+	 * MAC identity comes from MAC ID 0 in the K26 SOM EEPROM. Xilinx U-Boot
+	 * publishes that value as ethaddr and fixes up the working FDT through the
+	 * standard ethernet0 alias. No DAPHNE image is allowed to compile a MAC.
 	 */
 
 	aliases {
+		ethernet0 = &gem0;
 		ethernet_daphne_sgmii = &gem0;
 	};
 };
 
 &gem0 {
 	/*
-	 * The golden DTB uses GEM0 in SGMII mode with a fixed-link. Preserve that
-	 * ownership on the PS/device-tree side.
+	 * DAPHNE uses GEM0 over the PS GT SGMII path with a fixed-link. Keep that
+	 * contract explicit here so Linux does not depend on the generated external
+	 * PHY defaults from the base KR260 tree.
 	 */
+	is-internal-pcspma;
 	phy-mode = "sgmii";
-	local-mac-address = [02 00 00 00 00 20];
-	mac-address = [02 00 00 00 00 20];
+	/delete-property/ local-mac-address;
+	/delete-property/ mac-address;
 	status = "okay";
+
+	fixed-link {
+		speed = <1000>;
+		full-duplex;
+	};
 };
