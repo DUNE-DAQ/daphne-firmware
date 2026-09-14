@@ -1,0 +1,17 @@
+/tmp/daphne-grouped32-ddd2ja6l/sources/tests/logic/stream_reset_sync_tb.vhd:32:5:@106ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @106ns
+/tmp/daphne-grouped32-ddd2ja6l/sources/tests/logic/stream_reset_sync_tb.vhd:32:5:@146ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @146ns
+/tmp/daphne-grouped32-ddd2ja6l/sources/tests/logic/stream_reset_sync_tb.vhd:32:5:@226ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @226ns
+/tmp/daphne-grouped32-ddd2ja6l/sources/tests/logic/afe_stc3_stream_serializer_tb.vhd:92:5:@8072ns:(report note): afe_stc3_stream_serializer_tb PASS: four channels, 480 addressed writes and four complete commits
+simulation stopped @8072ns
+/tmp/daphne-grouped32-ddd2ja6l/stc3_continuation_tb.vhd:68:5:@288048ns:(report note): stc3_continuation_tb PASS odd=0 packets=30
+simulation stopped @288048ns
+/tmp/daphne-grouped32-ddd2ja6l/stc3_continuation_tb.vhd:68:5:@288048ns:(report note): stc3_continuation_tb PASS odd=1 packets=30
+simulation stopped @288048ns
+/tmp/daphne-grouped32-ddd2ja6l/stc3_continuation_edges_tb.vhd:186:5:@678825ns:(report note): stc3_continuation_edges_tb PASS
+simulation stopped @678825ns
+/tmp/daphne-grouped32-ddd2ja6l/stc3_continuation_overload_tb.vhd:119:5:@576041ns:(report note): stc3_continuation_overload_tb PASS:48 packets,13 whole-fragment drops, recovery
+simulation stopped @576041ns
+Grouped builder reset and existing contracts PASS

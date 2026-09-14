@@ -1,0 +1,50 @@
+#-----------------------------------------------------------
+# xsim v2026.1 (64-bit)
+# SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
+# IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+# SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+# Start of session at: Mon Sep 14 17:49:43 2026
+# Process ID         : 266421
+# Current directory  : /home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914
+# Command line       : xsim -log simulate-grouped32_mode0.log -mode tcl -source {xsim.dir/grouped32_mode0/xsim_script.tcl}
+# Log file           : /home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914/simulate-grouped32_mode0.log
+# Journal file       : /home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914/xsim.jou
+# Running On         : WL-144132
+# Platform           : unknown
+# Operating System   : unknown
+# Processor Detail   : 13th Gen Intel(R) Core(TM) i9-13950HX
+# CPU Frequency      : 2419.199 MHz
+# CPU Physical cores : 14
+# CPU Logical cores  : 28
+# Host memory        : 25195 MB
+# Swap memory        : 12884 MB
+# Total Virtual      : 38080 MB
+# Available Virtual  : 28581 MB
+#-----------------------------------------------------------
+source xsim.dir/grouped32_mode0/xsim_script.tcl
+# xsim {grouped32_mode0} -autoloadwcfg -runall -onerror quit
+Time resolution is 1 ps
+run -all
+Warning: SIM_ASSERT_CHK (1) specifies simulation message reporting, messages related to potential misuse will be reported.
+Time: 1 ps  Iteration: 0  Process: /grouped32_replay_tb/\builders(0)\/engine/write_fifo/gnuram_async_fifo.xpm_fifo_base_inst/Initial1559_2022  Scope: grouped32_replay_tb.\builders(0)\.engine.write_fifo.gnuram_async_fifo.xpm_fifo_base_inst  File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv Line: 1566
+Warning: SIM_ASSERT_CHK (1) specifies simulation message reporting, messages related to potential misuse will be reported.
+Time: 1 ps  Iteration: 0  Process: /grouped32_replay_tb/\builders(1)\/engine/write_fifo/gnuram_async_fifo.xpm_fifo_base_inst/Initial1559_2022  Scope: grouped32_replay_tb.\builders(1)\.engine.write_fifo.gnuram_async_fifo.xpm_fifo_base_inst  File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv Line: 1566
+Warning: SIM_ASSERT_CHK (1) specifies simulation message reporting, messages related to potential misuse will be reported.
+Time: 1 ps  Iteration: 0  Process: /grouped32_replay_tb/\builders(2)\/engine/write_fifo/gnuram_async_fifo.xpm_fifo_base_inst/Initial1559_2022  Scope: grouped32_replay_tb.\builders(2)\.engine.write_fifo.gnuram_async_fifo.xpm_fifo_base_inst  File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv Line: 1566
+Warning: SIM_ASSERT_CHK (1) specifies simulation message reporting, messages related to potential misuse will be reported.
+Time: 1 ps  Iteration: 0  Process: /grouped32_replay_tb/\builders(3)\/engine/write_fifo/gnuram_async_fifo.xpm_fifo_base_inst/Initial1559_2022  Scope: grouped32_replay_tb.\builders(3)\.engine.write_fifo.gnuram_async_fifo.xpm_fifo_base_inst  File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv Line: 1566
+Warning: SIM_ASSERT_CHK (1) specifies simulation message reporting, messages related to potential misuse will be reported.
+Time: 1 ps  Iteration: 0  Process: /grouped32_replay_tb/\builders(4)\/engine/write_fifo/gnuram_async_fifo.xpm_fifo_base_inst/Initial1559_2022  Scope: grouped32_replay_tb.\builders(4)\.engine.write_fifo.gnuram_async_fifo.xpm_fifo_base_inst  File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv Line: 1566
+Warning: SIM_ASSERT_CHK (1) specifies simulation message reporting, messages related to potential misuse will be reported.
+Time: 1 ps  Iteration: 0  Process: /grouped32_replay_tb/\builders(5)\/engine/write_fifo/gnuram_async_fifo.xpm_fifo_base_inst/Initial1559_2022  Scope: grouped32_replay_tb.\builders(5)\.engine.write_fifo.gnuram_async_fifo.xpm_fifo_base_inst  File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv Line: 1566
+Warning: SIM_ASSERT_CHK (1) specifies simulation message reporting, messages related to potential misuse will be reported.
+Time: 1 ps  Iteration: 0  Process: /grouped32_replay_tb/\builders(6)\/engine/write_fifo/gnuram_async_fifo.xpm_fifo_base_inst/Initial1559_2022  Scope: grouped32_replay_tb.\builders(6)\.engine.write_fifo.gnuram_async_fifo.xpm_fifo_base_inst  File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv Line: 1566
+Warning: SIM_ASSERT_CHK (1) specifies simulation message reporting, messages related to potential misuse will be reported.
+Time: 1 ps  Iteration: 0  Process: /grouped32_replay_tb/\builders(7)\/engine/write_fifo/gnuram_async_fifo.xpm_fifo_base_inst/Initial1559_2022  Scope: grouped32_replay_tb.\builders(7)\.engine.write_fifo.gnuram_async_fifo.xpm_fifo_base_inst  File: /home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv Line: 1566
+Note: grouped32_replay_tb PASS mode=0 loss=0
+Time: 992272 ns  Iteration: 0  Process: /grouped32_replay_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914/sources/tests/logic/grouped32_replay_tb.vhd
+$stop called at time : 992272 ns : File "/home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914/sources/tests/logic/grouped32_replay_tb.vhd" Line 209
+run: Time (s): cpu = 00:00:00.29 ; elapsed = 00:02:30 . Memory (MB): peak = 1511.543 ; gain = 8.004 ; free physical = 19001 ; free virtual = 32115
+exit
+INFO: xsimkernel Simulation Memory Usage: 376976 KB (Peak: 442512 KB), Simulation CPU Usage: 151050 ms
+INFO: [Common 17-206] Exiting xsim at Mon Sep 14 17:52:17 2026...

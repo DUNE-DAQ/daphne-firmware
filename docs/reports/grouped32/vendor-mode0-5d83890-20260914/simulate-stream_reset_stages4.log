@@ -1,0 +1,33 @@
+#-----------------------------------------------------------
+# xsim v2026.1 (64-bit)
+# SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
+# IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+# SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+# Start of session at: Mon Sep 14 17:48:22 2026
+# Process ID         : 265130
+# Current directory  : /home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914
+# Command line       : xsim -log simulate-stream_reset_stages4.log -mode tcl -source {xsim.dir/stream_reset_stages4/xsim_script.tcl}
+# Log file           : /home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914/simulate-stream_reset_stages4.log
+# Journal file       : /home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914/xsim.jou
+# Running On         : WL-144132
+# Platform           : unknown
+# Operating System   : unknown
+# Processor Detail   : 13th Gen Intel(R) Core(TM) i9-13950HX
+# CPU Frequency      : 2419.199 MHz
+# CPU Physical cores : 14
+# CPU Logical cores  : 28
+# Host memory        : 25195 MB
+# Swap memory        : 12884 MB
+# Total Virtual      : 38080 MB
+# Available Virtual  : 28498 MB
+#-----------------------------------------------------------
+source xsim.dir/stream_reset_stages4/xsim_script.tcl
+# xsim {stream_reset_stages4} -autoloadwcfg -runall -onerror quit
+Time resolution is 1 ps
+run -all
+Note: stream_reset_sync_tb PASS
+Time: 146 ns  Iteration: 0  Process: /stream_reset_sync_tb/line__15  File: /home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914/sources/tests/logic/stream_reset_sync_tb.vhd
+$stop called at time : 146 ns : File "/home/marroyav/work/daphne-grouped32-5d83890-impl-20260914/build/vendor-mode0-5d83890-20260914/sources/tests/logic/stream_reset_sync_tb.vhd" Line 32
+exit
+INFO: xsimkernel Simulation Memory Usage: 285584 KB (Peak: 343116 KB), Simulation CPU Usage: 1010 ms
+INFO: [Common 17-206] Exiting xsim at Mon Sep 14 17:48:26 2026...
