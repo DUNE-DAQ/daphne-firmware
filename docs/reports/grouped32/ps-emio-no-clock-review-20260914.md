@@ -16,15 +16,19 @@ The source PS configuration in `xilinx/daphne_bd_gen.tcl` classifies them:
 | SPI1 SCLKO | SPI1 enabled, routed to MIO 6–11 | None through EMIO |
 
 The BD source contains no connection referring to any of these eight EMIO
-outputs. This is a **source-level classification**, not a substitute for the
-fresh post-synthesis/placed netlist check: inspect fanout from these eight PS
-pins and verify that none drives a fabric sequential clock pin. If they have
-no fabric loads, retain the `check_timing` warning with this explanation;
-do not create fabricated clocks or waive an active clock path. If a load is
-found, trace its actual clock source and add the correct generated-clock or
-interface model before timing sign-off.
+outputs. The routed `d1d07ac` checkpoint was opened in Vivado 2026.1 and
+`all_fanout -flat -endpoints_only` returned **zero endpoints for each pin**.
+The checkpoint is
+`daphne_selftrigger_bd_post_route.dcp` (SHA-256
+`749de3898201b828f1c96dc8d9c1de1dce990262379e86a44de4550236e50911`);
+the eight results are in `ps-emio-routed-fanout-20260914.tsv`. This confirms
+the source-level classification for that routed revision. Retain any PS8
+`no_clock` warning with this explanation; do not create fabricated clocks or
+waive an active clock path. Recheck the endpoints if the PS configuration or
+BD wiring changes.
 
 Evidence: `docs/reports/grouped32/audit-20260914-5e86a75/check_timing.rpt`
 lines 32–43, `xilinx/daphne_bd_gen.tcl` PS ENET, SD and SPI configuration
 near lines 1053–1056 and 1313–1331, and the BD source
-`bd/daphne_selftrigger_bd/daphne_selftrigger_bd.bd`.
+`bd/daphne_selftrigger_bd/daphne_selftrigger_bd.bd`, plus the routed fanout
+TSV named above.
