@@ -220,10 +220,11 @@ report. Its clock-relationship warnings, CDC structures, exception coverage,
 and missing external I/O delays still need review.
 
 Revision `5d83890` adds a packer-input register to split the remaining
-ring-BRAM-to-FIFO-write path. All five GHDL replay modes pass with packet CSV
-hashes identical to `5f00fb5`, and all five Formal CI matrices pass. A clean
-pinned full implementation and real-AMD-XPM mode-0 replay have been launched;
-neither has a final result at this update. The Ethernet CDC/reset failures are
+ring-BRAM-to-FIFO-write path. All five [GHDL replay modes](reports/grouped32/replay-five-mode-5d83890-20260914/README.md)
+pass with packet CSV hashes identical to `5f00fb5`, all five Formal CI
+matrices pass, and the [real-AMD-XPM mode-0 replay](reports/grouped32/vendor-mode0-5d83890-20260914/README.md)
+passes on a clean pinned source. A clean pinned full implementation is running;
+it has no final timing result at this update. The Ethernet CDC/reset failures are
 separate from the builder path and require object-level review before any new
 timing exception. The AFE 1.000 Gb/s lane timing and K26C skew limits remain
 external qualification blockers.
