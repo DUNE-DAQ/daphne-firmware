@@ -18,7 +18,7 @@ begin
   mmcm_inst : MMCME4_BASE
     generic map(BANDWIDTH=>"OPTIMIZED", CLKFBOUT_MULT_F=>20.0,
       CLKIN1_PERIOD=>16.0, CLKOUT0_DIVIDE_F=>4.0, DIVCLK_DIVIDE=>1,
-      STARTUP_WAIT=>false)
+      STARTUP_WAIT=>"FALSE")
     port map(CLKIN1=>clock_i, CLKFBIN=>feedback_buf_s, RST=>reset_i, PWRDWN=>'0',
       CLKFBOUT=>feedback_s, CLKFBOUTB=>open, CLKOUT0=>clock_raw_s, CLKOUT0B=>open,
       CLKOUT1=>open, CLKOUT1B=>open, CLKOUT2=>open, CLKOUT2B=>open,

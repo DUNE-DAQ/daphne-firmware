@@ -161,7 +161,10 @@ package body common_stfc_pkg is
         input_vector : std_logic_vector
     ) return std_logic_vector is
 
-        variable output_vector : std_logic_vector(input_vector'high downto 0);
+        -- Normalize unconstrained arguments: callers can pass slices with a
+        -- nonzero lower bound or an ascending index range.
+        constant normalized_input : std_logic_vector(input_vector'length - 1 downto 0) := input_vector;
+        variable output_vector : std_logic_vector(input_vector'length - 1 downto 0);
         variable a             : integer;
         variable b             : integer;
         variable c             : integer;
@@ -174,7 +177,7 @@ package body common_stfc_pkg is
             c                         := 8 * NUM_BYTES - i * 8 - 8;
             b                         := i * 8 + 7;
             a                         := i * 8;
-            output_vector(d downto c) := input_vector(b downto a);
+            output_vector(d downto c) := normalized_input(b downto a);
         end loop;
         return output_vector;
     end function byte_reverse;
