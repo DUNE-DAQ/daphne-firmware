@@ -11,6 +11,7 @@ entity daphne_composable_top_formal is
     clk125_i            : in std_logic;
     trig_in_i           : in std_logic;
     frontend_axi_aclk_i : in std_logic;
+    force_calibration_tag_i : in std_logic_vector(1 downto 0);
     frontend_resetn_i   : in std_logic;
     timing_resetn_axi_i : in std_logic;
     timing_ctrl_i       : in timing_control_t;
@@ -158,6 +159,7 @@ begin
       offset_sync_n_o           => open,
       reset_st_counters_i       => '0',
       force_trigger_i           => '0',
+      force_calibration_tag_i   => force_calibration_tag_i,
       timestamp_i               => (others => '0'),
       version_i                 => VERSION_C,
       signal_delay_i            => SIGNAL_DELAY_C,
@@ -265,6 +267,7 @@ begin
       offset_sync_n_o       => offset_sync_n_o,
       reset_st_counters_i   => '0',
       force_trigger_i       => '0',
+      force_calibration_tag_i => force_calibration_tag_i,
       timestamp_i           => (others => '0'),
       version_i             => VERSION_C,
       signal_delay_i        => SIGNAL_DELAY_C,

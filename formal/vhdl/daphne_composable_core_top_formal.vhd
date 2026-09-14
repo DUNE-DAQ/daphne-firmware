@@ -13,6 +13,7 @@ entity daphne_composable_core_top_formal is
     timing_ctrl_b       : in timing_control_t;
     hermes_descriptor_a : in trigger_descriptor_t;
     hermes_descriptor_b : in trigger_descriptor_t;
+    force_calibration_tag_i : in std_logic_vector(1 downto 0);
     timestamp_a         : in std_logic_vector(63 downto 0);
     timestamp_b         : in std_logic_vector(63 downto 0);
     din_a               : in sample14_array_t(0 to 39);
@@ -139,6 +140,7 @@ begin
       offset_sync_n_o           => offset_sync_n_a,
       reset_st_counters_i       => '0',
       force_trigger_i           => '0',
+      force_calibration_tag_i   => force_calibration_tag_i,
       timestamp_i               => timestamp_a,
       version_i                 => VERSION_C,
       signal_delay_i            => SIGNAL_DELAY_C,
@@ -195,6 +197,7 @@ begin
       offset_sync_n_o           => offset_sync_n_b,
       reset_st_counters_i       => '0',
       force_trigger_i           => '0',
+      force_calibration_tag_i   => force_calibration_tag_i,
       timestamp_i               => timestamp_b,
       version_i                 => VERSION_C,
       signal_delay_i            => SIGNAL_DELAY_C,

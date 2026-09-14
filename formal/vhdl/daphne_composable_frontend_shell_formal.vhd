@@ -12,6 +12,7 @@ entity daphne_composable_frontend_shell_formal is
     timing_resetn_axi_i : in std_logic;
     timing_ctrl_i       : in timing_control_t;
     hermes_descriptor_i : in trigger_descriptor_t;
+    force_calibration_tag_i : in std_logic_vector(1 downto 0);
     timestamp_i         : in std_logic_vector(63 downto 0);
     frontend_dout_i     : in array_5x9x16_type;
     frontend_trig_i     : in std_logic
@@ -115,6 +116,7 @@ begin
       offset_sync_n_o           => offset_sync_n_o,
       reset_st_counters_i       => '0',
       force_trigger_i           => '0',
+      force_calibration_tag_i   => force_calibration_tag_i,
       timestamp_i               => timestamp_i,
       version_i                 => VERSION_C,
       signal_delay_i            => SIGNAL_DELAY_C,
