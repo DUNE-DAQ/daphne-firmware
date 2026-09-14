@@ -42,6 +42,8 @@ architecture rtl of afe_stc3_stream_serializer is
   signal wr_en_s, full_s, empty_s, wr_busy_s, rd_busy_s, rd_en_s : std_logic;
   signal write_count_s : std_logic_vector(9 downto 0);
   signal write_s, read_s : std_logic_vector(87 downto 0);
+  signal fifo_write_s : std_logic_vector(87 downto 0) := (others=>'0');
+  signal fifo_wr_en_s : std_logic := '0';
   signal dest_desc_s, held_desc_s : grouped_descriptor_array_t(0 to 3);
   signal request_s, ack_s, received_s, send_s : std_logic_vector(0 to 3) := (others=>'0');
   signal armed_s : std_logic_vector(0 to 3) := (others=>'0');
@@ -100,8 +102,8 @@ begin
       RD_DATA_COUNT_WIDTH=>10, READ_DATA_WIDTH=>88, READ_MODE=>"fwft",
       RELATED_CLOCKS=>0, SIM_ASSERT_CHK=>1, USE_ADV_FEATURES=>"0004",
       WAKEUP_TIME=>0, WRITE_DATA_WIDTH=>88, WR_DATA_COUNT_WIDTH=>10)
-    port map(rst=>builder_reset_i, wr_clk=>builder_clock_i, wr_en=>wr_en_s,
-      din=>write_s, full=>full_s, wr_ack=>open, overflow=>open,
+    port map(rst=>builder_reset_i, wr_clk=>builder_clock_i, wr_en=>fifo_wr_en_s,
+      din=>fifo_write_s, full=>full_s, wr_ack=>open, overflow=>open,
       prog_full=>open, wr_data_count=>write_count_s, almost_full=>open,
       wr_rst_busy=>wr_busy_s, rd_clk=>clock_i, rd_en=>rd_en_s, dout=>read_s,
       empty=>empty_s, underflow=>open, prog_empty=>open, rd_data_count=>open,
@@ -161,6 +163,22 @@ begin
     end if;
   end process;
 
+  -- Separate the ring BRAM output and seven-way fixed-slice packer from the
+  -- FIFO BRAM input. Every payload/header write is delayed by one builder
+  -- clock, preserving its address, channel, commit bit and original order.
+  process(builder_clock_i)
+  begin
+    if rising_edge(builder_clock_i) then
+      if builder_reset_i='1' then
+        fifo_write_s<=(others=>'0');
+        fifo_wr_en_s<='0';
+      else
+        fifo_write_s<=write_s;
+        fifo_wr_en_s<=wr_en_s;
+      end if;
+    end if;
+  end process;
+
   process(builder_clock_i)
     variable candidate : unsigned(1 downto 0);
   begin
@@ -174,7 +192,7 @@ begin
         for ch in 0 to 3 loop
           if request_s(ch)='0' then ack_s(ch)<='0'; armed_s(ch)<='1'; end if;
         end loop;
-        assert not(wr_en_s='1' and (full_s='1' or wr_busy_s='1'))
+        assert not(fifo_wr_en_s='1' and (full_s='1' or wr_busy_s='1'))
           report "grouped serializer exceeded reserved write FIFO space" severity failure;
         case state_s is
           when idle =>
