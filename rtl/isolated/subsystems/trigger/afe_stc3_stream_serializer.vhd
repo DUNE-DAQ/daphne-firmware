@@ -35,6 +35,9 @@ architecture rtl of afe_stc3_stream_serializer is
   signal shift_s : std_logic_vector(63 downto 0) := (others=>'0');
   signal window_s : std_logic_vector(77 downto 0);
   signal sample_s : std_logic_vector(13 downto 0);
+  signal pack_sample_s : std_logic_vector(13 downto 0) := (others=>'0');
+  signal pack_index_s : unsigned(8 downto 0) := (others=>'0');
+  signal pack_valid_s : std_logic := '0';
   signal sample_valid_s, descriptor_start_s, descriptor_done_s, overflow_s : std_logic;
   signal baseline_s : std_logic_vector(13 downto 0);
   signal descriptor_word_s, payload_data_s : std_logic_vector(63 downto 0);
@@ -123,11 +126,14 @@ begin
       sample_i=>sample_s, sample_index_i=>sample_index_s,
       read_index_i=>header_index_s-2, read_word_o=>descriptor_word_s,
       done_o=>descriptor_done_s, overflow_o=>overflow_s);
-  window_s <= sample_s & shift_s;
+  -- The descriptor calculator has its own registered input. Give the packet
+  -- packer an equally short ring-BRAM-to-register path, carrying the sample
+  -- index and valid bit with the selected sample through this extra stage.
+  window_s <= pack_sample_s & shift_s;
   process(all)
   begin
-    payload_wr_s<=sample_valid_s; payload_data_s<=(others=>'0');
-    case to_integer(sample_index_s(4 downto 0)) is
+    payload_wr_s<=pack_valid_s; payload_data_s<=(others=>'0');
+    case to_integer(pack_index_s(4 downto 0)) is
       when 4 => payload_data_s<=window_s(71 downto 8);
       when 9 => payload_data_s<=window_s(65 downto 2);
       when 13 => payload_data_s<=window_s(73 downto 10);
@@ -147,7 +153,7 @@ begin
       wr_en_s<=not builder_reset_i;
       write_s(78 downto 72)<=std_logic_vector(payload_word_s+8);
       write_s(63 downto 0)<=payload_data_s;
-      if sample_index_s=511 then write_s(71 downto 64)<=X"ED"; end if;
+      if pack_index_s=511 then write_s(71 downto 64)<=X"ED"; end if;
     elsif state_s=header then
       wr_en_s<=not builder_reset_i;
       write_s(78 downto 72)<=std_logic_vector(resize(header_index_s,7));
@@ -187,8 +193,14 @@ begin
         state_s<=idle; active_s<=(others=>'0'); channel_s<=(others=>'0'); next_channel_s<=(others=>'0');
         issue_index_s<=(others=>'0'); sample_index_s<=(others=>'0');
         header_index_s<=(others=>'0'); payload_word_s<=(others=>'0');
+        pack_sample_s<=(others=>'0'); pack_index_s<=(others=>'0'); pack_valid_s<='0';
         shift_s<=(others=>'0'); ack_s<=request_s; armed_s<=(others=>'0');
       else
+        pack_sample_s<=sample_s;
+        pack_index_s<=sample_index_s;
+        pack_valid_s<=sample_valid_s;
+        if pack_valid_s='1' then shift_s<=window_s(77 downto 14); end if;
+        if payload_wr_s='1' then payload_word_s<=payload_word_s+1; end if;
         for ch in 0 to 3 loop
           if request_s(ch)='0' then ack_s(ch)<='0'; armed_s(ch)<='1'; end if;
         end loop;
@@ -213,8 +225,6 @@ begin
             end if;
           when prime => issue_index_s<=to_unsigned(1,9); state_s<=payload;
           when payload =>
-            shift_s<=window_s(77 downto 14);
-            if payload_wr_s='1' then payload_word_s<=payload_word_s+1; end if;
             issue_index_s<=issue_index_s+1;
             if sample_index_s=511 then header_index_s<=(others=>'0'); state_s<=descriptor_drain;
             else sample_index_s<=sample_index_s+1; end if;
