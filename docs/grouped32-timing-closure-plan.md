@@ -206,3 +206,24 @@ The branch's two composable formal CI matrices failed at VHDL import because
 their harnesses omitted a required calibration-tag port. The
 [formal repair](reports/grouped32/formal-ci-repair-20260914.md) adds a symbolic
 tag input to the harnesses; all five CI matrices now pass on `a6728f2`.
+
+The pinned `d1d07ac` implementation later completed bit/bin/XSA/DTBO packaging
+despite the XXV license warnings, but routed setup timing failed. A first FIFO
+write pipeline and a narrowly scoped Hermes source-reset PRE exception were
+implemented in `5f00fb5`. Its [fresh full implementation](reports/grouped32/impl-20260914-5f00fb5/README.md)
+exited 0 and improved routed builder timing from -1.011 ns / 5,328 failing
+endpoints to -0.235 ns / 1,350, while overall setup remained -1.715 ns / 1,383
+endpoints. Hold and pulse-width passed. The [routed checkpoint audit](reports/grouped32/audit-routed-5f00fb5-20260914/README.md)
+completed all reports, found zero route/DRC errors, verified all eight PS EMIO
+clock outputs have zero fabric fanout, and produced a complete 117,610-row CDC
+report. Its clock-relationship warnings, CDC structures, exception coverage,
+and missing external I/O delays still need review.
+
+Revision `5d83890` adds a packer-input register to split the remaining
+ring-BRAM-to-FIFO-write path. All five GHDL replay modes pass with packet CSV
+hashes identical to `5f00fb5`, and all five Formal CI matrices pass. A clean
+pinned full implementation and real-AMD-XPM mode-0 replay have been launched;
+neither has a final result at this update. The Ethernet CDC/reset failures are
+separate from the builder path and require object-level review before any new
+timing exception. The AFE 1.000 Gb/s lane timing and K26C skew limits remain
+external qualification blockers.

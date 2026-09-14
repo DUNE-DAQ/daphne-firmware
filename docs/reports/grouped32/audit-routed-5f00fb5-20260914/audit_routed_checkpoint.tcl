@@ -30,9 +30,9 @@ report_timing_summary -report_unconstrained -file [file join $report_dir timing_
 report_bus_skew -file [file join $report_dir bus_skew.rpt]
 report_drc -file [file join $report_dir drc.rpt]
 
-# Earlier synthesis reports named eight PS8 EMIO peripheral outputs as
-# no_clock. Record their routed endpoint fanout so dormant PS pins cannot be
-# mistaken for unreviewed fabric clocks, or vice versa.
+# check_timing names eight PS8 EMIO peripheral outputs as no_clock. Record
+# their actual endpoint fanout so dormant PS pins cannot be mistaken for an
+# unreviewed fabric clock, or vice versa.
 set ps_emio_file [open [file join $report_dir ps_emio_clock_fanout.tsv] w]
 puts $ps_emio_file "pin\tstatus\tendpoint_count\tendpoints"
 set ps_prefix "daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i"

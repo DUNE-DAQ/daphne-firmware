@@ -1,0 +1,3 @@
+checkpoint=/home/marroyav/work/daphne-grouped32-5f00fb5-impl-20260914/xilinx/output-5f00fb5/daphne_selftrigger_bd_post_route.dcp
+vivado=2026.1
+utc=2026-09-14T23:40:55Z
