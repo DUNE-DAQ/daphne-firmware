@@ -9,6 +9,15 @@ licenses are unavailable. It specifically reports the
 checkpoints may prevent use of this IP in some tool flows. A successful RTL
 synthesis alone will not establish a usable firmware bundle.
 
+The pinned `d1d07ac` job subsequently routed and `write_bitstream` completed
+successfully with zero pre-bitgen DRC errors, producing `.bit` and `.bin`
+files despite the locked-IP warnings. Thus the missing entitlement did not
+block bitstream generation in this run. That result does not establish the
+XXV IP's permitted hardware runtime or functional behavior, and the same
+routed build still fails setup timing. Preserve the Vivado IP warnings and
+obtain the license owner/vendor's interpretation before treating this as a
+deployable image.
+
 The job uses `LM_LICENSE_FILE=2100@xilinx-lic` and Vivado's own log confirms
 checkout of the `Synthesis` feature for `xck26`. A direct FlexNet query at
 2026-09-14 15:30 America/Denver showed the license server and `xilinxd`
