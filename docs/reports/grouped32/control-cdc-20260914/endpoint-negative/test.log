@@ -1,0 +1,150 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_VCOMP.vhd" into library xpm
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/marroyav/tools/Xilinx/2026.1/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv" into library xpm
+INFO: [VRFC 10-311] analyzing module xpm_cdc_single
+INFO: [VRFC 10-311] analyzing module xpm_cdc_gray
+INFO: [VRFC 10-311] analyzing module xpm_cdc_handshake
+INFO: [VRFC 10-311] analyzing module xpm_cdc_pulse
+INFO: [VRFC 10-311] analyzing module xpm_cdc_array_single
+INFO: [VRFC 10-311] analyzing module xpm_cdc_sync_rst
+INFO: [VRFC 10-311] analyzing module xpm_cdc_async_rst
+INFO: [VRFC 10-311] analyzing module xpm_cdc_low_latency_handshake
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/marroyav/tools/Xilinx/2026.1/data/verilog/src/glbl.v" into library work
+INFO: [VRFC 10-311] analyzing module glbl
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/ep_axi.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'ep_axi'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/outputlogic_crc16.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'outputlogic_crc16'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_cdc_snapshot.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_cdc_snapshot'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_cdr_sampler.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_cdr_sampler'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_chklock.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_chklock'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_clock_defs.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_code8b10bpkg.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_defs.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_del.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_del'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_ep_defs.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_lutram.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_lutram'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_mod.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_mod'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_synchro.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_synchro'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_acmd_arb.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_acmd_arb'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_cksum.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_cksum'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_dec8b10b.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_dec8b10b'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_enc8b10b.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_enc8b10b'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_endpoint_control_cdc.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_endpoint_control_cdc'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_endpoint_wrapper.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_endpoint_wrapper'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_ep_cdr.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_ep_cdr'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_ep_ctrlmux.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_ep_ctrlmux'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_ep_regfile.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_ep_regfile'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_ep_transactor.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_ep_transactor'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_ep_tstamp.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_ep_tstamp'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_idle_gen.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_idle_gen'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_pktbuf.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_pktbuf'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_synchro_pulse.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_synchro_pulse'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/endpoint.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'endpoint'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_ep_ctrl.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_ep_ctrl'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_ep_sm.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_ep_sm'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_rx_phy.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_rx_phy'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_rx_pkt.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_rx_pkt'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_tx_phy.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_tx_phy'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_tx_pkt.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_tx_pkt'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_rx.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_rx'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_tx.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_tx'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_ep_core.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_ep_core'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_endpoint.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_endpoint'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_control_cdc_tb.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_control_cdc_tb'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_core_cdc_tb.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'pdts_core_cdc_tb'
+Vivado Simulator v2026.1
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: /home/marroyav/tools/Xilinx/2026.1/Vivado/bin/unwrapped/lnx64.o/xelab --debug typical --relax --mt 4 -L xpm=/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/xpm -L unisims_ver work.pdts_control_cdc_tb work.glbl --snapshot pdts_control_cdc_tb 
+INFO: [XSIM 43-3493] Using 4 slave threads.
+WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+    LIBRARY_PATH
+Starting static elaboration
+Pass Through NonSizing Optimizer
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package std.standard
+Compiling package std.textio
+Compiling package ieee.std_logic_1164
+Compiling package ieee.numeric_std
+Compiling package std.env
+Compiling package work.pdts_defs
+Compiling package work.pdts_ep_defs
+Compiling package xpm.vcomponents
+Compiling package synopsys.attributes
+Compiling package ieee.std_logic_misc
+Compiling package vl.vl_types
+Compiling module work.glbl
+Compiling architecture ep_axi_arch of entity work.ep_axi [ep_axi_default]
+Compiling module xpm.xpm_cdc_async_rst(DEST_SYNC_FF=3...
+Compiling module xpm.xpm_cdc_single(DEST_SYNC_FF=3,IN...
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling architecture rtl of entity work.pdts_cdc_snapshot [pdts_cdc_snapshot_default]
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling architecture rtl of entity work.pdts_cdc_snapshot [\pdts_cdc_snapshot(width_g=4)\]
+Compiling module xpm.xpm_cdc_array_single(DEST_SYNC_F...
+Compiling architecture rtl of entity work.pdts_endpoint_control_cdc [pdts_endpoint_control_cdc_defaul...]
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling architecture rtl of entity work.pdts_cdc_snapshot [\pdts_cdc_snapshot(width_g=17)\]
+Compiling architecture rtl of entity work.pdts_ep_regfile [\pdts_ep_regfile(ext_addr=true)\]
+Compiling architecture imp_crc of entity work.outputlogic_crc16 [outputlogic_crc16_default]
+Compiling architecture rtl of entity work.pdts_cksum [pdts_cksum_default]
+Compiling architecture rtl of entity work.pdts_rx_pkt [pdts_rx_pkt_default]
+Compiling architecture test of entity work.pdts_control_cdc_tb
+Built simulation snapshot pdts_control_cdc_tb
+
+****** xsim v2026.1 (64-bit)
+  **** SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
+  **** IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+  **** SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+  **** Start of session at: Mon Sep 14 15:07:25 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/pdts_control_cdc_tb/xsim_script.tcl
+# xsim {pdts_control_cdc_tb} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+Failure: Address changed within accepted packet
+Time: 45281770 ps  Iteration: 0  Process: /pdts_control_cdc_tb/line__95  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_control_cdc_tb.vhd
+$finish called at time : 45281770 ps : File "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/pdts-control-cdc-negative-live-address/pdts_control_cdc_tb.vhd" Line 205
+exit
+INFO: xsimkernel Simulation Memory Usage: 294412 KB (Peak: 343744 KB), Simulation CPU Usage: 1120 ms
+INFO: [Common 17-206] Exiting xsim at Mon Sep 14 15:07:28 2026...

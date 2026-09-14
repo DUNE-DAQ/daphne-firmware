@@ -1,0 +1,18 @@
+--- replay/rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd
++++ 5e86a757d5fad3abe30fb65ce5d3868081a610c9/rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd
+@@ -45,8 +45,14 @@
+   signal integral_s : unsigned(22 downto 0) := (others=>'0');
+   signal amplitude_s : unsigned(13 downto 0) := (others=>'0');
+   signal integral_sum_s : unsigned(22 downto 0);
++  function integral_dsp_mode(pipelined : boolean) return string is
++  begin
++    -- At 312.5 MHz the short fabric adder avoids the DSP feedback/control path.
++    -- Keep the native ADC-clocked implementation's established DSP mapping.
++    if pipelined then return "no"; else return "yes"; end if;
++  end function;
+   attribute use_dsp : string;
+-  attribute use_dsp of integral_sum_s : signal is "yes";
++  attribute use_dsp of integral_sum_s : signal is integral_dsp_mode(PIPELINE_INPUT_G);
+   signal start_s, peak_time_s : unsigned(8 downto 0) := (others=>'0');
+   signal duration_s : unsigned(9 downto 0) := (others=>'0');
+   signal slot_s : natural range 0 to 5 := 0;

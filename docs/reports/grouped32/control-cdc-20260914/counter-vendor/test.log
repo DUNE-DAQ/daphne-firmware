@@ -1,0 +1,133 @@
+Vivado Simulator v2026.1
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/vendor/data/ip/xpm/xpm_VCOMP.vhd" into library xpm
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/vendor/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv" into library xpm
+INFO: [VRFC 10-311] analyzing module xpm_cdc_single
+INFO: [VRFC 10-311] analyzing module xpm_cdc_gray
+INFO: [VRFC 10-311] analyzing module xpm_cdc_handshake
+INFO: [VRFC 10-311] analyzing module xpm_cdc_pulse
+INFO: [VRFC 10-311] analyzing module xpm_cdc_array_single
+INFO: [VRFC 10-311] analyzing module xpm_cdc_sync_rst
+INFO: [VRFC 10-311] analyzing module xpm_cdc_async_rst
+INFO: [VRFC 10-311] analyzing module xpm_cdc_low_latency_handshake
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/vendor/data/verilog/src/glbl.v" into library work
+INFO: [VRFC 10-311] analyzing module glbl
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/ip_repo/daphne_ip/rtl/daphne_package.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/rtl/isolated/common/daphne_subsystem_pkg.vhd" into library work
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/rtl/isolated/subsystems/control/selftrigger_register_bank.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'selftrigger_register_bank'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd" into library work
+INFO: [VRFC 10-3107] analyzing entity 'selftrigger_counter_cdc_tb'
+Vivado Simulator v2026.1
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: /home/marroyav/tools/Xilinx/2026.1/Vivado/bin/unwrapped/lnx64.o/xelab --debug typical --relax --mt 4 -L xpm=/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/xpm -L unisims_ver work.selftrigger_counter_cdc_tb work.glbl --generic_top CHANNEL_COUNT_G=32 --snapshot counter_cdc_32 
+INFO: [XSIM 43-3493] Using 4 slave threads.
+WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+    LIBRARY_PATH
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-3532] module 'glbl' does not have a parameter named 'channel_count_g' to override [/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/vendor/data/verilog/src/glbl.v:6]
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package std.standard
+Compiling package std.textio
+Compiling package ieee.std_logic_1164
+Compiling package ieee.numeric_std
+Compiling package std.env
+Compiling package work.daphne_package
+Compiling package work.daphne_subsystem_pkg
+Compiling package xpm.vcomponents
+Compiling package vl.vl_types
+Compiling module work.glbl
+Compiling module xpm.xpm_cdc_single(DEST_SYNC_FF=3,IN...
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling architecture rtl of entity work.selftrigger_register_bank [\selftrigger_register_bank(chann...]
+Compiling architecture tb of entity work.selftrigger_counter_cdc_tb
+Built simulation snapshot counter_cdc_32
+
+****** xsim v2026.1 (64-bit)
+  **** SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
+  **** IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+  **** SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+  **** Start of session at: Mon Sep 14 15:05:09 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/counter_cdc_32/xsim_script.tcl
+# xsim {counter_cdc_32} -autoloadwcfg -runall -onerror quit
+Time resolution is 1 ps
+run -all
+Note: all nine counter types and edge channels passed
+Time: 4666 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+Note: paired carry and consume-on-high passed
+Time: 6606 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+Note: backpressure and queued address passed
+Time: 7176 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+Note: stopped-clock timeout, local reads and late-response isolation passed
+Time: 9886 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+Note: selftrigger_counter_cdc_tb PASS channels=32
+Time: 12236 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+$finish called at time : 12236 ns : File "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd" Line 262
+exit
+INFO: xsimkernel Simulation Memory Usage: 294032 KB (Peak: 343364 KB), Simulation CPU Usage: 1160 ms
+INFO: [Common 17-206] Exiting xsim at Mon Sep 14 15:05:13 2026...
+Vivado Simulator v2026.1
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: /home/marroyav/tools/Xilinx/2026.1/Vivado/bin/unwrapped/lnx64.o/xelab --debug typical --relax --mt 4 -L xpm=/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/xpm -L unisims_ver work.selftrigger_counter_cdc_tb work.glbl --generic_top CHANNEL_COUNT_G=40 --snapshot counter_cdc_40 
+INFO: [XSIM 43-3493] Using 4 slave threads.
+WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+    LIBRARY_PATH
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-3532] module 'glbl' does not have a parameter named 'channel_count_g' to override [/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/vendor/data/verilog/src/glbl.v:6]
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package std.standard
+Compiling package std.textio
+Compiling package ieee.std_logic_1164
+Compiling package ieee.numeric_std
+Compiling package std.env
+Compiling package work.daphne_package
+Compiling package work.daphne_subsystem_pkg
+Compiling package xpm.vcomponents
+Compiling package vl.vl_types
+Compiling module work.glbl
+Compiling module xpm.xpm_cdc_single(DEST_SYNC_FF=3,IN...
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling module xpm.xpm_cdc_handshake(DEST_EXT_HSK=1...
+Compiling architecture rtl of entity work.selftrigger_register_bank [\selftrigger_register_bank(count...]
+Compiling architecture tb of entity work.selftrigger_counter_cdc_tb
+Built simulation snapshot counter_cdc_40
+
+****** xsim v2026.1 (64-bit)
+  **** SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
+  **** IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+  **** SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+  **** Start of session at: Mon Sep 14 15:05:17 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/counter_cdc_40/xsim_script.tcl
+# xsim {counter_cdc_40} -autoloadwcfg -runall -onerror quit
+Time resolution is 1 ps
+run -all
+Note: all nine counter types and edge channels passed
+Time: 4666 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+Note: paired carry and consume-on-high passed
+Time: 6606 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+Note: backpressure and queued address passed
+Time: 7176 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+Note: stopped-clock timeout, local reads and late-response isolation passed
+Time: 9886 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+Note: selftrigger_counter_cdc_tb PASS channels=40
+Time: 12236 ns  Iteration: 0  Process: /selftrigger_counter_cdc_tb/stimulus  File: /home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd
+$finish called at time : 12236 ns : File "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-vendor-1/sources/tests/logic/selftrigger_counter_cdc_tb.vhd" Line 262
+exit
+INFO: xsimkernel Simulation Memory Usage: 294048 KB (Peak: 343380 KB), Simulation CPU Usage: 1210 ms
+INFO: [Common 17-206] Exiting xsim at Mon Sep 14 15:05:22 2026...

@@ -1,0 +1,21 @@
+/tmp/daphne-grouped32-ufh8mvn5/sources/tests/logic/stream_reset_sync_tb.vhd:32:5:@106ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @106ns
+/tmp/daphne-grouped32-ufh8mvn5/sources/tests/logic/stream_reset_sync_tb.vhd:32:5:@146ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @146ns
+/tmp/daphne-grouped32-ufh8mvn5/sources/tests/logic/stream_reset_sync_tb.vhd:32:5:@226ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @226ns
+/tmp/daphne-grouped32-ufh8mvn5/sources/tests/logic/afe_stc3_stream_serializer_tb.vhd:92:5:@8072ns:(report note): afe_stc3_stream_serializer_tb PASS: four channels, 480 addressed writes and four complete commits
+simulation stopped @8072ns
+/tmp/daphne-grouped32-ufh8mvn5/sources/tests/logic/grouped32_replay_tb.vhd:208:5:@992272ns:(report note): grouped32_replay_tb PASS mode=1 loss=0
+simulation stopped @992272ns
+{"mode": 1, "grouped_packets": 3372, "reference_packets": 3372, "byte_identical_common_packets": 3372, "samples_checked": 3452928, "independent_descriptor_words_checked": 80928, "grouped_only": 0, "reference_only": 0, "max_grouped_packet_latency_adc_ticks": 1122, "csv_sha256": "d2d4cf794e8693c62c0ebefd24cee5522b8d66b8b9aa858c406f04016df65f9a", "phase_ps": 0}
+/tmp/daphne-grouped32-ufh8mvn5/sources/tests/logic/grouped32_replay_tb.vhd:208:5:@1152272ns:(report note): grouped32_replay_tb PASS mode=2 loss=1168
+simulation stopped @1152272ns
+{"mode": 2, "grouped_packets": 2224, "reference_packets": 2200, "byte_identical_common_packets": 2200, "samples_checked": 2265088, "independent_descriptor_words_checked": 53088, "grouped_only": 24, "reference_only": 0, "max_grouped_packet_latency_adc_ticks": 35027, "csv_sha256": "34ef588aad34593c8fc8585eb3d73aa084ea67bb69500209ba14bbf895415a2d", "phase_ps": 0}
+/tmp/daphne-grouped32-ufh8mvn5/sources/tests/logic/grouped32_replay_tb.vhd:208:5:@1152272ns:(report note): grouped32_replay_tb PASS mode=3 loss=1241
+simulation stopped @1152272ns
+{"mode": 3, "grouped_packets": 3673, "reference_packets": 3446, "byte_identical_common_packets": 945, "samples_checked": 3644928, "independent_descriptor_words_checked": 85428, "grouped_only": 2728, "reference_only": 2501, "max_grouped_packet_latency_adc_ticks": 3017, "csv_sha256": "e5959f172291672055ce39d1e7ec0d7e3cf5a8e814fa35147e94019ab1d1e6bb", "phase_ps": 0}
+/tmp/daphne-grouped32-ufh8mvn5/sources/tests/logic/grouped32_replay_tb.vhd:208:5:@992272ns:(report note): grouped32_replay_tb PASS mode=4 loss=0
+simulation stopped @992272ns
+{"mode": 4, "grouped_packets": 3296, "reference_packets": 3272, "byte_identical_common_packets": 3272, "samples_checked": 3362816, "independent_descriptor_words_checked": 78816, "grouped_only": 24, "reference_only": 0, "max_grouped_packet_latency_adc_ticks": 1124, "csv_sha256": "d6a702526cc825a86f4981cfec273fc6611b46ee404800423437f6163dffff5c", "phase_ps": 0}
+Grouped builder local RTL regressions PASS

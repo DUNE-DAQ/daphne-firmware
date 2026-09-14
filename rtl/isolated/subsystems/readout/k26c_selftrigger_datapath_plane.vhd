@@ -208,6 +208,7 @@ begin
     port map (
       AXI_IN         => threshold_axi_in,
       AXI_OUT        => threshold_axi_out,
+      counter_clock_i => clock,
       threshold_xc_o => threshold_xc,
       continuation_config_o => continuation_config,
       record_count_i => record_count,

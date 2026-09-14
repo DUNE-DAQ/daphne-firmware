@@ -1,0 +1,49 @@
+{
+  "commit": "5e86a757d5fad3abe30fb65ce5d3868081a610c9",
+  "launcher_exit_code": "0",
+  "finished_utc": "2026-09-14T21:07:50Z",
+  "all_tracked_rtl_match_head": true,
+  "generated_manifest_diff_unchanged": true,
+  "artifacts": [
+    {
+      "path": "xilinx/output-5e86a75/clocks.rpt",
+      "size_bytes": 63304,
+      "sha256": "3af83aa552427c64bcd30cdd21b2fde87892a8976d28fb47aa0390b79e9f9dfb"
+    },
+    {
+      "path": "xilinx/output-5e86a75/daphne_selftrigger_bd_synth.dcp",
+      "size_bytes": 156018481,
+      "sha256": "e118f222968e9c427b7dba0e481780841a62e2ee289c7c83113e9464b2cca65d"
+    },
+    {
+      "path": "xilinx/output-5e86a75/debug/endpoint_nets_pre_constraints.txt",
+      "size_bytes": 284,
+      "sha256": "0598e36d91654edf644856973d7e975c56868f01fed452f813ef8110269510ab"
+    },
+    {
+      "path": "xilinx/output-5e86a75/debug/endpoint_pins_pre_constraints.txt",
+      "size_bytes": 831,
+      "sha256": "1d1a945c8bf9036fb1405cd95544c67a9f90a0003883e3793a01d0c7ca7e6582"
+    },
+    {
+      "path": "xilinx/output-5e86a75/debug/post_synth_clocks_pre_constraints.rpt",
+      "size_bytes": 59981,
+      "sha256": "c62bca93abecc1bf9ba1268b389ff55075027994cfe93b9efe42d817b2689e5f"
+    },
+    {
+      "path": "xilinx/output-5e86a75/post_synth_power.rpt",
+      "size_bytes": 35359,
+      "sha256": "816beba320971920bc1d955ca449985748bc09f3cbf5ec784faf7b7ea1c642be"
+    },
+    {
+      "path": "xilinx/output-5e86a75/post_synth_timing_summary.rpt",
+      "size_bytes": 1603808,
+      "sha256": "0c51eda08ebea1b2e63b4500d0b7da2174c943cafda8518d3b0d447920072473"
+    },
+    {
+      "path": "xilinx/output-5e86a75/post_synth_util.rpt",
+      "size_bytes": 12663,
+      "sha256": "88db9139ac686f53cf2a6d6e0ca3498cf45c85e94369002e732ad7132a4ec843"
+    }
+  ]
+}

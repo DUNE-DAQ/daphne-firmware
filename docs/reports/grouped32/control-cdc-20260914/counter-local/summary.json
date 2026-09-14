@@ -1,0 +1,141 @@
+{
+  "result": "PASS",
+  "started_utc": "2026-09-14T21:04:26.898152+00:00",
+  "source_commit": "5e86a757d5fad3abe30fb65ce5d3868081a610c9",
+  "source_status": " M boards/k26c/board.yml\n M cores/features/timing-endpoint.core\n M cores/platform/k26c-composable-platform.core\n M ip_repo/daphne_ip/rtl/config/fanmon.vhd\n M ip_repo/daphne_ip/rtl/timing/endpoint.vhd\n M ip_repo/daphne_ip/rtl/timing/pdts_endpoint.vhd\n M ip_repo/daphne_ip/rtl/timing/pdts_endpoint_wrapper.vhd\n M ip_repo/daphne_ip/rtl/timing/pdts_ep_core.vhd\n M ip_repo/daphne_ip/rtl/timing/pdts_ep_regfile.vhd\n M ip_repo/daphne_ip/rtl/timing/pdts_rx_pkt.vhd\n M rtl/isolated/subsystems/control/legacy_selftrigger_register_bank.vhd\n M rtl/isolated/subsystems/control/selftrigger_register_bank.vhd\n M rtl/isolated/subsystems/readout/k26c_selftrigger_datapath_plane.vhd\n M scripts/fusesoc/check_afe_timing_constraint_contract.sh\n M scripts/verification/cooper_ooc_synth.tcl\n M scripts/verification/run_continuation_tests.py\n M tests/logic/continuation_registers_tb.vhd\n M tests/logic/legacy_selftrigger_register_bank_smoke_tb.vhd\n M xilinx/daphne_vivado_flow.tcl\n?? ip_repo/daphne_ip/rtl/timing/pdts_cdc_snapshot.vhd\n?? ip_repo/daphne_ip/rtl/timing/pdts_endpoint_control_cdc.vhd\n?? scripts/verification/run_pdts_control_cdc_test.py\n?? scripts/verification/run_selftrigger_counter_cdc_test.py\n?? tests/logic/pdts_control_cdc_tb.vhd\n?? tests/logic/selftrigger_counter_cdc_tb.vhd\n?? xilinx/fan_tach_cdc.tcl\n",
+  "mode": "behavioral-xpm",
+  "sources": [
+    {
+      "original": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/ip_repo/daphne_ip/rtl/daphne_package.vhd",
+      "snapshot": "sources/ip_repo/daphne_ip/rtl/daphne_package.vhd",
+      "sha256": "4809b8b372eb542a771eac913d9eef5b52134457dadf249ef29ef0cb58299107"
+    },
+    {
+      "original": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/rtl/isolated/common/daphne_subsystem_pkg.vhd",
+      "snapshot": "sources/rtl/isolated/common/daphne_subsystem_pkg.vhd",
+      "sha256": "7ad5de16aa73d3828628092cd467bebb01a12ecd93bf285ca1aeeaf8cf38c10a"
+    },
+    {
+      "original": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/rtl/isolated/subsystems/control/selftrigger_register_bank.vhd",
+      "snapshot": "sources/rtl/isolated/subsystems/control/selftrigger_register_bank.vhd",
+      "sha256": "773e969c6bd185f03e0899e956ad7cb1e078a5ab711d3d0332bb5ad5aba7d2c8"
+    },
+    {
+      "original": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/selftrigger_counter_cdc_tb.vhd",
+      "snapshot": "sources/tests/logic/selftrigger_counter_cdc_tb.vhd",
+      "sha256": "7ecdee45cfe875c63d47b9aaf60026221635a87ba3c8fcabbf5b3d32035bfb52"
+    },
+    {
+      "original": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/scripts/verification/run_selftrigger_counter_cdc_test.py",
+      "snapshot": "sources/scripts/verification/run_selftrigger_counter_cdc_test.py",
+      "sha256": "7825b2738d68c93d27ef1c5ad7de49a18ffc4106e18d60fb51bc4dceea5fe3cb"
+    },
+    {
+      "original": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/scripts/verification/run_grouped32_vendor_tests.py",
+      "snapshot": "sources/scripts/verification/run_grouped32_vendor_tests.py",
+      "sha256": "efdafdf491aa700a907b18bb814a3978db0c0b2953ce0f008b70e518b409c86c"
+    },
+    {
+      "original": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/scripts/verification/run_grouped32_tests.py",
+      "snapshot": "sources/scripts/verification/run_grouped32_tests.py",
+      "sha256": "ea0fc870f02d03b08ff6b6c0ee12e11a147a603dc48c6f92a9e87b417aeb97b3"
+    },
+    {
+      "original": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/models/xpm_vcomponents.vhd",
+      "snapshot": "sources/models/xpm_vcomponents.vhd",
+      "sha256": "cde14fe03e611b30263cd607de33513777fa2a0df3000b44d7331e130e2ec424"
+    },
+    {
+      "original": "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/models/xpm_cdc_handshake.vhd",
+      "snapshot": "sources/models/xpm_cdc_handshake.vhd",
+      "sha256": "ee8da0218149bc7ed465e61c1802dcaf552595611c3a87deb1b5b188893fe4b2"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/ghdl",
+        "--version"
+      ],
+      "exit_code": 0,
+      "log": "command-00.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/ghdl",
+        "-a",
+        "--std=08",
+        "-frelaxed-rules",
+        "--work=xpm",
+        "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-local-2/sources/models/xpm_vcomponents.vhd",
+        "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-local-2/sources/models/xpm_cdc_handshake.vhd"
+      ],
+      "exit_code": 0,
+      "log": "command-01.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/ghdl",
+        "-a",
+        "--std=08",
+        "-frelaxed-rules",
+        "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-local-2/sources/ip_repo/daphne_ip/rtl/daphne_package.vhd",
+        "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-local-2/sources/rtl/isolated/common/daphne_subsystem_pkg.vhd",
+        "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-local-2/sources/rtl/isolated/subsystems/control/selftrigger_register_bank.vhd",
+        "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/selftrigger-counter-cdc-local-2/sources/tests/logic/selftrigger_counter_cdc_tb.vhd"
+      ],
+      "exit_code": 0,
+      "log": "command-02.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/ghdl",
+        "-e",
+        "--std=08",
+        "-frelaxed-rules",
+        "selftrigger_counter_cdc_tb"
+      ],
+      "exit_code": 0,
+      "log": "command-03.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/ghdl",
+        "-r",
+        "--std=08",
+        "-frelaxed-rules",
+        "selftrigger_counter_cdc_tb",
+        "-gCHANNEL_COUNT_G=32",
+        "--assert-level=error",
+        "--ieee-asserts=disable-at-0"
+      ],
+      "exit_code": 0,
+      "log": "command-04.log"
+    },
+    {
+      "argv": [
+        "/usr/bin/ghdl",
+        "-r",
+        "--std=08",
+        "-frelaxed-rules",
+        "selftrigger_counter_cdc_tb",
+        "-gCHANNEL_COUNT_G=40",
+        "--assert-level=error",
+        "--ieee-asserts=disable-at-0"
+      ],
+      "exit_code": 0,
+      "log": "command-05.log"
+    }
+  ],
+  "runs": [
+    {
+      "channels": 32,
+      "result": "PASS"
+    },
+    {
+      "channels": 40,
+      "result": "PASS"
+    }
+  ],
+  "finished_utc": "2026-09-14T21:04:28.008352+00:00"
+}

@@ -68,7 +68,8 @@ def main():
         def run(*args):
             subprocess.run([ghdl, *args], cwd=build_dir, check=True)
         run("-a", "--std=08", "--work=xpm", str(ROOT / "tests/logic/models/xpm_vcomponents.vhd"),
-            str(ROOT / "tests/logic/models/xpm_memory_sdpram.vhd"))
+            str(ROOT / "tests/logic/models/xpm_memory_sdpram.vhd"),
+            str(ROOT / "tests/logic/models/xpm_cdc_handshake.vhd"))
         run("-a", "--std=08", *(str(ROOT / p) for p in sources))
         if args.trace:
             args.output.resolve().parent.mkdir(parents=True, exist_ok=True)

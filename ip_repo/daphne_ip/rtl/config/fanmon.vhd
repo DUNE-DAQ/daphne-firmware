@@ -22,7 +22,11 @@ architecture fanmon_arch of fanmon is
     signal count_reg: std_logic_vector(23 downto 0) := (others=>'0');
     signal tick_reg: std_logic;
 
-    signal tach_reg: std_logic;
+    -- Fan tach is asynchronous to the 100 MHz monitor. Resolve it through
+    -- two dedicated flops before the debounce counter observes its level.
+    signal tach_meta, tach_sync: std_logic := '1';
+    attribute ASYNC_REG: string;
+    attribute ASYNC_REG of tach_meta, tach_sync: signal is "TRUE";
     signal debounce_reg: std_logic_vector(7 downto 0) := (others=>'0');
 
     signal pulsecount_reg: std_logic_vector(4 downto 0) := (others=>'0');
@@ -32,6 +36,14 @@ architecture fanmon_arch of fanmon is
     signal state: state_type;
 
 begin
+
+tach_cdc: process(clock)
+begin
+    if rising_edge(clock) then
+        tach_meta <= tach;
+        tach_sync <= tach_meta;
+    end if;
+end process tach_cdc;
 
 -- make a pulse every 234.375ms
 -- 234.375ms is 23437500 (0x65A0BC) clocks at 100MHz
@@ -62,11 +74,9 @@ debounce_proc: process(clock)
 begin
     if rising_edge(clock) then
         if (reset='1') then
-            --tach_reg <= '0';
             debounce_reg <= (others=>'0');
         else
-            tach_reg <= tach;
-            if (tach_reg='1') then
+            if (tach_sync='1') then
                 if (debounce_reg /= X"FF") then
                     debounce_reg <= std_logic_vector( unsigned(debounce_reg) + 1 );
                 end if;
@@ -99,8 +109,6 @@ begin
             pulsecount_reg <= (others=>'0');
             rpm_reg <= (others=>'0');
         else
-            tach_reg <= tach;
-
             case (state) is
 
                 when rst =>

@@ -56,6 +56,8 @@ foreach top $targets {
         read_vhdl -vhdl2008 -library work [file join $source_root $source]
     }
     if {$top eq "selftrigger_register_bank"} {
+        read_vhdl -library xpm [file join $xpm_root xpm_VCOMP.vhd]
+        read_verilog -sv -library xpm [file join $xpm_root xpm_cdc hdl xpm_cdc.sv]
         read_vhdl -vhdl2008 -library work [file join $source_root rtl/isolated/subsystems/control/selftrigger_register_bank.vhd]
     } else {
         read_vhdl -vhdl2008 -library work [file join $source_root $descriptor]
@@ -72,9 +74,8 @@ foreach top $targets {
     set clock_file [file join $target_dir clock.xdc]
     set clock_handle [open $clock_file w]
     if {$top eq "selftrigger_register_bank"} {
-        puts $clock_handle {set ooc_clock_ports [get_ports -quiet -filter {DIRECTION == IN && (NAME =~ *ACLK* || NAME =~ *aclk*)}]}
-        puts $clock_handle {if {[llength $ooc_clock_ports] != 1} {error "Expected one flattened AXI_IN.ACLK port"}}
-        puts $clock_handle {create_clock -name sample_clock -period 16.000 $ooc_clock_ports}
+        puts $clock_handle {create_clock -name axi_clock -period 10.000 [get_ports -filter {DIRECTION == IN && (NAME =~ *ACLK* || NAME =~ *aclk*)}]}
+        puts $clock_handle {create_clock -name counter_clock -period 16.000 [get_ports counter_clock_i]}
     } else {
         puts $clock_handle {create_clock -name sample_clock -period 16.000 [get_ports clock_i]}
     }

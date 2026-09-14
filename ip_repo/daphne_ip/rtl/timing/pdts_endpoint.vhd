@@ -27,6 +27,7 @@ entity pdts_endpoint is
 		sys_clk: in std_logic; -- System clock
 		sys_rst: in std_logic; -- System reset (sclk domain)
 		sys_addr: in std_logic_vector(15 downto 0) := X"FFF0"; -- Address of the endpoint until overridden via control bus
+        sys_addr_valid: in std_logic := '1';
 --		sys_ctrl_in: in pdts_cmo := PDTS_CMO_NULL; -- System control bus (sclk domain)
 --		sys_ctrl_out: out pdts_cmi;
 		sys_stat: out std_logic_vector(3 downto 0); -- Status output (sclk domain)
@@ -108,6 +109,7 @@ begin
 			sys_clk => sys_clk,
 			sys_rst => sys_rst,
 			sys_addr => sys_addr,
+            sys_addr_valid => sys_addr_valid,
 --			sys_ctrl_in => sys_ctrl_in,
 --			sys_ctrl_out => sys_ctrl_out,
 			sys_stat => sys_stat,

@@ -17,6 +17,7 @@ entity pdts_endpoint_wrapper is -- for DAPHNE V2a design
 		sys_clk: in std_logic; -- System clock is 100MHz
 		sys_rst: in std_logic; -- System reset (sclk domain)
         sys_addr: in std_logic_vector(15 downto 0); 
+        sys_addr_valid: in std_logic := '1';
 		sys_stat: out std_logic_vector(3 downto 0); -- Status output (sclk domain)
 		los: in std_logic := '0'; -- External signal path status (async)
 		rxd: in std_logic; -- Timing input (clk domain)
@@ -48,6 +49,7 @@ component pdts_endpoint is
 		sys_clk: in std_logic; -- System clock
 		sys_rst: in std_logic; -- System reset (sclk domain)
 		sys_addr: in std_logic_vector(15 downto 0) := X"FFF0"; -- Address of the endpoint until overridden via control bus
+        sys_addr_valid: in std_logic := '1';
 --		sys_ctrl_in: in pdts_cmo := PDTS_CMO_NULL; -- System control bus (sclk domain)
 --		sys_ctrl_out: out pdts_cmi;
 		sys_stat: out std_logic_vector(3 downto 0); -- Status output (sclk domain)
@@ -99,6 +101,7 @@ pdts_endpoint_inst: pdts_endpoint
         -- sys_ctrl_in: in pdts_cmo := PDTS_CMO_NULL; -- System control bus (sclk domain)
         -- sys_ctrl_out: out pdts_cmi;
 		sys_addr => sys_addr, -- Address of the endpoint until overridden via control bus
+        sys_addr_valid => sys_addr_valid,
 	    ctrl_out => open, -- Control bus (clk domain)
 		ctrl_in => PDTS_CMI_NULL,
 		pll_clko => open, -- Clock to external PLL

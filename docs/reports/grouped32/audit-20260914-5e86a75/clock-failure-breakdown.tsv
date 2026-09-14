@@ -1,0 +1,65 @@
+section	path_group	source_clock	destination_clock	wns_ns	tns_ns	setup_failing_endpoints	whs_ns	ths_ns	hold_failing_endpoints
+Intra Clock Table	clk_pl_0	clk_pl_0	clk_pl_0	5.212	0.0	0	-0.08	-122.254	6314
+Intra Clock Table	clk_pl_1	clk_pl_1	clk_pl_1	37.556	0.0	0	-0.081	-11.984	579
+Intra Clock Table	eth_refclk	eth_refclk	eth_refclk	5.438	0.0	0	-0.007	-0.009	2
+Intra Clock Table	gen_gtwizard_gthe4.rxoutclkpcs_int[0]	gen_gtwizard_gthe4.rxoutclkpcs_int[0]	gen_gtwizard_gthe4.rxoutclkpcs_int[0]	2.226	0.0	0	-0.008	-0.108	15
+Intra Clock Table	gen_gtwizard_gthe4.rxoutclkpcs_int[0]_1	gen_gtwizard_gthe4.rxoutclkpcs_int[0]_1	gen_gtwizard_gthe4.rxoutclkpcs_int[0]_1	2.226	0.0	0	-0.008	-0.108	15
+Intra Clock Table	gen_gtwizard_gthe4.rxoutclkpcs_int[0]_2	gen_gtwizard_gthe4.rxoutclkpcs_int[0]_2	gen_gtwizard_gthe4.rxoutclkpcs_int[0]_2	2.226	0.0	0	-0.008	-0.108	15
+Intra Clock Table	gen_gtwizard_gthe4.rxoutclkpcs_int[0]_3	gen_gtwizard_gthe4.rxoutclkpcs_int[0]_3	gen_gtwizard_gthe4.rxoutclkpcs_int[0]_3	2.226	0.0	0	-0.008	-0.108	15
+Intra Clock Table	rx_clk_array[0]	rx_clk_array[0]	rx_clk_array[0]	4.319	0.0	0	-0.201	-42.579	1292
+Intra Clock Table	rx_clk_array[1]	rx_clk_array[1]	rx_clk_array[1]	4.319	0.0	0	-0.201	-42.57	1290
+Intra Clock Table	rx_clk_array[2]	rx_clk_array[2]	rx_clk_array[2]	4.319	0.0	0	-0.201	-42.57	1290
+Intra Clock Table	rx_clk_array[3]	rx_clk_array[3]	rx_clk_array[3]	4.319	0.0	0	-0.201	-42.57	1290
+Intra Clock Table	tx_clk_array[0]	tx_clk_array[0]	tx_clk_array[0]	3.764	0.0	0	-0.394	-50.195	1737
+Intra Clock Table	tx_clk_array[1]	tx_clk_array[1]	tx_clk_array[1]	3.764	0.0	0	-0.394	-50.179	1734
+Intra Clock Table	tx_clk_array[2]	tx_clk_array[2]	tx_clk_array[2]	3.764	0.0	0	-0.394	-50.228	1741
+Intra Clock Table	tx_clk_array[3]	tx_clk_array[3]	tx_clk_array[3]	3.764	0.0	0	-0.394	-50.221	1740
+Intra Clock Table	clku4x	clku4x	clku4x	2.29	0.0	0	-0.005	-0.009	2
+Intra Clock Table	frontend_word_clk	frontend_word_clk	frontend_word_clk	13.257	0.0	0	-0.088	-11.38	306
+Intra Clock Table	frontend_clock	frontend_clock	frontend_clock	6.19	0.0	0	-0.058	-3050.42	73929
+Intra Clock Table	clock_raw_s_1	clock_raw_s_1	clock_raw_s_1	-0.161	-6.081	96	-0.033	-16.92	1007
+Intra Clock Table	mmcm1_clkout0_1	mmcm1_clkout0_1	mmcm1_clkout0_1	1.5	0.0	0	-0.008	-0.008	1
+Intra Clock Table	clk125_1	clk125_1	clk125_1	6.282	0.0	0	-0.023	-9.611	422
+Intra Clock Table	mmcm0_inst_n_8	mmcm0_inst_n_8	mmcm0_inst_n_8	8.218	0.0	0	-0.033	-0.572	41
+Inter Clock Table	clk_pl_0	rx_clk_array[0]	clk_pl_0	-0.249	-0.249	1	-0.147	-0.147	1
+Inter Clock Table	clk_pl_0	rx_clk_array[1]	clk_pl_0	-0.238	-0.238	1	-0.152	-0.152	1
+Inter Clock Table	clk_pl_0	rx_clk_array[2]	clk_pl_0	-0.241	-0.241	1	-0.149	-0.149	1
+Inter Clock Table	clk_pl_0	rx_clk_array[3]	clk_pl_0	-0.235	-0.235	1	-0.155	-0.155	1
+Inter Clock Table	clk_pl_0	tx_clk_array[0]	clk_pl_0	-0.298	-0.298	1	-0.144	-0.144	1
+Inter Clock Table	clk_pl_0	tx_clk_array[1]	clk_pl_0	-0.281	-0.281	1	-0.153	-0.153	1
+Inter Clock Table	clk_pl_0	tx_clk_array[2]	clk_pl_0	-0.291	-0.291	1	-0.146	-0.146	1
+Inter Clock Table	clk_pl_0	tx_clk_array[3]	clk_pl_0	-0.278	-0.278	1	-0.156	-0.156	1
+Inter Clock Table	clk_pl_0	mmcm0_inst_n_8	clk_pl_0	8.326	0.0	0	-0.442	-1.683	4
+Inter Clock Table	rx_clk_array[0]	clk_pl_0	rx_clk_array[0]	-0.418	-0.418	1	-0.162	-0.162	1
+Inter Clock Table	rx_clk_array[0]	tx_clk_array[0]	rx_clk_array[0]	5.828	0.0	0	-0.1	-0.27	3
+Inter Clock Table	rx_clk_array[1]	clk_pl_0	rx_clk_array[1]	-0.429	-0.429	1	-0.157	-0.157	1
+Inter Clock Table	rx_clk_array[1]	tx_clk_array[1]	rx_clk_array[1]	5.834	0.0	0	-0.104	-0.282	3
+Inter Clock Table	rx_clk_array[2]	clk_pl_0	rx_clk_array[2]	-0.426	-0.426	1	-0.16	-0.16	1
+Inter Clock Table	rx_clk_array[2]	tx_clk_array[2]	rx_clk_array[2]	5.827	0.0	0	-0.1	-0.27	3
+Inter Clock Table	rx_clk_array[3]	clk_pl_0	rx_clk_array[3]	-0.432	-0.432	1	-0.154	-0.154	1
+Inter Clock Table	rx_clk_array[3]	tx_clk_array[3]	rx_clk_array[3]	5.834	0.0	0	-0.104	-0.282	3
+Inter Clock Table	tx_clk_array[0]	clk_pl_0	tx_clk_array[0]	-0.418	-0.418	1	-0.163	-0.163	1
+Inter Clock Table	tx_clk_array[0]	rx_clk_array[0]	tx_clk_array[0]	5.739	0.0	0	-0.101	-0.177	2
+Inter Clock Table	tx_clk_array[1]	clk_pl_0	tx_clk_array[1]	-0.435	-0.435	1	-0.154	-0.154	1
+Inter Clock Table	tx_clk_array[1]	rx_clk_array[1]	tx_clk_array[1]	5.733	0.0	0	-0.097	-0.169	2
+Inter Clock Table	tx_clk_array[2]	clk_pl_0	tx_clk_array[2]	-0.425	-0.425	1	-0.161	-0.161	1
+Inter Clock Table	tx_clk_array[2]	rx_clk_array[2]	tx_clk_array[2]	5.74	0.0	0	-0.101	-0.177	2
+Inter Clock Table	tx_clk_array[3]	clk_pl_0	tx_clk_array[3]	-0.438	-0.438	1	-0.151	-0.151	1
+Inter Clock Table	tx_clk_array[3]	rx_clk_array[3]	tx_clk_array[3]	5.733	0.0	0	-0.097	-0.169	2
+Inter Clock Table	clku4x	frontend_word_clk	clku4x	1.89	0.0	0	-0.275	-1.079	6
+Inter Clock Table	frontend_word_clk	clku4x	frontend_word_clk	3.357	0.0	0	-0.453	-6.256	17
+Inter Clock Table	frontend_clock	frontend_word_clk	frontend_clock	13.426	0.0	0	-0.58	-47.621	97
+Inter Clock Table	mmcm0_inst_n_8	clk_pl_0	mmcm0_inst_n_8	8.567	0.0	0	-0.542	-6.121	15
+Other Path Groups Table	**async_default**	mmcm1_clkout0_1	mmcm1_clkout0_1	0.757	0.0	0	-0.242	-0.242	1
+Other Path Groups Table	**async_default**	clk_pl_0	rx_clk_array[0]	-0.649	-1.298	2	-0.033	-0.065	2
+Other Path Groups Table	**async_default**	clk_pl_0	rx_clk_array[1]	-0.66	-1.32	2	-0.028	-0.055	2
+Other Path Groups Table	**async_default**	clk_pl_0	rx_clk_array[2]	-0.657	-1.314	2	-0.031	-0.061	2
+Other Path Groups Table	**async_default**	clk_pl_0	rx_clk_array[3]	-0.663	-1.326	2	-0.025	-0.049	2
+Other Path Groups Table	**async_default**	clk_pl_0	tx_clk_array[0]	-0.741	-5.926	8	-0.027	-0.212	8
+Other Path Groups Table	**async_default**	frontend_clock	tx_clk_array[0]	1.897	0.0	0	-0.293	-1.172	4
+Other Path Groups Table	**async_default**	clk_pl_0	tx_clk_array[1]	-0.758	-6.063	8	-0.018	-0.14	8
+Other Path Groups Table	**async_default**	frontend_clock	tx_clk_array[1]	1.897	0.0	0	-0.293	-1.172	4
+Other Path Groups Table	**async_default**	clk_pl_0	tx_clk_array[2]	-0.748	-5.983	8	-0.025	-0.196	8
+Other Path Groups Table	**async_default**	frontend_clock	tx_clk_array[2]	1.897	0.0	0	-0.293	-1.172	4
+Other Path Groups Table	**async_default**	clk_pl_0	tx_clk_array[3]	-0.761	-6.086	8	-0.015	-0.116	8
+Other Path Groups Table	**async_default**	frontend_clock	tx_clk_array[3]	1.897	0.0	0	-0.293	-1.172	4

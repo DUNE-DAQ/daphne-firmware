@@ -16,7 +16,7 @@ entity pdts_rx_pkt is
 		clk: in std_logic; -- 50MHz system clock
 		rst: in std_logic; -- synchronous reset
 		stb: in std_logic; -- data strobe
-		addr: in std_logic_vector(15 downto 0); -- address (static)
+		addr: in std_logic_vector(15 downto 0); -- coherent address (clk domain)
 		d: in std_logic_vector(7 downto 0); -- data input
 		k: in std_logic; -- kchar input
 		scmd: out pdts_cmd_w;
@@ -40,6 +40,7 @@ architecture rtl of pdts_rx_pkt is
 	signal valid, issue, pend: std_logic;
 	signal ada, adb, adc: std_logic_vector(7 downto 0);
 	signal a_match_d, avalid, alast: std_logic;
+    signal packet_addr: std_logic_vector(15 downto 0) := (others=>'0');
 
 --	attribute MARK_DEBUG: string;
 --	attribute MARK_DEBUG of rst, state, scmd: signal is "TRUE";
@@ -115,13 +116,14 @@ begin
 	begin
 		if rising_edge(clk) then
 			if ka = '1' then
+				packet_addr <= addr;
 				a_ucast <= "00";
 				a_bcast <= "00";
 			elsif sa = '1' and actr < 2 then
 				if d = X"ff" then
 					a_bcast(to_integer(actr)) <= '1';
 				end if;
-				if d = addr(8 * to_integer(actr) + 7 downto 8 * to_integer(actr)) then
+				if d = packet_addr(8 * to_integer(actr) + 7 downto 8 * to_integer(actr)) then
 					a_ucast(to_integer(actr)) <= '1';
 				end if;
 			end if;
@@ -198,4 +200,3 @@ begin
 	acmd_o.err <= alast and err_i; -- Need something better when we handle soft errors
 
 end rtl;
-

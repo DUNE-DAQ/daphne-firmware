@@ -1,0 +1,10 @@
+{
+  "source_commit": "5e86a757d5fad3abe30fb65ce5d3868081a610c9",
+  "source_dir": "/home/marroyav/work/daphne-grouped32-5e86a75-synth-20260914",
+  "initial_git_status": "",
+  "fresh_clone": true,
+  "generated_directories_reused": false,
+  "max_threads": 8,
+  "stage": "synthesis-only",
+  "launch_script_sha256": "ae3c27e188721f391cb97b3547b734d05fb0d578e72ab1592f8f6f3493799453"
+}

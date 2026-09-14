@@ -1,0 +1,16 @@
+{
+  "source_commit": "5e86a757d5fad3abe30fb65ce5d3868081a610c9",
+  "packet_ref": null,
+  "toolchain": {
+    "host_gcc": "/usr/bin/gcc",
+    "host_gcc_version": "gcc (Debian 14.2.0-19) 14.2.0\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+    "LIBRARY_PATH": "/usr/lib/x86_64-linux-gnu",
+    "startup_sha256": {
+      "/usr/lib/x86_64-linux-gnu/crt1.o": "8cd1a50edd44a4ded5856bf2254dc106401b37c285dcc55a594475438cd6ec1a",
+      "/usr/lib/x86_64-linux-gnu/crti.o": "78acef26a7007f5320c98633376f2903e33895e694fbc2b91d189b38addbca8a",
+      "/usr/lib/x86_64-linux-gnu/crtn.o": "121f2a5f12b13471dd8c7dabe3ff334df08540c270564d1a2b3c47ecbd8d3101"
+    }
+  },
+  "coverage": "Exercise production PDTS CDC helpers, AXI bank, register file and packet parser.\n\nUses unrelated/stopped clocks and real Vivado XPM models. The actual endpoint\ncore receives the actual transmitter's encoded idle stream. Physical MMCM/CDR\nbehavior is represented by clock stop/start and LOCKED, not an optical model.\n",
+  "result": "PASS"
+}

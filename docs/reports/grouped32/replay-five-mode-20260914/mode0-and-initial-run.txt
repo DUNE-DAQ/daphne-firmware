@@ -1,0 +1,35 @@
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/stream_reset_sync_tb.vhd:32:5:@106ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @106ns
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/stream_reset_sync_tb.vhd:32:5:@146ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @146ns
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/stream_reset_sync_tb.vhd:32:5:@226ns:(report note): stream_reset_sync_tb PASS
+simulation stopped @226ns
+/tmp/daphne-grouped32-s1_gnx4o/stc3_continuation_tb.vhd:68:5:@288048ns:(report note): stc3_continuation_tb PASS odd=0 packets=30
+simulation stopped @288048ns
+/tmp/daphne-grouped32-s1_gnx4o/stc3_continuation_tb.vhd:68:5:@288048ns:(report note): stc3_continuation_tb PASS odd=1 packets=30
+simulation stopped @288048ns
+/tmp/daphne-grouped32-s1_gnx4o/stc3_continuation_edges_tb.vhd:186:5:@678825ns:(report note): stc3_continuation_edges_tb PASS
+simulation stopped @678825ns
+/tmp/daphne-grouped32-s1_gnx4o/stc3_continuation_overload_tb.vhd:119:5:@576041ns:(report note): stc3_continuation_overload_tb PASS:48 packets,13 whole-fragment drops, recovery
+simulation stopped @576041ns
+/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/tests/logic/grouped32_replay_tb.vhd:208:5:@992272ns:(report note): grouped32_replay_tb PASS mode=0 loss=0
+simulation stopped @992272ns
+{"mode": 0, "grouped_packets": 3392, "reference_packets": 3392, "byte_identical_common_packets": 3392, "samples_checked": 3473408, "independent_descriptor_words_checked": 81408, "grouped_only": 0, "reference_only": 0, "max_grouped_packet_latency_adc_ticks": 1124, "csv_sha256": "0db2673ab9d95dc5fa7d74db496e881367a52dd94e7e496a8abce3a5cb1582b3", "phase_ps": 0}
+Traceback (most recent call last):
+  File "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/scripts/verification/run_grouped32_tests.py", line 146, in <module>
+    result=check_packets(path,mode); result['phase_ps']=args.phase_ps; results.append(result)
+                 ^^^^^^
+  File "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/scripts/verification/run_grouped32_tests.py", line 140, in main
+    run('-e','--std=08','grouped32_replay_tb')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    results=[]
+    ^^^^^^^^^^
+  File "/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/scripts/verification/run_grouped32_tests.py", line 114, in run
+    def run(*args):
+                 ^^
+        result = subprocess.run([GHDL, *map(str, args)], cwd=td, check=True,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/usr/bin/ghdl', '-r', '--std=08', 'grouped32_replay_tb', '-gMODE_G=1', '-gPHASE_PS_G=0', '-gOUTPUT_G=/home/marroyav/work/daphne-grouped32-1bae1c8-20260914/build/grouped32-descriptor-pipeline/mode1-phase0.csv', '--assert-level=error', '--ieee-asserts=disable-at-0', '--stop-time=2ms']' returned non-zero exit status 1.

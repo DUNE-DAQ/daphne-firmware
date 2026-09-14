@@ -1,0 +1,134 @@
+{
+  "candidate_commit": "5e86a757d5fad3abe30fb65ce5d3868081a610c9",
+  "tool": [
+    "GHDL 5.0.1 (Debian 5.0.1+dfsg-1+b1) [Dunoon edition]",
+    " Compiled with GNAT Version: 14.2.0",
+    " static elaboration, mcode JIT code generator"
+  ],
+  "phase_ps": 0,
+  "run_commands": [
+    "python3 scripts/verification/run_grouped32_tests.py --output-dir build/grouped32-descriptor-pipeline",
+    "python3 scripts/verification/run_grouped32_tests.py --skip-existing --mode 1 --mode 2 --mode 3 --mode 4 --output-dir build/grouped32-descriptor-pipeline-remaining"
+  ],
+  "source_comparison_for_frozen_modes1_4": {
+    "rtl/isolated/common/primitives/stream_reset_sync.vhd": {
+      "replay_sha256": "0cb660ffc6dd610fd90574f3eb06dff36581987a63378e484280a7936cc4f3bb",
+      "candidate_sha256": "0cb660ffc6dd610fd90574f3eb06dff36581987a63378e484280a7936cc4f3bb",
+      "matches": true
+    },
+    "tests/logic/stream_reset_sync_tb.vhd": {
+      "replay_sha256": "128ef5c4b31a805ede8c15e114f09b82e2d1c5b5d1cdecc44e6d382f80a9e046",
+      "candidate_sha256": "128ef5c4b31a805ede8c15e114f09b82e2d1c5b5d1cdecc44e6d382f80a9e046",
+      "matches": true
+    },
+    "ip_repo/daphne_ip/rtl/daphne_package.vhd": {
+      "replay_sha256": "4809b8b372eb542a771eac913d9eef5b52134457dadf249ef29ef0cb58299107",
+      "candidate_sha256": "4809b8b372eb542a771eac913d9eef5b52134457dadf249ef29ef0cb58299107",
+      "matches": true
+    },
+    "rtl/isolated/common/daphne_subsystem_pkg.vhd": {
+      "replay_sha256": "7ad5de16aa73d3828628092cd467bebb01a12ecd93bf285ca1aeeaf8cf38c10a",
+      "candidate_sha256": "7ad5de16aa73d3828628092cd467bebb01a12ecd93bf285ca1aeeaf8cf38c10a",
+      "matches": true
+    },
+    "rtl/isolated/subsystems/trigger/grouped_frame_pkg.vhd": {
+      "replay_sha256": "f2f24429ff995ab442cd73efc31e1e643fe763415694689af96da7bdb8be457d",
+      "candidate_sha256": "f2f24429ff995ab442cd73efc31e1e643fe763415694689af96da7bdb8be457d",
+      "matches": true
+    },
+    "rtl/isolated/common/primitives/grouped_sample_ring.vhd": {
+      "replay_sha256": "7a01c1f1fde04db0800a1299d0d97a647f93d5840fb164807dabb6d3a268be31",
+      "candidate_sha256": "7a01c1f1fde04db0800a1299d0d97a647f93d5840fb164807dabb6d3a268be31",
+      "matches": true
+    },
+    "rtl/isolated/common/primitives/sample_ring_buffer_single.vhd": {
+      "replay_sha256": "9b3c11247f031cd1d8ba4671a2c7178570113d110ca259d68daf3b27e2407489",
+      "candidate_sha256": "9b3c11247f031cd1d8ba4671a2c7178570113d110ca259d68daf3b27e2407489",
+      "matches": true
+    },
+    "rtl/isolated/common/primitives/packet_frame_store.vhd": {
+      "replay_sha256": "778658422556a72c7456593335f1c2a1675494918bb017c8884d9c70327758cd",
+      "candidate_sha256": "778658422556a72c7456593335f1c2a1675494918bb017c8884d9c70327758cd",
+      "matches": true
+    },
+    "rtl/isolated/subsystems/trigger/fragment_peak_descriptors_banked.vhd": {
+      "replay_sha256": "a3a9301d81aa84481b3fd481dcc46730e1892c982985de8060d923b6c0417203",
+      "candidate_sha256": "a90f5d7491bb559cbe127911b414998edb80322aabc595ee1a127864e7ae4fb3",
+      "matches": false
+    },
+    "rtl/isolated/subsystems/trigger/stc3_frame_source.vhd": {
+      "replay_sha256": "03c2c1937e7d5e18405384db278de62216148db91f927a6f7016ff7ee460d1bc",
+      "candidate_sha256": "03c2c1937e7d5e18405384db278de62216148db91f927a6f7016ff7ee460d1bc",
+      "matches": true
+    },
+    "rtl/isolated/subsystems/trigger/stc3_record_builder.vhd": {
+      "replay_sha256": "7b33be6cd90e0280b73815c3ef4b1104e01821ff8048b3edcc71d82c5678b720",
+      "candidate_sha256": "7b33be6cd90e0280b73815c3ef4b1104e01821ff8048b3edcc71d82c5678b720",
+      "matches": true
+    },
+    "rtl/isolated/subsystems/trigger/afe_stc3_stream_serializer.vhd": {
+      "replay_sha256": "0d8e497ec48cc530f10a6a09564570023d7ddce0d622c65a52bd0c0968f01ad6",
+      "candidate_sha256": "0d8e497ec48cc530f10a6a09564570023d7ddce0d622c65a52bd0c0968f01ad6",
+      "matches": true
+    },
+    "tests/logic/afe_stc3_stream_serializer_tb.vhd": {
+      "replay_sha256": "80674d495726e0228665bcaed216fe196fe1078c272609539ea96cba900636fc",
+      "candidate_sha256": "80674d495726e0228665bcaed216fe196fe1078c272609539ea96cba900636fc",
+      "matches": true
+    },
+    "rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd": {
+      "replay_sha256": "f4dfe062cbb25e60d5a80f0c22f72c5739b69dedac4d3110e1ed90d511d4b431",
+      "candidate_sha256": "f4dfe062cbb25e60d5a80f0c22f72c5739b69dedac4d3110e1ed90d511d4b431",
+      "matches": true
+    },
+    "tests/logic/stc3_grouped_test_adapter.vhd": {
+      "replay_sha256": "38da010ff6de8b64df640bebe3d147b77eae712a3844ab8615d8e4f9f7011b43",
+      "candidate_sha256": "38da010ff6de8b64df640bebe3d147b77eae712a3844ab8615d8e4f9f7011b43",
+      "matches": true
+    },
+    "tests/logic/grouped32_replay_tb.vhd": {
+      "replay_sha256": "8ebdef4d552b3e1973de4b393b28d7a68b783c730b2c1a98ebb0b042bdc05656",
+      "candidate_sha256": "8ebdef4d552b3e1973de4b393b28d7a68b783c730b2c1a98ebb0b042bdc05656",
+      "matches": true
+    },
+    "tests/logic/models/xpm_vcomponents.vhd": {
+      "replay_sha256": "cde14fe03e611b30263cd607de33513777fa2a0df3000b44d7331e130e2ec424",
+      "candidate_sha256": "cde14fe03e611b30263cd607de33513777fa2a0df3000b44d7331e130e2ec424",
+      "matches": true
+    },
+    "tests/logic/models/xpm_memory_sdpram.vhd": {
+      "replay_sha256": "11018e012215d28b45b3237bd43babced3327d8c982c2798034b99e35e0d2066",
+      "candidate_sha256": "11018e012215d28b45b3237bd43babced3327d8c982c2798034b99e35e0d2066",
+      "matches": true
+    },
+    "tests/logic/models/xpm_cdc_handshake.vhd": {
+      "replay_sha256": "ee8da0218149bc7ed465e61c1802dcaf552595611c3a87deb1b5b188893fe4b2",
+      "candidate_sha256": "ee8da0218149bc7ed465e61c1802dcaf552595611c3a87deb1b5b188893fe4b2",
+      "matches": true
+    },
+    "tests/logic/models/xpm_fifo_async.vhd": {
+      "replay_sha256": "285fd9a2dc9d9438675cc900f4544667370e8f284eeb112c51981e232f2b599a",
+      "candidate_sha256": "285fd9a2dc9d9438675cc900f4544667370e8f284eeb112c51981e232f2b599a",
+      "matches": true
+    },
+    "tests/logic/stc3_continuation_tb.vhd": {
+      "replay_sha256": "ae25e6b3ee738fa10f8a8177b980b3f4f377d3d3a1e59f15cb326924b29ee8d7",
+      "candidate_sha256": "ae25e6b3ee738fa10f8a8177b980b3f4f377d3d3a1e59f15cb326924b29ee8d7",
+      "matches": true
+    },
+    "tests/logic/stc3_continuation_edges_tb.vhd": {
+      "replay_sha256": "3f7575089da2ba3d81f0cd4ab924b5b48e9b10382fc9d91449340e0e6cef362a",
+      "candidate_sha256": "3f7575089da2ba3d81f0cd4ab924b5b48e9b10382fc9d91449340e0e6cef362a",
+      "matches": true
+    },
+    "tests/logic/stc3_continuation_overload_tb.vhd": {
+      "replay_sha256": "99c1d50da7c88a0d434013c2935c950221074c4c727f998d1514dac04bfefb79",
+      "candidate_sha256": "99c1d50da7c88a0d434013c2935c950221074c4c727f998d1514dac04bfefb79",
+      "matches": true
+    }
+  },
+  "mode0_provenance": "Completed in the initial working-tree pipeline experiment before the runner was changed to freeze input sources. Its original log and validated CSV checksum are retained.",
+  "mode1_4_provenance": "Frozen analyzed sources; every source matches candidate 5e86a75 except the synthesis-only use_dsp attribute selection. See replay-to-candidate.diff.",
+  "models": "Behavioral GHDL XPM subset, not vendor models; real-XPM mode0 results are in ../pipeline-cdc-20260914/vendor-replay/.",
+  "csv_files": "Kept under build/grouped32-descriptor-pipeline and build/grouped32-descriptor-pipeline-remaining; hashes verified against summary.json before report creation."
+}

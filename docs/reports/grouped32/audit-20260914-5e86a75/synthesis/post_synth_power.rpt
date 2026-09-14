@@ -1,0 +1,227 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version     : Vivado v.2026.1 (lin64) Build 6511674 Tue Jun 16 11:01:26 MDT 2026
+| Date             : Mon Sep 14 15:07:10 2026
+| Host             : WL-144132 running 64-bit unknown
+| Command          : report_power -file /home/marroyav/work/daphne-grouped32-5e86a75-synth-20260914/xilinx/output-5e86a75/post_synth_power.rpt
+| Design           : daphne_selftrigger_bd_wrapper
+| Device           : xck26-sfvc784-2LV-c
+| Design State     : synthesized
+| Grade            : commercial
+| Process          : typical
+| Characterization : Production
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Power Report
+
+Table of Contents
+-----------------
+1. Summary
+1.1 On-Chip Components
+1.2 Power Supply Summary
+1.3 Confidence Level
+2. Settings
+2.1 Environment
+2.2 Clock Constraints
+3. Detailed Reports
+3.1 By Hierarchy
+
+1. Summary
+----------
+
++--------------------------+--------------+
+| Total On-Chip Power (W)  | 5.073        |
+| Design Power Budget (W)  | Unspecified* |
+| Power Budget Margin (W)  | NA           |
+| Dynamic (W)              | 4.723        |
+| Device Static (W)        | 0.350        |
+| Effective TJA (C/W)      | 2.3          |
+| Max Ambient (C)          | 73.2         |
+| Junction Temperature (C) | 36.8         |
+| Confidence Level         | Low          |
+| Setting File             | ---          |
+| Simulation Activity File | ---          |
+| Design Nets Matched      | NA           |
++--------------------------+--------------+
+* Specify Design Power Budget using, set_operating_conditions -design_power_budget <value in Watts>
+
+
+1.1 On-Chip Components
+----------------------
+
++--------------------------+-----------+----------+-----------+-----------------+
+| On-Chip                  | Power (W) | Used     | Available | Utilization (%) |
++--------------------------+-----------+----------+-----------+-----------------+
+| Clocks                   |     0.149 |       47 |       --- |             --- |
+| CLB Logic                |     0.143 |   231836 |       --- |             --- |
+|   LUT as Logic           |     0.116 |    99448 |    117120 |           84.91 |
+|   LUT as Distributed RAM |     0.012 |     3494 |     57600 |            6.07 |
+|   LUT as Shift Register  |     0.006 |     3560 |     57600 |            6.18 |
+|   CARRY8                 |     0.005 |     5318 |     14640 |           36.33 |
+|   Register               |     0.005 |    89713 |    234240 |           38.30 |
+|   Others                 |     0.000 |     7967 |       --- |             --- |
+|   F7/F8 Muxes            |     0.000 |     3981 |    117120 |            3.40 |
+| Signals                  |     0.121 |   186456 |       --- |             --- |
+| Block RAM                |     0.136 |       91 |       144 |           63.19 |
+| URAM                     |     0.064 |       32 |        64 |           50.00 |
+| MMCM                     |     0.334 |        0 |       --- |             --- |
+| DSPs                     |     0.149 |      832 |      1248 |           66.67 |
+| I/O                      |     0.279 |      159 |       189 |           84.13 |
+| GTH                      |     0.932 |        4 |         4 |          100.00 |
+| PS8                      |     2.415 |        1 |       --- |             --- |
+| Static Power             |     0.350 |          |           |                 |
+|   PS Static              |     0.000 |          |           |                 |
+|   PL Static              |     0.350 |          |           |                 |
+| Total                    |     5.073 |          |           |                 |
++--------------------------+-----------+----------+-----------+-----------------+
+
+
+1.2 Power Supply Summary
+------------------------
+
++------------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
+| Source           | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
++------------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
+| Vccint           |       0.720 |     1.326 |       1.213 |      0.113 |       NA    | Unspecified | NA         |
+| Vccint_io        |       0.850 |     0.083 |       0.045 |      0.037 |       NA    | Unspecified | NA         |
+| Vccbram          |       0.850 |     0.022 |       0.020 |      0.002 |       NA    | Unspecified | NA         |
+| Vccaux           |       1.800 |     0.259 |       0.185 |      0.074 |       NA    | Unspecified | NA         |
+| Vccaux_io        |       1.800 |     0.114 |       0.083 |      0.031 |       NA    | Unspecified | NA         |
+| Vcco33           |       3.300 |     0.010 |       0.003 |      0.007 |       NA    | Unspecified | NA         |
+| Vcco25           |       2.500 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vcco18           |       1.800 |     0.044 |       0.044 |      0.000 |       NA    | Unspecified | NA         |
+| Vcco15           |       1.500 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vcco135          |       1.350 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vcco12           |       1.200 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vcco10           |       1.000 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vccadc           |       1.800 |     0.008 |       0.000 |      0.008 |       NA    | Unspecified | NA         |
+| VCC_PSINTFP      |       0.850 |     0.960 |       0.960 |      0.000 |       NA    | Unspecified | NA         |
+| VCC_PSINTLP      |       0.850 |     0.218 |       0.218 |      0.000 |       NA    | Unspecified | NA         |
+| VPS_MGTRAVCC     |       0.850 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VCC_PSINTFP_DDR  |       0.850 |     0.726 |       0.726 |      0.000 |       NA    | Unspecified | NA         |
+| VCC_PSPLL        |       1.200 |     0.071 |       0.071 |      0.000 |       NA    | Unspecified | NA         |
+| VPS_MGTRAVTT     |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VCCO_PSDDR_504   |       1.200 |     0.592 |       0.592 |      0.000 |       NA    | Unspecified | NA         |
+| VCC_PSAUX        |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VCC_PSBATT       |       1.200 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VCC_PSDDR_PLL    |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VCCO_PSIO0_500   |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VCCO_PSIO1_501   |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VCCO_PSIO2_502   |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VCCO_PSIO3_503   |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VCC_PSADC        |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| VMGTAVCC (GTH)   |       0.900 |     0.314 |       0.312 |      0.003 |       NA    | Unspecified | NA         |
+| VMGTAVTT (GTH)   |       1.200 |     0.424 |       0.419 |      0.005 |       NA    | Unspecified | NA         |
+| VMGTVCCAUX (GTH) |       1.800 |     0.012 |       0.012 |      0.000 |       NA    | Unspecified | NA         |
++------------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
+
+
+1.3 Confidence Level
+--------------------
+
++-----------------------------+------------+--------------------------------------------------------+------------------------------------------------------------------------------------------------------------+
+| User Input Data             | Confidence | Details                                                | Action                                                                                                     |
++-----------------------------+------------+--------------------------------------------------------+------------------------------------------------------------------------------------------------------------+
+| Design implementation state | Low        | Design is synthesized                                  | Accuracy of the tool is not optimal until design is fully placed and routed                                |
+| Clock nodes activity        | High       | User specified more than 95% of clocks                 |                                                                                                            |
+| I/O nodes activity          | Low        | More than 75% of inputs are missing user specification | Provide missing input activity with simulation results or by editing the "By Resource Type -> I/Os" view   |
+| Internal nodes activity     | Medium     | User specified less than 25% of internal nodes         | Provide missing internal nodes activity with simulation results or by editing the "By Resource Type" views |
+| Device models               | High       | Device models are Production                           |                                                                                                            |
+|                             |            |                                                        |                                                                                                            |
+| Overall confidence level    | Low        |                                                        |                                                                                                            |
++-----------------------------+------------+--------------------------------------------------------+------------------------------------------------------------------------------------------------------------+
+
+
+2. Settings
+-----------
+
+2.1 Environment
+---------------
+
++-----------------------+--------------------------+
+| Ambient Temp (C)      | 25.0                     |
+| ThetaJA (C/W)         | 2.3                      |
+| Airflow (LFM)         | 250                      |
+| Heat Sink             | medium (Medium Profile)  |
+| ThetaSA (C/W)         | 5.5                      |
+| Board Selection       | medium (10"x10")         |
+| # of Board Layers     | 12to15 (12 to 15 Layers) |
+| Board Temperature (C) | 25.0                     |
++-----------------------+--------------------------+
+
+
+2.2 Clock Constraints
+---------------------
+
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------+
+| Clock                                   | Domain                                                                                                                                                                                                                                                                                                                                                                                                                                    | Constraint (ns) |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------+
+| bclk                                    | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bclk                                                                                                                                                                                                                                                                                 |            32.0 |
+| clk125_1                                | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/CLK                                                                                                                                                                                                                                                                                                                              |             8.0 |
+| clk_pl_0                                | daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/pl_clk_unbuffered[0]                                                                                                                                                                                                                                                                                                                                                                         |            10.0 |
+| clk_pl_1                                | daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/pl_clk_unbuffered[1]                                                                                                                                                                                                                                                                                                                                                                         |            40.0 |
+| clk_pl_2                                | daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/pl_clk_unbuffered[2]                                                                                                                                                                                                                                                                                                                                                                         |             5.0 |
+| clk_pl_3                                | daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/pl_clk_unbuffered[3]                                                                                                                                                                                                                                                                                                                                                                         |            10.0 |
+| clku2x                                  | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku2x                                                                                                                                                                                                                                                                               |             8.0 |
+| clku4x                                  | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku4x                                                                                                                                                                                                                                                                               |             4.0 |
+| clock_raw_s_1                           | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/datapath_plane_inst/grouped_clock_inst/clock_raw_s                                                                                                                                                                                                                                                                                         |             3.2 |
+| eth_refclk                              | GTH0_REFCLK_P                                                                                                                                                                                                                                                                                                                                                                                                                             |             6.4 |
+| feedback_s_1                            | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/datapath_plane_inst/grouped_clock_inst/feedback_s                                                                                                                                                                                                                                                                                          |            16.0 |
+| frontend_clock                          | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clk1_inst_0                                                                                                                                                                                                                                                                                                                |            16.0 |
+| frontend_word_clk                       | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/clku                                                                                                                                                                                                                                                                                 |            16.0 |
+| gen_gtwizard_gthe4.rxoutclkpcs_int[0]   | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gen_gtwizard_gthe4.rxoutclkpcs_int[0] |             3.1 |
+| gen_gtwizard_gthe4.rxoutclkpcs_int[0]_1 | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gen_gtwizard_gthe4.rxoutclkpcs_int[0] |             3.1 |
+| gen_gtwizard_gthe4.rxoutclkpcs_int[0]_2 | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gen_gtwizard_gthe4.rxoutclkpcs_int[0] |             3.1 |
+| gen_gtwizard_gthe4.rxoutclkpcs_int[0]_3 | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gen_gtwizard_gthe4.rxoutclkpcs_int[0] |             3.1 |
+| mmcm0_clkfbout                          | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_clkfbout                                                                                                                                                                                                                                                                                                                   |            10.0 |
+| mmcm0_clkout0                           | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_clkout0                                                                                                                                                                                                                                                                                                                    |            16.0 |
+| mmcm0_clkout1                           | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_clkout1                                                                                                                                                                                                                                                                                                                    |             5.0 |
+| mmcm0_inst_n_8                          | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst_n_8                                                                                                                                                                                                                                                                                                                   |            10.0 |
+| mmcm1_clkfbout_1                        | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clkfbout                                                                                                                                                                                                                                                                                                                   |            16.0 |
+| mmcm1_clkout0_1                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clkout0                                                                                                                                                                                                                                                                                                                    |             2.0 |
+| mmcm1_clkout1_1                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clkout1                                                                                                                                                                                                                                                                                                                    |            16.0 |
+| qpll0clk_in[0]                          | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/gen_ref_156_25.common_block/xxv_ethernet_0_gt_gthe4_common_wrapper_i/common_inst/qpll0clk_in[0]                                                                                                                                                               |             0.2 |
+| qpll0refclk_in[0]                       | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/gen_ref_156_25.common_block/xxv_ethernet_0_gt_gthe4_common_wrapper_i/common_inst/qpll0refclk_in[0]                                                                                                                                                            |             6.4 |
+| rx_clk_array[0]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/rx_clk_out_0                                                                                                                                                                                         |             6.4 |
+| rx_clk_array[1]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/rx_clk_out_0                                                                                                                                                                                         |             6.4 |
+| rx_clk_array[2]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/rx_clk_out_0                                                                                                                                                                                         |             6.4 |
+| rx_clk_array[3]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/rx_clk_out_0                                                                                                                                                                                         |             6.4 |
+| rx_tmg_clk                              | rx0_tmg_p                                                                                                                                                                                                                                                                                                                                                                                                                                 |            16.0 |
+| rxoutclk_out[0]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/rxoutclk_out[0]                       |             3.2 |
+| rxoutclk_out[0]_1                       | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/rxoutclk_out[0]                       |             3.2 |
+| rxoutclk_out[0]_2                       | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/rxoutclk_out[0]                       |             3.2 |
+| rxoutclk_out[0]_3                       | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/rxoutclk_out[0]                       |             3.2 |
+| sysclk                                  | sysclk_p                                                                                                                                                                                                                                                                                                                                                                                                                                  |            10.0 |
+| tx_clk_array[0]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/tx_mii_clk_0                                                                                                                                                                                         |             6.4 |
+| tx_clk_array[1]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/tx_mii_clk_0                                                                                                                                                                                         |             6.4 |
+| tx_clk_array[2]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/tx_mii_clk_0                                                                                                                                                                                         |             6.4 |
+| tx_clk_array[3]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/tx_mii_clk_0                                                                                                                                                                                         |             6.4 |
+| txoutclk_out[0]                         | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/txoutclk_out[0]                       |             3.2 |
+| txoutclk_out[0]_1                       | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/txoutclk_out[0]                       |             3.2 |
+| txoutclk_out[0]_2                       | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/txoutclk_out[0]                       |             3.2 |
+| txoutclk_out[0]_3                       | daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/txoutclk_out[0]                       |             3.2 |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------+
+
+
+3. Detailed Reports
+-------------------
+
+3.1 By Hierarchy
+----------------
+
++-------------------------------+-----------+
+| Name                          | Power (W) |
++-------------------------------+-----------+
+| daphne_selftrigger_bd_wrapper |     4.723 |
+|   daphne_selftrigger_bd_i     |     4.709 |
+|     axi_quad_spi_0            |     0.001 |
+|       U0                      |     0.001 |
+|     daphne_selftrigger_top    |     2.276 |
+|       U0                      |     2.276 |
+|     smartconnect_0            |     0.016 |
+|       inst                    |     0.016 |
+|     zynq_ultra_ps_e_0         |     2.416 |
+|       U0                      |     2.416 |
++-------------------------------+-----------+
+
+

@@ -86,6 +86,7 @@ port(
     sys_rst: in std_logic; -- System reset (sclk domain)
     sys_stat: out std_logic_vector(3 downto 0); -- Status output (sclk domain)
     sys_addr: in std_logic_vector(15 downto 0);
+    sys_addr_valid: in std_logic := '1';
     los: in std_logic := '0'; -- External signal path status (async)
     rxd: in std_logic; -- Timing input (clk domain)
     txd: out std_logic; -- Timing output (clk domain)
@@ -159,11 +160,26 @@ signal ep_stat: std_logic_vector(3 downto 0);
 signal ep_reset: std_logic;
 signal ep_ts_rdy: std_logic;
 signal ep_addr: std_logic_vector(15 downto 0);
+signal ep_reset_sys, ep_addr_valid_sys: std_logic;
+signal ep_addr_sys: std_logic_vector(15 downto 0);
+signal ep_stat_axi: std_logic_vector(3 downto 0);
+signal ep_levels_axi: std_logic_vector(2 downto 0);
 signal real_timestamp, fake_timestamp, timestamp_reg: std_logic_vector(63 downto 0);
 
 begin
 
 reset_async <= not S_AXI_ARESETN;
+
+control_cdc : entity work.pdts_endpoint_control_cdc
+port map (
+    axi_clk_i=>S_AXI_ACLK, axi_resetn_i=>S_AXI_ARESETN,
+    reset_axi_i=>ep_reset, addr_axi_i=>ep_addr, sys_clk_i=>clk100_i,
+    reset_sys_o=>ep_reset_sys, addr_sys_o=>ep_addr_sys,
+    addr_valid_sys_o=>ep_addr_valid_sys, stat_sys_i=>ep_stat,
+    stat_axi_o=>ep_stat_axi,
+    levels_async_i=>ep_ts_rdy & mmcm1_locked & mmcm0_locked,
+    levels_axi_o=>ep_levels_axi
+);
 
 -- if using external LVDS 100MHz sysclk, receive it with IBUFDS.
 
@@ -254,9 +270,10 @@ port map( I => rx0_tmg_p, IB => rx0_tmg_n, O  => rx0_tmg );
 pdts_endpoint_inst: pdts_endpoint_wrapper
 	port map(
 		sys_clk => clk100_i, -- 100MHz from MMCM0
-		sys_rst => ep_reset,
+		sys_rst => ep_reset_sys,
 		sys_stat => ep_stat,
-        sys_addr => ep_addr,
+        sys_addr => ep_addr_sys,
+        sys_addr_valid => ep_addr_valid_sys,
 		los => sfp_tmg_los,
 		rxd => rx0_tmg, 
 		txd => tx0_tmg, 
@@ -417,10 +434,10 @@ port map(
     S_AXI_RVALID => S_AXI_RVALID,
     S_AXI_RREADY => S_AXI_RREADY,
 
-    ep_ts_rdy => ep_ts_rdy,
-    ep_stat => ep_stat,
-    mmcm0_locked => mmcm0_locked,
-    mmcm1_locked => mmcm1_locked,
+    ep_ts_rdy => ep_levels_axi(2),
+    ep_stat => ep_stat_axi,
+    mmcm0_locked => ep_levels_axi(0),
+    mmcm1_locked => ep_levels_axi(1),
 
     ep_reset => ep_reset,
     ep_addr => ep_addr,

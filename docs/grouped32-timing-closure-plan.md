@@ -119,8 +119,15 @@ estimated setup WNS improves from -0.874 ns to +0.836 ns. Its measured 525-cycle
 service interval retains the required throughput. Real-XPM sustained 32-channel
 mode 0 replay passes with zero loss and byte-identical reference packets;
 selected-source focused tests also pass. GHDL modes 0 and 1 pass with zero loss.
-The remaining GHDL replay modes (2–4) are
-running and must be recorded separately when finished.
+Overload and dense-trigger modes 2 and 3 independently verify every emitted
+packet and account for whole-fragment drops; differing admissions under
+overload are expected. The reset/counter-reset/acquisition-disable mode 4 also
+passes: all 3,272 common packets match across 960 bytes, and every emitted
+packet passes the independent oracle. The completed
+[five-mode replay evidence](reports/grouped32/replay-five-mode-20260914/README.md)
+records 16,199,168 checked samples and 379,668 descriptor words, with logs,
+source provenance and CSV checksums. Mode 4 resets its counters during the run;
+its final zero loss count does not describe losses across the hard reset.
 
 This candidate also repairs Hermes header/status crossings and reset during a
 network configuration exchange, synchronizes PDTS completion flags, and removes
@@ -129,15 +136,35 @@ reproduce both mailbox reset and mid-packet header-ID failures in the old RTL.
 Build wrappers now preserve failed-stage exit codes and correctly accept a
 successful synthesis-only run without requiring a bitstream.
 
-**Next gate:** commit this reviewed candidate, synthesize it in a fresh directory
-with the commit's revision stamp, and compare full-board timing, resources and
-CDC reports. Use eight Vivado threads and only one full build at a time.
-Placement/routing follows the synthesis review; local out-of-context timing is
-not evidence of board timing closure.
+The first repair candidate was committed as `5e86a75` and synthesized from a
+fresh pinned checkout with Vivado 2026.1. The synthesis-only run exited zero,
+but the post-synthesis setup report still fails: WNS -0.761 ns, TNS -40.925 ns,
+152 failing endpoints. This is a large reduction from the baseline's -2.764 ns,
+-7301.498 ns and 3711 endpoints. Of the remaining endpoints, 96 are in the
+312.5 MHz grouped builder/serializer domain, with the worst internal path from
+the sample ring BRAM output to the grouped FIFO input at -0.161 ns. The overall
+worst path at -0.761 ns is a reset-recovery check from the PS-clock domain into
+the Ethernet IP, not the grouped sample-data path. The other Ethernet clock
+crossings need classification against the vendor IP's CDC/reset contract.
+The unplaced hold failures are diagnostic only; placement/routing must determine
+whether hold actually closes. The [full checkpoint audit](reports/grouped32/audit-20260914-5e86a75/README.md)
+completed with no report errors or CDC truncation at the increased clock-pair
+threshold. It records 117,682 CDC detail paths, 52 clock methodology critical
+warnings, zero synthesis DRC errors, and the still-missing external timing
+bounds.
 
-Remaining audit work includes the endpoint's AXI control/status crossings,
-frontend/selftrigger configuration and counters, external trigger pulse capture,
-fan tachometer synchronization, and the eight PS EMIO no-clock pins. The AFE
+A second candidate repairs atomically sampled self-trigger counters across AXI
+and acquisition clocks, coherent endpoint address/status transfers and
+stopped-clock reset recovery, packet-boundary PDTS address matching, and fan
+tachometer first-stage synchronization. Focused GHDL and real-XPM tests pass,
+including 32/40-channel counter readout and endpoint clock stop/reset cases.
+These edits are not yet represented by a full-board build. The next gate is to
+review and commit them, synthesize from a fresh pinned revision, audit CDC and
+constraints, and route that revision. Use eight Vivado threads and only one full
+build at a time. Local out-of-context timing is not board timing closure.
+
+Remaining audit work includes frontend/selftrigger configuration, external
+trigger pulse capture, and the eight PS EMIO no-clock pins. The AFE
 capture min/max input-delay bounds are unset and require a validated timing XDC
 or device/board timing model from the hardware owner. Other SPI/I2C/static
 interfaces need their corresponding timing contracts. Continue internal timing

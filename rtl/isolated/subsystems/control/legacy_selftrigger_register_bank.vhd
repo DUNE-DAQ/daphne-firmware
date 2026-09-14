@@ -30,6 +30,7 @@ begin
     port map (
       AXI_IN         => AXI_IN,
       AXI_OUT        => AXI_OUT,
+      counter_clock_i => AXI_IN.ACLK,
       threshold_xc_o => threshold_xc_o,
       record_count_i => record_count_i,
       full_count_i   => full_count_i,

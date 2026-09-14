@@ -1,0 +1,9 @@
+{
+  "commit": "5e86a757d5fad3abe30fb65ce5d3868081a610c9",
+  "checkpoint": "/home/marroyav/work/daphne-grouped32-5e86a75-synth-20260914/xilinx/output-5e86a75/daphne_selftrigger_bd_synth.dcp",
+  "checkpoint_sha256": "e118f222968e9c427b7dba0e481780841a62e2ee289c7c83113e9464b2cca65d",
+  "audit_script_sha256": "0c0e0f0f860b5e150297cb4fb4ee8742e63c96ed531aae19a6c05dc5cdb9a180",
+  "cdc_clock_pair_limit": 1000000,
+  "general_max_threads": 8,
+  "created_utc": "2026-09-14T21:09:49.732165+00:00"
+}

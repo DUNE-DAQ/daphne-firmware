@@ -7,6 +7,8 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
+library xpm;
+use xpm.vcomponents.all;
 
 use work.pdts_defs.all;
 use work.pdts_ep_defs.all;
@@ -25,6 +27,7 @@ entity pdts_ep_core is
 		sys_clk: in std_logic; -- System clock
 		sys_rst: in std_logic; -- System reset (sclk domain)
 		sys_addr: in std_logic_vector(15 downto 0) := X"FFF0"; -- Default address
+        sys_addr_valid: in std_logic := '1';
 		sys_stat: out std_logic_vector(3 downto 0); -- Status output (sclk domain)
 		ctrl_out: out pdts_cmo; -- Control bus (clk domain)
 		ctrl_in: in pdts_cmi := PDTS_CMI_NULL;
@@ -61,12 +64,22 @@ architecture rtl of pdts_ep_core is
 	signal ctrl_r, rctrl_r: pdts_cmi;
 	signal ts_stb: std_logic;
 	signal tstamp_i: std_logic_vector(63 downto 0);
+    signal addr_snapshot: std_logic_vector(16 downto 0);
+    signal addr_snapshot_valid, addr_valid, stat_valid: std_logic;
+    signal stat_snapshot: std_logic_vector(3 downto 0);
+    signal reset_base: std_logic;
 
 	--attribute MARK_DEBUG: string;
 	--attribute MARK_DEBUG of txenb, rst, rrst, trst, resync, locked, rx_en, d, q: signal is "TRUE";
 	--attribute MARK_DEBUG of ctrl_out, ctrl_in, ctrl_w, ctrl_r: signal is "TRUE";
 
 begin
+
+    -- Remember a system reset even when its recovered MMCM output is stopped.
+    -- The CDR's sampled LOCKED reset alone cannot capture a stopped-clock pulse.
+    reset_base_cdc: xpm_cdc_async_rst
+        generic map (DEST_SYNC_FF=>3, INIT_SYNC_FF=>1, RST_ACTIVE_HIGH=>1)
+        port map (src_arst=>sys_rst or rst, dest_clk=>clk, dest_arst=>reset_base);
 
 -- Control state machine
 
@@ -80,7 +93,7 @@ begin
 			sys_clk => sys_clk,
 			sys_rst => sys_rst,
 			clk => clk,
-			rst => rst,
+			rst => reset_base,
 			clk_rst => clk_rst,
 			clk_lock => clk_lock,
 			cdr_rst => cdr_rst,
@@ -101,23 +114,27 @@ begin
 	sys_stat <= stati;
 	phase_stb <= resync;
 
-	-- The register file and control transport live in the endpoint base-clock
-	-- domain; resynchronise the state-machine status bits out of sys_clk before
-	-- they feed that path.
-	sync_stat: entity work.pdts_synchro
-		generic map(
-			N => 4
-		)
-		port map(
-			clk => sys_clk,
-			clks => clk,
-			d => stati,
-			q => stati_clk
-		);
+    -- State is encoded, so independent bit synchronizers cannot preserve it.
+    sync_stat: entity work.pdts_cdc_snapshot
+        generic map (WIDTH_G=>4)
+        port map (src_clk_i=>sys_clk, src_data_i=>stati,
+                  dst_clk_i=>clk, dst_reset_i=>reset_base, dst_data_o=>stat_snapshot,
+                  dst_valid_o=>stat_valid, dst_update_o=>open);
+    stati_clk <= stat_snapshot when stat_valid='1' else (others=>'0');
+
+    sync_address: entity work.pdts_cdc_snapshot
+        generic map (WIDTH_G=>17)
+        port map (src_clk_i=>sys_clk, src_data_i=>sys_addr_valid & sys_addr,
+                  dst_clk_i=>clk, dst_reset_i=>reset_base, dst_data_o=>addr_snapshot,
+                  dst_valid_o=>addr_snapshot_valid, dst_update_o=>open);
+    -- Validity travels with the address. Starting the CDR clock does not depend
+    -- on this transfer, but packet reception does. Internal-address mode retains
+    -- its existing register-file assignment protocol.
+    addr_valid <= (addr_snapshot_valid and addr_snapshot(16)) when EXT_ADDR else '1';
 
 -- Receive
 
-	trst <= rst or resync or (not locked) or (not rx_en);
+	trst <= reset_base or resync or (not locked) or (not rx_en) or (not addr_valid);
 
 	rx: entity work.pdts_rx
 		port map(
@@ -165,7 +182,7 @@ begin
 			
 -- Register file
 
-	rrst <= rst or reg_rst;
+	rrst <= reset_base or reg_rst;
 
 	regfile: entity work.pdts_ep_regfile
 		generic map(
@@ -178,7 +195,8 @@ begin
 			rst => rrst,
 			ctrl_in => rctrl_w,
 			ctrl_out => rctrl_r,
-			sys_addr => sys_addr,
+			sys_addr => addr_snapshot(15 downto 0),
+            sys_addr_valid => addr_valid,
 			addr => addr,
 			stat => stati_clk,
 			phase => phase,
@@ -198,7 +216,7 @@ begin
 	tx: entity work.pdts_tx
 		port map(
 			clk => clk,
-			rst => rst,
+			rst => reset_base,
 			stb => stb,
 			scmd_in => scmd_tx_w,
 			scmd_out => scmd_tx_r,

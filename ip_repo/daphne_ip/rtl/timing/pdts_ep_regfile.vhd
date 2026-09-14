@@ -24,6 +24,7 @@ entity pdts_ep_regfile is
 		ctrl_in: in pdts_cmo; -- Control bus (clk domain)
 		ctrl_out: out pdts_cmi;
 		sys_addr: in std_logic_vector(15 downto 0);
+        sys_addr_valid: in std_logic := '1';
 		addr: out std_logic_vector(15 downto 0);
 		stat: in std_logic_vector(3 downto 0);
 		delay: out std_logic_vector(3 downto 0);
@@ -114,7 +115,7 @@ begin
 
 	txenb <= '0' when txen = '1' or FORCE_TX else '1';
 	addr <= sys_addr when EXT_ADDR else addri;
-	addr_done <= '1' when adone = '1' or EXT_ADDR else '0';
+	addr_done <= sys_addr_valid when EXT_ADDR else adone;
 	deskew_done <= '1' when ddone = '1' or SKIP_DESKEW else '0';
 
 	reg_r(0) <= X"00";

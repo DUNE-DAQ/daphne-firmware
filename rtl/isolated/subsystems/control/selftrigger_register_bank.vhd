@@ -2,16 +2,21 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library xpm;
+use xpm.vcomponents.all;
+
 use work.daphne_package.all;
 use work.daphne_subsystem_pkg.all;
 
 entity selftrigger_register_bank is
   generic (
-    CHANNEL_COUNT_G : positive := 40
+    CHANNEL_COUNT_G : positive := 40;
+    COUNTER_READ_TIMEOUT_G : positive := 1024
   );
   port (
     AXI_IN         : in  AXILITE_INREC;
     AXI_OUT        : out AXILITE_OUTREC;
+    counter_clock_i : in std_logic;
     threshold_xc_o : out slv28_array_t(0 to CHANNEL_COUNT_G - 1);
     continuation_config_o : out slv32_array_t(0 to CHANNEL_COUNT_G - 1);
     record_count_i : in  slv64_array_t(0 to CHANNEL_COUNT_G - 1);
@@ -51,16 +56,79 @@ architecture rtl of selftrigger_register_bank is
   signal axi_wready   : std_logic := '0';
   signal axi_bresp    : std_logic_vector(1 downto 0) := "00";
   signal axi_bvalid   : std_logic := '0';
-  signal axi_araddr   : std_logic_vector(31 downto 0) := (others => '0');
   signal axi_arready  : std_logic := '0';
   signal axi_rdata    : std_logic_vector(31 downto 0) := (others => '0');
   signal axi_rresp    : std_logic_vector(1 downto 0) := "00";
   signal axi_rvalid   : std_logic := '0';
-  signal reg_rden     : std_logic;
   signal reg_wren     : std_logic;
-  signal reg_data_out : std_logic_vector(31 downto 0) := (others => '0');
   signal aw_en        : std_logic := '1';
+
+  -- Decode in AXI, then send only the counter selector to the acquisition
+  -- domain. A held 64-bit snapshot returns through a separate handshake.
+  type read_decode_t is record
+    counter : integer range -1 to CHANNEL_COUNT_G * 9 - 1;
+    channel : natural range 0 to CHANNEL_COUNT_G - 1;
+    high_word, local_valid, continuation : boolean;
+  end record;
+  function decode_read(addr : natural) return read_decode_t is
+    variable d : read_decode_t := (-1, 0, false, false, false);
+    variable offset : natural;
+  begin
+    for channel in 0 to CHANNEL_COUNT_G - 1 loop
+      if addr >= channel * CHANNEL_STRIDE_C and addr < (channel + 1) * CHANNEL_STRIDE_C then
+        d.channel := channel;
+        offset := addr - channel * CHANNEL_STRIDE_C;
+        case offset is
+          when THRESHOLD_OFFSET_C => d.local_valid := true;
+          when CONTINUATION_CONFIG_C => d.local_valid := true; d.continuation := true;
+          when RECORD_COUNT_LO_C | RECORD_COUNT_HI_C =>
+            d.counter := channel * 9; d.high_word := offset = RECORD_COUNT_HI_C;
+          when BUSY_COUNT_LO_C | BUSY_COUNT_HI_C =>
+            d.counter := channel * 9 + 1; d.high_word := offset = BUSY_COUNT_HI_C;
+          when FULL_COUNT_LO_C | FULL_COUNT_HI_C =>
+            d.counter := channel * 9 + 2; d.high_word := offset = FULL_COUNT_HI_C;
+          when others => null;
+        end case;
+      elsif addr >= PRIMITIVE_BASE_C + channel * PRIMITIVE_STRIDE_C and
+            addr < PRIMITIVE_BASE_C + (channel + 1) * PRIMITIVE_STRIDE_C then
+        offset := addr - PRIMITIVE_BASE_C - channel * PRIMITIVE_STRIDE_C;
+        case offset is
+          when 0 | 4 => d.counter := channel * 9 + 3; d.high_word := offset = 4;
+          when 8 | 12 => d.counter := channel * 9 + 4; d.high_word := offset = 12;
+          when others => null;
+        end case;
+      elsif addr >= 16#800# + channel * 32 and addr < 16#800# + (channel + 1) * 32 then
+        offset := addr - 16#800# - channel * 32;
+        if offset mod 4 = 0 then
+          d.counter := channel * 9 + 5 + offset / 8;
+          d.high_word := offset mod 8 = 4;
+        end if;
+      end if;
+    end loop;
+    return d;
+  end function;
+
+  type read_state_t is (READ_IDLE, READ_LAUNCH, READ_WAIT_DATA, READ_RESPONSE);
+  signal read_state : read_state_t := READ_IDLE;
+  signal read_high : boolean := false;
+  signal read_counter, cached_counter : natural range 0 to CHANNEL_COUNT_G * 9 - 1 := 0;
+  signal cached_value : std_logic_vector(63 downto 0) := (others => '0');
+  signal cached_valid : boolean := false;
+  signal read_timeout : natural range 0 to COUNTER_READ_TIMEOUT_G - 1 := 0;
+  signal launch : std_logic := '0';
+  signal launch_selector : std_logic_vector(8 downto 0) := (others => '0');
+
+  type request_state_t is (REQUEST_IDLE, REQUEST_WAIT_ACK, REQUEST_RESPONSE, REQUEST_DRAIN);
+  signal request_state : request_state_t := REQUEST_IDLE;
+  signal request_hold, request_value : std_logic_vector(8 downto 0) := (others => '0');
+  signal request_send, request_received, request_valid, request_ack : std_logic := '0';
+  signal response_hold, response_value, response_data : std_logic_vector(63 downto 0) := (others => '0');
+  signal response_send, response_received, response_request, response_ack, response_valid : std_logic := '0';
+  signal response_seen : boolean := false;
+  type snapshot_state_t is (SNAPSHOT_IDLE, SNAPSHOT_SEND, SNAPSHOT_DRAIN);
+  signal snapshot_state : snapshot_state_t := SNAPSHOT_IDLE;
 begin
+  assert CHANNEL_COUNT_G <= 40 report "Counter address map supports at most 40 channels" severity failure;
   threshold_xc_o <= threshold_xc_reg;
   continuation_config_o <= continuation_config_reg;
 
@@ -164,128 +232,162 @@ begin
     end if;
   end process;
 
-  process (AXI_IN.ACLK)
+  -- One outstanding AXI read; ARREADY cannot acknowledge another address
+  -- while a counter request or a backpressured response is pending.
+  axi_arready <= '1' when read_state = READ_IDLE and AXI_IN.ARESETN = '1' else '0';
+  process(AXI_IN.ACLK)
+    variable decoded : read_decode_t;
   begin
     if rising_edge(AXI_IN.ACLK) then
+      launch <= '0';
       if AXI_IN.ARESETN = '0' then
-        axi_arready <= '0';
-        axi_araddr <= (others => '1');
+        read_state <= READ_IDLE;
+        axi_rvalid <= '0'; axi_rresp <= "00"; axi_rdata <= (others => '0');
+        cached_valid <= false;
       else
-        if axi_arready = '0' and AXI_IN.ARVALID = '1' then
-          axi_arready <= '1';
-          axi_araddr <= AXI_IN.ARADDR;
-        else
-          axi_arready <= '0';
-        end if;
+        case read_state is
+          when READ_IDLE =>
+            if AXI_IN.ARVALID = '1' then
+              decoded := decode_read(to_integer(unsigned(AXI_IN.ARADDR(11 downto 0))));
+              axi_rresp <= "00";
+              axi_rdata <= (others => '0');
+              if decoded.counter = -1 then
+                if decoded.local_valid then
+                  if decoded.continuation then
+                    axi_rdata <= continuation_config_reg(decoded.channel);
+                  else
+                    axi_rdata <= "0000" & threshold_xc_reg(decoded.channel);
+                  end if;
+                end if;
+                axi_rvalid <= '1'; read_state <= READ_RESPONSE;
+              elsif decoded.high_word and cached_valid and decoded.counter = cached_counter then
+                -- An immediately paired high word uses the same 64-bit epoch
+                -- as its low word, including carry across bit 31.
+                axi_rdata <= cached_value(63 downto 32);
+                cached_valid <= false;
+                axi_rvalid <= '1'; read_state <= READ_RESPONSE;
+              else
+                launch_selector <= std_logic_vector(to_unsigned(decoded.counter, 9));
+                read_counter <= decoded.counter; read_high <= decoded.high_word;
+                cached_valid <= false; read_timeout <= 0;
+                read_state <= READ_LAUNCH;
+              end if;
+            end if;
+          when READ_LAUNCH =>
+            -- Normal reads can arrive before the previous exchange finishes
+            -- its return-to-zero phase. Wait for it, including an orphaned
+            -- transfer after timeout/reset, without accepting its old data.
+            if request_state = REQUEST_IDLE and launch = '0' then
+              launch <= '1'; read_state <= READ_WAIT_DATA;
+            elsif read_timeout = COUNTER_READ_TIMEOUT_G - 1 then
+              axi_rresp <= "10"; axi_rvalid <= '1'; read_state <= READ_RESPONSE;
+            else
+              read_timeout <= read_timeout + 1;
+            end if;
+          when READ_WAIT_DATA =>
+            if response_valid = '1' then
+              if read_high then axi_rdata <= response_data(63 downto 32);
+              else axi_rdata <= response_data(31 downto 0); end if;
+              cached_counter <= read_counter; cached_value <= response_data;
+              cached_valid <= not read_high;
+              axi_rvalid <= '1'; read_state <= READ_RESPONSE;
+            elsif read_timeout = COUNTER_READ_TIMEOUT_G - 1 then
+              -- The acquisition clock may stop. Complete AXI with SLVERR;
+              -- the resetless XPM exchange continues until the clock returns.
+              axi_rdata <= (others => '0'); axi_rresp <= "10";
+              axi_rvalid <= '1'; read_state <= READ_RESPONSE;
+            else
+              read_timeout <= read_timeout + 1;
+            end if;
+          when READ_RESPONSE =>
+            if AXI_IN.RREADY = '1' then
+              axi_rvalid <= '0'; read_state <= READ_IDLE;
+            end if;
+        end case;
       end if;
     end if;
   end process;
 
-  process (AXI_IN.ACLK)
-  begin
-    if rising_edge(AXI_IN.ACLK) then
-      if AXI_IN.ARESETN = '0' then
-        axi_rvalid <= '0';
-        axi_rresp <= "00";
-      else
-        if axi_arready = '1' and AXI_IN.ARVALID = '1' and axi_rvalid = '0' then
-          axi_rvalid <= '1';
-          axi_rresp <= "00";
-        elsif axi_rvalid = '1' and AXI_IN.RREADY = '1' then
-          axi_rvalid <= '0';
-        end if;
-      end if;
-    end if;
-  end process;
-
-  reg_rden <= axi_arready and AXI_IN.ARVALID and (not axi_rvalid);
-
-  process(all)
-    variable addr_v : integer;
-    variable data_v : std_logic_vector(31 downto 0);
-  begin
-    addr_v := to_integer(unsigned(axi_araddr(11 downto 0)));
-    data_v := (others => '0');
-
-    -- Register addresses are disjoint. Explicitly OR the decoded words so
-    -- synthesis builds a parallel read mux rather than a 40-channel priority
-    -- chain. AXI timing and unmapped-address zero responses are unchanged.
-    for idx in 0 to CHANNEL_COUNT_G - 1 loop
-      if addr_v = idx * CHANNEL_STRIDE_C + THRESHOLD_OFFSET_C then
-        data_v := data_v or ("0000" & threshold_xc_reg(idx));
-      end if;
-      if addr_v = idx * CHANNEL_STRIDE_C + RECORD_COUNT_LO_C then
-        data_v := data_v or (record_count_i(idx)(31 downto 0));
-      end if;
-      if addr_v = idx * CHANNEL_STRIDE_C + RECORD_COUNT_HI_C then
-        data_v := data_v or (record_count_i(idx)(63 downto 32));
-      end if;
-      if addr_v = idx * CHANNEL_STRIDE_C + BUSY_COUNT_LO_C then
-        data_v := data_v or (busy_count_i(idx)(31 downto 0));
-      end if;
-      if addr_v = idx * CHANNEL_STRIDE_C + BUSY_COUNT_HI_C then
-        data_v := data_v or (busy_count_i(idx)(63 downto 32));
-      end if;
-      if addr_v = idx * CHANNEL_STRIDE_C + FULL_COUNT_LO_C then
-        data_v := data_v or (full_count_i(idx)(31 downto 0));
-      end if;
-      if addr_v = idx * CHANNEL_STRIDE_C + FULL_COUNT_HI_C then
-        data_v := data_v or (full_count_i(idx)(63 downto 32));
-      end if;
-      if addr_v = idx * CHANNEL_STRIDE_C + CONTINUATION_CONFIG_C then
-        data_v := data_v or (continuation_config_reg(idx));
-      end if;
-      if addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_LO_OFFSET_C then
-        data_v := data_v or (tcount_i(idx)(31 downto 0));
-      end if;
-      if addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + TCOUNT_HI_OFFSET_C then
-        data_v := data_v or (tcount_i(idx)(63 downto 32));
-      end if;
-      if addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + PCOUNT_LO_OFFSET_C then
-        data_v := data_v or (pcount_i(idx)(31 downto 0));
-      end if;
-      if addr_v = PRIMITIVE_BASE_C + idx * PRIMITIVE_STRIDE_C + PCOUNT_HI_OFFSET_C then
-        data_v := data_v or (pcount_i(idx)(63 downto 32));
-      end if;
-      if addr_v = 16#800# + idx * 32 then
-        data_v := data_v or (continuation_count_i(idx)(31 downto 0));
-      end if;
-      if addr_v = 16#804# + idx * 32 then
-        data_v := data_v or (continuation_count_i(idx)(63 downto 32));
-      end if;
-      if addr_v = 16#808# + idx * 32 then
-        data_v := data_v or (continuation_drop_count_i(idx)(31 downto 0));
-      end if;
-      if addr_v = 16#80C# + idx * 32 then
-        data_v := data_v or (continuation_drop_count_i(idx)(63 downto 32));
-      end if;
-      if addr_v = 16#810# + idx * 32 then
-        data_v := data_v or (covered_trigger_count_i(idx)(31 downto 0));
-      end if;
-      if addr_v = 16#814# + idx * 32 then
-        data_v := data_v or (covered_trigger_count_i(idx)(63 downto 32));
-      end if;
-      if addr_v = 16#818# + idx * 32 then
-        data_v := data_v or (descriptor_overflow_count_i(idx)(31 downto 0));
-      end if;
-      if addr_v = 16#81C# + idx * 32 then
-        data_v := data_v or (descriptor_overflow_count_i(idx)(63 downto 32));
-      end if;
-    end loop;
-
-    reg_data_out <= data_v;
-  end process;
-
+  -- XPM handshakes have no reset. These protocol registers deliberately drain
+  -- through AXI/acquisition resets; only the AXI client discards its old read.
   process(AXI_IN.ACLK)
   begin
     if rising_edge(AXI_IN.ACLK) then
-      if AXI_IN.ARESETN = '0' then
-        axi_rdata <= (others => '0');
-      else
-        if reg_rden = '1' then
-          axi_rdata <= reg_data_out;
-        end if;
+      response_valid <= '0';
+      response_ack <= response_request;
+      if response_request = '1' and response_ack = '0' then
+        response_data <= response_value;
+        response_valid <= '1'; response_seen <= true;
       end if;
+      case request_state is
+        when REQUEST_IDLE =>
+          if launch = '1' then
+            request_hold <= launch_selector; request_send <= '1';
+            response_seen <= false; request_state <= REQUEST_WAIT_ACK;
+          end if;
+        when REQUEST_WAIT_ACK =>
+          if request_received = '1' then
+            request_send <= '0'; request_state <= REQUEST_RESPONSE;
+          end if;
+        when REQUEST_RESPONSE =>
+          if response_seen then request_state <= REQUEST_DRAIN; end if;
+        when REQUEST_DRAIN =>
+          if request_received = '0' and response_request = '0' and response_ack = '0' then
+            request_state <= REQUEST_IDLE;
+          end if;
+      end case;
     end if;
   end process;
+
+  counter_request : xpm_cdc_handshake
+    generic map(DEST_EXT_HSK => 1, DEST_SYNC_FF => 3, INIT_SYNC_FF => 1,
+      SIM_ASSERT_CHK => 1, SRC_SYNC_FF => 3, WIDTH => 9)
+    port map(src_clk => AXI_IN.ACLK, src_in => request_hold, src_send => request_send,
+      src_rcv => request_received, dest_clk => counter_clock_i, dest_out => request_value,
+      dest_req => request_valid, dest_ack => request_ack);
+
+  process(counter_clock_i)
+    variable value : std_logic_vector(63 downto 0);
+    variable selector : natural;
+  begin
+    if rising_edge(counter_clock_i) then
+      case snapshot_state is
+        when SNAPSHOT_IDLE =>
+          if request_valid = '1' then
+            selector := to_integer(unsigned(request_value));
+            value := (others => '0');
+            -- All selected counter bits are sampled together on their own
+            -- clock. The mux no longer crosses directly into AXI registers.
+            for channel in 0 to CHANNEL_COUNT_G - 1 loop
+              if selector = channel * 9 then value := value or record_count_i(channel); end if;
+              if selector = channel * 9 + 1 then value := value or busy_count_i(channel); end if;
+              if selector = channel * 9 + 2 then value := value or full_count_i(channel); end if;
+              if selector = channel * 9 + 3 then value := value or tcount_i(channel); end if;
+              if selector = channel * 9 + 4 then value := value or pcount_i(channel); end if;
+              if selector = channel * 9 + 5 then value := value or continuation_count_i(channel); end if;
+              if selector = channel * 9 + 6 then value := value or continuation_drop_count_i(channel); end if;
+              if selector = channel * 9 + 7 then value := value or covered_trigger_count_i(channel); end if;
+              if selector = channel * 9 + 8 then value := value or descriptor_overflow_count_i(channel); end if;
+            end loop;
+            response_hold <= value; response_send <= '1'; request_ack <= '1';
+            snapshot_state <= SNAPSHOT_SEND;
+          end if;
+        when SNAPSHOT_SEND =>
+          if response_received = '1' then
+            response_send <= '0'; snapshot_state <= SNAPSHOT_DRAIN;
+          end if;
+        when SNAPSHOT_DRAIN =>
+          if response_received = '0' and request_valid = '0' then
+            request_ack <= '0'; snapshot_state <= SNAPSHOT_IDLE;
+          end if;
+      end case;
+    end if;
+  end process;
+
+  counter_response : xpm_cdc_handshake
+    generic map(DEST_EXT_HSK => 1, DEST_SYNC_FF => 3, INIT_SYNC_FF => 1,
+      SIM_ASSERT_CHK => 1, SRC_SYNC_FF => 3, WIDTH => 64)
+    port map(src_clk => counter_clock_i, src_in => response_hold, src_send => response_send,
+      src_rcv => response_received, dest_clk => AXI_IN.ACLK, dest_out => response_value,
+      dest_req => response_request, dest_ack => response_ack);
 end architecture rtl;

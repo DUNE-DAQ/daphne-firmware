@@ -1,0 +1,17 @@
+[
+  {
+    "path": "bd/daphne_selftrigger_bd/daphne_selftrigger_bd.bd",
+    "sha256": "a4187bdd257cb6faead736978ca388761000eb70f7ed053631d55c7b2f4251a4",
+    "version_lines": [
+      "\"value\": \"0x5E86A75\""
+    ]
+  },
+  {
+    "path": "bd/daphne_selftrigger_bd/ip/daphne_selftrigger_bd_daphne_selftrigger_top_0/daphne_selftrigger_bd_daphne_selftrigger_top_0.xci",
+    "sha256": "7a05d99d90ab5f7915bd75fc7e8efd8e73b983db5f1184409ce085398cc764ac",
+    "version_lines": [
+      "\"version\": [ { \"value\": \"0x5E86A75\", \"value_src\": \"user\", \"resolve_type\": \"user\", \"format\": \"bitString\", \"usage\": \"all\" } ],",
+      "\"version\": [ { \"value\": \"0x5E86A75\", \"resolve_type\": \"user\", \"format\": \"bitString\", \"usage\": \"all\" } ],"
+    ]
+  }
+]

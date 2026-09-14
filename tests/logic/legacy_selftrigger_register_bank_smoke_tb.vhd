@@ -72,7 +72,20 @@ begin
     );
 
   stimulus : process
-    variable readback : std_logic_vector(31 downto 0);
+    procedure rd(addr : natural; expected : std_logic_vector(31 downto 0)) is
+    begin
+      axi_in.ARADDR <= std_logic_vector(to_unsigned(addr, 32));
+      axi_in.ARVALID <= '1';
+      wait until rising_edge(clk) and axi_out.ARREADY = '1';
+      wait for 1 ps;
+      axi_in.ARVALID <= '0';
+      while axi_out.RVALID /= '1' loop
+        wait until rising_edge(clk); wait for 1 ps;
+      end loop;
+      assert axi_out.RRESP = "00" and axi_out.RDATA = expected
+        report "Register readback mismatch at " & integer'image(addr) severity failure;
+      wait until rising_edge(clk); wait for 1 ps;
+    end procedure;
   begin
     wait for 3 * clk_period;
     axi_in.ARESETN <= '1';
@@ -137,75 +150,11 @@ begin
       report "Partial-strobe write unexpectedly modified channel 1"
       severity failure;
 
-    axi_in.ARADDR <= x"00000000";
-    axi_in.ARVALID <= '1';
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    axi_in.ARVALID <= '0';
-    wait for 1 ns;
-    readback := axi_out.RDATA;
-    wait until rising_edge(clk);
-    wait for 1 ns;
-    assert readback = x"0ABCDEF0"
-      report "Threshold readback mismatch on channel 0"
-      severity failure;
-
-    axi_in.ARADDR <= x"00000004";
-    axi_in.ARVALID <= '1';
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    axi_in.ARVALID <= '0';
-    wait for 1 ns;
-    readback := axi_out.RDATA;
-    wait until rising_edge(clk);
-    wait for 1 ns;
-    assert readback = x"89ABCDEF"
-      report "Record-count low readback mismatch on channel 0"
-      severity failure;
-
-    axi_in.ARADDR <= x"00000018";
-    axi_in.ARVALID <= '1';
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    axi_in.ARVALID <= '0';
-    wait for 1 ns;
-    readback := axi_out.RDATA;
-    wait until rising_edge(clk);
-    wait for 1 ns;
-    assert readback = x"AAAABBBB"
-      report "Full-count high readback mismatch on channel 0"
-      severity failure;
-
-    axi_in.ARADDR <= x"00000500";
-    axi_in.ARVALID <= '1';
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    axi_in.ARVALID <= '0';
-    wait for 1 ns;
-    readback := axi_out.RDATA;
-    wait until rising_edge(clk);
-    wait for 1 ns;
-    assert readback = x"05060708"
-      report "TCount low readback mismatch on channel 0"
-      severity failure;
-
-    axi_in.ARADDR <= x"0000077C";
-    axi_in.ARVALID <= '1';
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    axi_in.ARVALID <= '0';
-    wait for 1 ns;
-    readback := axi_out.RDATA;
-    wait until rising_edge(clk);
-    wait for 1 ns;
-    assert readback = x"CAFEBABE"
-      report "PCount high readback mismatch on channel 39"
-      severity failure;
+    rd(16#000#, x"0ABCDEF0");
+    rd(16#004#, x"89ABCDEF");
+    rd(16#018#, x"AAAABBBB");
+    rd(16#500#, x"05060708");
+    rd(16#77C#, x"CAFEBABE");
 
     assert false report "legacy_selftrigger_register_bank_smoke_tb completed successfully" severity note;
     wait;

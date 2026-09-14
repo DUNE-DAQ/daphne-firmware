@@ -56,7 +56,6 @@ set endpoint_sync_stage1_pins [daphne_collect_optional_endpoint_pins $endpoint_p
     */sync_sys_clk_p/s2/db_reg[*]/D
     */sync_t/db_reg[*]/D
     */sync_clk/db_reg[*]/D
-    */sync_stat/db_reg[*]/D
 }]
 
 if {[llength $endpoint_sync_stage1_pins] > 0} {
@@ -75,3 +74,5 @@ if {[llength $rx_tmg_port] == 1 && [llength $endpoint_raw_rx_sample_pins] > 0} {
 # addr_done and deskew_done now join the explicit sync_sys_clk level
 # synchronizer. The first-stage exception above covers their asynchronous
 # capture; the final synchronizer stage and state-machine paths remain timed.
+# Encoded state and external address now use pdts_cdc_snapshot's XPM request /
+# response handshakes. Their vendor max-delay/CDC constraints remain in force.

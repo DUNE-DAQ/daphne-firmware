@@ -1,0 +1,7 @@
+source_root=/home/marroyav/work/daphne-grouped32-1bae1c8-20260914
+vivado=2026.1
+part=xck26-sfvc784-2LV-c
+synth_directive=PerformanceOptimized
+clock_period_ns=16.000
+selection=registers
+All top-level inputs and outputs retained; no board-level constant propagation/shared logic.

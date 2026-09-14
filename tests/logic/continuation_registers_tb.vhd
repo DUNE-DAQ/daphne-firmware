@@ -21,7 +21,7 @@ begin
   clk <= not clk after 5 ns;
   ai.ACLK <= clk;
   bank : entity work.selftrigger_register_bank port map(
-    AXI_IN=>ai,AXI_OUT=>ao,threshold_xc_o=>th,continuation_config_o=>cfg,
+    AXI_IN=>ai,AXI_OUT=>ao,counter_clock_i=>clk,threshold_xc_o=>th,continuation_config_o=>cfg,
     record_count_i=>zeros,full_count_i=>zeros,busy_count_i=>zeros,tcount_i=>zeros,pcount_i=>zeros,
     continuation_count_i=>telemetry,continuation_drop_count_i=>telemetry,
     covered_trigger_count_i=>telemetry,descriptor_overflow_count_i=>telemetry);
@@ -45,6 +45,7 @@ begin
       ai.ARADDR<=std_logic_vector(to_unsigned(addr,32)); ai.ARVALID<='1';
       wait until rising_edge(clk) and ao.ARREADY='1';
       wait for 1 ns; ai.ARVALID<='0';
+      while ao.RVALID /= '1' loop tick; end loop;
       assert ao.RVALID='1' and ao.RDATA=expected report "register readback mismatch at" & integer'image(addr) severity failure;
       tick; tick;
     end;
@@ -67,5 +68,5 @@ begin
     report "continuation_registers_tb PASS" severity note;
     stop; wait;
   end process;
-  process begin wait for 10 us; assert false report "AXI test timeout" severity failure; end process;
+  process begin wait for 30 us; assert false report "AXI test timeout" severity failure; end process;
 end;
