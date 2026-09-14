@@ -158,15 +158,26 @@ and acquisition clocks, coherent endpoint address/status transfers and
 stopped-clock reset recovery, packet-boundary PDTS address matching, and fan
 tachometer first-stage synchronization. Focused GHDL and real-XPM tests pass,
 including 32/40-channel counter readout and endpoint clock stop/reset cases.
-These edits are not yet represented by a full-board build. The next gate is to
+These edits are not yet represented by a successful full-board build. The next gate is to
 review and commit them, synthesize from a fresh pinned revision, audit CDC and
 constraints, and route that revision. Use eight Vivado threads and only one full
 build at a time. Local out-of-context timing is not board timing closure.
 
+The first full implementation attempt from committed `14e5192` stopped during
+RTL elaboration: a legacy `selftrig_core` instance lacked the new counter-clock
+port actual. The [failure report](reports/grouped32/impl-14e5192-elaboration-20260914/README.md)
+retains the exact log. The instance now maps its acquisition `clock`; a new
+pinned build is required to measure any synthesis or routed timing result.
+
 Remaining audit work includes frontend/selftrigger configuration, external
 trigger pulse capture, and the eight PS EMIO no-clock pins. The AFE
 capture min/max input-delay bounds are unset and require a validated timing XDC
-or device/board timing model from the hardware owner. Other SPI/I2C/static
+or device/board timing model from the hardware owner. The
+[AFE5808A datasheet review](reports/grouped32/afe5808a-timing-review-20260914.md)
+finds that the current 16-bit, 62.5 MHz setting implies 1.000 Gb/s per LVDS
+lane, above TI's approximately 910 Mb/s maximum characterized output-rate
+example; neither 16-bit timing at that rate nor K26C trace skew is supplied.
+Other SPI/I2C/static
 interfaces need their corresponding timing contracts. Continue internal timing
 and CDC work while that information is pending; do not invent interface bounds
 or blanket exceptions.
