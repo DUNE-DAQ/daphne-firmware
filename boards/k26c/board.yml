@@ -48,5 +48,10 @@ notes:
   - >-
     The board-owner PCB source is CERN EDMS navigator document 101959906:
     https://edms.cern.ch/ui/#!master/navigator/document?D:101959906:101959906:subDocs
-    Select the released assembly revision and its layout or timing report before
-    deriving FPGA-to-AFE clock and AFE-to-FPGA LVDS data/FCLK delay bounds.
+    Downloaded package 3434842_1 identifies DAPHNE Mezz V2, schematic drawing
+    177020 revision 0, and a proposed 14-layer FR408HR stack. Its nominal
+    100-ohm differential delays are 135.531 ps/in on top/bottom layers and
+    164.931 ps/in on internal layers. The 62.5 MHz clock is distributed by
+    CDCUN1208LPRHBR U20. Obtain the final fabricator stack and per-net route
+    lengths or flight times before deriving FPGA-to-AFE clock and AFE-to-FPGA
+    LVDS data/FCLK delay bounds.

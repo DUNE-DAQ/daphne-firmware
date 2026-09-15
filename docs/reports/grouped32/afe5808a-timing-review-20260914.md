@@ -60,3 +60,17 @@ Before enabling AFE input delays for qualification:
    IDELAY settings/ranges and repeat the FCLK training sweep on hardware.
 
 No AFE input-delay value or timing exception was changed by this review.
+
+## PCB package follow-up on 2026-09-15
+
+The board-owner [EDMS package review](k26c-edms-timing-source-20260915.md)
+identifies DAPHNE Mezz V2, schematic drawing `177020` revision `0`, and the
+proposed 14-layer FR408HR PCB stack. The PCB specification targets 100-ohm
+differential LVDS and reports nominal propagation of 135.531 ps/in on its
+top/bottom geometry and 164.931 ps/in on its internal geometry.
+
+The package does not include the final fabricator stackup or numerical
+length/flight-time data for the FPGA-to-AFE clocks and AFE-to-FPGA data/FCLK
+nets. Those nominal propagation constants therefore cannot supply the missing
+Vivado input-delay min/max bounds. The optional AFE input-delay model remains
+disabled pending the released per-net report and final-stackup tolerances.

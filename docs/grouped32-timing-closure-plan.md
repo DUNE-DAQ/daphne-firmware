@@ -265,15 +265,18 @@ this is a software protocol requirement rather than a hardware-enforced freeze.
 
 The board owner supplied CERN EDMS navigator document `101959906` as the PCB
 timing source. The [source review](reports/grouped32/k26c-edms-timing-source-20260915.md)
-preserves the link and the exact values still needed. This environment can load
-only the JavaScript application shell and has no authenticated access to the
-subdocuments, so the released assembly revision and routed trace delays have
-not yet been extracted into the XDC.
+now covers the downloaded package. It identifies DAPHNE Mezz V2, drawing
+`177020` revision `0`, a proposed 14-layer FR408HR stack, and nominal
+100-ohm-differential propagation of 135.531 ps/in on external layers and
+164.931 ps/in on internal layers. The package has no final fabricator stackup
+or numerical per-net lengths/flight times, so no external-delay value has been
+added to the XDC.
 
 Internal qualification and review evidence are complete for this candidate,
 but final board qualification remains blocked externally. The AFE5808A is
 confirmed in 16-bit LVDS mode at 62.5 MHz, or 1.000 Gb/s per lane, while the
-validated device output-delay/phase and K26C PCB-skew min/max bounds remain
-unavailable. The mandatory XXV feature keys also remain unavailable from the
-license server. Do not use the clean internal timing result as evidence for
-either external AFE timing margin or licensed Ethernet operation.
+validated device output-delay/phase, final PCB stackup and routed per-net
+length/skew bounds remain unavailable. The mandatory XXV feature keys also
+remain unavailable from the license server. Do not use the clean internal
+timing result as evidence for either external AFE timing margin or licensed
+Ethernet operation.
