@@ -57,6 +57,11 @@ architecture rtl of fragment_peak_descriptors_banked is
   signal duration_s : unsigned(9 downto 0) := (others=>'0');
   signal slot_s : natural range 0 to 5 := 0;
   signal working_overflow_s, completed_overflow_s : std_logic := '0';
+  signal pending_write_s : std_logic := '0';
+  signal pending_bank_s : natural range 0 to 1 := 0;
+  signal pending_slot_s : natural range 0 to 4 := 0;
+  signal pending_descriptor_s : std_logic_vector(63 downto 0) := (others=>'0');
+  signal pending_offset_s : unsigned(8 downto 0) := (others=>'0');
 begin
   overflow_o <= completed_overflow_s;
   -- Configuration is captured at the input boundary, independently of the
@@ -133,9 +138,21 @@ begin
     offsets(11 downto 2) := not valid_s(completed_bank_s)(2) & std_logic_vector(offsets_s(completed_bank_s)(2));
     offsets(63 downto 54) := not valid_s(completed_bank_s)(3) & std_logic_vector(offsets_s(completed_bank_s)(3));
     offsets(53 downto 44) := not valid_s(completed_bank_s)(4) & std_logic_vector(offsets_s(completed_bank_s)(4));
+    if PIPELINE_INPUT_G and pending_write_s='1' and pending_bank_s=completed_bank_s then
+      case pending_slot_s is
+        when 0 => offsets(31 downto 22) := '0' & std_logic_vector(pending_offset_s);
+        when 1 => offsets(21 downto 12) := '0' & std_logic_vector(pending_offset_s);
+        when 2 => offsets(11 downto 2) := '0' & std_logic_vector(pending_offset_s);
+        when 3 => offsets(63 downto 54) := '0' & std_logic_vector(pending_offset_s);
+        when 4 => offsets(53 downto 44) := '0' & std_logic_vector(pending_offset_s);
+      end case;
+    end if;
     read_word_o <= EMPTY_DESCRIPTOR_C;
     if index < 5 then
-      if valid_s(completed_bank_s)(index)='1' then
+      if PIPELINE_INPUT_G and pending_write_s='1' and pending_bank_s=completed_bank_s
+        and index=pending_slot_s then
+        read_word_o <= pending_descriptor_s;
+      elsif valid_s(completed_bank_s)(index)='1' then
         read_word_o <= descriptor_memory_s(completed_bank_s*8+index);
       end if;
     elsif index=5 then
@@ -159,10 +176,17 @@ begin
         offsets_s <= (others=>(others=>(others=>'1')));
         working_bank_s <= 0; completed_bank_s <= 0;
         running_s <= '0'; in_run_s <= '0'; slot_s <= 0;
+        pending_write_s <= '0';
         working_overflow_s <= '0'; completed_overflow_s <= '0';
         integral_s <= (others=>'0'); peak_s <= (others=>'0');
         duration_s <= (others=>'0'); start_s <= (others=>'0'); peak_time_s <= (others=>'0');
       else
+        if PIPELINE_INPUT_G and pending_write_s='1' then
+          descriptor_memory_s(pending_bank_s*8+pending_slot_s) <= pending_descriptor_s;
+          valid_s(pending_bank_s)(pending_slot_s) <= '1';
+          offsets_s(pending_bank_s)(pending_slot_s) <= pending_offset_s;
+          pending_write_s <= '0';
+        end if;
         threshold := threshold_s;
         integral := integral_s; peak := peak_s; duration := duration_s;
         run_start := start_s; peak_time := peak_time_s; in_run := in_run_s;
@@ -194,23 +218,34 @@ begin
             if slot<5 then
               if duration>511 then duration_field := to_unsigned(511,9);
               else duration_field := resize(duration,9); end if;
-              descriptor_memory_s(bank*8+slot) <=
-                std_logic_vector(duration_field) & std_logic_vector(peak_time) & std_logic_vector(peak) &
-                '1' & std_logic_vector(integral) & "11110001";
-              -- Fixed slots keep the small resettable metadata separate from
-              -- the single indexed, unreset RAM payload write above.
-              for k in 0 to 4 loop
-                if slot=k then
-                  valid_s(bank)(k) <= '1'; offsets_s(bank)(k) <= run_start;
-                end if;
-              end loop;
+              if PIPELINE_INPUT_G then
+                -- Register the sparse descriptor close before the distributed
+                -- RAM and metadata write. A run cannot close on consecutive
+                -- samples, so this retains a single write port at full rate.
+                pending_descriptor_s <=
+                  std_logic_vector(duration_field) & std_logic_vector(peak_time) & std_logic_vector(peak) &
+                  '1' & std_logic_vector(integral) & "11110001";
+                pending_bank_s <= bank; pending_slot_s <= slot;
+                pending_offset_s <= run_start; pending_write_s <= '1';
+              else
+                descriptor_memory_s(bank*8+slot) <=
+                  std_logic_vector(duration_field) & std_logic_vector(peak_time) & std_logic_vector(peak) &
+                  '1' & std_logic_vector(integral) & "11110001";
+                -- Fixed slots keep the small resettable metadata separate from
+                -- the single indexed, unreset RAM payload write above.
+                for k in 0 to 4 loop
+                  if slot=k then
+                    valid_s(bank)(k) <= '1'; offsets_s(bank)(k) <= run_start;
+                  end if;
+                end loop;
+              end if;
               slot := slot+1;
             else overflow := '1'; end if;
             in_run := '0';
           end if;
           if sample_index_s=511 then
-            running_s <= '0'; done_o <= '1';
-            completed_bank_s <= bank; completed_overflow_s <= overflow;
+            running_s <= '0';
+            done_o <= '1'; completed_bank_s <= bank; completed_overflow_s <= overflow;
           end if;
         end if;
         working_bank_s <= bank; working_overflow_s <= overflow;
