@@ -1,0 +1,9 @@
+pin	status	endpoint_count	endpoints
+daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/EMIOENET0MDIOMDC	ok	0	
+daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/EMIOENET1MDIOMDC	ok	0	
+daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/EMIOENET2MDIOMDC	ok	0	
+daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/EMIOENET3MDIOMDC	ok	0	
+daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/EMIOSDIO0CLKOUT	ok	0	
+daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/EMIOSDIO1CLKOUT	ok	0	
+daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/EMIOSPI0SCLKO	ok	0	
+daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/EMIOSPI1SCLKO	ok	0	

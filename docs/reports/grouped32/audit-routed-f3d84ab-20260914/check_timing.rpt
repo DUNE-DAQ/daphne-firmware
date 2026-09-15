@@ -1,0 +1,193 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version      : Vivado v.2026.1 (lin64) Build 6511674 Tue Jun 16 11:01:26 MDT 2026
+| Date              : Mon Sep 14 23:08:57 2026
+| Host              : WL-144132 running 64-bit unknown
+| Command           : check_timing -verbose -file /home/marroyav/work/daphne-grouped32-f3d84ab-audit-20260914/check_timing.rpt
+| Design            : daphne_selftrigger_bd_wrapper
+| Device            : xck26-sfvc784
+| Speed File        : -2LV  PRODUCTION 1.31 12-08-2025
+| Design State      : Physopt postRoute
+| Temperature Grade : C
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+check_timing report
+
+Table of Contents
+-----------------
+1. checking no_clock (0)
+2. checking constant_clock (0)
+3. checking pulse_width_clock (0)
+4. checking unconstrained_internal_endpoints (0)
+5. checking no_input_delay (41)
+6. checking no_output_delay (51)
+7. checking multiple_clock (0)
+8. checking generated_clocks (0)
+9. checking loops (0)
+10. checking partial_input_delay (0)
+11. checking partial_output_delay (0)
+12. checking latch_loops (0)
+
+1. checking no_clock (0)
+------------------------
+ There are 0 register/latch pins with no clock.
+
+
+2. checking constant_clock (0)
+------------------------------
+ There are 0 register/latch pins with constant_clock.
+
+
+3. checking pulse_width_clock (0)
+---------------------------------
+ There are 0 register/latch pins which need pulse_width check
+
+
+4. checking unconstrained_internal_endpoints (0)
+------------------------------------------------
+ There are 0 pins that are not constrained for maximum delay.
+
+ There are 0 pins that are not constrained for maximum delay due to constant clock.
+
+
+5. checking no_input_delay (41)
+-------------------------------
+ There are 41 input ports with no input delay specified. (HIGH)
+
+AFE0_MISO
+AFE12_AFE_MISO
+AFE34_AFE_MISO
+CM_DOUT
+IIC_0_scl_io
+IIC_0_sda_io
+afe0_p[0]
+afe0_p[1]
+afe0_p[2]
+afe0_p[3]
+afe0_p[4]
+afe0_p[5]
+afe0_p[6]
+afe0_p[7]
+afe1_p[0]
+afe1_p[1]
+afe1_p[2]
+afe1_p[3]
+afe1_p[4]
+afe1_p[5]
+afe1_p[6]
+afe1_p[7]
+afe2_p[0]
+afe2_p[1]
+afe2_p[2]
+afe2_p[3]
+afe2_p[4]
+afe2_p[5]
+afe2_p[6]
+afe2_p[7]
+afe3_p[0]
+afe3_p[1]
+afe3_p[2]
+afe3_p[3]
+afe3_p[4]
+afe3_p[5]
+afe3_p[6]
+afe3_p[7]
+fan_tach[0]
+fan_tach[1]
+trig_IN
+
+ There are 0 input ports with no input delay but user has a false path constraint.
+
+
+6. checking no_output_delay (51)
+--------------------------------
+ There are 51 ports with no output delay specified. (HIGH)
+
+AFE0_SCLK
+AFE0_SDATA
+AFE12_SCLK
+AFE12_SDATA
+AFE34_SCLK
+AFE34_SDATA
+AFE_PD
+AFE_RST
+CM_CSn[0]
+CM_DIN
+CM_SCLK
+DACS_CS
+DACS_LDACN
+DACS_MOSI
+DACS_SCLK
+FAN_CONTROL
+IIC_0_scl_io
+IIC_0_sda_io
+MUXA[0]
+MUXA[1]
+MUX_EN[0]
+MUX_EN[1]
+VBIAS_EN
+afe_clk_p
+afe_sen[0]
+afe_sen[1]
+afe_sen[2]
+afe_sen[3]
+afe_sen[4]
+offset_ldac_n[0]
+offset_ldac_n[1]
+offset_ldac_n[2]
+offset_ldac_n[3]
+offset_ldac_n[4]
+offset_sync_n[0]
+offset_sync_n[1]
+offset_sync_n[2]
+offset_sync_n[3]
+offset_sync_n[4]
+sfp_tmg_tx_dis
+trim_ldac_n[0]
+trim_ldac_n[1]
+trim_ldac_n[2]
+trim_ldac_n[3]
+trim_ldac_n[4]
+trim_sync_n[0]
+trim_sync_n[1]
+trim_sync_n[2]
+trim_sync_n[3]
+trim_sync_n[4]
+tx0_tmg_p
+
+ There are 0 ports with no output delay but user has a false path constraint
+
+ There are 0 ports with no output delay but with a timing clock defined on it or propagating through it
+
+
+7. checking multiple_clock (0)
+------------------------------
+ There are 0 register/latch pins with multiple clocks.
+
+
+8. checking generated_clocks (0)
+--------------------------------
+ There are 0 generated clocks that are not connected to a clock source.
+
+
+9. checking loops (0)
+---------------------
+ There are 0 combinational loops in the design.
+
+
+10. checking partial_input_delay (0)
+------------------------------------
+ There are 0 input ports with partial input delay specified.
+
+
+11. checking partial_output_delay (0)
+-------------------------------------
+ There are 0 ports with partial output delay specified.
+
+
+12. checking latch_loops (0)
+----------------------------
+ There are 0 combinational latch loops in the design through latch input
+
+
