@@ -324,6 +324,7 @@ begin
     
     phy_gen: for i in 0 to N_MGT -1 generate
         signal tx_reset_sync_s, rx_reset_sync_s : std_logic_vector(1 downto 0) := (others=>'1');
+        signal rx_status_rx_s : std_logic := '0';
         signal rx_ready_tx_sync_s : std_logic_vector(1 downto 0) := (others=>'0');
         attribute ASYNC_REG : string;
         attribute ASYNC_REG of tx_reset_sync_s, rx_reset_sync_s, rx_ready_tx_sync_s : signal is "TRUE";
@@ -345,19 +346,31 @@ begin
                 rx_reset_sync_s <= rx_reset_sync_s(0) & '0';
             end if;
         end process;
+        -- The XXV status output contains vendor combinational logic even though
+        -- it belongs to the RX core domain. Register it in that domain before
+        -- it enters the TX-domain synchronizer so a status transition cannot
+        -- glitch the first synchronizer stage.
+        process(rx_clk_out_array(i), rx_reset_sync_s)
+        begin
+            if rx_reset_sync_s(1)='1' then
+                rx_status_rx_s <= '0';
+            elsif rising_edge(rx_clk_out_array(i)) then
+                rx_status_rx_s <= rx_status_vector(i);
+            end if;
+        end process;
         process(tx_mii_clk_array(i), tx_reset_sync_s)
         begin
             if tx_reset_sync_s(1)='1' then
                 rx_ready_tx_sync_s <= (others=>'0');
             elsif rising_edge(tx_mii_clk_array(i)) then
-                rx_ready_tx_sync_s <= rx_ready_tx_sync_s(0) & rx_status_vector(i);
+                rx_ready_tx_sync_s <= rx_ready_tx_sync_s(0) & rx_status_rx_s;
             end if;
         end process;
         -- Link status is generated in the RX core domain. Only its synchronized
         -- copy controls TX admission/reset; RX reset stays in the RX domain.
         tx_path_ready_array(i) <= rx_ready_tx_sync_s(1) and not tx_reset_sync_s(1);
         tx_reset_o(i) <= tx_reset_sync_s(1) or not rx_ready_tx_sync_s(1);
-        rx_reset_o(i) <= rx_reset_sync_s(1) or not rx_status_vector(i);
+        rx_reset_o(i) <= rx_reset_sync_s(1) or not rx_status_rx_s;
     
     phy_reset: component xxv_ethernet_0_reset_wrapper
         port map(

@@ -85,7 +85,9 @@ begin
     procedure healthy is
     begin
       assert ready="1111" and tx_reset="0000" and rx_reset="0000"
-        report "Not all lanes recovered" severity failure;
+        report "Not all lanes recovered: ready=" & to_hstring(ready) &
+               " tx_reset=" & to_hstring(tx_reset) &
+               " rx_reset=" & to_hstring(rx_reset) severity failure;
     end procedure;
     procedure tx_edge(signal clock : in std_logic) is
     begin wait until rising_edge(clock); settle; end procedure;
@@ -98,15 +100,10 @@ begin
     tx_done_s <= "1111"; rx_done_s <= "1111"; link_up_s <= "1111";
     wait for 3333 ps;
     reset <= '0';
-    -- Lane 0 requires two reset-release edges followed by two RX-ready edges.
-    for edge in 1 to 3 loop
-      tx_edge(tx_clocks_s(0));
-      assert ready(0)='0' and tx_reset(0)='1'
-        report "TX reset/readiness released too early" severity failure;
-    end loop;
-    tx_edge(tx_clocks_s(0));
-    assert ready(0)='1' and tx_reset(0)='0' report "TX release did not complete in four edges" severity failure;
-    wait for 100 ns; healthy;
+    -- RX status first becomes a registered RX-domain source, then crosses the
+    -- two-stage TX synchronizer. Allow the independent lane clocks to settle;
+    -- the edge monitors above still require synchronous reset release.
+    wait for 150 ns; healthy;
     report "Initial reset release and four distinct TX/RX clock mappings passed";
 
     -- PHY status is independently synchronized into IPbus, preserving the
@@ -143,19 +140,24 @@ begin
 
     affected_lane<=2; isolation<=true;
     wait until rising_edge(rx_clocks_s(2)); link_up_s(2)<='0'; settle;
-    assert rx_reset(2)='1' and ready(2)='1' report "Link-down domain handling failed" severity failure;
+    assert rx_reset(2)='0' and ready(2)='1'
+      report "Raw link status affected outputs before RX-domain registration" severity failure;
+    rx_edge(rx_clocks_s(2));
+    assert rx_reset(2)='1' and ready(2)='1' report "Registered link-down handling failed" severity failure;
     tx_edge(tx_clocks_s(2));
     assert ready(2)='1' report "RX status crossed into TX in fewer than two edges" severity failure;
     tx_edge(tx_clocks_s(2));
     assert ready(2)='0' and tx_reset(2)='1' report "TX failed to observe link-down" severity failure;
     wait for 50 ns;
     wait until rising_edge(rx_clocks_s(2)); link_up_s(2)<='1'; settle;
-    assert rx_reset(2)='0' report "RX link-up not observed" severity failure;
+    assert rx_reset(2)='1' report "Raw link-up bypassed RX-domain registration" severity failure;
+    rx_edge(rx_clocks_s(2));
+    assert rx_reset(2)='0' report "Registered RX link-up not observed" severity failure;
     tx_edge(tx_clocks_s(2));
     assert ready(2)='0' report "TX accepted link-up in fewer than two edges" severity failure;
     tx_edge(tx_clocks_s(2)); healthy;
     isolation<=false;
-    report "Lane 2 link loss/recovery and two-stage RX-to-TX readiness passed";
+    report "Lane 2 registered link loss/recovery and two-stage RX-to-TX readiness passed";
 
     -- Independent TX and RX reset requests must affect their own lane/domain.
     affected_lane<=1; isolation<=true;
@@ -173,7 +175,14 @@ begin
     wait for 12333 ps; rx_done_s(1)<='1'; settle;
     rx_edge(rx_clocks_s(1));
     assert rx_reset(1)='1' report "RX reset released before two edges" severity failure;
-    rx_edge(rx_clocks_s(1)); healthy;
+    rx_edge(rx_clocks_s(1));
+    assert rx_reset(1)='1' report "RX status source register bypassed after reset" severity failure;
+    rx_edge(rx_clocks_s(1));
+    assert rx_reset(1)='0' and ready(1)='0'
+      report "RX-domain status did not recover before its TX-domain copy" severity failure;
+    tx_edge(tx_clocks_s(1));
+    assert ready(1)='0' report "Recovered RX status crossed into TX in fewer than two edges" severity failure;
+    tx_edge(tx_clocks_s(1)); healthy;
     isolation<=false;
     report "Lane 1 independent TX/RX resets and lane isolation passed";
 
