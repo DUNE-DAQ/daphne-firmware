@@ -1,0 +1,67 @@
+[
+  {
+    "mode": 0,
+    "grouped_packets": 3392,
+    "reference_packets": 3392,
+    "byte_identical_common_packets": 3392,
+    "samples_checked": 3473408,
+    "independent_descriptor_words_checked": 81408,
+    "grouped_only": 0,
+    "reference_only": 0,
+    "max_grouped_packet_latency_adc_ticks": 1124,
+    "csv_sha256": "0db2673ab9d95dc5fa7d74db496e881367a52dd94e7e496a8abce3a5cb1582b3",
+    "phase_ps": 0
+  },
+  {
+    "mode": 1,
+    "grouped_packets": 3372,
+    "reference_packets": 3372,
+    "byte_identical_common_packets": 3372,
+    "samples_checked": 3452928,
+    "independent_descriptor_words_checked": 80928,
+    "grouped_only": 0,
+    "reference_only": 0,
+    "max_grouped_packet_latency_adc_ticks": 1122,
+    "csv_sha256": "1295b2233703fc139221f79148633a482ab53bdeeaa8ed00949f68dfe4a0c982",
+    "phase_ps": 0
+  },
+  {
+    "mode": 2,
+    "grouped_packets": 2224,
+    "reference_packets": 2200,
+    "byte_identical_common_packets": 2200,
+    "samples_checked": 2265088,
+    "independent_descriptor_words_checked": 53088,
+    "grouped_only": 24,
+    "reference_only": 0,
+    "max_grouped_packet_latency_adc_ticks": 35027,
+    "csv_sha256": "34ef588aad34593c8fc8585eb3d73aa084ea67bb69500209ba14bbf895415a2d",
+    "phase_ps": 0
+  },
+  {
+    "mode": 3,
+    "grouped_packets": 3672,
+    "reference_packets": 3446,
+    "byte_identical_common_packets": 944,
+    "samples_checked": 3644416,
+    "independent_descriptor_words_checked": 85416,
+    "grouped_only": 2728,
+    "reference_only": 2502,
+    "max_grouped_packet_latency_adc_ticks": 3017,
+    "csv_sha256": "3b892e5737ad365f7cb5cee017b3a1912eeeccb8cb8abbd424150f8c90133078",
+    "phase_ps": 0
+  },
+  {
+    "mode": 4,
+    "grouped_packets": 3296,
+    "reference_packets": 3272,
+    "byte_identical_common_packets": 3272,
+    "samples_checked": 3362816,
+    "independent_descriptor_words_checked": 78816,
+    "grouped_only": 24,
+    "reference_only": 0,
+    "max_grouped_packet_latency_adc_ticks": 1124,
+    "csv_sha256": "d6a702526cc825a86f4981cfec273fc6611b46ee404800423437f6163dffff5c",
+    "phase_ps": 0
+  }
+]
