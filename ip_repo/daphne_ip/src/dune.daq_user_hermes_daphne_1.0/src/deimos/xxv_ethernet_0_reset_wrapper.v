@@ -84,10 +84,12 @@ module xxv_ethernet_0_reset_wrapper
   wire gt_tx_reset_in_sync;
   wire gt_tx_reset_in_sync_inv;
   wire tx_reset_done_async;
+  (* ASYNC_REG = "TRUE" *) reg [1:0] tx_core_reset_sync = 2'b11;
 
   wire gt_rx_reset_in_sync;
   wire gt_rx_reset_in_sync_inv;
   wire rx_reset_done_async;
+  (* ASYNC_REG = "TRUE" *) reg [1:0] rx_core_reset_sync = 2'b11;
   wire rx_serdes_reset_done;
   reg  rx_reset_done_async_r;
   wire rx_reset_done;
@@ -109,8 +111,27 @@ module xxv_ethernet_0_reset_wrapper
    .signal_out       (gt_tx_reset_in_sync)
   );
 
+  // The control-plane requests are asynchronous to the per-lane TX clock.
+  // Assert immediately so reset remains effective if that clock stops, then
+  // release through two TX-clock edges before using the level in this wrapper.
+  always @(posedge gt_txusrclk2 or posedge tx_core_reset_in)
+  begin
+    if (tx_core_reset_in)
+      tx_core_reset_sync <= 2'b11;
+    else
+      tx_core_reset_sync <= {tx_core_reset_sync[0], 1'b0};
+  end
+
+  always @(posedge gt_txusrclk2 or posedge rx_core_reset_in)
+  begin
+    if (rx_core_reset_in)
+      rx_core_reset_sync <= 2'b11;
+    else
+      rx_core_reset_sync <= {rx_core_reset_sync[0], 1'b0};
+  end
+
   assign gt_tx_reset_in_sync_inv  =  ~(gt_tx_reset_in_sync);
-  assign tx_reset_done_async      =  gt_tx_reset_in_sync_inv | tx_core_reset_in;
+  assign tx_reset_done_async      =  gt_tx_reset_in_sync_inv | tx_core_reset_sync[1];
   assign usr_tx_reset             =  tx_reset_done_async;
   assign tx_core_reset_out        =  tx_reset_done_async;
 
@@ -122,7 +143,7 @@ module xxv_ethernet_0_reset_wrapper
   );
 
   assign gt_rx_reset_in_sync_inv   =  ~(gt_rx_reset_in_sync);
-  assign rx_reset_done_async       =  gt_rx_reset_in_sync_inv | rx_core_reset_in;
+  assign rx_reset_done_async       =  gt_rx_reset_in_sync_inv | rx_core_reset_sync[1];
  
   always @( posedge gt_txusrclk2)
   begin
@@ -181,4 +202,3 @@ endmodule
       end
   
   endmodule
-

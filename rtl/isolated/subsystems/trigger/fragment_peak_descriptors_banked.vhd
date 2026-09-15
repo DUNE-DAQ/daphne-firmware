@@ -42,6 +42,7 @@ architecture rtl of fragment_peak_descriptors_banked is
   signal sample_start_s, sample_valid_s : std_logic := '0';
   signal sample_index_s : unsigned(8 downto 0) := (others=>'0');
   signal sample_threshold_s : unsigned(13 downto 0) := (others=>'0');
+  signal grouped_threshold_s : unsigned(13 downto 0) := (others=>'0');
   signal integral_s : unsigned(22 downto 0) := (others=>'0');
   signal amplitude_s : unsigned(13 downto 0) := (others=>'0');
   signal integral_sum_s : unsigned(22 downto 0);
@@ -105,6 +106,7 @@ begin
         if reset_i='1' then
           raw_start_s<='0'; raw_valid_s<='0';
           sample_start_s<='0'; sample_valid_s<='0';
+          grouped_threshold_s<=(others=>'0');
         else
           raw_sample_s<=unsigned(sample_i); raw_index_s<=sample_index_i;
           raw_start_s<=start_i; raw_valid_s<=sample_valid_i;
@@ -121,6 +123,10 @@ begin
           end if;
           sample_start_s<=raw_start_s; sample_valid_s<=raw_valid_s;
           sample_index_s<=raw_index_s; sample_threshold_s<=raw_threshold_s;
+          -- Capture the new frame threshold while its start marker advances
+          -- into the final input stage. It is therefore stable one full cycle
+          -- before the descriptor state machine consumes that start/sample.
+          if raw_start_s='1' then grouped_threshold_s<=raw_threshold_s; end if;
         end if;
       end if;
     end process;
@@ -188,11 +194,16 @@ begin
           pending_write_s <= '0';
         end if;
         threshold := threshold_s;
+        -- In grouped mode the frame threshold was captured in the preceding
+        -- input stage. Selecting it here unconditionally removes start_i from
+        -- the descriptor-close comparator without changing frame semantics.
+        if PIPELINE_INPUT_G then threshold := grouped_threshold_s; end if;
         integral := integral_s; peak := peak_s; duration := duration_s;
         run_start := start_s; peak_time := peak_time_s; in_run := in_run_s;
         slot := slot_s; bank := working_bank_s; overflow := working_overflow_s;
         if sample_start_s='1' then
-          threshold := sample_threshold_s; threshold_s <= threshold;
+          if not PIPELINE_INPUT_G then threshold := sample_threshold_s; end if;
+          threshold_s <= threshold;
           -- This toggles banks between frames, and safely restarts an unfinished
           -- frame without disturbing the last completed frame.
           bank := 1-completed_bank_s;

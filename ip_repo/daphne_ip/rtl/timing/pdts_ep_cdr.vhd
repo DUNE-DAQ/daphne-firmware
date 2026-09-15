@@ -46,7 +46,7 @@ architecture rtl of pdts_ep_cdr is
 
 	signal bclk, bclk_f, clkin, clkfb, clku, clku4x, clku2x: std_logic;
 	signal mlock, clk, clk4x, clk2x, psincdec, psen, psdone: std_logic;
-	signal rsta, rst, rstm, cdr_rst_i: std_logic;
+	signal rsta, rst, rstm, cdr_rst_i, cdr_rst_base_s: std_logic := '1';
 	signal bphase, cphase: std_logic_vector(11 downto 0);
 	signal psact, psd: std_logic;
 
@@ -213,13 +213,24 @@ begin
 	phase_done <= psd;
 	cdr_rst_i <= rst or cdr_rst or (not psd);
 
+	-- The combined reset is formed entirely from base-clock controls. Register
+	-- it before the 4x sampler so the phase comparison does not terminate on a
+	-- 250 MHz counter control pin. One base-clock cycle of reset latency is
+	-- immaterial to the phase-adjustment sequence.
+	process(clk)
+	begin
+		if rising_edge(clk) then
+			cdr_rst_base_s <= cdr_rst_i;
+		end if;
+	end process;
+
 -- Data sampler
 
 	sm: entity work.pdts_cdr_sampler
 		port map(
 			clk => clk,
 			clk4x => clk4x,
-			rst => cdr_rst_i,
+			rst => cdr_rst_base_s,
 			resync => cdr_resync,
 			d => d,
 			q => q,

@@ -31,6 +31,7 @@ architecture rtl of frontend_common is
   signal clock_out_temp       : std_logic;
   signal idelayctrl_reset_500_meta : std_logic := '0';
   signal idelayctrl_reset_500_sync : std_logic := '0';
+  signal idelayctrl_reset_500_out  : std_logic := '0';
   signal idelay_load_clk125_meta   : std_logic_vector(4 downto 0) := (others => '0');
   signal idelay_load_clk125_sync   : std_logic_vector(4 downto 0) := (others => '0');
   signal software_trig_meta        : std_logic := '0';
@@ -59,6 +60,9 @@ begin
     if rising_edge(clk500_i) then
       idelayctrl_reset_500_meta <= idelayctrl_reset_i;
       idelayctrl_reset_500_sync <= idelayctrl_reset_500_meta;
+      -- Keep the two metastability stages together while giving the delivery
+      -- register freedom to sit beside the BITSLICE_CONTROL/IDELAYCTRL site.
+      idelayctrl_reset_500_out  <= idelayctrl_reset_500_sync;
     end if;
   end process idelayctrl_resync_proc;
 
@@ -96,7 +100,7 @@ begin
     )
     port map (
       REFCLK => clk500_i,
-      RST    => idelayctrl_reset_500_sync,
+      RST    => idelayctrl_reset_500_out,
       RDY    => idelayctrl_ready_o
     );
 
