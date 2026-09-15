@@ -228,3 +228,52 @@ it has no final timing result at this update. The Ethernet CDC/reset failures ar
 separate from the builder path and require object-level review before any new
 timing exception. The AFE 1.000 Gb/s lane timing and K26C skew limits remain
 external qualification blockers.
+
+## Pinned candidate result on 2026-09-15
+
+Revision `26bb229` registers each XXV receive-status indication in its RX clock
+domain before the existing two-stage `ASYNC_REG` transfer into the associated
+TX domain. The focused four-lane clock/reset test and all four board-top
+elaborations pass, and the GitHub Formal workflow passes all five executed
+matrix jobs. The exact-revision local inventories pass 30/30 formal checks and
+all seven FuseSoC/GHDL `all-local` targets. This change removes the four
+unexcepted combinational-before-synchronizer findings without adding a timing
+exception.
+
+The [fresh pinned implementation](reports/grouped32/impl-20260915-26bb229/README.md)
+completed with Vivado 2026.1 and up to eight threads. All 206,131 routable nets
+are routed. Routed setup WNS is +0.073 ns, hold WHS is +0.009 ns and pulse-width
+slack is +0.280 ns, with zero failing endpoints and zero DRC errors. Bit, bin,
+XSA, DTBO and overlay-ZIP artifacts were generated and validated. CLB placement
+is 14,623/14,640 (99.88%), so this remains a tightly packed result even though
+timing and routing close.
+
+The [independent routed-checkpoint audit](reports/grouped32/audit-routed-26bb229-20260915/README.md)
+reproduces timing and routability, finds no no-clock registers or unconstrained
+internal endpoints, and passes all 87 bus-skew constraints. The complete CDC
+report is not truncated. Each repaired Hermes status crossing is now a clean
+`CDC-3` two-stage synchronizer with no exception. The eight unexcepted
+`CDC-11` rows are the XXV reset wrapper's registered TX-clock reset level
+feeding two independent three-stage synchronizers per lane, one for each RX
+clock domain; no exception was added for them.
+
+The acquisition configuration contract is now explicit: software may update
+trigger polarity, thresholds and channel enables only while acquisition is
+stopped, must allow the values to settle, and must keep them stable throughout
+acquisition. The current AXI register bank does not lock out live writes, so
+this is a software protocol requirement rather than a hardware-enforced freeze.
+
+The board owner supplied CERN EDMS navigator document `101959906` as the PCB
+timing source. The [source review](reports/grouped32/k26c-edms-timing-source-20260915.md)
+preserves the link and the exact values still needed. This environment can load
+only the JavaScript application shell and has no authenticated access to the
+subdocuments, so the released assembly revision and routed trace delays have
+not yet been extracted into the XDC.
+
+Internal qualification and review evidence are complete for this candidate,
+but final board qualification remains blocked externally. The AFE5808A is
+confirmed in 16-bit LVDS mode at 62.5 MHz, or 1.000 Gb/s per lane, while the
+validated device output-delay/phase and K26C PCB-skew min/max bounds remain
+unavailable. The mandatory XXV feature keys also remain unavailable from the
+license server. Do not use the clean internal timing result as evidence for
+either external AFE timing margin or licensed Ethernet operation.

@@ -39,3 +39,14 @@ notes:
   - Current firmware baseline validated around the Kria K26C SoM flow in the
     imported non-project Vivado tree.
   - This is the only board profile wired through the imported Tcl scripts today.
+  - The board operates the AFE5808A in 16-bit LVDS mode at a 62.5 MHz sample
+    rate, which implies a 1.000 Gb/s serialized rate on each data lane.
+  - Software must update trigger polarity, thresholds, and channel enables only
+    while acquisition is stopped, allow the values to settle, and hold them
+    stable while acquisition runs. The AXI register bank does not enforce this
+    protocol in hardware.
+  - >-
+    The board-owner PCB source is CERN EDMS navigator document 101959906:
+    https://edms.cern.ch/ui/#!master/navigator/document?D:101959906:101959906:subDocs
+    Select the released assembly revision and its layout or timing report before
+    deriving FPGA-to-AFE clock and AFE-to-FPGA LVDS data/FCLK delay bounds.

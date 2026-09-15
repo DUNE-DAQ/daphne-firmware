@@ -1,0 +1,311 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version      : Vivado v.2026.1 (lin64) Build 6511674 Tue Jun 16 11:01:26 MDT 2026
+| Date              : Tue Sep 15 00:47:21 2026
+| Host              : WL-144132 running 64-bit unknown
+| Command           : report_clocks -file /home/marroyav/work/daphne-grouped32-26bb229-audit-20260915/clocks.rpt
+| Design            : daphne_selftrigger_bd_wrapper
+| Device            : xck26-sfvc784
+| Speed File        : -2LV  PRODUCTION 1.31 12-08-2025
+| Design State      : Physopt postRoute
+| Temperature Grade : C
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+Clock Report
+
+
+Attributes
+  P: Propagated
+  G: Generated
+  A: Auto-derived
+  R: Renamed
+  V: Virtual
+  I: Inverted
+  S: Pin phase-shifted with Latency mode
+
+Clock                                    Period(ns)  Waveform(ns)    Attributes  Sources
+clk_pl_0                                 10.000      {0.000 5.000}   P           {daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/PLCLK[0]}
+clk_pl_1                                 40.000      {0.000 20.000}  P           {daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/PLCLK[1]}
+clk_pl_2                                 5.000       {0.000 2.500}   P           {daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/PLCLK[2]}
+clk_pl_3                                 10.000      {0.000 5.000}   P           {daphne_selftrigger_bd_i/zynq_ultra_ps_e_0/U0/PS8_i/PLCLK[3]}
+eth_refclk                               6.400       {0.000 3.200}   P           {GTH0_REFCLK_P}
+rx_tmg_clk                               16.000      {0.000 8.000}   P           {rx0_tmg_p}
+sysclk                                   10.000      {0.000 5.000}   P           {sysclk_p}
+frontend_clock                           16.000      {0.000 8.000}   P,G         {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clk1_inst/O}
+frontend_word_clk                        16.000      {0.000 8.000}   P,G         {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT0}
+bclk                                     32.000      {0.000 16.000}  P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bufr0/O}
+clk125_1                                 8.000       {0.000 4.000}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clk2_inst/O}
+clku4x                                   4.000       {0.000 2.000}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT1}
+clock_raw_s_1                            3.200       {0.000 1.600}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/datapath_plane_inst/grouped_clock_inst/mmcm_inst/CLKOUT0}
+feedback_s_1                             16.000      {0.000 8.000}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/datapath_plane_inst/grouped_clock_inst/mmcm_inst/CLKFBOUT}
+gen_gtwizard_gthe4.rxoutclkpcs_int[0]    3.103       {0.000 1.552}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLKPCS}
+gen_gtwizard_gthe4.rxoutclkpcs_int[0]_1  3.103       {0.000 1.552}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLKPCS}
+gen_gtwizard_gthe4.rxoutclkpcs_int[0]_2  3.103       {0.000 1.552}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLKPCS}
+gen_gtwizard_gthe4.rxoutclkpcs_int[0]_3  3.103       {0.000 1.552}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLKPCS}
+mmcm0_clkfbout                           10.000      {0.000 5.000}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst/CLKFBOUT}
+mmcm0_clkout0                            16.000      {0.000 8.000}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst/CLKOUT0}
+mmcm0_inst_n_8                           10.000      {0.000 5.000}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst/CLKOUT2}
+mmcm1_clkfbout_1                         16.000      {0.000 8.000}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_inst/CLKFBOUT}
+mmcm1_clkout0_1                          2.000       {0.000 1.000}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_inst/CLKOUT0}
+mmcm1_clkout0_1_DIV4_INV                 8.000       {4.000 8.000}   P,G,A,I     {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[0].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[1].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[2].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[3].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[4].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[5].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[6].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[7].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[0].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[1].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[2].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[3].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[4].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[5].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[6].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[7].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[0].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[1].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[2].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[3].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[4].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[5].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[6].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[7].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[0].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[1].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[2].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[3].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[4].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[5].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[6].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[7].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q}
+mmcm1_clkout1_1                          16.000      {0.000 8.000}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_inst/CLKOUT1}
+qpll0clk_in[0]                           0.194       {0.000 0.097}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/gen_ref_156_25.common_block/xxv_ethernet_0_gt_gthe4_common_wrapper_i/common_inst/gthe4_common_gen.GTHE4_COMMON_PRIM_INST/QPLL0OUTCLK}
+qpll0refclk_in[0]                        6.400       {0.000 3.200}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/gen_ref_156_25.common_block/xxv_ethernet_0_gt_gthe4_common_wrapper_i/common_inst/gthe4_common_gen.GTHE4_COMMON_PRIM_INST/QPLL0OUTREFCLK}
+rx_clk_array[0]                          6.400       {0.000 3.200}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/O}
+rx_clk_array[1]                          6.400       {0.000 3.200}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/O}
+rx_clk_array[2]                          6.400       {0.000 3.200}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/O}
+rx_clk_array[3]                          6.400       {0.000 3.200}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/O}
+rxoutclk_out[0]                          3.200       {0.000 1.600}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLK}
+rxoutclk_out[0]_1                        3.200       {0.000 1.600}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLK}
+rxoutclk_out[0]_2                        3.200       {0.000 1.600}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLK}
+rxoutclk_out[0]_3                        3.200       {0.000 1.600}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLK}
+tx_clk_array[0]                          6.400       {0.000 3.200}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/O}
+tx_clk_array[1]                          6.400       {0.000 3.200}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/O}
+tx_clk_array[2]                          6.400       {0.000 3.200}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/O}
+tx_clk_array[3]                          6.400       {0.000 3.200}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/O}
+txoutclk_out[0]                          3.200       {0.000 1.600}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/TXOUTCLK}
+txoutclk_out[0]_1                        3.200       {0.000 1.600}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/TXOUTCLK}
+txoutclk_out[0]_2                        3.200       {0.000 1.600}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/TXOUTCLK}
+txoutclk_out[0]_3                        3.200       {0.000 1.600}   P,G,A       {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/TXOUTCLK}
+
+
+====================================================
+Generated Clocks
+====================================================
+
+Generated Clock     : frontend_clock
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT0
+Master Clock        : frontend_word_clk
+Divide By           : 1
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clk1_inst/O}
+
+Generated Clock     : frontend_word_clk
+Master Source       : rx0_tmg_p
+Master Clock        : rx_tmg_clk
+Divide By           : 1
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT0}
+
+Generated Clock     : bclk
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bufr0/I
+Master Clock        : rx_tmg_clk
+Divide By           : 2
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/bufr0/O}
+
+Generated Clock     : clk125_1
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clk2_inst/I
+Master Clock        : mmcm1_clkout0_1
+Divide By           : 4
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clk2_inst/O}
+
+Generated Clock     : clku4x
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKIN1
+Master Clock        : bclk
+Multiply By         : 8
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/pdts_endpoint_inst/pdts_endpoint_inst/rxcdr/mmcm/CLKOUT1}
+
+Generated Clock     : clock_raw_s_1
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/datapath_plane_inst/grouped_clock_inst/mmcm_inst/CLKIN1
+Master Clock        : frontend_clock
+Multiply By         : 5
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/datapath_plane_inst/grouped_clock_inst/mmcm_inst/CLKOUT0}
+
+Generated Clock     : feedback_s_1
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/datapath_plane_inst/grouped_clock_inst/mmcm_inst/CLKIN1
+Master Clock        : frontend_clock
+Multiply By         : 1
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/datapath_plane_inst/grouped_clock_inst/mmcm_inst/CLKFBOUT}
+
+Generated Clock     : gen_gtwizard_gthe4.rxoutclkpcs_int[0]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Divide By           : 16
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLKPCS}
+
+Generated Clock     : gen_gtwizard_gthe4.rxoutclkpcs_int[0]_1
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Divide By           : 16
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLKPCS}
+
+Generated Clock     : gen_gtwizard_gthe4.rxoutclkpcs_int[0]_2
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Divide By           : 16
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLKPCS}
+
+Generated Clock     : gen_gtwizard_gthe4.rxoutclkpcs_int[0]_3
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Divide By           : 16
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLKPCS}
+
+Generated Clock     : mmcm0_clkfbout
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst/CLKIN1
+Master Clock        : sysclk
+Multiply By         : 1
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst/CLKFBOUT}
+
+Generated Clock     : mmcm0_clkout0
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst/CLKIN1
+Master Clock        : sysclk
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 3.000 6.000}
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst/CLKOUT0}
+
+Generated Clock     : mmcm0_inst_n_8
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst/CLKIN1
+Master Clock        : sysclk
+Multiply By         : 1
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm0_inst/CLKOUT2}
+
+Generated Clock     : mmcm1_clkfbout_1
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_inst/CLKIN1
+Master Clock        : frontend_word_clk
+Multiply By         : 1
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_inst/CLKFBOUT}
+
+Generated Clock     : mmcm1_clkout0_1
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_inst/CLKIN1
+Master Clock        : frontend_word_clk
+Multiply By         : 8
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_inst/CLKOUT0}
+
+Generated Clock     : mmcm1_clkout0_1_DIV4_INV
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_clk0_inst/O
+Master Clock        : mmcm1_clkout0_1
+Divide By           : 4
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[0].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[1].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[2].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[3].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[4].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[5].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[6].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[0].active_afe_gen.afe_slice_inst/gen_lane[7].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[0].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[1].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[2].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[3].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[4].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[5].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[6].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[1].active_afe_gen.afe_slice_inst/gen_lane[7].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[0].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[1].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[2].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[3].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[4].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[5].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[6].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[2].active_afe_gen.afe_slice_inst/gen_lane[7].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[0].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[1].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[2].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[3].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[4].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[5].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[6].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/frontend_plane_inst/frontend_island_inst/capture_bank_inst/gen_afe[3].active_afe_gen.afe_slice_inst/gen_lane[7].febit3_inst/ISERDESE3_inst/RX_DIV4_CLK_Q}
+
+Generated Clock     : mmcm1_clkout1_1
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_inst/CLKIN1
+Master Clock        : frontend_word_clk
+Multiply By         : 1
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/timing_bridge_inst/endpoint_inst/mmcm1_inst/CLKOUT1}
+
+Generated Clock     : qpll0clk_in[0]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/gen_ref_156_25.common_block/xxv_ethernet_0_gt_gthe4_common_wrapper_i/common_inst/gthe4_common_gen.GTHE4_COMMON_PRIM_INST/GTREFCLK00
+Master Clock        : eth_refclk
+Multiply By         : 33
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/gen_ref_156_25.common_block/xxv_ethernet_0_gt_gthe4_common_wrapper_i/common_inst/gthe4_common_gen.GTHE4_COMMON_PRIM_INST/QPLL0OUTCLK}
+
+Generated Clock     : qpll0refclk_in[0]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/gen_ref_156_25.common_block/xxv_ethernet_0_gt_gthe4_common_wrapper_i/common_inst/gthe4_common_gen.GTHE4_COMMON_PRIM_INST/GTREFCLK00
+Master Clock        : eth_refclk
+Multiply By         : 1
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/gen_ref_156_25.common_block/xxv_ethernet_0_gt_gthe4_common_wrapper_i/common_inst/gthe4_common_gen.GTHE4_COMMON_PRIM_INST/QPLL0OUTREFCLK}
+
+Generated Clock     : rx_clk_array[0]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/I
+Master Clock        : rxoutclk_out[0]
+Divide By           : 2
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/O}
+
+Generated Clock     : rx_clk_array[1]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/I
+Master Clock        : rxoutclk_out[0]_1
+Divide By           : 2
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/O}
+
+Generated Clock     : rx_clk_array[2]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/I
+Master Clock        : rxoutclk_out[0]_2
+Divide By           : 2
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/O}
+
+Generated Clock     : rx_clk_array[3]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/I
+Master Clock        : rxoutclk_out[0]_3
+Divide By           : 2
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_core_gtwiz_userclk_rx_inst_0/gen_gtwiz_userclk_rx_main.bufg_gt_usrclk2_inst/O}
+
+Generated Clock     : rxoutclk_out[0]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 1.503 3.006}
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLK}
+
+Generated Clock     : rxoutclk_out[0]_1
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 1.503 3.006}
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLK}
+
+Generated Clock     : rxoutclk_out[0]_2
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 1.503 3.006}
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLK}
+
+Generated Clock     : rxoutclk_out[0]_3
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 1.503 3.006}
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/RXOUTCLK}
+
+Generated Clock     : tx_clk_array[0]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/I
+Master Clock        : txoutclk_out[0]
+Divide By           : 2
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/O}
+
+Generated Clock     : tx_clk_array[1]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/I
+Master Clock        : txoutclk_out[0]_1
+Divide By           : 2
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/O}
+
+Generated Clock     : tx_clk_array[2]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/I
+Master Clock        : txoutclk_out[0]_2
+Divide By           : 2
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/O}
+
+Generated Clock     : tx_clk_array[3]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/I
+Master Clock        : txoutclk_out[0]_3
+Divide By           : 2
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_core_gtwiz_userclk_tx_inst_0/gen_gtwiz_userclk_tx_main.bufg_gt_usrclk2_inst/O}
+
+Generated Clock     : txoutclk_out[0]
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 1.503 3.006}
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[0].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/TXOUTCLK}
+
+Generated Clock     : txoutclk_out[0]_1
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 1.503 3.006}
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[1].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/TXOUTCLK}
+
+Generated Clock     : txoutclk_out[0]_2
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 1.503 3.006}
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[2].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/TXOUTCLK}
+
+Generated Clock     : txoutclk_out[0]_3
+Master Source       : daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/QPLL0CLK
+Master Clock        : qpll0clk_in[0]
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 1.503 3.006}
+Generated Sources   : {daphne_selftrigger_bd_i/daphne_selftrigger_top/U0/k26c_board_shell_inst/selftrigger_plane_inst/transport_plane_inst/hermes_transport_plane_inst/daphne_top_inst/mux/pcs_pma/phy_gen[3].phy_10gbe/inst/i_xxv_ethernet_0_gt/inst/gen_gtwizard_gthe4_top.xxv_ethernet_0_gt_gtwizard_gthe4_inst/gen_gtwizard_gthe4.gen_channel_container[1].gen_enabled_channel.gthe4_channel_wrapper_inst/channel_inst/gthe4_channel_gen.gen_gthe4_channel_inst[0].GTHE4_CHANNEL_PRIM_INST/TXOUTCLK}
+
+
+
+====================================================
+User Uncertainty
+====================================================
+
+
+
+====================================================
+User Jitter
+====================================================
