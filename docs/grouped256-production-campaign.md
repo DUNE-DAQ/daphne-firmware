@@ -34,6 +34,20 @@ and qualify timing/resource changes. Clearer names alone do not accelerate
 synthesis. Existing XPM memory inference and pipeline registers stay explicit;
 memory downsizing requires separate evidence of equivalent buffer tolerance.
 
+Use `scripts/remote/cooper_synth_benchmark.sh FRESH_CLONE NEW_EVIDENCE DIRECTIVE`
+for a synthesis-only comparison after the baseline finishes. It supports
+PerformanceOptimized and RuntimeOptimized, refuses an active vendor job, pins
+four threads and records source/helper hashes, environment, phase times and
+post-synthesis reports. Supply the helper outside the source clone to compare
+the exact baseline revision without changing its build ID. Use a fresh clone
+for each run. Repeat measurements if wall-clock differences are small; IP
+generation and filesystem cache effects must not be called synthesis gains.
+The production baseline's synthesis phase provides the initial reference.
+If RuntimeOptimized improves turnaround, it still needs a complete routed run
+and the same release gates before becoming the selected production strategy.
+No checkpoint/IP cache reuse or RTL structure change is bundled into this
+first comparison.
+
 No candidate is a release until routed setup/hold,CDC,DRC,clock coverage,resource
 use,package checksums and dual-profile validation have been reviewed. Board
 programming is outside this campaign. Old synthesis cleanup must preserve
