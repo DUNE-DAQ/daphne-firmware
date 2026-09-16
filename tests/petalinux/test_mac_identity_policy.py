@@ -72,6 +72,8 @@ class MacIdentityPolicyTests(unittest.TestCase):
                 "/dts-v1/;\n"
                 "/ {\n"
                 "  aliases {};\n"
+                "  uart0: serial@1000 {};\n"
+                "  uart1: serial@2000 {};\n"
                 "  gem0: ethernet@0 {\n"
                 "    mac-address = [02 00 00 00 00 20];\n"
                 "    local-mac-address = [02 00 00 00 00 20];\n"

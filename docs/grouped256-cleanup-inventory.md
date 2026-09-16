@@ -143,6 +143,46 @@ fullstream and self-trigger `.bin` files match the preserved
 `output-developer` hashes), but their logs and complete manifests have not been
 reconciled, so they remain holds.
 
+## Executed cleanup — 2026-09-16
+
+The user authorized removal of the three local and eight Cooper intermediate
+paths listed below.  Immediately before deletion, each local parent worktree
+was clean; no local Vivado/Vitis/FuseSoC/XSim job was running; all targets
+resolved to their literal listed path; and recursive scans found no `.bit`,
+`.bin`, `.xsa`, `.dtbo`, `.dcp`, `*.rpt`, checksums, build-status files, or
+JSON provenance files.  The local directories contained generated FuseSoC
+source copies only.
+
+Cooper preflight found the active `dsc256-7d0ea761-20260916` vendor simulation
+(`xelab` and its `daphne-256-7d0ea761` tmux session); it was not a cleanup
+target and remains intact.  No process CWD was within the eight selected older
+512 intermediate directories.  Their recursive scans found no release or
+report/provenance asset.  The `xsim.dir` Tcl scripts and XPM libraries were
+generated simulator state, so no archive was required.
+
+| Removed exact path | Pre-removal allocated size |
+| --- | ---: |
+| `/home/neutrino/work/daphne/firmware/worktrees/daphne-fullstream-mux-a002/build` | 13 MiB |
+| `/home/neutrino/work/daphne/firmware/worktrees/daphne-firmware-512-continuation/build` | 27 MiB |
+| `/home/neutrino/work/daphne/firmware/worktrees/daphne-firmware-os-split/build` | 36 MiB |
+| `/tmp/arroyave/work/dsc512-cont-0403d97-20260911/vendor-memory-sim/xpm` | 1.2 MiB |
+| `/tmp/arroyave/work/dsc512-cont-0403d97-20260911/vendor-memory-sim/xsim.dir` | 2.0 MiB |
+| `/tmp/arroyave/work/dsc512-cont-355376f-20260911/vendor-memory-sim-attempt02/xpm` | 1.2 MiB |
+| `/tmp/arroyave/work/dsc512-cont-355376f-20260911/vendor-memory-sim-attempt02/xsim.dir` | 2.0 MiB |
+| `/tmp/arroyave/work/dsc512-cont-a1444c7-20260911/vendor-memory-sim/xpm` | 1.2 MiB |
+| `/tmp/arroyave/work/dsc512-cont-a1444c7-20260911/vendor-memory-sim/xsim.dir` | 1.9 MiB |
+| `/tmp/arroyave/work/dsc512-cont-afd3b84-20260911/vendor-memory-sim/xpm` | 1.2 MiB |
+| `/tmp/arroyave/work/dsc512-cont-afd3b84-20260911/vendor-memory-sim/xsim.dir` | 2.0 MiB |
+
+All eleven paths were confirmed absent after deletion.  The reclaim was about
+**76 MiB local plus 12.7 MiB Cooper allocated**.  Deletion is not a retained
+backup: the generated content is recoverable only by rerunning the documented
+FuseSoC/Vivado/XSim flows from the preserved source and parent run metadata.
+
+Retained Cooper evidence includes the parent `evidence`, `hierarchy-audit`,
+`synth-resources`, and compensator-resource directories; no report set, DCP,
+release package, or active/new-256 directory was deleted.
+
 ## Preconditions for a later deletion pass
 
 1. Recheck the relevant local/remote process lists and Cooper tmux sessions.
