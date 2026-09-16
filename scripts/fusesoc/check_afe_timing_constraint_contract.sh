@@ -82,6 +82,12 @@ require_fixed "required_constraint_files: xilinx/afe_capture_timing.tcl;xilinx/f
   "board manifest does not require the Tcl-backed AFE timing constraints."
 require_fixed "timing_clock_source: endpoint" "$BOARD_MANIFEST" \
   "board manifest does not select the endpoint clocking mode for AFE timing by default."
+require_fixed "for {set lane 0} {\$lane < 4} {incr lane} {" "$HERMES_CDC_TCL" \
+  "Hermes RX/TX asynchronous clock grouping is no longer applied per lane."
+require_fixed "set_clock_groups -asynchronous -group \$rx_lane_clocks -group \$tx_lane_clocks" "$HERMES_CDC_TCL" \
+  "Hermes RX/TX clock groups must remain scoped to matching lanes."
+require_fixed "if {[llength \$rx_lane_clocks] != 1 || [llength \$tx_lane_clocks] != 1}" "$HERMES_CDC_TCL" \
+  "Hermes clock constraints must fail when a lane clock does not resolve uniquely."
 
 require_fixed "if {\$constraint_basename in {\"afe_capture_timing.tcl\" \"frontend_control_cdc.tcl\" \"timing_endpoint_cdc.tcl\" \"hermes_control_cdc.tcl\" \"fan_tach_cdc.tcl\" \"external_trigger_cdc.tcl\"}} {" "$FLOW_TCL" \
   "Vivado flow no longer classifies the Tcl-backed AFE timing files for post-synth loading."

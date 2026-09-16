@@ -3,6 +3,25 @@
 # only the asynchronous first-stage D pin is excepted here. Its second stage,
 # edge detector and counter remain timed. Payload and status CDC use XPM-owned
 # constraints instead of broad clock-group exclusions.
+
+# Each Ethernet lane recovers RX timing independently from its local TX clock.
+# They have the same nominal frequency, but there is no deterministic phase
+# relationship. Keep this exception lane-local: do not group RX/TX clocks
+# across lanes or with unrelated domains. The Hermes XPM FIFOs and explicit
+# synchronizers own the crossings within each pair.
+for {set lane 0} {$lane < 4} {incr lane} {
+    set rx_clock_name [format {rx_clk_array[%d]} $lane]
+    set tx_clock_name [format {tx_clk_array[%d]} $lane]
+    set rx_lane_clocks [get_clocks -quiet -filter "NAME == \"$rx_clock_name\""]
+    set tx_lane_clocks [get_clocks -quiet -filter "NAME == \"$tx_clock_name\""]
+
+    if {[llength $rx_lane_clocks] != 1 || [llength $tx_lane_clocks] != 1} {
+        error "Expected one RX and TX clock for Hermes lane $lane; found [llength $rx_lane_clocks] RX and [llength $tx_lane_clocks] TX clocks"
+    }
+
+    set_clock_groups -asynchronous -group $rx_lane_clocks -group $tx_lane_clocks
+}
+
 set hermes_frequency_stage1 [get_pins -hier -quiet -filter {
     NAME =~ *pcs_pma/freq/t_in_reg/D
 }]
