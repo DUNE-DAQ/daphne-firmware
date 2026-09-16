@@ -5,13 +5,15 @@ use std.env.all;
 use work.daphne_package.all;
 use work.daphne_subsystem_pkg.all;
 
-entity multilane_readout_mux_tb is end;
+entity multilane_readout_mux_tb is
+  generic (GAPLESS_G : boolean := false; PACKET_WORDS_G : positive := 120);
+end;
 architecture test of multilane_readout_mux_tb is
   constant LANES_C : positive := 8;
   constant CHANNEL_COUNT_C : positive := 32;
   constant CHANNELS_PER_LANE_C : positive := CHANNEL_COUNT_C / LANES_C;
   constant PACKETS_PER_CHANNEL_C : positive := 3;
-  type channel_words_t is array(0 to CHANNEL_COUNT_C - 1) of natural range 0 to 119;
+  type channel_words_t is array(0 to CHANNEL_COUNT_C - 1) of natural range 0 to PACKET_WORDS_G-1;
   type channel_packets_t is array(0 to CHANNEL_COUNT_C - 1) of natural range 0 to PACKETS_PER_CHANNEL_C;
   type lane_counts_t is array(0 to LANES_C-1) of natural;
   signal clock_s : std_logic := '0';
@@ -32,14 +34,15 @@ architecture test of multilane_readout_mux_tb is
 begin
   clock_s <= not clock_s after 8 ns;
   dut : entity work.two_lane_readout_mux
-    generic map(CHANNEL_COUNT_G=>CHANNEL_COUNT_C, LANE_COUNT_G=>LANES_C, CHANNELS_PER_LANE_G=>CHANNELS_PER_LANE_C)
+    generic map(CHANNEL_COUNT_G=>CHANNEL_COUNT_C, LANE_COUNT_G=>LANES_C, CHANNELS_PER_LANE_G=>CHANNELS_PER_LANE_C,
+      GAPLESS_G=>GAPLESS_G)
     port map(clock_i=>clock_s, reset_i=>reset_s, ready_i=>ready_s, dout_i=>input_s,
       rd_en_o=>read_s, dout_o=>output_s, valid_o=>valid_s, last_o=>last_s, packet_ready_i=>permit_s);
 
   channels : for channel in 0 to CHANNEL_COUNT_C - 1 generate
     ready_s(channel) <= '1' when packet_s(channel)<PACKETS_PER_CHANNEL_C else '0';
     input_s(channel)(63 downto 0) <= packet_word(channel,packet_s(channel),word_s(channel));
-    input_s(channel)(71 downto 64) <= x"ED" when word_s(channel)=119 else
+    input_s(channel)(71 downto 64) <= x"ED" when word_s(channel)=PACKET_WORDS_G-1 else
       x"BE" when word_s(channel)=0 else x"00";
   end generate;
   lanes : for lane in 0 to LANES_C-1 generate
@@ -68,7 +71,7 @@ begin
             elsif permit_s(channel/CHANNELS_PER_LANE_C)='0' then
               continued_without_credit_s<=continued_without_credit_s+1;
             end if;
-            if word_s(channel)=119 then word_s(channel)<=0; packet_s(channel)<=packet_s(channel)+1;
+            if word_s(channel)=PACKET_WORDS_G-1 then word_s(channel)<=0; packet_s(channel)<=packet_s(channel)+1;
             else word_s(channel)<=word_s(channel)+1; end if;
           end if;
         end loop;
@@ -92,8 +95,8 @@ begin
             channel:=lane*CHANNELS_PER_LANE_C+(packets(lane) mod CHANNELS_PER_LANE_C);
             assert output_s(lane)=packet_word(channel,packets(lane)/CHANNELS_PER_LANE_C,words(lane))
               report "lane/channel mapping, round-robin order or packet word corruption" severity failure;
-            if words(lane)=119 then
-              assert last_s(lane)='1' report "missing last at fixed word120" severity failure;
+            if words(lane)=PACKET_WORDS_G-1 then
+              assert last_s(lane)='1' report "missing last at final packet word" severity failure;
               words(lane):=0; packets(lane):=packets(lane)+1;
             else
               assert last_s(lane)='0' report "truncated packet" severity failure;
@@ -109,7 +112,7 @@ begin
           assert all_eight_active>0 and continued_without_credit_s>0
             report "concurrent-lane or in-packet readiness withdrawal case was not exercised" severity failure;
           for ch in 0 to CHANNEL_COUNT_C - 1 loop assert packet_s(ch)=PACKETS_PER_CHANNEL_C severity failure; end loop;
-          report "multilane_readout_mux_tb PASS:96 packets,11520 words,eight concurrent lanes,round-robin and packet credits" severity note;
+          report "multilane_readout_mux_tb PASS:96 packets,eight concurrent lanes,round-robin and packet credits" severity note;
           stop;
         end if;
       end if;

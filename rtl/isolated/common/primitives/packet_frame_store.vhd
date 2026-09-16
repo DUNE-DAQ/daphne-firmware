@@ -4,23 +4,28 @@ use ieee.numeric_std.all;
 library xpm;
 use xpm.vcomponents.all;
 
--- One URAM per channel. Thirty-two reserved 128-word slots hold 120-word
--- records; payload can be written before its header without publication.
--- The caller supplies a one-word look-ahead address for the FWFT reader.
+-- One common-clock URAM store per channel.  Thirty-two reserved 128-word slots
+-- hold 120-word records, allowing payload writes before the header publishes a
+-- record.  The caller supplies the one-word look-ahead address for its FWFT
+-- reader; this primitive returns that word one clock_i later.
 entity packet_frame_store is
   port (
-    clock_i : in std_logic;
-    wr_en_i : in std_logic;
+    clock_i   : in std_logic;
+    wr_en_i   : in std_logic;
     wr_addr_i : in unsigned(11 downto 0);
-    din_i : in std_logic_vector(71 downto 0);
+    din_i     : in std_logic_vector(71 downto 0);
     rd_addr_i : in unsigned(11 downto 0);
-    dout_o : out std_logic_vector(71 downto 0)
+    dout_o    : out std_logic_vector(71 downto 0)
   );
 end entity;
+
 architecture rtl of packet_frame_store is
-  signal wr_en_s : std_logic_vector(0 downto 0);
+  -- XPM's write-enable port is a one-bit vector for this full-word memory.
+  signal write_enable_s : std_logic_vector(0 downto 0);
 begin
-  wr_en_s(0) <= wr_en_i;
+  write_enable_s(0) <= wr_en_i;
+
+  -- Keep this instance name stable: implementation scripts can inspect it.
   ram_inst : xpm_memory_sdpram
     generic map (
       ADDR_WIDTH_A => 12, ADDR_WIDTH_B => 12, AUTO_SLEEP_TIME => 0,
@@ -35,5 +40,5 @@ begin
       addra => std_logic_vector(wr_addr_i), addrb => std_logic_vector(rd_addr_i),
       clka => clock_i, clkb => clock_i, dbiterrb => open, dina => din_i, doutb => dout_o,
       ena => '1', enb => '1', injectdbiterra => '0', injectsbiterra => '0', regceb => '1',
-      rstb => '0', sbiterrb => open, sleep => '0', wea => wr_en_s);
+      rstb => '0', sbiterrb => open, sleep => '0', wea => write_enable_s);
 end architecture;

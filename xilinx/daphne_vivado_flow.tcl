@@ -132,7 +132,9 @@ proc daphne_resolve_config {script_dir} {
     set cfg(axi_quad_spi_patch) [file join $script_dir "scripts" "axi_quad_spi_dtbo_patch.sed"]
 
     set cfg(git_sha) [dict get $artifact_profile git_sha]
-    set cfg(v_git_sha) "28'h$cfg(git_sha)"
+    set version_git_sha [string range $cfg(git_sha) 0 6]
+    set cfg(v_git_sha) "28'h$version_git_sha"
+    set cfg(v_build_id) "32'h0$version_git_sha"
     set cfg(build_name) [dict get $artifact_profile build_name]
     set cfg(overlay_name) [dict get $artifact_profile overlay_name]
 
@@ -204,6 +206,7 @@ proc daphne_create_block_design {cfg_name} {
     upvar 1 $cfg_name cfg
 
     set v_git_sha $cfg(v_git_sha)
+    set v_build_id $cfg(v_build_id)
     source -notrace [file join $cfg(script_dir) "daphne_bd_gen.tcl"]
     set bd_file_obj [get_files -quiet $cfg(bd_file)]
     if {[llength $bd_file_obj] == 0} {
@@ -392,16 +395,33 @@ proc daphne_run_post_build {cfg_name} {
 proc daphne_run_full_build {script_dir} {
     array set cfg [daphne_resolve_config $script_dir]
     daphne_check_vivado_version cfg
-    daphne_prepare_project cfg
-    daphne_create_block_design cfg
-    daphne_run_synth cfg
+    daphne_measure_build_phase prepare daphne_prepare_project cfg
+    daphne_measure_build_phase generate_ip daphne_create_block_design cfg
+    daphne_measure_build_phase synthesis daphne_run_synth cfg
     if {[string tolower $cfg(stop_after_synth)] in {"1" "true" "yes" "on"}} {
         puts "INFO: Stopping after synthesis and post-synth constraint application by request."
         exit
     }
-    daphne_run_impl cfg
-    daphne_write_bitstream_and_xsa cfg
-    daphne_run_post_build cfg
+    daphne_measure_build_phase implementation daphne_run_impl cfg
+    daphne_measure_build_phase bitstream_xsa daphne_write_bitstream_and_xsa cfg
+    daphne_measure_build_phase device_tree_package daphne_run_post_build cfg
     puts "INFO: Finished design building."
     exit
+}
+
+# Record successful and failed phases without changing their error semantics.
+# Separate IP generation from synthesis to make turnaround comparisons useful.
+proc daphne_measure_build_phase {phase command cfg_name} {
+    upvar 1 $cfg_name cfg
+    set start_ms [clock milliseconds]
+    set status [catch {$command cfg} result options]
+    file mkdir $cfg(output_dir)
+    set timing_file [file join $cfg(output_dir) build-phase-times.tsv]
+    set new_file [expr {![file exists $timing_file]}]
+    set handle [open $timing_file a]
+    if {$new_file} { puts $handle "phase\telapsed_ms\ttcl_status\tsynth_directive\tthreads" }
+    puts $handle "$phase\t[expr {[clock milliseconds]-$start_ms}]\t$status\t$cfg(synth_directive)\t$cfg(max_threads)"
+    close $handle
+    if {$status != 0} { return -options $options $result }
+    return $result
 }

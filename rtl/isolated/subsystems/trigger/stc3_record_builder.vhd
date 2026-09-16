@@ -4,6 +4,7 @@ use ieee.numeric_std.all;
 use work.daphne_subsystem_pkg.all;
 
 entity stc3_record_builder is
+  generic (FRAME_SAMPLE_COUNT_G : positive := 512);
   port (
     ch_id_i                  : in  std_logic_vector(7 downto 0);
     version_i                : in  std_logic_vector(3 downto 0);
@@ -49,9 +50,16 @@ end entity stc3_record_builder;
 -- Packet slots are reserved on admission, filled payload-first, and published
 -- only after all eight header words have been written. The wire order is intact.
 architecture rtl of stc3_record_builder is
-  constant FRAME_SAMPLE_COUNT_C : natural := 512;
+  constant FRAME_SAMPLE_COUNT_C : natural := FRAME_SAMPLE_COUNT_G;
+  constant POSTTRIGGER_SAMPLES_C : natural := 447;
+  function header_words return positive is
+  begin
+    if FRAME_SAMPLE_COUNT_G=256 then return 7; end if;
+    return 8;
+  end;
+  constant HEADER_WORD_COUNT_C : positive := header_words;
   constant PRETRIGGER_SAMPLES_C : natural := 64;
-  constant FRAME_WORD_COUNT_C : natural := 120;
+  constant FRAME_WORD_COUNT_C : natural := HEADER_WORD_COUNT_C+FRAME_SAMPLE_COUNT_C*14/64;
   constant RING_DEPTH_C : positive := 2048;
   constant FRAME_QUEUE_DEPTH_C : positive := 4;
   constant PACKET_SLOT_COUNT_C : positive := 32;
@@ -163,6 +171,9 @@ architecture rtl of stc3_record_builder is
   signal descriptor_baseline_s, activity_baseline_s : std_logic_vector(13 downto 0);
   signal chain_active_s, current_accepted_s, previous_accepted_s : std_logic := '0';
   signal current_s, previous_s : frame_meta_t := META_NULL_C;
+  -- Three256-sample windows cover the447-clock maximum tuple latency.
+  signal older_start_s : sample_seq_t := (others=>'0');
+  signal older_accepted_s : std_logic := '0';
   signal activity_s : std_logic := '0';
   signal quiet_s : natural range 0 to 511 := 0;
   signal chain_quiet_limit_s : natural range 1 to 511 := 32;
@@ -177,13 +188,15 @@ architecture rtl of stc3_record_builder is
   signal timestamp_previous_s : unsigned(63 downto 0) := (others=>'0');
   signal timestamp_armed_s : std_logic := '0';
   signal timestamp_jump_s : std_logic;
-  signal event_seq_s, current_delta_s, previous_delta_s : sample_seq_t;
+  signal event_seq_s, current_delta_s, previous_delta_s, older_delta_s : sample_seq_t;
   signal event_sample_s : std_logic_vector(13 downto 0);
   signal event_tag_s : std_logic_vector(1 downto 0);
   signal record_count_s, full_count_s, busy_count_s, spacing_count_s, queue_drop_s, ring_drop_s,
          trigger_count_s, packet_count_s, continuation_count_s, continuation_drop_s,
          covered_count_s, descriptor_overflow_count_s : unsigned(31 downto 0) := (others=>'0');
 begin
+  assert FRAME_SAMPLE_COUNT_G=256 or FRAME_SAMPLE_COUNT_G=512
+    report "reference builder supports256 or512 sample records" severity failure;
   -- Clock/reset/timestamp are common to all channels, allowing synthesis to
   -- share this epoch guard. Natural64-bit wrap is a normal increment.
   timestamp_jump_s <= '1' when timestamp_armed_s='1' and
@@ -199,6 +212,7 @@ begin
   event_seq_s <= seq_s-resize(event_age_s,sample_seq_t'length);
   current_delta_s <= event_seq_s-current_s.start_seq;
   previous_delta_s <= event_seq_s-previous_s.start_seq;
+  older_delta_s <= event_seq_s-older_start_s;
   queue_head_s <= unpack_meta(queue_s(head_s));
   queue_next_s <= unpack_meta(queue_s(next_q(head_s)));
   descriptor_baseline_s <= raw_baseline(active_s.baseline,active_s.positive_pulse);
@@ -229,7 +243,7 @@ begin
   ready_o <= '1' when published_count_s>0 and dropped_s(to_integer(read_slot_s))='0' else '0';
 
   launch_s <= '1' when fetch_running_s='0' and queue_count_s>0 and
-    seq_age(seq_s,queue_head_s.start_seq)>=511 and
+    seq_age(seq_s,queue_head_s.start_seq)>=FRAME_SAMPLE_COUNT_C-1 and
     seq_age(seq_s,queue_head_s.start_seq)<=RETENTION_LIMIT_C else '0';
   ring_addr_s <= queue_head_s.start_seq(10 downto 0) when launch_s='1'
                  else active_s.start_seq(10 downto 0)+resize(fetch_index_s,11);
@@ -269,14 +283,14 @@ begin
     end case;
   end process;
   store_wr_s <= (payload_wr_s or header_pending_s) and not reset_i;
-  store_waddr_s <= slot_addr(active_s.slot,8+payload_word_s) when payload_wr_s='1'
+  store_waddr_s <= slot_addr(active_s.slot,HEADER_WORD_COUNT_C+payload_word_s) when payload_wr_s='1'
                    else slot_addr(header_meta_s.slot,header_s);
   store_data_proc : process(all)
   begin
     store_din_s <= (others=>'0');
     if payload_wr_s='1' then
       store_din_s(63 downto 0)<=payload_data_s;
-      if sample_index_s=511 then store_din_s(71 downto 64)<=X"ED"; end if;
+      if sample_index_s=FRAME_SAMPLE_COUNT_C-1 then store_din_s(71 downto 64)<=X"ED"; end if;
     elsif header_pending_s='1' then
       case header_s is
         when 0 => store_din_s<=X"BE" & header_meta_s.sample0_ts;
@@ -289,6 +303,7 @@ begin
   end process;
   descriptor_start_s <= '1' when sample_valid_s='1' and sample_index_s=0 else '0';
   descriptor_inst : entity work.fragment_peak_descriptors_banked
+    generic map(FRAME_SAMPLE_COUNT_G=>FRAME_SAMPLE_COUNT_C, COMPACT_DESCRIPTOR_G=>FRAME_SAMPLE_COUNT_G=256)
     port map(clock_i=>clock_i, reset_i=>reset_i, start_i=>descriptor_start_s,
       baseline_i=>descriptor_baseline_s, positive_pulse_i=>active_s.positive_pulse,
       threshold_i=>active_s.activity_threshold,
@@ -324,7 +339,7 @@ begin
         reserved_count_s<=0; published_count_s<=0; read_word_s<=0;
         header_s<=0; payload_word_s<=0;
         chain_active_s<='0'; current_accepted_s<='0'; previous_accepted_s<='0';
-        current_s<=META_NULL_C; previous_s<=META_NULL_C; activity_s<='0'; quiet_s<=0; chain_quiet_limit_s<=32;
+        current_s<=META_NULL_C; previous_s<=META_NULL_C; older_start_s<=(others=>'0'); older_accepted_s<='0'; activity_s<='0'; quiet_s<=0; chain_quiet_limit_s<=32;
         required_end_s<=(others=>'0'); last_start_s<=(others=>'0'); last_start_valid_s<='0'; trigger_previous_s<='0';
         record_count_s<=(others=>'0'); full_count_s<=(others=>'0'); busy_count_s<=(others=>'0');
         spacing_count_s<=(others=>'0'); queue_drop_s<=(others=>'0'); ring_drop_s<=(others=>'0');
@@ -344,6 +359,9 @@ begin
         if current_accepted_s='1' and seq_age(seq_s,current_s.start_seq)>RING_DEPTH_C then
           current_accepted_s<='0';
         end if;
+        if older_accepted_s='1' and seq_age(seq_s,older_start_s)>RING_DEPTH_C then
+          older_accepted_s<='0';
+        end if;
         if previous_accepted_s='1' and seq_age(seq_s,previous_s.start_seq)>RING_DEPTH_C then
           previous_accepted_s<='0';
         end if;
@@ -351,7 +369,7 @@ begin
         if timestamp_jump_s='1' then
           -- Start a new admission epoch; reserved packet ownership and the
           -- uninterrupted raw-sample ring/serializer keep draining unchanged.
-          history_s<=0; current_accepted_s<='0'; previous_accepted_s<='0'; last_start_valid_s<='0';
+          history_s<=0; current_accepted_s<='0'; previous_accepted_s<='0'; older_accepted_s<='0'; last_start_valid_s<='0';
         end if;
         trigger_previous_s<=trigger_i.trigger_pulse;
         if trigger_i.trigger_pulse='1' and trigger_previous_s='0' and enable_i='1' then
@@ -370,7 +388,7 @@ begin
         -- Payload words win the single URAM write port; eight headers finish
         -- within nine clocks after sample511 during a contiguous stream.
         if header_pending_s='1' and payload_wr_s='0' then
-          if header_s=7 then
+          if header_s=HEADER_WORD_COUNT_C-1 then
             published:=published+1; header_pending:='0'; record_count_s<=record_count_s+1;
             if descriptor_overflow_s='1' then descriptor_overflow_count_s<=descriptor_overflow_count_s+1; end if;
           else header_s<=header_s+1; end if;
@@ -380,10 +398,10 @@ begin
         if sample_valid_s='1' then
           pack_shift_s<=pack_window_s(77 downto 14);
           if payload_wr_s='1' then
-            if sample_index_s=511 then payload_word_s<=0;
+            if sample_index_s=FRAME_SAMPLE_COUNT_C-1 then payload_word_s<=0;
             else payload_word_s<=payload_word_s+1; end if;
           end if;
-          if sample_index_s=511 then
+          if sample_index_s=FRAME_SAMPLE_COUNT_C-1 then
             assert header_pending_s='0' report "header writer overran one fragment" severity failure;
             header_meta_s<=active_s; header_s<=0; header_pending:='1'; active_valid:='0';
           end if;
@@ -398,7 +416,7 @@ begin
           head:=next_q(head); count:=count-1; pending_head:=queue_next_s;
         elsif fetch_running_s='1' then
           sample_index_s<=fetch_index_s;
-          if fetch_index_s=511 then fetch_running_s<='0';
+          if fetch_index_s=FRAME_SAMPLE_COUNT_C-1 then fetch_running_s<='0';
           else fetch_index_s<=fetch_index_s+1; end if;
         elsif publish_drop_s='1' then
           published:=published+1;
@@ -418,18 +436,19 @@ begin
           if activity_next='1' then quiet_next:=0;
           elsif quiet_next<chain_quiet_limit_s then quiet_next:=quiet_next+1; end if;
           activity_s<=activity_next; quiet_s<=quiet_next;
-          if seq_s-current_s.start_seq>=511 then
+          if seq_s-current_s.start_seq>=FRAME_SAMPLE_COUNT_C-1 then
             -- A satisfied deadline may otherwise age through the signed
             -- half-range during a long tail. Advancing it to the frame end
             -- preserves whether more posttrigger samples are still required.
-            if signed(required_end_s-(current_s.start_seq+511))<=0 then
-              required_end_s<=current_s.start_seq+511;
+            if signed(required_end_s-(current_s.start_seq+FRAME_SAMPLE_COUNT_C-1))<=0 then
+              required_end_s<=current_s.start_seq+FRAME_SAMPLE_COUNT_C-1;
             end if;
-            if quiet_next<chain_quiet_limit_s or signed(required_end_s-(current_s.start_seq+511))>0 then
-              req:=current_s; req.start_seq:=current_s.start_seq+512;
-              req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+512);
+            if quiet_next<chain_quiet_limit_s or signed(required_end_s-(current_s.start_seq+FRAME_SAMPLE_COUNT_C-1))>0 then
+              req:=current_s; req.start_seq:=current_s.start_seq+FRAME_SAMPLE_COUNT_C;
+              req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+FRAME_SAMPLE_COUNT_C);
               req.continuation:='1'; req.trigger_sample:=din_i;
               req_valid:=true; req_cont:=true;
+              older_start_s<=previous_s.start_seq; older_accepted_s<=previous_accepted_s;
               previous_s<=current_s; previous_accepted_s<=current_accepted_s;
               current_s<=req; current_accepted_s<='0';
             else chain_active_s<='0'; end if;
@@ -441,13 +460,15 @@ begin
         if event_pulse_s='1' and enable_i='1' then
           -- Supported tuples arrive at most447 clocks after the trigger;
           -- jump-edge/older/future tuples are whole losses before local matching.
-          if timestamp_jump_s='1' or event_age_s>447 then
+          if timestamp_jump_s='1' or event_age_s>POSTTRIGGER_SAMPLES_C then
             ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
           else
             covered := (current_accepted_s='1' and seq_age(seq_s,current_s.start_seq)<=RING_DEPTH_C and
                         inside_window(current_delta_s,continuation_enable_i)) or
                        (previous_accepted_s='1' and seq_age(seq_s,previous_s.start_seq)<=RING_DEPTH_C and
-                        inside_window(previous_delta_s,continuation_enable_i));
+                        inside_window(previous_delta_s,continuation_enable_i)) or
+                       (older_accepted_s='1' and seq_age(seq_s,older_start_s)<=RING_DEPTH_C and
+                        inside_window(older_delta_s,continuation_enable_i));
             if covered then
               covered_count_s<=covered_count_s+1;
               -- A coalesced trigger still owns its complete trigger..trigger+447
@@ -455,15 +476,16 @@ begin
               -- last quiet-closed chain from retained samples, without shifting
               -- its 512-sample grid or adding another pretrigger region.
               if continuation_enable_i='1' then
-                event_end_seq:=event_seq_s+447;
+                event_end_seq:=event_seq_s+POSTTRIGGER_SAMPLES_C;
                 if signed(event_end_seq-required_end_s)>0 then required_end_s<=event_end_seq; end if;
-                if signed(event_end_seq-(current_s.start_seq+511))>0 and
-                   seq_s-current_s.start_seq>=511 and not req_valid then
-                  req:=current_s; req.start_seq:=current_s.start_seq+512;
-                  req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+512);
+                if signed(event_end_seq-(current_s.start_seq+FRAME_SAMPLE_COUNT_C-1))>0 and
+                   seq_s-current_s.start_seq>=FRAME_SAMPLE_COUNT_C-1 and not req_valid then
+                  req:=current_s; req.start_seq:=current_s.start_seq+FRAME_SAMPLE_COUNT_C;
+                  req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+FRAME_SAMPLE_COUNT_C);
                   req.continuation:='1'; req.trigger_sample:=event_sample_s;
                   req_valid:=true; req_cont:=true;
-                  previous_s<=current_s; previous_accepted_s<=current_accepted_s;
+                  older_start_s<=previous_s.start_seq; older_accepted_s<=previous_accepted_s;
+              previous_s<=current_s; previous_accepted_s<=current_accepted_s;
                   current_s<=req; current_accepted_s<='0'; chain_active_s<='1';
                 end if;
               end if;
@@ -472,8 +494,11 @@ begin
               busy_count_s<=busy_count_s+1;
             else
               age:=to_integer(event_age_s(8 downto 0))+PRETRIGGER_SAMPLES_C;
-              min_spacing:=512;
-              if continuation_enable_i='0' then min_spacing:=512-to_integer(unsigned(signal_delay_i))*16; end if;
+              min_spacing:=FRAME_SAMPLE_COUNT_C;
+              if continuation_enable_i='0' then
+                if to_integer(unsigned(signal_delay_i))*16>=FRAME_SAMPLE_COUNT_C then min_spacing:=16;
+                else min_spacing:=FRAME_SAMPLE_COUNT_C-to_integer(unsigned(signal_delay_i))*16; end if;
+              end if;
               candidate_start_seq:=seq_s-to_unsigned(age,sample_seq_t'length);
               if age>history_s then
                 ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
@@ -501,8 +526,8 @@ begin
           workload:=count*SERIALIZER_CYCLES_C;
           if active_valid='1' then workload:=workload+SERIALIZER_CYCLES_C; end if;
           wait_cycles:=0;
-          if active_valid='0' and count>0 and seq_age(seq_s,pending_head.start_seq)<511 then
-            wait_cycles:=511-seq_age(seq_s,pending_head.start_seq);
+          if active_valid='0' and count>0 and seq_age(seq_s,pending_head.start_seq)<FRAME_SAMPLE_COUNT_C-1 then
+            wait_cycles:=FRAME_SAMPLE_COUNT_C-1-seq_age(seq_s,pending_head.start_seq);
           end if;
           accepted:=false;
           if reserved=PACKET_SLOT_COUNT_C then full_count_s<=full_count_s+1;
@@ -519,10 +544,11 @@ begin
             if accepted then current_s<=req; current_accepted_s<='1';
             else continuation_drop_s<=continuation_drop_s+1; end if;
           elsif req_first and accepted then
-            previous_s<=current_s; previous_accepted_s<=current_accepted_s;
+            older_start_s<=previous_s.start_seq; older_accepted_s<=previous_accepted_s;
+              previous_s<=current_s; previous_accepted_s<=current_accepted_s;
             current_s<=req; current_accepted_s<='1';
             chain_active_s<=continuation_enable_i; activity_s<='0'; quiet_s<=0;
-            required_end_s<=req.start_seq+511;
+            required_end_s<=req.start_seq+PRETRIGGER_SAMPLES_C+POSTTRIGGER_SAMPLES_C;
             quiet_limit:=to_integer(unsigned(quiet_samples_i));
             if quiet_limit=0 then quiet_limit:=1; end if;
             chain_quiet_limit_s<=quiet_limit;

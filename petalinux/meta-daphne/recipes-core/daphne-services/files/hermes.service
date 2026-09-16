@@ -1,13 +1,13 @@
 [Unit]
 Description=Hermes IPBus UDP server (DAPHNE mode)
-After=endpoint.service firmware.service
-Requires=endpoint.service firmware.service
-PartOf=firmware.service
+After=endpoint.service daphne-gateware-verify.service firmware.service
+Requires=endpoint.service daphne-gateware-verify.service firmware.service
+PartOf=firmware.service daphne-runtime.target
 
 [Service]
 Type=simple
 WorkingDirectory=/
-ExecStartPre=/bin/echo Starting Hermes IPBus UDP server \(daphne mode\)
+ExecStartPre=/bin/echo "Starting Hermes IPBus UDP server (daphne mode)"
 ExecStart=/bin/sh -c '/usr/bin/hermes_udp_srv -d daphne -c true \
   2>/var/log/hermes_udp_srv.err >/var/log/hermes_udp_srv.log'
 Restart=on-failure
@@ -15,4 +15,4 @@ RestartSec=1
 TimeoutStopSec=5s
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=daphne-runtime.target

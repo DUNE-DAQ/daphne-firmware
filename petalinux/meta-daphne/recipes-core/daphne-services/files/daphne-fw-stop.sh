@@ -13,12 +13,18 @@ start_dfx_mgr() {
 
 if command -v dfx-mgr-client >/dev/null 2>&1; then
   start_dfx_mgr
-  dfx-mgr-client -remove || true
+  echo "Unloading FPGA app via dfx-mgr-client ..."
+  dfx-mgr-client -remove
 elif command -v xmutil >/dev/null 2>&1; then
   start_dfx_mgr
-  xmutil unloadapp || true
+  echo "Unloading FPGA app via xmutil ..."
+  xmutil unloadapp
 elif command -v fpgautil >/dev/null 2>&1; then
-  fpgautil -R -n full || true
+  echo "Unloading FPGA app via fpgautil ..."
+  fpgautil -R -n full
+else
+  echo "Neither fpgautil, dfx-mgr-client, nor xmutil is available." >&2
+  exit 1
 fi
 
 echo "FPGA state after stop: $(cat /sys/class/fpga_manager/fpga0/state 2>/dev/null || echo unknown)"

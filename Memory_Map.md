@@ -184,6 +184,12 @@ This module is special, as here are noted only the first element of each address
 |  0x44   | 0x94000044 |   invert_enable_reg   |  32b  |  R/W   | 0x00000000 |    Self trigger signal inverter enable LSB register     |  Channel 31 to channel 0 (31 downto 0)  |
 |  0x48   | 0x94000048 |   invert_enable_reg   |  8b   |  R/W   |    0x00    |    Self trigger signal inverter enable MSB register     | Channel 39 to channel 32 (39 downto 32) |
 
+| 0xEC | 0x940000EC | fw_packet_protocol_version | 32b | R/O | 0x00000004 | Fixed256/five-descriptor packet format | 63 words,504bytes; independent of control ABI |
+| 0xF0 | 0x940000F0 | fw_identity_magic | 32b | R/O | 0x44415048 | Gateware identity magic (`DAPH`) | Check before ABI/version registers |
+| 0xF4 | 0x940000F4 | fw_abi_version | 32b | R/O | 0x00020000 | Shared dual-profile control ABI 2.0 | Major bits31:16, minor15:0 |
+| 0xF8 | 0x940000F8 | fw_variant_id | 32b | R/O | 0x00000001 | Self-trigger variant | 1=self-trigger,2=full-stream |
+| 0xFC | 0x940000FC | fw_build_id | 32b | R/O | - | Build commit identifier | Zero-extended seven-hex artifact SHA prefix |
+
 ## Trigger Core Control AXI-4 Lite Slave Interface: `TRIRG_S_AXI`
 **Base Address:** `0x9800_0000`
 **Memory Bank Size:** `64M`

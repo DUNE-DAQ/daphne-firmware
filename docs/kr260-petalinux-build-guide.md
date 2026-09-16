@@ -183,6 +183,23 @@ If you already have a project and only need to attach the repo-owned layer:
 ./scripts/petalinux/stage_overlay_into_project.sh "$PROJECT_DIR" "$HW_HANDOFF_DIR"
 ```
 
+For a production dual-app image, replace that legacy single-output form with
+explicit qualified inputs:
+
+```bash
+./scripts/petalinux/stage_overlay_into_project.sh "$PROJECT_DIR" \
+  --self-trigger-output /path/to/selftrigger/xilinx/output-<self-sha7> \
+  --self-trigger-sha <self-sha7> \
+  --full-stream-output /path/to/fullstream/xilinx/output-<full-sha7> \
+  --full-stream-sha <full-sha7>
+```
+
+The self-trigger 256/5 artifact declares packet protocol v4 (63 words / 504
+bytes); ABI 2.0 alone does not authorize interpreting it as a legacy v3
+payload. The self-trigger gateware verifier checks its read-only protocol
+capability before the runtime target starts; legacy ABI-2 full-stream retains
+its v3 declaration without requiring that new register.
+
 If you also have a harvested runtime bundle:
 
 ```bash

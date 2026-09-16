@@ -14,7 +14,14 @@ Project creation/config options:
   --template NAME        PetaLinux template when --bsp is not given
   --image-profile NAME   DAPHNE image profile: provisioning|minimal|developer
                          (default: minimal)
-  --output-dir DIR       Firmware xilinx/output directory for overlay staging
+  --output-dir DIR       Shared dual-gateware output with scoped manifests
+  --self-trigger-output-dir DIR
+                         Self-trigger firmware output directory
+  --full-stream-output-dir DIR
+                         Full-stream firmware output directory
+  --self-trigger-sha SHA7
+                         Select an exact self-trigger app build
+  --full-stream-sha SHA7 Select an exact full-stream app build
   --runtime-bundle TGZ   Qualified DAPHNE runtime bundle for image staging
   --skip-stage-overlay   Do not stage overlay artifacts
   --skip-stage-runtime   Do not stage the runtime bundle
@@ -58,7 +65,7 @@ PACKAGE_ARGS="${DAPHNE_PETALINUX_PACKAGE_ARGS:-}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --bsp|--template|--output-dir|--runtime-bundle|--image-profile)
+    --bsp|--template|--output-dir|--self-trigger-output-dir|--full-stream-output-dir|--self-trigger-sha|--full-stream-sha|--runtime-bundle|--image-profile)
       INIT_ARGS+=("$1" "$2")
       shift 2
       ;;

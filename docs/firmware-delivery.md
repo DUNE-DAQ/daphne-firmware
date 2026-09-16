@@ -103,6 +103,15 @@ Expected outputs:
 - `xilinx/output-$DAPHNE_GIT_SHA/daphne_selftrigger_ol_<gitsha>.zip`
 - `xilinx/output-$DAPHNE_GIT_SHA/SHA256SUMS`
 
+For the Cooper 256/5 production campaign, preserve the app-scoped
+`daphne_selftrigger_ol_<sha7>.SHA256SUMS` as well. A PetaLinux production
+image is a matched dual-app release: stage an explicit self-trigger artifact
+and an explicit full-stream artifact with
+`scripts/petalinux/stage_overlay_into_project.sh`. The self-trigger profile is
+packet protocol v4 (63 words / 504 bytes); its read-only capability register
+is verified before services start, independently of the ABI-2 control-plane
+identity.
+
 ## Current validated baseline
 
 The current working reference line is:

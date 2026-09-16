@@ -4,23 +4,36 @@ use ieee.numeric_std.all;
 library xpm;
 use xpm.vcomponents.all;
 
--- Native single-sample ring: 2048 x14 fits one RAMB36. The independent read
--- port returns its addressed sample after one clock; sampling never pauses.
+-- Native single-sample ring.  The default 2048 x 14 configuration fits one
+-- RAMB36.  Writes stay in clock_i while the builder reads in builder_clock_i;
+-- this primitive deliberately adds no flow control or clock-domain crossing.
+-- The XPM read port returns the requested sample one builder_clock_i later.
 entity grouped_sample_ring is
-  generic (DATA_WIDTH_G : positive := 14; DEPTH_G : positive := 2048; ADDR_WIDTH_G : positive := 11);
+  generic (
+    DATA_WIDTH_G : positive := 14;
+    DEPTH_G      : positive := 2048;
+    ADDR_WIDTH_G : positive := 11
+  );
   port (
-    clock_i : in std_logic; builder_clock_i : in std_logic; wr_en_i : in std_logic;
+    clock_i         : in std_logic;
+    builder_clock_i : in std_logic;
+    wr_en_i         : in std_logic;
     wr_addr_i : in unsigned(ADDR_WIDTH_G-1 downto 0);
-    din_i : in std_logic_vector(DATA_WIDTH_G-1 downto 0);
+    din_i     : in std_logic_vector(DATA_WIDTH_G-1 downto 0);
     rd_addr_i : in unsigned(ADDR_WIDTH_G-1 downto 0);
-    dout_o : out std_logic_vector(DATA_WIDTH_G-1 downto 0)
+    dout_o    : out std_logic_vector(DATA_WIDTH_G-1 downto 0)
   );
 end entity;
+
 architecture rtl of grouped_sample_ring is
-  signal wr_en_s : std_logic_vector(0 downto 0);
+  -- XPM's write-enable port is a one-bit vector for this full-word memory.
+  signal write_enable_s : std_logic_vector(0 downto 0);
 begin
   assert DEPTH_G = 2**ADDR_WIDTH_G severity failure;
-  wr_en_s(0)<=wr_en_i;
+
+  write_enable_s(0) <= wr_en_i;
+
+  -- Keep this instance name stable: implementation scripts can inspect it.
   ram_inst : xpm_memory_sdpram
     generic map (
       ADDR_WIDTH_A => ADDR_WIDTH_G, ADDR_WIDTH_B => ADDR_WIDTH_G,
@@ -36,5 +49,5 @@ begin
       addra => std_logic_vector(wr_addr_i), addrb => std_logic_vector(rd_addr_i),
       clka => clock_i, clkb => builder_clock_i, dbiterrb => open, dina => din_i, doutb => dout_o,
       ena => '1', enb => '1', injectdbiterra => '0', injectsbiterra => '0', regceb => '1',
-      rstb => '0', sbiterrb => open, sleep => '0', wea => wr_en_s);
+      rstb => '0', sbiterrb => open, sleep => '0', wea => write_enable_s);
 end architecture;

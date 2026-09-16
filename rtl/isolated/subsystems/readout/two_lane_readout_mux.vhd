@@ -9,7 +9,8 @@ entity two_lane_readout_mux is
   generic (
     CHANNEL_COUNT_G      : positive := 40;
     LANE_COUNT_G         : positive := 2;
-    CHANNELS_PER_LANE_G  : positive := 20
+    CHANNELS_PER_LANE_G  : positive := 20;
+    GAPLESS_G           : boolean := false
   );
   port (
     clock_i : in  std_logic;
@@ -47,6 +48,7 @@ begin
     fifo_dout_mux_s <= dout_i(CHANNEL_BASE_C + sel_s);
 
     fsm_proc : process (clock_i)
+      variable next_channel : integer range 0 to CHANNELS_PER_LANE_G - 1;
     begin
       if rising_edge(clock_i) then
         if reset_i = '1' then
@@ -75,7 +77,23 @@ begin
 
             when dump =>
               if fifo_dout_mux_s(71 downto 64) = X"ED" then
-                state_s <= pause;
+                if GAPLESS_G then
+                  next_channel := (sel_s + 1) mod CHANNELS_PER_LANE_G;
+                  sel_s <= next_channel;
+                  -- Reserve the next complete packet at the outgoing boundary.
+                  -- The next channel's FWFT head is stable and independent of
+                  -- this read. Hermes reserves four pipeline words in addition
+                  -- to the packet. Do not reuse a stale single-channel ready.
+                  if CHANNELS_PER_LANE_G > 1 and
+                     ready_i(CHANNEL_BASE_C + next_channel) = '1' and
+                     packet_ready_i(lane_idx) = '1' then
+                    state_s <= dump;
+                  else
+                    state_s <= scan;
+                  end if;
+                else
+                  state_s <= pause;
+                end if;
               else
                 state_s <= dump;
               end if;
@@ -102,16 +120,22 @@ begin
         if reset_i = '1' then
           dout_o(lane_idx)  <= (others => '0');
           valid_o(lane_idx) <= '0';
+          last_o(lane_idx)  <= '0';
         elsif state_s = dump then
           dout_o(lane_idx)  <= fifo_dout_mux_s(63 downto 0);
           valid_o(lane_idx) <= '1';
+          if fifo_dout_mux_s(71 downto 64) = X"ED" then
+            last_o(lane_idx) <= '1';
+          else
+            last_o(lane_idx) <= '0';
+          end if;
         else
           dout_o(lane_idx)  <= (others => '0');
           valid_o(lane_idx) <= '0';
+          last_o(lane_idx)  <= '0';
         end if;
       end if;
     end process outreg_proc;
 
-    last_o(lane_idx) <= '1' when state_s = pause else '0';
   end generate gen_lane;
 end architecture rtl;

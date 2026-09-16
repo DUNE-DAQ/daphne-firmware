@@ -120,7 +120,7 @@ begin
   core_axi_rready     <= trirg_s_axi_rready;
 
   daphne_top_inst : entity work.daphne_top
-    generic map (N_MGT => 4, PACKET_WORDS => 120, IN_BUF_DEPTH => 512)
+    generic map (N_MGT => 4, PACKET_WORDS => 63, IN_BUF_DEPTH => 512)
     port map(
       S_AXI_ACLK    => trirg_s_axi_aclk,
       S_AXI_ARESETN => trirg_s_axi_aresetn,

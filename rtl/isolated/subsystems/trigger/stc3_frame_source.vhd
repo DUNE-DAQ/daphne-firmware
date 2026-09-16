@@ -61,9 +61,10 @@ end entity stc3_frame_source;
 -- The shared engine owns the queue head until the final header reaches this
 -- clock domain. Publication and queue release occur on that same commit edge.
 architecture rtl of stc3_frame_source is
-  constant FRAME_SAMPLE_COUNT_C : natural := 512;
+  constant FRAME_SAMPLE_COUNT_C : natural := 256;
+  constant POSTTRIGGER_SAMPLES_C : natural := 447;
   constant PRETRIGGER_SAMPLES_C : natural := 64;
-  constant FRAME_WORD_COUNT_C : natural := 120;
+  constant FRAME_WORD_COUNT_C : natural := 63;
   constant RING_DEPTH_C : positive := 2048;
   constant FRAME_QUEUE_DEPTH_C : positive := 4;
   constant PACKET_SLOT_COUNT_C : positive := 32;
@@ -131,8 +132,8 @@ architecture rtl of stc3_frame_source is
   function inside_window(delta : sample_seq_t;
                          continuation : std_logic) return boolean is
   begin
-    -- The union of trigger-in-frame [0,511] and pretrigger-start-in-frame
-    -- [64,575] is [0,575]. Call only after the full event-age guard.
+    -- The union of trigger-in-frame [0,255] and pretrigger-start-in-frame
+    -- [64,319] is [0,319]. Call only after the full event-age guard.
     if continuation='1' then return delta<to_unsigned(FRAME_SAMPLE_COUNT_C+PRETRIGGER_SAMPLES_C,sample_seq_t'length); end if;
     return delta<to_unsigned(FRAME_SAMPLE_COUNT_C,sample_seq_t'length);
   end;
@@ -155,6 +156,9 @@ architecture rtl of stc3_frame_source is
   signal activity_baseline_s : std_logic_vector(13 downto 0);
   signal chain_active_s, current_accepted_s, previous_accepted_s : std_logic := '0';
   signal current_s, previous_s : frame_meta_t := META_NULL_C;
+  -- Three256-sample windows cover the447-clock maximum tuple latency.
+  signal older_start_s : sample_seq_t := (others=>'0');
+  signal older_accepted_s : std_logic := '0';
   signal activity_s : std_logic := '0';
   signal quiet_s : natural range 0 to 511 := 0;
   signal chain_quiet_limit_s : natural range 1 to 511 := 32;
@@ -169,7 +173,7 @@ architecture rtl of stc3_frame_source is
   signal timestamp_previous_s : unsigned(63 downto 0) := (others=>'0');
   signal timestamp_armed_s : std_logic := '0';
   signal timestamp_jump_s : std_logic;
-  signal event_seq_s, current_delta_s, previous_delta_s : sample_seq_t;
+  signal event_seq_s, current_delta_s, previous_delta_s, older_delta_s : sample_seq_t;
   signal event_sample_s : std_logic_vector(13 downto 0);
   signal event_tag_s : std_logic_vector(1 downto 0);
   signal record_count_s, full_count_s, busy_count_s, spacing_count_s, queue_drop_s, ring_drop_s,
@@ -191,6 +195,7 @@ begin
   event_seq_s <= seq_s-resize(event_age_s,sample_seq_t'length);
   current_delta_s <= event_seq_s-current_s.start_seq;
   previous_delta_s <= event_seq_s-previous_s.start_seq;
+  older_delta_s <= event_seq_s-older_start_s;
   queue_head_s <= unpack_meta(queue_s(head_s));
   queue_next_s <= unpack_meta(queue_s(next_q(head_s)));
   activity_baseline_s <= raw_baseline(current_s.baseline,current_s.positive_pulse);
@@ -221,7 +226,7 @@ begin
 
   desc_o <= ch_id_i & version_i & pack_meta(queue_head_s);
   desc_valid_o <= '1' when queue_count_s>0 and
-    seq_age(seq_s,queue_head_s.start_seq)>=511 and
+    seq_age(seq_s,queue_head_s.start_seq)>=FRAME_SAMPLE_COUNT_C-1 and
     seq_age(seq_s,queue_head_s.start_seq)<=RETENTION_LIMIT_C else '0';
   ring_inst : entity work.grouped_sample_ring
     port map(clock_i=>clock_i, builder_clock_i=>builder_clock_i,
@@ -263,7 +268,7 @@ begin
         allocate_slot_s<=(others=>'0'); read_slot_s<=(others=>'0');
         reserved_count_s<=0; published_count_s<=0; read_word_s<=0;
         chain_active_s<='0'; current_accepted_s<='0'; previous_accepted_s<='0';
-        current_s<=META_NULL_C; previous_s<=META_NULL_C; activity_s<='0'; quiet_s<=0; chain_quiet_limit_s<=32;
+        current_s<=META_NULL_C; previous_s<=META_NULL_C; older_start_s<=(others=>'0'); older_accepted_s<='0'; activity_s<='0'; quiet_s<=0; chain_quiet_limit_s<=32;
         required_end_s<=(others=>'0'); last_start_s<=(others=>'0'); last_start_valid_s<='0'; trigger_previous_s<='0';
         record_count_s<=(others=>'0'); full_count_s<=(others=>'0'); busy_count_s<=(others=>'0');
         spacing_count_s<=(others=>'0'); queue_drop_s<=(others=>'0'); ring_drop_s<=(others=>'0');
@@ -282,6 +287,9 @@ begin
         if current_accepted_s='1' and seq_age(seq_s,current_s.start_seq)>RING_DEPTH_C then
           current_accepted_s<='0';
         end if;
+        if older_accepted_s='1' and seq_age(seq_s,older_start_s)>RING_DEPTH_C then
+          older_accepted_s<='0';
+        end if;
         if previous_accepted_s='1' and seq_age(seq_s,previous_s.start_seq)>RING_DEPTH_C then
           previous_accepted_s<='0';
         end if;
@@ -289,7 +297,7 @@ begin
         if timestamp_jump_s='1' then
           -- Start a new admission epoch; reserved packet ownership and the
           -- uninterrupted raw-sample ring/serializer keep draining unchanged.
-          history_s<=0; current_accepted_s<='0'; previous_accepted_s<='0'; last_start_valid_s<='0';
+          history_s<=0; current_accepted_s<='0'; previous_accepted_s<='0'; older_accepted_s<='0'; last_start_valid_s<='0';
         end if;
         trigger_previous_s<=trigger_i.trigger_pulse;
         if trigger_i.trigger_pulse='1' and trigger_previous_s='0' and enable_i='1' then
@@ -307,7 +315,7 @@ begin
         if packet_commit_i='1' then
           assert packet_wr_i='1' and queue_count_s>0 and desc_busy_i='1'
             report "grouped commit without an owned descriptor" severity failure;
-          assert packet_addr_i=slot_addr(queue_head_s.slot,7)
+          assert packet_addr_i=slot_addr(queue_head_s.slot,6)
             report "grouped packet committed into the wrong reserved slot" severity failure;
           published:=published+1; record_count_s<=record_count_s+1;
           if packet_overflow_i='1' then descriptor_overflow_count_s<=descriptor_overflow_count_s+1; end if;
@@ -330,18 +338,19 @@ begin
           if activity_next='1' then quiet_next:=0;
           elsif quiet_next<chain_quiet_limit_s then quiet_next:=quiet_next+1; end if;
           activity_s<=activity_next; quiet_s<=quiet_next;
-          if seq_s-current_s.start_seq>=511 then
+          if seq_s-current_s.start_seq>=FRAME_SAMPLE_COUNT_C-1 then
             -- A satisfied deadline may otherwise age through the signed
             -- half-range during a long tail. Advancing it to the frame end
             -- preserves whether more posttrigger samples are still required.
-            if signed(required_end_s-(current_s.start_seq+511))<=0 then
-              required_end_s<=current_s.start_seq+511;
+            if signed(required_end_s-(current_s.start_seq+FRAME_SAMPLE_COUNT_C-1))<=0 then
+              required_end_s<=current_s.start_seq+FRAME_SAMPLE_COUNT_C-1;
             end if;
-            if quiet_next<chain_quiet_limit_s or signed(required_end_s-(current_s.start_seq+511))>0 then
-              req:=current_s; req.start_seq:=current_s.start_seq+512;
-              req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+512);
+            if quiet_next<chain_quiet_limit_s or signed(required_end_s-(current_s.start_seq+FRAME_SAMPLE_COUNT_C-1))>0 then
+              req:=current_s; req.start_seq:=current_s.start_seq+FRAME_SAMPLE_COUNT_C;
+              req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+FRAME_SAMPLE_COUNT_C);
               req.continuation:='1'; req.trigger_sample:=din_i;
               req_valid:=true; req_cont:=true;
+              older_start_s<=previous_s.start_seq; older_accepted_s<=previous_accepted_s;
               previous_s<=current_s; previous_accepted_s<=current_accepted_s;
               current_s<=req; current_accepted_s<='0';
             else chain_active_s<='0'; end if;
@@ -353,29 +362,32 @@ begin
         if event_pulse_s='1' and enable_i='1' then
           -- Supported tuples arrive at most447 clocks after the trigger;
           -- jump-edge/older/future tuples are whole losses before local matching.
-          if timestamp_jump_s='1' or event_age_s>447 then
+          if timestamp_jump_s='1' or event_age_s>POSTTRIGGER_SAMPLES_C then
             ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
           else
             covered := (current_accepted_s='1' and seq_age(seq_s,current_s.start_seq)<=RING_DEPTH_C and
                         inside_window(current_delta_s,continuation_enable_i)) or
                        (previous_accepted_s='1' and seq_age(seq_s,previous_s.start_seq)<=RING_DEPTH_C and
-                        inside_window(previous_delta_s,continuation_enable_i));
+                        inside_window(previous_delta_s,continuation_enable_i)) or
+                       (older_accepted_s='1' and seq_age(seq_s,older_start_s)<=RING_DEPTH_C and
+                        inside_window(older_delta_s,continuation_enable_i));
             if covered then
               covered_count_s<=covered_count_s+1;
               -- A coalesced trigger still owns its complete trigger..trigger+447
               -- posttrigger interval. Delayed trigger delivery may reopen the
               -- last quiet-closed chain from retained samples, without shifting
-              -- its 512-sample grid or adding another pretrigger region.
+              -- its 256-sample grid or adding another pretrigger region.
               if continuation_enable_i='1' then
-                event_end_seq:=event_seq_s+447;
+                event_end_seq:=event_seq_s+POSTTRIGGER_SAMPLES_C;
                 if signed(event_end_seq-required_end_s)>0 then required_end_s<=event_end_seq; end if;
-                if signed(event_end_seq-(current_s.start_seq+511))>0 and
-                   seq_s-current_s.start_seq>=511 and not req_valid then
-                  req:=current_s; req.start_seq:=current_s.start_seq+512;
-                  req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+512);
+                if signed(event_end_seq-(current_s.start_seq+FRAME_SAMPLE_COUNT_C-1))>0 and
+                   seq_s-current_s.start_seq>=FRAME_SAMPLE_COUNT_C-1 and not req_valid then
+                  req:=current_s; req.start_seq:=current_s.start_seq+FRAME_SAMPLE_COUNT_C;
+                  req.sample0_ts:=std_logic_vector(unsigned(current_s.sample0_ts)+FRAME_SAMPLE_COUNT_C);
                   req.continuation:='1'; req.trigger_sample:=event_sample_s;
                   req_valid:=true; req_cont:=true;
-                  previous_s<=current_s; previous_accepted_s<=current_accepted_s;
+                  older_start_s<=previous_s.start_seq; older_accepted_s<=previous_accepted_s;
+              previous_s<=current_s; previous_accepted_s<=current_accepted_s;
                   current_s<=req; current_accepted_s<='0'; chain_active_s<='1';
                 end if;
               end if;
@@ -384,8 +396,11 @@ begin
               busy_count_s<=busy_count_s+1;
             else
               age:=to_integer(event_age_s(8 downto 0))+PRETRIGGER_SAMPLES_C;
-              min_spacing:=512;
-              if continuation_enable_i='0' then min_spacing:=512-to_integer(unsigned(signal_delay_i))*16; end if;
+              min_spacing:=FRAME_SAMPLE_COUNT_C;
+              if continuation_enable_i='0' then
+                if to_integer(unsigned(signal_delay_i))*16>=FRAME_SAMPLE_COUNT_C then min_spacing:=16;
+                else min_spacing:=FRAME_SAMPLE_COUNT_C-to_integer(unsigned(signal_delay_i))*16; end if;
+              end if;
               candidate_start_seq:=seq_s-to_unsigned(age,sample_seq_t'length);
               if age>history_s then
                 ring_drop_s<=ring_drop_s+1; busy_count_s<=busy_count_s+1;
@@ -412,8 +427,8 @@ begin
           -- is a shift; the 64-sample retention margin covers CDC latency.
           workload:=count*SERIALIZER_CYCLES_C;
           wait_cycles:=0;
-          if count>0 and seq_age(seq_s,pending_head.start_seq)<511 then
-            wait_cycles:=511-seq_age(seq_s,pending_head.start_seq);
+          if count>0 and seq_age(seq_s,pending_head.start_seq)<FRAME_SAMPLE_COUNT_C-1 then
+            wait_cycles:=FRAME_SAMPLE_COUNT_C-1-seq_age(seq_s,pending_head.start_seq);
           end if;
           accepted:=false;
           if reserved=PACKET_SLOT_COUNT_C then full_count_s<=full_count_s+1;
@@ -430,10 +445,11 @@ begin
             if accepted then current_s<=req; current_accepted_s<='1';
             else continuation_drop_s<=continuation_drop_s+1; end if;
           elsif req_first and accepted then
-            previous_s<=current_s; previous_accepted_s<=current_accepted_s;
+            older_start_s<=previous_s.start_seq; older_accepted_s<=previous_accepted_s;
+              previous_s<=current_s; previous_accepted_s<=current_accepted_s;
             current_s<=req; current_accepted_s<='1';
             chain_active_s<=continuation_enable_i; activity_s<='0'; quiet_s<=0;
-            required_end_s<=req.start_seq+511;
+            required_end_s<=req.start_seq+PRETRIGGER_SAMPLES_C+POSTTRIGGER_SAMPLES_C;
             quiet_limit:=to_integer(unsigned(quiet_samples_i));
             if quiet_limit=0 then quiet_limit:=1; end if;
             chain_quiet_limit_s<=quiet_limit;

@@ -119,7 +119,7 @@ begin
   baseline_s <= std_logic_vector(to_unsigned(0,14)-unsigned(active_s(64 downto 51)))
     when active_s(8)='1' else active_s(64 downto 51);
   descriptors : entity work.fragment_peak_descriptors_banked
-    generic map(PIPELINE_INPUT_G=>true)
+    generic map(PIPELINE_INPUT_G=>true, FRAME_SAMPLE_COUNT_G=>256, COMPACT_DESCRIPTOR_G=>true)
     port map(clock_i=>builder_clock_i, reset_i=>builder_reset_i,
       start_i=>descriptor_start_s, baseline_i=>baseline_s, positive_pulse_i=>active_s(8),
       threshold_i=>active_s(22 downto 9), sample_valid_i=>sample_valid_s,
@@ -151,21 +151,21 @@ begin
     write_s(83 downto 79)<=active_s(4 downto 0);
     if payload_wr_s='1' then
       wr_en_s<=not builder_reset_i;
-      write_s(78 downto 72)<=std_logic_vector(payload_word_s+8);
+      write_s(78 downto 72)<=std_logic_vector(payload_word_s+7);
       write_s(63 downto 0)<=payload_data_s;
-      if pack_index_s=511 then write_s(71 downto 64)<=X"ED"; end if;
+      if pack_index_s=255 then write_s(71 downto 64)<=X"ED"; end if;
     elsif state_s=header then
       wr_en_s<=not builder_reset_i;
       write_s(78 downto 72)<=std_logic_vector(resize(header_index_s,7));
       case to_integer(header_index_s) is
         when 0 => write_s(71 downto 0)<=X"BE" & active_s(128 downto 65);
         when 1 => write_s(71 downto 0)<=X"00" & active_s(153 downto 146) &
-          active_s(145 downto 142) & active_s(5) & '1' & overflow_s & '0' &
+          X"4" & active_s(5) & '1' & overflow_s & '0' &
           active_s(7 downto 6) & active_s(64 downto 51) & "00" &
           active_s(36 downto 23) & "00" & active_s(50 downto 37);
         when others => write_s(63 downto 0)<=descriptor_word_s;
       end case;
-      if header_index_s=7 then write_s(86)<='1'; write_s(87)<=overflow_s; end if;
+      if header_index_s=6 then write_s(86)<='1'; write_s(87)<=overflow_s; end if;
     end if;
   end process;
 
@@ -208,7 +208,7 @@ begin
           report "grouped serializer exceeded reserved write FIFO space" severity failure;
         case state_s is
           when idle =>
-            -- Reserve 128 words for 120 writes plus write-count pipeline latency.
+            -- Reserve 128 words for 63 writes plus write-count pipeline latency.
             -- Remote read-pointer latency makes this count conservative.
             if wr_busy_s='0' and full_s='0' and unsigned(write_count_s)<=384 then
               for offset in 0 to 3 loop
@@ -226,7 +226,7 @@ begin
           when prime => issue_index_s<=to_unsigned(1,9); state_s<=payload;
           when payload =>
             issue_index_s<=issue_index_s+1;
-            if sample_index_s=511 then header_index_s<=(others=>'0'); state_s<=descriptor_drain;
+            if sample_index_s=255 then header_index_s<=(others=>'0'); state_s<=descriptor_drain;
             else sample_index_s<=sample_index_s+1; end if;
           when descriptor_drain =>
             -- Payload is already in the FIFO. Retain the descriptor, channel
@@ -234,7 +234,7 @@ begin
             -- pipeline; overflow/header data and commit must use that bank.
             if descriptor_done_s='1' then state_s<=header; end if;
           when header =>
-            if header_index_s=7 then ack_s(to_integer(channel_s))<='1'; state_s<=idle;
+            if header_index_s=6 then ack_s(to_integer(channel_s))<='1'; state_s<=idle;
             else header_index_s<=header_index_s+1; end if;
         end case;
       end if;

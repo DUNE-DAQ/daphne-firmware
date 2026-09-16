@@ -44,6 +44,7 @@ fe_axi_axi_lite
 thresholds_axi_lite
 frontend_register_slice_contract
 control_plane_boundary_contract
+gapless_readout_contract
 EOF
       ;;
     leaf-fast)

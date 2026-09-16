@@ -190,6 +190,23 @@ project-spec/meta-daphne/recipes-firmware/daphne-overlay/files/staged/
 so the `daphne-overlay` recipe has a repo-owned place to install the qualified
 firmware artifacts from.
 
+The production path requires both immutable apps, selected by explicit SHA:
+
+```bash
+./scripts/petalinux/stage_overlay_into_project.sh /path/to/petalinux-project \
+  --self-trigger-output /path/to/selftrigger/xilinx/output-<self-sha7> \
+  --self-trigger-sha <self-sha7> \
+  --full-stream-output /path/to/fullstream/xilinx/output-<full-sha7> \
+  --full-stream-sha <full-sha7>
+```
+
+Profiles pin ABI-2 identity and a separate packet protocol capability. The
+256/5 self-trigger app is packet-v4 (63 words / 504 bytes) and proves it by
+reading its capability register before any runtime client starts. The existing
+ABI-2 full-stream app remains declared packet-v3 metadata; it is still checked
+by magic, ABI, variant, and build ID without requiring the new self-trigger
+register.
+
 ## Current userspace runtime staging point
 
 After harvesting a qualified runtime bundle from a working board:

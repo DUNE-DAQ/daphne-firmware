@@ -1,0 +1,17 @@
+[options]
+mode prove
+depth 12
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 daphne_package.vhd daphne_subsystem_pkg.vhd two_lane_readout_mux.vhd gapless_readout_formal.vhd -e gapless_readout_formal
+prep -top gapless_readout_formal
+
+[files]
+../../ip_repo/daphne_ip/rtl/daphne_package.vhd
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd
+../vhdl/gapless_readout_formal.vhd

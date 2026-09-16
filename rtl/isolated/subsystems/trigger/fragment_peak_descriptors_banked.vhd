@@ -8,7 +8,9 @@ use ieee.numeric_std.all;
 entity fragment_peak_descriptors_banked is
   -- The grouped 312.5 MHz reader registers its selected sample, then its
   -- amplitude. Native ADC-clocked users retain the original completion cycle.
-  generic (PIPELINE_INPUT_G : boolean := false);
+  generic (PIPELINE_INPUT_G : boolean := false;
+    FRAME_SAMPLE_COUNT_G : positive := 512;
+    COMPACT_DESCRIPTOR_G : boolean := false);
   port (
     clock_i, reset_i, start_i : in std_logic;
     baseline_i : in std_logic_vector(13 downto 0);
@@ -17,7 +19,8 @@ entity fragment_peak_descriptors_banked is
     sample_valid_i : in std_logic;
     sample_i : in std_logic_vector(13 downto 0);
     sample_index_i : in unsigned(8 downto 0);
-    -- 0..4: descriptor high/low words; 5: offset words 11/10.
+    -- Compact: 0..4 contain complete descriptors; absent slots are zero.
+    -- Legacy: 0..4: descriptor high/low words; 5: offset words 11/10.
     -- 6..7 return the absent-descriptor sentinel.
     read_index_i : in unsigned(2 downto 0);
     read_word_o : out std_logic_vector(63 downto 0);
@@ -64,6 +67,9 @@ architecture rtl of fragment_peak_descriptors_banked is
   signal pending_descriptor_s : std_logic_vector(63 downto 0) := (others=>'0');
   signal pending_offset_s : unsigned(8 downto 0) := (others=>'0');
 begin
+  assert FRAME_SAMPLE_COUNT_G<=512 and
+    (not COMPACT_DESCRIPTOR_G or FRAME_SAMPLE_COUNT_G=256)
+    report "compact descriptors require exactly 256 samples" severity failure;
   overflow_o <= completed_overflow_s;
   -- Configuration is captured at the input boundary, independently of the
   -- processing latency. A restart/sample0 uses the arriving configuration.
@@ -154,6 +160,7 @@ begin
       end case;
     end if;
     read_word_o <= EMPTY_DESCRIPTOR_C;
+    if COMPACT_DESCRIPTOR_G then read_word_o <= (others=>'0'); end if;
     if index < 5 then
       if PIPELINE_INPUT_G and pending_write_s='1' and pending_bank_s=completed_bank_s
         and index=pending_slot_s then
@@ -161,7 +168,7 @@ begin
       elsif valid_s(completed_bank_s)(index)='1' then
         read_word_o <= descriptor_memory_s(completed_bank_s*8+index);
       end if;
-    elsif index=5 then
+    elsif index=5 and not COMPACT_DESCRIPTOR_G then
       read_word_o <= offsets;
     end if;
   end process;
@@ -174,6 +181,7 @@ begin
     variable in_run, overflow : std_logic;
     variable slot : natural range 0 to 5;
     variable bank : natural range 0 to 1;
+    variable encoded_descriptor : std_logic_vector(63 downto 0);
   begin
     if rising_edge(clock_i) then
       done_o <= '0';
@@ -225,23 +233,31 @@ begin
             end if;
           end if;
           -- At most one excursion closes per sample, so RAM has one write port.
-          if in_run='1' and (amplitude<=threshold or sample_index_s=511) then
+          if in_run='1' and (amplitude<=threshold or sample_index_s=FRAME_SAMPLE_COUNT_G-1) then
             if slot<5 then
               if duration>511 then duration_field := to_unsigned(511,9);
               else duration_field := resize(duration,9); end if;
+              encoded_descriptor :=
+                std_logic_vector(duration_field) & std_logic_vector(peak_time) & std_logic_vector(peak) &
+                '1' & std_logic_vector(integral) & "11110001";
+              if COMPACT_DESCRIPTOR_G then
+                -- [63:61] reserved=0, [60] valid, [59:52] start,
+                -- [51:44] maximum offset, [43:36] duration minus one,
+                -- [35:22] height, [21:0] integral. 256*16383 fits22bits.
+                encoded_descriptor := "0001" & std_logic_vector(run_start(7 downto 0)) &
+                  std_logic_vector(peak_time(7 downto 0)) &
+                  std_logic_vector(resize(duration-1,8)) & std_logic_vector(peak) &
+                  std_logic_vector(integral(21 downto 0));
+              end if;
               if PIPELINE_INPUT_G then
                 -- Register the sparse descriptor close before the distributed
                 -- RAM and metadata write. A run cannot close on consecutive
                 -- samples, so this retains a single write port at full rate.
-                pending_descriptor_s <=
-                  std_logic_vector(duration_field) & std_logic_vector(peak_time) & std_logic_vector(peak) &
-                  '1' & std_logic_vector(integral) & "11110001";
+                pending_descriptor_s <= encoded_descriptor;
                 pending_bank_s <= bank; pending_slot_s <= slot;
                 pending_offset_s <= run_start; pending_write_s <= '1';
               else
-                descriptor_memory_s(bank*8+slot) <=
-                  std_logic_vector(duration_field) & std_logic_vector(peak_time) & std_logic_vector(peak) &
-                  '1' & std_logic_vector(integral) & "11110001";
+                descriptor_memory_s(bank*8+slot) <= encoded_descriptor;
                 -- Fixed slots keep the small resettable metadata separate from
                 -- the single indexed, unreset RAM payload write above.
                 for k in 0 to 4 loop
@@ -254,7 +270,7 @@ begin
             else overflow := '1'; end if;
             in_run := '0';
           end if;
-          if sample_index_s=511 then
+          if sample_index_s=FRAME_SAMPLE_COUNT_G-1 then
             running_s <= '0';
             done_o <= '1'; completed_bank_s <= bank; completed_overflow_s <= overflow;
           end if;

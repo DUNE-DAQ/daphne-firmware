@@ -128,11 +128,20 @@ def main():
             simulate('stream_reset_sync_tb', 'stream_reset_stages' + str(stages),
                      ['STAGES_G=' + str(stages)])
         simulate('afe_stc3_stream_serializer_tb', 'serializer_contract')
+        simulate('fragment_peak_descriptors_compact_tb', 'compact_descriptor_contract')
+        for label, generics in (
+            ('odd0', ['ODD_START_G=0']),
+            ('odd1', ['ODD_START_G=1']),
+            ('late447', ['TRIGGER_DELAY_G=447']),
+            ('quiet', ['QUIET_AT_G=237']),
+            ('quiet_late447', ['QUIET_AT_G=237', 'TRIGGER_DELAY_G=447']),
+        ):
+            simulate('stc3_frame256_continuation_tb', 'frame256_' + label, generics)
         for bench in contract_benches:
-            adapted = output / (bench + '.vhd')
-            adapted.write_text(staged_contracts[bench].read_text().replace(
-                'entity work.stc3_record_builder', 'entity work.stc3_grouped_test_adapter'))
-            run('xvhdl', '--2008', '--work', 'work', adapted, '--log', 'compile-' + bench + '.log')
+            # Historical512 contracts keep their original reference DUT;
+            # the explicit256 grouped contracts above check the new wire ABI.
+            run('xvhdl', '--2008', '--work', 'work', staged_contracts[bench],
+                '--log', 'compile-' + bench + '.log')
             if bench == 'stc3_continuation_tb':
                 for odd in (0, 1):
                     simulate(bench, bench + '_odd' + str(odd), ['ODD_START_G=' + str(odd)])

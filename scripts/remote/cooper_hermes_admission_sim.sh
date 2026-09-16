@@ -14,7 +14,13 @@ trap 'result=$?; printf "%s\n" "$result" > exit-code.txt' EXIT
 mkdir xpm
 xpm_library="xpm=$sim_root/xpm"
 git -C "$source_root" rev-parse HEAD > source-commit.txt
-sha256sum "$hermes/deimos/tx_mux_ibuf.vhd" "$source_root/tests/logic/hermes_packet_admission_tb.vhd" "$xpm_root/xpm_fifo/hdl/xpm_fifo.sv" > sources.sha256
+sha256sum "$hermes/deimos/tx_mux_ibuf.vhd" \
+  "$source_root/tests/logic/hermes_packet_admission_tb.vhd" \
+  "$source_root/tests/logic/gapless_hermes_admission_tb.vhd" \
+  "$source_root/rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd" \
+  "$source_root/ip_repo/daphne_ip/rtl/daphne_package.vhd" \
+  "$source_root/rtl/isolated/common/daphne_subsystem_pkg.vhd" \
+  "$xpm_root/xpm_fifo/hdl/xpm_fifo.sv" > sources.sha256
 xvhdl --2008 --work "$xpm_library" "$xpm_root/xpm_VCOMP.vhd" --log compile-xpm-vhdl.log
 xvlog --sv --work "$xpm_library" "$xpm_root/xpm_cdc/hdl/xpm_cdc.sv" "$xpm_root/xpm_memory/hdl/xpm_memory.sv" "$xpm_root/xpm_fifo/hdl/xpm_fifo.sv" --log compile-xpm-verilog.log
 xvlog --work work "$XILINX_VIVADO/data/verilog/src/glbl.v" --log compile-glbl.log
@@ -22,4 +28,8 @@ xvhdl --2008 --work work "$hermes/ipbus/ipbus_package.vhd" "$hermes/ipbus/ipbus_
 xelab --debug typical --relax -L "$xpm_library" -L unisims_ver work.hermes_packet_admission_tb work.glbl --snapshot admission --log elaborate.log
 xsim admission --runall --log simulate.log
 grep -F 'hermes_packet_admission_tb PASS' simulate.log
+xvhdl --2008 --work work "$source_root/ip_repo/daphne_ip/rtl/daphne_package.vhd" "$source_root/rtl/isolated/common/daphne_subsystem_pkg.vhd" "$source_root/rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd" "$source_root/tests/logic/gapless_hermes_admission_tb.vhd" --log compile-gapless.log
+xelab --debug typical --relax -L "$xpm_library" -L unisims_ver work.gapless_hermes_admission_tb work.glbl --snapshot gapless_admission --log elaborate-gapless.log
+xsim gapless_admission --runall --log simulate-gapless.log
+grep -F 'gapless_hermes_admission_tb PASS' simulate-gapless.log
 printf 'PASS\n' > result.txt

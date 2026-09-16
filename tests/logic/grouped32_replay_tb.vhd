@@ -70,7 +70,7 @@ begin
       ring_rd_addr_i=>raddr(ch),ring_data_o=>rdata(ch),packet_wr_i=>pwr(ch),packet_commit_i=>pcommit(ch),
       packet_addr_i=>waddr(ch/4),packet_data_i=>wdata(ch/4),packet_overflow_i=>woverflow(ch/4),
       ch_id_i=>std_logic_vector(to_unsigned(ch,8)),
-      version_i=>x"3",
+      version_i=>x"4",
       threshold_xc_i=>x"0012345",
       signal_delay_i=>delay_s,
       clock_i=>clk,
@@ -107,8 +107,9 @@ begin
       rd_en_i=>grouped_rd(ch),
       dout_o=>grouped_data(ch));
     reference:entity work.stc3_record_builder
+      generic map(FRAME_SAMPLE_COUNT_G=>256)
       port map(ch_id_i=>std_logic_vector(to_unsigned(ch,8)),
-      version_i=>x"3",
+      version_i=>x"4",
       threshold_xc_i=>x"0012345",
       signal_delay_i=>delay_s,
       clock_i=>clk,
@@ -156,11 +157,11 @@ begin
         packet_data_o=>wdata(g),packet_overflow_o=>woverflow(g));
   end generate;
   grouped_mux:entity work.two_lane_readout_mux
-    generic map(CHANNEL_COUNT_G=>32,LANE_COUNT_G=>8,CHANNELS_PER_LANE_G=>4)
+    generic map(CHANNEL_COUNT_G=>32,LANE_COUNT_G=>8,CHANNELS_PER_LANE_G=>4,GAPLESS_G=>true)
     port map(clock_i=>clk,reset_i=>rst,ready_i=>grouped_ready,dout_i=>grouped_data,
       rd_en_o=>grouped_rd,dout_o=>grouped_out,valid_o=>grouped_valid,last_o=>grouped_last,packet_ready_i=>link_ready);
   reference_mux:entity work.two_lane_readout_mux
-    generic map(CHANNEL_COUNT_G=>32,LANE_COUNT_G=>8,CHANNELS_PER_LANE_G=>4)
+    generic map(CHANNEL_COUNT_G=>32,LANE_COUNT_G=>8,CHANNELS_PER_LANE_G=>4,GAPLESS_G=>true)
     port map(clock_i=>clk,reset_i=>rst,ready_i=>reference_ready,dout_i=>reference_data,
       rd_en_o=>reference_rd,dout_o=>reference_out,valid_o=>reference_valid,last_o=>reference_last,packet_ready_i=>link_ready);
   stimulus:process
@@ -210,8 +211,8 @@ begin
   end process;
   capture:process(clk)
     file output_file:text open write_mode is OUTPUT_G;
-    type indices_t is array(0 to 15) of natural range 0 to 119;
-    type packets_t is array(0 to 15) of std_logic_vector(7679 downto 0);
+    type indices_t is array(0 to 15) of natural range 0 to 62;
+    type packets_t is array(0 to 15) of std_logic_vector(4031 downto 0);
     variable idx:indices_t:=(others=>0);
     variable packets:packets_t:=(others=>(others=>'0'));
     variable row:line;
@@ -227,7 +228,7 @@ begin
           else word:=reference_out(lane-8); valid:=reference_valid(lane-8); last:=reference_last(lane-8); end if;
           if valid='1' then
             packets(lane)(64*idx(lane)+63 downto 64*idx(lane)):=word;
-            if idx(lane)=119 then
+            if idx(lane)=62 then
               assert last='1' report "long packet" severity failure;
               channel:=to_integer(unsigned(packets(lane)(127 downto 120)));
               assert channel/4=lane mod 8 report "channel routed to wrong lane" severity failure;

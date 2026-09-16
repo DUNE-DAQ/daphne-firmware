@@ -4,6 +4,41 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 DEPENDS += "patchelf-native"
 
+require daphne-server-contract.inc
+require daphne-server-version.inc
+
+python validate_daphne_server_runtime () {
+    import re
+
+    if d.getVar("DAPHNE_SERVER_RUNTIME_QUALIFIED") != "1":
+        bb.fatal(
+            "A dual-gateware-compatible daphne-server bundle must be staged with "
+            "scripts/petalinux/stage_runtime_into_project.sh before building daphne-server"
+        )
+
+    expected_commit = d.getVar("DAPHNE_SERVER_REQUIRED_GIT_COMMIT") or ""
+    staged_commit = d.getVar("DAPHNE_SERVER_RUNTIME_GIT_COMMIT") or ""
+    if staged_commit != expected_commit:
+        bb.fatal(
+            f"Staged daphne-server commit {staged_commit!r} does not match "
+            f"the release contract {expected_commit!r}"
+        )
+
+    expected_abi = d.getVar("DAPHNE_SERVER_REQUIRED_GATEWARE_ABI_MAJOR") or ""
+    staged_abi = d.getVar("DAPHNE_SERVER_RUNTIME_GATEWARE_ABI_MAJOR") or ""
+    if staged_abi != expected_abi:
+        bb.fatal(
+            f"Staged daphne-server ABI {staged_abi!r} does not match "
+            f"the gateware ABI contract {expected_abi!r}"
+        )
+
+    runtime_sha = d.getVar("DAPHNE_SERVER_RUNTIME_SHA256") or ""
+    if re.fullmatch(r"[0-9a-f]{64}", runtime_sha) is None:
+        bb.fatal("DAPHNE_SERVER_RUNTIME_SHA256 is not a lowercase SHA-256 digest")
+}
+
+do_fetch[prefuncs] += "validate_daphne_server_runtime"
+
 RDEPENDS:${PN} += " \
     i2c-tools \
     zlib \
@@ -29,6 +64,11 @@ do_install() {
     if [ -z "${expected_sha}" ] || [ "${actual_sha}" != "${expected_sha}" ]; then
         bbfatal "DAPHNE runtime bundle checksum verification failed"
     fi
+    if [ "${actual_sha}" != "${DAPHNE_SERVER_RUNTIME_SHA256}" ]; then
+        bbfatal "DAPHNE runtime bundle does not match daphne-server-version.inc"
+    fi
+    (cd ${WORKDIR}/staged && sha256sum --check --strict SHA256SUMS) || \
+        bbfatal "DAPHNE staged runtime checksum set verification failed"
 
     runtime_root="${WORKDIR}/runtime-root"
     rm -rf "${runtime_root}"

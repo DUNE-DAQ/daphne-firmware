@@ -187,7 +187,8 @@ begin
     generic map(
       CHANNEL_COUNT_G     => ACTIVE_CHANNEL_COUNT_C,
       LANE_COUNT_G        => READOUT_LANE_COUNT_C,
-      CHANNELS_PER_LANE_G => CHANNELS_PER_LANE_C
+      CHANNELS_PER_LANE_G => CHANNELS_PER_LANE_C,
+      GAPLESS_G          => true
     )
     port map (
       clock_i => clock,
