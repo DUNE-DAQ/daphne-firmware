@@ -169,15 +169,7 @@ set_property PACKAGE_PIN U3       [get_ports {TX1_GTH_N}] ; # pin location SOM24
 #set_property IOSTANDARD LVDS [get_ports TX1_GTH_P]
 #set_property IOSTANDARD LVDS [get_ports TX1_GTH_N]
 
-set_property PACKAGE_PIN P2       [get_ports {RX2_GTH_P}] ; # pin location SOM240_2_D5
-set_property PACKAGE_PIN P1       [get_ports {RX2_GTH_N}] ; # pin location SOM240_2_D6
-set_property PACKAGE_PIN N4       [get_ports {TX2_GTH_P}] ; # pin location SOM240_2_A3
-set_property PACKAGE_PIN N3       [get_ports {TX2_GTH_N}] ; # pin location SOM240_2_A4
 
-set_property PACKAGE_PIN T2       [get_ports {RX3_GTH_P}] ; # pin location SOM240_2_B1
-set_property PACKAGE_PIN T1       [get_ports {RX3_GTH_N}] ; # pin location SOM240_2_B2
-set_property PACKAGE_PIN R4       [get_ports {TX3_GTH_P}] ; # pin location SOM240_2_B5
-set_property PACKAGE_PIN R3       [get_ports {TX3_GTH_N}] ; # pin location SOM240_2_B6
 
 #Timinng SFP ---- including the controll signals-------
 

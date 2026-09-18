@@ -59,8 +59,8 @@ end k26c_selftrigger_datapath_plane;
 architecture rtl of k26c_selftrigger_datapath_plane is
   constant ACTIVE_AFE_COUNT_C     : positive := 4;
   constant ACTIVE_CHANNEL_COUNT_C : positive := 32;
-  constant READOUT_LANE_COUNT_C   : positive := 8;
-  constant CHANNELS_PER_LANE_C    : positive := 4;
+  constant READOUT_LANE_COUNT_C   : positive := 4;
+  constant CHANNELS_PER_LANE_C    : positive := 8;
   signal builder_clock_s, builder_reset_s, acquisition_reset_s : std_logic;
   signal threshold_axi_in:   AXILITE_INREC;
   signal threshold_axi_out:  AXILITE_OUTREC;
@@ -82,6 +82,9 @@ architecture rtl of k26c_selftrigger_datapath_plane is
   signal rd_en:              std_logic_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
   signal fabric_dout:        slv72_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
 begin
+  readout_data_o(7 downto 4) <= (others => (others => '0'));
+  readout_valid_o(7 downto 4) <= (others => '0');
+  readout_last_o(7 downto 4) <= (others => '0');
   threshold_axi_in.ACLK    <= thresh_s_axi_aclk;
   threshold_axi_in.ARESETN <= thresh_s_axi_aresetn;
   threshold_axi_in.AWADDR  <= thresh_s_axi_awaddr;
@@ -180,9 +183,9 @@ begin
       dout_o                    => fabric_dout
     );
 
-  -- Two adjacent four-channel lanes feed each Hermes link:0..7,8..15,
-  --16..23 and24..31. The public monitor/config ports remain 40 bits wide;
-  --channels32..39 are intentionally unavailable in this resource-fit build.
+  -- Two adjacent eight-channel lanes feed each Hermes link: 0..15 and 16..31.
+  -- The public monitor/config ports remain 40 bits wide; channels 32..39
+  -- are intentionally unavailable in this resource-fit build.
   two_lane_readout_mux_inst : entity work.two_lane_readout_mux
     generic map(
       CHANNEL_COUNT_G     => ACTIVE_CHANNEL_COUNT_C,
@@ -196,10 +199,10 @@ begin
       ready_i => ready,
       dout_i  => fabric_dout,
       rd_en_o => rd_en,
-      dout_o  => readout_data_o,
-      valid_o => readout_valid_o,
-      last_o  => readout_last_o,
-      packet_ready_i => readout_ready_i
+      dout_o  => readout_data_o(3 downto 0),
+      valid_o => readout_valid_o(3 downto 0),
+      last_o  => readout_last_o(3 downto 0),
+      packet_ready_i => readout_ready_i(3 downto 0)
     );
 
   selftrigger_register_bank_inst : entity work.selftrigger_register_bank

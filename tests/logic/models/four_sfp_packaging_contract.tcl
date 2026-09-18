@@ -88,7 +88,7 @@ proc connect_bd_net {args} {
 }
 source [file join $root boards k26c bd_shell.tcl]
 daphne_connect_board_user_ip user
-foreach sfp {0 1 2 3} {
+foreach sfp {0 1} {
     foreach {suffix external} {rx_p RX%d_GTH_P rx_n RX%d_GTH_N tx_p TX%d_GTH_P tx_n TX%d_GTH_N tx_dis SFP_GTH%d_TX_DIS} {
         set pin eth${sfp}_${suffix}
         set expected [format $external $sfp]
@@ -98,10 +98,19 @@ foreach sfp {0 1 2 3} {
         if {$expected ni [lindex [dict get $connections $pin] 0]} {error "Wrong SFP mapping for $pin"}
     }
 }
+foreach sfp {2 3} {
+    set pin eth${sfp}_tx_dis
+    if {![dict exists $connections $pin] || [llength [dict get $connections $pin]] != 1} {
+        error "Missing or duplicate unused-SFP disable hookup for $pin"
+    }
+    if {"SFP_GTH${sfp}_TX_DIS" ni [lindex [dict get $connections $pin] 0]} {
+        error "Wrong unused-SFP disable mapping for $pin"
+    }
+}
 # Missing package metadata must fail admission to BD construction, rather than
 # leaving a one-ended net that validate_bd_design can silently tie off.
-set ports [lsearch -all -inline -not -exact $ports eth3_rx_p]
-if {![catch {daphne_bd_pin user eth3_rx_p} message] || ![string match "*required user-IP pin*" $message]} {
+set ports [lsearch -all -inline -not -exact $ports eth1_rx_p]
+if {![catch {daphne_bd_pin user eth1_rx_p} message] || ![string match "*required user-IP pin*" $message]} {
     error "Missing SFP pin did not fail explicitly"
 }
-puts "PASS actual board hook: all 20 SFP connections and missing-pin rejection"
+puts "PASS actual board hook: all active SFP connections and missing-pin rejection"

@@ -19,7 +19,11 @@ def main():
             subprocess.run([ghdl, *args], cwd=build, check=True)
         run("-a", "--std=08", *(str(ROOT / p) for p in sources))
         run("-e", "--std=08", "multilane_readout_mux_tb")
-        run("-r", "--std=08", "multilane_readout_mux_tb", "--assert-level=error")
+        for lanes in (8, 4):
+            for gapless, words in ((False, 120), (True, 63)):
+                run("-r", "--std=08", "multilane_readout_mux_tb",
+                    f"-gLANES_G={lanes}", f"-gGAPLESS_G={str(gapless).lower()}",
+                    f"-gPACKET_WORDS_G={words}", "--assert-level=error")
 
 if __name__ == "__main__":
     main()

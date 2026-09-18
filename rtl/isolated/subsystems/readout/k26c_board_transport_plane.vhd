@@ -66,15 +66,7 @@ port(
     eth1_tx_p: out std_logic_vector(0 downto 0);
     eth1_tx_n: out std_logic_vector(0 downto 0);
     eth1_tx_dis: out std_logic_vector(0 downto 0);
-    eth2_rx_p: in std_logic_vector(0 downto 0);
-    eth2_rx_n: in std_logic_vector(0 downto 0);
-    eth2_tx_p: out std_logic_vector(0 downto 0);
-    eth2_tx_n: out std_logic_vector(0 downto 0);
     eth2_tx_dis: out std_logic_vector(0 downto 0);
-    eth3_rx_p: in std_logic_vector(0 downto 0);
-    eth3_rx_n: in std_logic_vector(0 downto 0);
-    eth3_tx_p: out std_logic_vector(0 downto 0);
-    eth3_tx_n: out std_logic_vector(0 downto 0);
     eth3_tx_dis: out std_logic_vector(0 downto 0);
 
     readout_data_i: in array_8x64_type;
@@ -129,15 +121,7 @@ begin
       eth1_tx_p => eth1_tx_p,
       eth1_tx_n => eth1_tx_n,
       eth1_tx_dis => eth1_tx_dis,
-      eth2_rx_p => eth2_rx_p,
-      eth2_rx_n => eth2_rx_n,
-      eth2_tx_p => eth2_tx_p,
-      eth2_tx_n => eth2_tx_n,
       eth2_tx_dis => eth2_tx_dis,
-      eth3_rx_p => eth3_rx_p,
-      eth3_rx_n => eth3_rx_n,
-      eth3_tx_p => eth3_tx_p,
-      eth3_tx_n => eth3_tx_n,
       eth3_tx_dis => eth3_tx_dis,
       readout_data_i      => readout_data_i,
       readout_valid_i     => readout_valid_i,

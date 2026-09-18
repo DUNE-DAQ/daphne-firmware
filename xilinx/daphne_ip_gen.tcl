@@ -598,12 +598,12 @@ ipx::update_checksums $daphne
 # create the ports based on the TOP level design and the subcores
 set daphne_ports [ipx::add_ports_from_hdl -top_level_hdl_file $daphne_ip_top_hdl_file -top_module_name $daphne_ip_top_module -include_dirs $daphne_ip_include_dirs $daphne]
 
-# Fail packaging immediately if any required four-SFP physical port is absent.
-foreach sfp {0 1 2 3} {
+# Fail packaging immediately if any required two-SFP physical port is absent.
+foreach sfp {0 1} {
     foreach suffix {rx_p rx_n tx_p tx_n tx_dis} {
         set sfp_port eth${sfp}_${suffix}
         if {[llength [ipx::get_ports $sfp_port -of_objects $daphne]] != 1} {
-            error "ERROR: packaged IP is missing required four-SFP port $sfp_port."
+            error "ERROR: packaged IP is missing required two-SFP port $sfp_port."
         }
     }
 }

@@ -285,15 +285,7 @@ entity k26c_board_shell is
     eth1_tx_p: out std_logic_vector(0 downto 0);
     eth1_tx_n: out std_logic_vector(0 downto 0);
     eth1_tx_dis: out std_logic_vector(0 downto 0);
-    eth2_rx_p: in std_logic_vector(0 downto 0);
-    eth2_rx_n: in std_logic_vector(0 downto 0);
-    eth2_tx_p: out std_logic_vector(0 downto 0);
-    eth2_tx_n: out std_logic_vector(0 downto 0);
     eth2_tx_dis: out std_logic_vector(0 downto 0);
-    eth3_rx_p: in std_logic_vector(0 downto 0);
-    eth3_rx_n: in std_logic_vector(0 downto 0);
-    eth3_tx_p: out std_logic_vector(0 downto 0);
-    eth3_tx_n: out std_logic_vector(0 downto 0);
     eth3_tx_dis: out std_logic_vector(0 downto 0);
 
     out_buff_trig : out std_logic;
@@ -659,15 +651,7 @@ begin
       eth1_tx_p => eth1_tx_p,
       eth1_tx_n => eth1_tx_n,
       eth1_tx_dis => eth1_tx_dis,
-      eth2_rx_p => eth2_rx_p,
-      eth2_rx_n => eth2_rx_n,
-      eth2_tx_p => eth2_tx_p,
-      eth2_tx_n => eth2_tx_n,
       eth2_tx_dis => eth2_tx_dis,
-      eth3_rx_p => eth3_rx_p,
-      eth3_rx_n => eth3_rx_n,
-      eth3_tx_p => eth3_tx_p,
-      eth3_tx_n => eth3_tx_n,
       eth3_tx_dis => eth3_tx_dis,
       out_buff_data          => out_buff_data,
       out_buff_trig          => out_buff_trig_s,

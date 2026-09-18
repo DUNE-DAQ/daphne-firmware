@@ -7,16 +7,18 @@ use work.daphne_subsystem_pkg.all;
 use work.ipbus.all;
 use work.tx_mux_decl.all;
 
-entity gapless_hermes_admission_tb is end;
+entity gapless_hermes_admission_tb is
+  generic (CHANNELS_G : positive := 8);
+end;
 architecture test of gapless_hermes_admission_tb is
   constant WORDS_C : positive := 63;
   constant PER_CHANNEL_C : positive := 16;
-  type indices_t is array(0 to 3) of natural range 0 to WORDS_C-1;
-  type counts_t is array(0 to 3) of natural range 0 to PER_CHANNEL_C;
+  type indices_t is array(0 to CHANNELS_G-1) of natural range 0 to WORDS_C-1;
+  type counts_t is array(0 to CHANNELS_G-1) of natural range 0 to PER_CHANNEL_C;
   signal src_clock_s, eth_clock_s : std_logic := '0';
   signal reset_s : std_logic := '1';
-  signal ready_s, read_s : std_logic_array_t(0 to 3);
-  signal input_s : slv72_array_t(0 to 3);
+  signal ready_s, read_s : std_logic_array_t(0 to CHANNELS_G-1);
+  signal input_s : slv72_array_t(0 to CHANNELS_G-1);
   signal output_s : array_64_type(0 downto 0);
   signal valid_s, last_s, credit_s : std_logic_vector(0 downto 0);
   signal indices_s : indices_t := (others=>0);
@@ -35,13 +37,13 @@ architecture test of gapless_hermes_admission_tb is
 begin
   src_clock_s <= not src_clock_s after 8 ns;
   eth_clock_s <= not eth_clock_s after 3.2 ns;
-  channels : for ch in 0 to 3 generate
+  channels : for ch in 0 to CHANNELS_G-1 generate
     ready_s(ch) <= '1' when counts_s(ch)<PER_CHANNEL_C else '0';
     input_s(ch)(63 downto 0) <= payload(ch,counts_s(ch),indices_s(ch));
     input_s(ch)(71 downto 64) <= x"ED" when indices_s(ch)=WORDS_C-1 else x"00";
   end generate;
   readout_mux : entity work.two_lane_readout_mux
-    generic map(CHANNEL_COUNT_G=>4,LANE_COUNT_G=>1,CHANNELS_PER_LANE_G=>4,GAPLESS_G=>true)
+    generic map(CHANNEL_COUNT_G=>CHANNELS_G,LANE_COUNT_G=>1,CHANNELS_PER_LANE_G=>CHANNELS_G,GAPLESS_G=>true)
     port map(clock_i=>src_clock_s,reset_i=>reset_s,ready_i=>ready_s,dout_i=>input_s,
       rd_en_o=>read_s,dout_o=>output_s,valid_o=>valid_s,last_o=>last_s,packet_ready_i=>credit_s);
   packet_s <= (d=>output_s(0),valid=>valid_s(0),last=>last_s(0));
@@ -63,7 +65,7 @@ begin
           gapless_boundaries_s<=gapless_boundaries_s+1;
         end if;
         previous_last:=last_s(0);
-        for ch in 0 to 3 loop
+        for ch in 0 to CHANNELS_G-1 loop
           if read_s(ch)='1' then
             assert ready_s(ch)='1' report "read exhausted source" severity failure;
             if indices_s(ch)=WORDS_C-1 then
@@ -91,7 +93,7 @@ begin
             assert received_s.last='0' severity failure;
             index:=1;
           else
-            assert received_s.d=payload(packet mod 4,packet/4,index-1)
+            assert received_s.d=payload(packet mod CHANNELS_G,packet/CHANNELS_G,index-1)
               report "gapless packet payload reordered or lost" severity failure;
             if index=WORDS_C then
               assert received_s.last='1' severity failure;
@@ -117,11 +119,11 @@ begin
     assert credit_s(0)='0' and completed_s=0
       report "FIFO did not backpressure a stalled sink" severity failure;
     drain_s<=true;
-    wait until completed_s=4*PER_CHANNEL_C;
+    wait until completed_s=CHANNELS_G*PER_CHANNEL_C;
     wait for 1 us;
     assert gapless_boundaries_s>8 report "gapless transitions were not exercised" severity failure;
     assert credit_s(0)='1' report "credit failed to recover" severity failure;
-    report "gapless_hermes_admission_tb PASS: 64 packets,63 words,reset during packet,stalled sink,gapless boundaries" severity note;
+    report "gapless_hermes_admission_tb PASS: all channel packets,63 words,reset during packet,stalled sink,gapless boundaries" severity note;
     stop; wait;
   end process;
   watchdog : process begin wait for 200 us; assert false report "gapless admission watchdog" severity failure; end process;

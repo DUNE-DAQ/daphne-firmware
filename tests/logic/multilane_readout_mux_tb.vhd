@@ -6,10 +6,10 @@ use work.daphne_package.all;
 use work.daphne_subsystem_pkg.all;
 
 entity multilane_readout_mux_tb is
-  generic (GAPLESS_G : boolean := false; PACKET_WORDS_G : positive := 120);
+  generic (GAPLESS_G : boolean := false; PACKET_WORDS_G : positive := 120; LANES_G : positive := 8);
 end;
 architecture test of multilane_readout_mux_tb is
-  constant LANES_C : positive := 8;
+  constant LANES_C : positive := LANES_G;
   constant CHANNEL_COUNT_C : positive := 32;
   constant CHANNELS_PER_LANE_C : positive := CHANNEL_COUNT_C / LANES_C;
   constant PACKETS_PER_CHANNEL_C : positive := 3;
@@ -23,8 +23,8 @@ architecture test of multilane_readout_mux_tb is
   signal packet_s : channel_packets_t := (others=>0);
   signal ready_s, read_s : std_logic_array_t(0 to CHANNEL_COUNT_C - 1);
   signal input_s : slv72_array_t(0 to CHANNEL_COUNT_C - 1);
-  signal output_s : array_8x64_type;
-  signal valid_s, last_s, permit_s, previous_permit_s : std_logic_vector(7 downto 0) := (others=>'0');
+  signal output_s : array_64_type(LANES_C-1 downto 0);
+  signal valid_s, last_s, permit_s, previous_permit_s : std_logic_vector(LANES_C-1 downto 0) := (others=>'0');
   signal continued_without_credit_s : natural := 0;
   function packet_word(channel, packet, word_index : natural) return std_logic_vector is
   begin
@@ -50,7 +50,7 @@ begin
     -- packets. Lane7 also has a longer outage after the other links recover.
     permit_s(lane) <= '1' when cycle_s>=20+lane*11 and
       not(cycle_s>=80 and cycle_s<190) and
-      not(lane=7 and cycle_s>=800 and cycle_s<1000) else '0';
+      not(lane=LANES_C-1 and cycle_s>=800 and cycle_s<1000) else '0';
   end generate;
 
   source : process(clock_s)
@@ -88,7 +88,7 @@ begin
     if rising_edge(clock_s) then
       if reset_s='1' then words:=(others=>0); packets:=(others=>0); all_eight_active:=0;
       else
-        if valid_s=x"FF" then all_eight_active:=all_eight_active+1; end if;
+        if valid_s=(valid_s'range => '1') then all_eight_active:=all_eight_active+1; end if;
         finished:=true;
         for lane in 0 to LANES_C-1 loop
           if valid_s(lane)='1' then
@@ -112,7 +112,7 @@ begin
           assert all_eight_active>0 and continued_without_credit_s>0
             report "concurrent-lane or in-packet readiness withdrawal case was not exercised" severity failure;
           for ch in 0 to CHANNEL_COUNT_C - 1 loop assert packet_s(ch)=PACKETS_PER_CHANNEL_C severity failure; end loop;
-          report "multilane_readout_mux_tb PASS:96 packets,eight concurrent lanes,round-robin and packet credits" severity note;
+          report "multilane_readout_mux_tb PASS:96 packets,concurrent lanes,round-robin and packet credits" severity note;
           stop;
         end if;
       end if;
@@ -122,7 +122,7 @@ begin
   begin
     wait until falling_edge(clock_s); wait until falling_edge(clock_s); reset_s<='0';
     wait for 60 us;
-    assert false report "eight-lane readout did not drain all packets" severity failure;
+    assert false report "multilane readout did not drain all packets" severity failure;
     wait;
   end process;
 end;

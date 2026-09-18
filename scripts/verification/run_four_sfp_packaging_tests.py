@@ -15,8 +15,8 @@ import tempfile
 import tkinter
 
 ROOT = Path(__file__).resolve().parents[2]
-SFP_PORTS = {f"eth{i}_{suffix}" for i in range(4)
-             for suffix in ("rx_p", "rx_n", "tx_p", "tx_n", "tx_dis")}
+SFP_PORTS = {f"eth{i}_{suffix}" for i in range(2)
+             for suffix in ("rx_p", "rx_n", "tx_p", "tx_n", "tx_dis")} | {"eth2_tx_dis", "eth3_tx_dis"}
 
 
 def entity_ports(path, entity):
@@ -68,7 +68,7 @@ def main():
         assert (stage / "rtl/daphne_selftrigger_top.vhd").read_bytes() == wrapper.read_bytes()
         subprocess.run([sys.executable, str(ROOT / "scripts/verification/run_board_readout_elaboration.py"),
                         "--packaged-root", str(stage)], check=True)
-    print("PASS actual package staging: matching 20 SFP ports, XDC syntax contract, model/file groups, copied wrapper and shell elaboration")
+    print("PASS actual package staging: matching 12 SFP ports, XDC syntax contract, model/file groups, copied wrapper and shell elaboration")
 
 
 if __name__ == "__main__":
