@@ -42,9 +42,12 @@ DAPHNE_GIT_SHA="$(git -C "$source_root" rev-parse --short=7 HEAD)"
 export DAPHNE_GIT_SHA
 export DAPHNE_OUTPUT_DIR="./output-$DAPHNE_GIT_SHA"
 export DAPHNE_REMOTE_PACKAGE_DTBO=1
+if [[ "${DAPHNE_STOP_AFTER_SYNTH:-0}" == "1" ]]; then
+  export DAPHNE_REMOTE_PACKAGE_DTBO=0
+fi
 export DAPHNE_REMOTE_LOG_DIR="$evidence_root/remote-vivado"
 export DAPHNE_REMOTE_RUN_ID=clean-build
-unset DAPHNE_STOP_AFTER_SYNTH DAPHNE_SKIP_POST_SYNTH_REPORTS DAPHNE_SKIP_POST_SYNTH_CHECKPOINT
+unset DAPHNE_SKIP_POST_SYNTH_REPORTS DAPHNE_SKIP_POST_SYNTH_CHECKPOINT
 
 {
   printf 'host=%s\nsource_root=%s\n' "$(hostname)" "$source_root"
@@ -65,6 +68,14 @@ cd "$source_root"
 bash -o pipefail ./scripts/remote/run_remote_vivado_chain.sh 2>&1 | tee "$evidence_root/build.log"
 
 output_root="$source_root/xilinx/output-$DAPHNE_GIT_SHA"
+if [[ "${DAPHNE_STOP_AFTER_SYNTH:-0}" == "1" ]]; then
+  test -s "$output_root/daphne_selftrigger_bd_synth.dcp"
+  test -s "$output_root/post_synth_util.rpt"
+  test -s "$output_root/post_synth_timing_summary.rpt"
+  (cd "$output_root" && sha256sum *.dcp *.rpt) > "$evidence_root/synthesis.sha256"
+  printf "Synthesis artifacts produced; not routed or hardware qualified.\n" > "$evidence_root/artifact-status.txt"
+  exit 0
+fi
 for extension in bit bin xsa dtbo; do
   test -s "$output_root/daphne_selftrigger_${DAPHNE_GIT_SHA}.$extension"
 done
