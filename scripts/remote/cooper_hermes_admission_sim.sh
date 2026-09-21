@@ -32,4 +32,8 @@ xvhdl --2008 --work work "$source_root/ip_repo/daphne_ip/rtl/daphne_package.vhd"
 xelab --debug typical --relax -L "$xpm_library" -L unisims_ver work.gapless_hermes_admission_tb work.glbl --snapshot gapless_admission --log elaborate-gapless.log
 xsim gapless_admission --runall --log simulate-gapless.log
 grep -F 'gapless_hermes_admission_tb PASS' simulate-gapless.log
+xvhdl --2008 --work work "$hermes/deimos/tx_src_sel.vhd" "$hermes/deimos/tx_mux_out.vhd" "$source_root/tests/logic/hermes_fixed_mux_tb.vhd" --log compile-fixed-mux.log
+xelab --debug typical --relax -L "$xpm_library" -L unisims_ver work.hermes_fixed_mux_tb work.glbl --snapshot fixed_mux --log elaborate-fixed-mux.log
+xsim fixed_mux --runall --log simulate-fixed-mux.log
+grep -F 'hermes_fixed_mux_tb PASS' simulate-fixed-mux.log
 printf 'PASS\n' > result.txt

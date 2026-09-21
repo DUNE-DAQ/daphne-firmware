@@ -240,7 +240,7 @@ begin
             fixed_tx_count = 1 else '0';
 
         q.d <= fixed_fifo_q when fixed_tx_state = FIXED_TX_SEND else
-            X"0000000000" & std_logic_vector(fixed_tx_sequence) &
+            X"0000000001" & std_logic_vector(fixed_tx_sequence) &
             std_logic_vector(to_unsigned(PACKET_WORDS, 12));
         q.valid <= fixed_token_valid when fixed_tx_state = FIXED_TX_WAIT else
             '1' when fixed_tx_state = FIXED_TX_SEND else '0';
