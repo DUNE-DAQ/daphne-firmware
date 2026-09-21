@@ -59,7 +59,9 @@ architecture rtl of frontend_island is
   signal external_trig_axi        : std_logic;
   signal spy_trigger_source_axi   : std_logic_vector(1 downto 0);
   signal spy_trigger_inhibit_axi  : std_logic;
+  signal captured_data : array_5x9x16_type;
 begin
+  dout <= captured_data;
   frontend_common_inst : entity work.frontend_common
     port map (
       afe_clk_p_o          => afe_clk_p,
@@ -97,11 +99,14 @@ begin
       idelay_en_vtc_i   => idelay_en_vtc,
       iserdes_reset_i   => iserdes_reset,
       iserdes_bitslip_i => iserdes_bitslip,
-      dout_o            => dout
+      dout_o            => captured_data
     );
 
   fe_axi_inst : entity work.fe_axi
+    generic map (FRAME_MONITOR_G => true)
     port map (
+      frame_clock      => clock,
+      frame_data       => captured_data,
       S_AXI_ACLK       => S_AXI_ACLK,
       S_AXI_ARESETN    => S_AXI_ARESETN,
       S_AXI_AWADDR     => S_AXI_AWADDR,

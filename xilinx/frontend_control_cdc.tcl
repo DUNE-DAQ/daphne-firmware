@@ -61,3 +61,17 @@ set frontend_async_control_nets [daphne_collect_optional_hier_nets {
 if {[llength $frontend_async_control_nets] > 0} {
     set_false_path -through $frontend_async_control_nets
 }
+
+# Frame-monitor four-phase handshake: three control stages, two data stages.
+set frame_control_first [get_pins -hier -quiet -regexp {.*frame_monitor[./](request_sync_reg|acknowledge_sync_reg)\[0\]/D}]
+if {[llength $frame_control_first] > 0} {
+    set_false_path -to $frame_control_first
+    set frame_data_first [get_pins -hier -quiet -regexp {.*frame_monitor[./]data_meta_reg\[[0-9]+\]/D}]
+    if {[llength $frame_control_first] != 2 || [llength $frame_data_first] != 160} {
+        error "Incomplete frame-monitor CDC constraints"
+    }
+    # Bound bundled-data flight to one destination period, ahead of ACK.
+    set frame_data_clocks [get_clocks -of_objects [get_pins -of_objects [get_cells -of_objects $frame_data_first] -filter {REF_PIN_NAME == C}]]
+    if {[llength $frame_data_clocks] != 1} { error "Ambiguous frame-monitor AXI clock" }
+    set_max_delay -datapath_only [get_property PERIOD $frame_data_clocks] -to $frame_data_first
+}

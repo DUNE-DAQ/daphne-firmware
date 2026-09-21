@@ -6,6 +6,7 @@ use work.daphne_package.all;
 use std.env.all;
 
 entity fe_axi_smoke_tb is
+    generic (MONITOR_G : boolean := false);
 end fe_axi_smoke_tb;
 
 architecture tb of fe_axi_smoke_tb is
@@ -46,6 +47,8 @@ architecture tb of fe_axi_smoke_tb is
     signal external_trig : std_logic;
     signal spy_trigger_source : std_logic_vector(1 downto 0);
     signal spy_trigger_inhibit : std_logic;
+    signal frame_clk, frame_run : std_logic := '1';
+    signal frames : array_5x9x16_type := (others => (others => (others => '0')));
 
     constant all_zeros_9 : std_logic_vector(8 downto 0) := (others => '0');
     constant all_zeros_4 : std_logic_vector(3 downto 0) := (others => '0');
@@ -110,9 +113,27 @@ architecture tb of fe_axi_smoke_tb is
     end procedure;
 begin
     clk <= not clk after clk_period / 2;
+    frame_clk <= not frame_clk after 8 ns when frame_run = '1' else '0';
+    process(frame_clk)
+    begin
+        if rising_edge(frame_clk) then
+            for afe in 0 to 4 loop
+                frames(afe)(8) <= std_logic_vector(unsigned(frames(afe)(8)) + afe + 1);
+            end loop;
+        end if;
+    end process;
+
+    watchdog: process
+    begin
+        wait for 100 us;
+        assert false report "fe_axi_smoke_tb timeout" severity failure;
+    end process;
 
     dut: entity work.fe_axi
+        generic map (FRAME_MONITOR_G => MONITOR_G)
         port map (
+            frame_clock => frame_clk,
+            frame_data => frames,
             S_AXI_ACLK => clk,
             S_AXI_ARESETN => aresetn,
             S_AXI_AWADDR => awaddr,
@@ -302,6 +323,55 @@ begin
         assert external_trig = '0' and trig = '0'
             report "External trigger pulse did not self-clear"
             severity failure;
+
+        axi_read(x"00000038", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+        if not MONITOR_G then
+            assert readback = x"00000000" report "Disabled monitor advertises capability" severity failure;
+        else
+            assert readback = x"AFE10000" report "Frame capability/reset mismatch" severity failure;
+            for afe in 0 to 4 loop
+                axi_write(x"00000038", std_logic_vector(to_unsigned(256+afe, 32)), "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+                loop
+                    axi_read(x"00000038", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+                    exit when readback(0) = '0';
+                end loop;
+                assert unsigned(readback(4 downto 0)) = afe*4+2 report "Snapshot status mismatch" severity failure;
+                axi_read(x"0000003C", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+                assert unsigned(readback(31 downto 16)) = unsigned(readback(15 downto 0)) + afe + 1
+                    report "Frame pair is torn, duplicated or from wrong AFE" severity failure;
+            end loop;
+
+            -- Invalid and partial commands preserve the completed snapshot.
+            axi_write(x"00000038", x"00000107", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+            axi_write(x"00000038", x"00000100", "0011", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+            axi_read(x"00000038", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+            assert readback = x"AFE10012" report "Invalid command changed snapshot" severity failure;
+
+            frame_run <= '0';
+            wait for 40 ns;
+            axi_write(x"00000038", x"00000102", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+            axi_write(x"00000038", x"00000103", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+            wait for 300 ns;
+            axi_read(x"00000038", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+            assert readback = x"AFE10009" report "Stalled capture returned stale data or accepted busy command" severity failure;
+            axi_read(x"0000003C", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+            assert readback = x"00000000" report "Pending snapshot exposes old data" severity failure;
+
+            -- Reset a pending request while capture clock is stopped, then recover.
+            aresetn <= '0';
+            wait for 40 ns;
+            aresetn <= '1';
+            frame_run <= '1';
+            wait for 100 ns;
+            axi_read(x"00000038", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+            assert readback = x"AFE10000" report "Reset did not cancel snapshot" severity failure;
+            axi_write(x"00000038", x"00000100", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+            loop
+                axi_read(x"00000038", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+                exit when readback(0) = '0';
+            end loop;
+            assert readback = x"AFE10002" report "Monitor did not recover after reset" severity failure;
+        end if;
 
         assert false report "fe_axi_smoke_tb completed successfully" severity note;
         stop;

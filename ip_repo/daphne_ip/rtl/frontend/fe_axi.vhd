@@ -55,7 +55,11 @@ use ieee.numeric_std.all;
 use work.daphne_package.all;
 
 entity fe_axi is  
+	generic (FRAME_MONITOR_G : boolean := false);
 	port (
+
+        frame_clock: in std_logic := '0';
+        frame_data: in array_5x9x16_type := (others => (others => (others => '0')));
 
 		S_AXI_ACLK	: in std_logic;
 		S_AXI_ARESETN	: in std_logic;
@@ -150,8 +154,98 @@ architecture fe_axi_arch of fe_axi is
     constant SLP3_OFFSET: std_logic_vector(5 downto 0) := "101100";
     constant SLP4_OFFSET: std_logic_vector(5 downto 0) := "110000";
     constant TRIG_CTRL_OFFSET: std_logic_vector(5 downto 0) := "110100";
+    constant FRAME_CTRL_OFFSET: std_logic_vector(5 downto 0) := "111000";
+    constant FRAME_DATA_OFFSET: std_logic_vector(5 downto 0) := "111100";
+    signal frame_status, frame_word: std_logic_vector(31 downto 0) := (others => '0');
 
 begin
+
+    -- 0x38: write 0x100 | AFE; read AFE1:0000 | AFE<<2 | valid<<1 | busy.
+    -- 0x3c: two consecutive frame samples, earliest in bits 15:0.
+    frame_monitor: if FRAME_MONITOR_G generate
+        signal request_s, acknowledge_s, second_s: std_logic := '0';
+        signal request_sync, acknowledge_sync: std_logic_vector(2 downto 0) := (others => '0');
+        signal reset_sync: std_logic_vector(1 downto 0) := (others => '0');
+        signal held, data_meta, data_sync: std_logic_vector(159 downto 0) := (others => '0');
+        signal busy_s, valid_s: std_logic := '0';
+        signal selected: natural range 0 to 4 := 0;
+        attribute ASYNC_REG of request_sync, acknowledge_sync, reset_sync,
+                               data_meta, data_sync: signal is "TRUE";
+    begin
+        frame_status <= x"AFE1" & "00000000000" &
+                        std_logic_vector(to_unsigned(selected, 3)) & valid_s & busy_s;
+
+        process(frame_clock, S_AXI_ARESETN)
+        begin
+            if S_AXI_ARESETN = '0' then
+                reset_sync <= "00";
+            elsif rising_edge(frame_clock) then
+                reset_sync <= reset_sync(0) & '1';
+            end if;
+        end process;
+
+        process(frame_clock, reset_sync(1))
+        begin
+            if reset_sync(1) = '0' then
+                request_sync <= (others => '0');
+                acknowledge_s <= '0';
+                second_s <= '0';
+                held <= (others => '0');
+            elsif rising_edge(frame_clock) then
+                request_sync <= request_sync(1 downto 0) & request_s;
+                if request_sync(2) = '0' then
+                    acknowledge_s <= '0';
+                    second_s <= '0';
+                elsif acknowledge_s = '0' then
+                    for afe in 0 to 4 loop
+                        if second_s = '0' then
+                            held(afe*32+15 downto afe*32) <= frame_data(afe)(8);
+                        else
+                            held(afe*32+31 downto afe*32+16) <= frame_data(afe)(8);
+                        end if;
+                    end loop;
+                    second_s <= '1';
+                    acknowledge_s <= second_s;
+                end if;
+            end if;
+        end process;
+
+        -- Bundled data settles through two stages before the three-stage ACK.
+        -- Hold it until the complete four-phase handshake returns to idle.
+        process(S_AXI_ACLK, S_AXI_ARESETN)
+        begin
+            if S_AXI_ARESETN = '0' then
+                acknowledge_sync <= (others => '0');
+                data_meta <= (others => '0');
+                data_sync <= (others => '0');
+                request_s <= '0';
+                busy_s <= '0';
+                valid_s <= '0';
+                selected <= 0;
+                frame_word <= (others => '0');
+            elsif rising_edge(S_AXI_ACLK) then
+                acknowledge_sync <= acknowledge_sync(1 downto 0) & acknowledge_s;
+                data_meta <= held;
+                data_sync <= data_meta;
+                if request_s = '1' and acknowledge_sync(2) = '1' then
+                    frame_word <= data_sync(selected*32+31 downto selected*32);
+                    request_s <= '0';
+                elsif busy_s = '1' and request_s = '0' and acknowledge_sync(2) = '0' then
+                    busy_s <= '0';
+                    valid_s <= '1';
+                end if;
+                if reg_wren = '1' and S_AXI_WSTRB = "1111" and
+                   axi_awaddr(5 downto 0) = FRAME_CTRL_OFFSET and
+                   S_AXI_WDATA(8) = '1' and unsigned(S_AXI_WDATA(2 downto 0)) < 5 and busy_s = '0' then
+                    selected <= to_integer(unsigned(S_AXI_WDATA(2 downto 0)));
+                    request_s <= '1';
+                    busy_s <= '1';
+                    valid_s <= '0';
+                    frame_word <= (others => '0');
+                end if;
+            end if;
+        end process;
+    end generate;
 
     trig_input_cdc: process(S_AXI_ACLK)
     begin
@@ -434,6 +528,8 @@ begin
 
                     X"0000000" & '0' & spy_trigger_control_reg when (axi_araddr(5 downto 0)=TRIG_CTRL_OFFSET) else
 
+                    frame_status when (axi_araddr(5 downto 0)=FRAME_CTRL_OFFSET) else
+                    frame_word when (axi_araddr(5 downto 0)=FRAME_DATA_OFFSET) else
                     X"00000000";
 
 	-- Output register or memory read data

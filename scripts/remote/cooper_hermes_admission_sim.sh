@@ -36,4 +36,10 @@ xvhdl --2008 --work work "$hermes/deimos/tx_src_sel.vhd" "$hermes/deimos/tx_mux_
 xelab --debug typical --relax -L "$xpm_library" -L unisims_ver work.hermes_fixed_mux_tb work.glbl --snapshot fixed_mux --log elaborate-fixed-mux.log
 xsim fixed_mux --runall --log simulate-fixed-mux.log
 grep -F 'hermes_fixed_mux_tb PASS' simulate-fixed-mux.log
+xvhdl --2008 --work work "$source_root/rtl/isolated/subsystems/frontend/frontend_register_slice.vhd" "$source_root/rtl/isolated/subsystems/frontend/frontend_register_bank.vhd" "$source_root/ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd" "$source_root/tests/logic/fe_axi_smoke_tb.vhd" --log compile-frame-monitor.log
+for monitor in false true; do
+  xelab --debug typical --relax -generic_top "MONITOR_G=$monitor" work.fe_axi_smoke_tb --snapshot "frame_$monitor" --log "elaborate-frame-$monitor.log"
+  xsim "frame_$monitor" --runall --log "simulate-frame-$monitor.log"
+  grep -F 'fe_axi_smoke_tb completed successfully' "simulate-frame-$monitor.log"
+done
 printf 'PASS\n' > result.txt
