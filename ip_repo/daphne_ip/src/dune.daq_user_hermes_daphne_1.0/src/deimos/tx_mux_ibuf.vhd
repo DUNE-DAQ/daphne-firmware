@@ -239,6 +239,7 @@ begin
         fixed_token_re <= '1' when fixed_tx_state = FIXED_TX_SEND and re = '1' and
             fixed_tx_count = 1 else '0';
 
+        -- The source selector requires nonzero occupancy in bits 31:24.
         q.d <= fixed_fifo_q when fixed_tx_state = FIXED_TX_SEND else
             X"0000000001" & std_logic_vector(fixed_tx_sequence) &
             std_logic_vector(to_unsigned(PACKET_WORDS, 12));

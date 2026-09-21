@@ -30,7 +30,7 @@ begin
     port map(ipb_clk=>sc,ipb_rst=>rst,ipb_in=>busin,ipb_out=>open,clk=>ec,rst=>rst,
       en=>'1',d=>q,re=>re,q=>outq,ready=>'1',mark=>'1',err=>muxerr);
   process(ec)
-    variable index, source, sequence : natural := 0;
+    variable index, source, seq : natural := 0;
     type counts_t is array(0 to 1) of natural;
     variable packets : counts_t := (others=>0);
   begin
@@ -41,11 +41,11 @@ begin
           assert unsigned(outq.d(63 downto 52))=63 report "Wrong fragment size" severity failure;
           source:=to_integer(unsigned(outq.d(31 downto 26)));
           assert source<2 report "Wrong source" severity failure;
-          sequence:=to_integer(unsigned(outq.d(51 downto 40)));
-          assert sequence=packets(source) report "Missing/reordered packet" severity failure;
+          seq:=to_integer(unsigned(outq.d(51 downto 40)));
+          assert seq=packets(source) report "Missing/reordered packet" severity failure;
           index:=1;
         else
-          assert unsigned(outq.d)=source*10000+sequence*100+index-1
+          assert unsigned(outq.d)=source*10000+seq*100+index-1
             report "Payload corruption" severity failure;
           if index=63 then packets(source):=packets(source)+1; index:=0;
           else index:=index+1; end if;
