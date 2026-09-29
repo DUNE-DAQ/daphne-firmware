@@ -323,14 +323,24 @@ architecture rtl of k26c_board_shell is
   signal reset_st_counters       : std_logic;
   signal din_debug_reg           : std_logic_vector(13 downto 0);
   signal out_buff_trig_s         : std_logic;
+  signal readout_trigger_source : std_logic_vector(2 downto 0);
+  signal readout_trigger_inhibit, readout_admission_enable, self_trigger_enable, timing_trigger_enable : std_logic;
   signal calibration_frame_trigger : std_logic;
   signal force_calibration_tag   : std_logic_vector(1 downto 0);
 begin
-  calibration_frame_trigger <= FORCE_TRIG or software_spy_trigger or external_spy_trigger;
-
-  force_calibration_tag <= CALIBRATION_TAG_SOFTWARE_C when (FORCE_TRIG = '1' or software_spy_trigger = '1') else
-                           CALIBRATION_TAG_BNC_C when external_spy_trigger = '1' else
-                           CALIBRATION_TAG_NORMAL_C;
+  readout_trigger_policy_inst : entity work.readout_trigger_policy
+    port map (
+      clock_i => clock,
+      source_i => readout_trigger_source,
+      inhibit_i => readout_trigger_inhibit,
+      software_trigger_i => software_spy_trigger or FORCE_TRIG,
+      hardware_trigger_i => external_spy_trigger,
+      admission_enable_o => readout_admission_enable,
+      self_trigger_enable_o => self_trigger_enable,
+      timing_trigger_enable_o => timing_trigger_enable,
+      force_trigger_o => calibration_frame_trigger,
+      calibration_tag_o => force_calibration_tag
+    );
 
   frontend_plane_inst : entity work.k26c_board_frontend_plane
     port map (
@@ -354,8 +364,9 @@ begin
       frontend_trigger_o    => open,
       software_trigger_o    => software_spy_trigger,
       external_trigger_o    => external_spy_trigger,
-      spy_trigger_source_o  => open,
-      spy_trigger_inhibit_o => open,
+      readout_trigger_extended_o => readout_trigger_source(2),
+      spy_trigger_source_o  => readout_trigger_source(1 downto 0),
+      spy_trigger_inhibit_o => readout_trigger_inhibit,
       din_debug_o           => din_debug_reg,
       s_axi_aclk     => FRONT_END_S_AXI_ACLK,
       s_axi_aresetn  => FRONT_END_S_AXI_ARESETN,
@@ -571,6 +582,9 @@ begin
       din_core               => din_full_array,
       enable                 => core_chan_enable,
       forcetrig              => calibration_frame_trigger,
+      self_trigger_enable    => self_trigger_enable,
+      timing_trigger_enable  => timing_trigger_enable,
+      trigger_inhibit        => not readout_admission_enable,
       force_calibration_tag  => force_calibration_tag,
       st_trigger_signal      => open,
       adhoc                  => adhoc,

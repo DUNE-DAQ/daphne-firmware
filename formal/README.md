@@ -12,6 +12,10 @@ Ownership note:
 
 Current proof entry points:
 
+- `formal/sby/readout_trigger_policy_contract.sby` and its cover job check
+  Ethernet software/BNC/xcorr/timing selection, tags, inhibit and mode changes.
+  The frontend AXI proof also checks the fourth control bit and readback.
+
 - `formal/sby/afe_config_slice_boundary_contract.sby` for reset-qualified
   per-AFE configuration readiness.
 - `formal/sby/afe_capture_slice_boundary_contract.sby` for reset-qualified

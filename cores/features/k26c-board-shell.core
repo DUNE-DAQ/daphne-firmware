@@ -8,6 +8,7 @@ provider:
 filesets:
   rtl:
     depend:
+      - dune-daq:daphne:readout-trigger-policy:0.1.0
       - dune-daq:daphne:daphne-package:0.1.0
       - dune-daq:daphne:k26c-board-frontend-plane:0.1.0
       - dune-daq:daphne:axi-lite-unavailable:0.1.0

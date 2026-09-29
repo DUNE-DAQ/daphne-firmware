@@ -46,6 +46,7 @@ architecture tb of fe_axi_smoke_tb is
     signal software_trig : std_logic;
     signal external_trig : std_logic;
     signal spy_trigger_source : std_logic_vector(1 downto 0);
+    signal readout_trigger_extended : std_logic;
     signal spy_trigger_inhibit : std_logic;
     signal frame_clk, frame_run : std_logic := '1';
     signal frames : array_5x9x16_type := (others => (others => (others => '0')));
@@ -167,7 +168,8 @@ begin
             software_trig => software_trig,
             external_trig => external_trig,
             spy_trigger_source => spy_trigger_source,
-            spy_trigger_inhibit => spy_trigger_inhibit
+            spy_trigger_inhibit => spy_trigger_inhibit,
+            readout_trigger_extended => readout_trigger_extended
         );
 
     stimulus: process
@@ -280,6 +282,14 @@ begin
         assert spy_trigger_source = "10" and spy_trigger_inhibit = '1'
             report "Partial-strobe spy trigger control write unexpectedly modified the register"
             severity failure;
+
+        axi_write(x"00000034", x"00000008", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+        assert readout_trigger_extended='1' and spy_trigger_source="00" and spy_trigger_inhibit='0'
+            report "timing-only selector extension did not propagate" severity failure;
+        axi_read(x"00000034", araddr, arvalid, arready, rdata, rvalid, clk, readback);
+        assert readback=x"00000008" report "timing-only selector readback mismatch" severity failure;
+        axi_write(x"00000034", x"00000000", "0011", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
+        assert readout_trigger_extended='1' report "partial write altered selector extension" severity failure;
 
         axi_write(x"00000008", x"0000BABA", "1111", awaddr, awvalid, awready, wdata, wstrb, wvalid, wready, bvalid, clk);
         trigger_seen := false;

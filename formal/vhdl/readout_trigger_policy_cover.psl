@@ -1,0 +1,11 @@
+vunit readout_trigger_policy_cover (readout_trigger_policy_formal(formal)) {
+  default clock is rising_edge(clk);
+  software_only: cover {source = "000" and software_trigger = '1' and hardware_trigger = '1' and forced = '1' and self_enable = '0'};
+  hardware_only: cover {source = "001" and software_trigger = '1' and hardware_trigger = '1' and forced = '1' and tag = "01"};
+  self_only: cover {source = "010" and software_trigger = '1' and hardware_trigger = '1' and self_enable = '1' and forced = '0'};
+  timing_only: cover {source = "100" and timing_enable = '1' and self_enable = '0' and forced = '0'};
+  invalid_mode: cover {source = "111" and admission = '0'};
+  combined: cover {source = "011" and software_trigger = '1' and hardware_trigger = '1' and self_enable = '1' and forced = '1'};
+  inhibited: cover {inhibit = '1' and software_trigger = '1' and hardware_trigger = '1' and admission = '0'};
+  switching: cover {source /= previous_source and software_trigger = '1' and hardware_trigger = '1' and admission = '0'};
+}

@@ -59,3 +59,8 @@ For a source change that must not capture an intermediate waveform:
 
 Normal Linux MMIO operations will generally exceed these propagation delays,
 but the explicit waits matter for tightly timed bare-metal sequences.
+
+Ethernet readout now uses the same register with bit 3 as a selector extension.
+Its mode 2 selects xcorr, and mode 4 (`0x8`) selects timing commands only.
+The spy mapping above remains unchanged. See
+[Ethernet trigger policy](../../formal/contracts/readout-trigger-policy.md).

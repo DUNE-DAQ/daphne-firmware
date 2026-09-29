@@ -45,6 +45,7 @@ thresholds_axi_lite
 frontend_register_slice_contract
 control_plane_boundary_contract
 gapless_readout_contract
+readout_trigger_policy_contract
 EOF
       ;;
     leaf-fast)
@@ -63,12 +64,14 @@ frontend_to_selftrigger_adapter_contract
 spy_buffer_boundary_gate
 thresholds_axi_lite
 trigger_pipeline_boundary_gate
+readout_trigger_policy_contract
 EOF
       ;;
     cover-fast)
       cat <<'EOF'
 fe_axi_axi_lite_cover
 thresholds_axi_lite_cover
+readout_trigger_policy_cover
 EOF
       ;;
     boundary-cover)

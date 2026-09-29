@@ -15,6 +15,8 @@ entity stc3_grouped_test_adapter is
     reset_st_counters_i      : in  std_logic;
     enable_i                 : in  std_logic;
     force_trigger_i          : in  std_logic;
+    self_trigger_enable_i    : in std_logic := '1';
+    timing_trigger_enable_i  : in std_logic := '1';
     force_calibration_tag_i  : in  std_logic_vector(1 downto 0);
     timestamp_i              : in  std_logic_vector(63 downto 0);
     din_i                    : in  std_logic_vector(13 downto 0);
@@ -76,6 +78,8 @@ begin
       reset_st_counters_i=>reset_st_counters_i,
       enable_i=>enable_i,
       force_trigger_i=>force_trigger_i,
+      self_trigger_enable_i=>self_trigger_enable_i,
+      timing_trigger_enable_i=>timing_trigger_enable_i,
       force_calibration_tag_i=>force_calibration_tag_i,
       timestamp_i=>timestamp_i,
       din_i=>din_i,

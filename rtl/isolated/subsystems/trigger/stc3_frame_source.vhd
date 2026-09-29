@@ -15,6 +15,8 @@ entity stc3_frame_source is
     reset_st_counters_i      : in  std_logic;
     enable_i                 : in  std_logic;
     force_trigger_i          : in  std_logic;
+    self_trigger_enable_i    : in std_logic := '1';
+    timing_trigger_enable_i  : in std_logic := '1';
     force_calibration_tag_i  : in  std_logic_vector(1 downto 0);
     timestamp_i              : in  std_logic_vector(63 downto 0);
     din_i                    : in  std_logic_vector(13 downto 0);
@@ -165,6 +167,7 @@ architecture rtl of stc3_frame_source is
   signal required_end_s : sample_seq_t := (others=>'0');
   signal last_start_s : sample_seq_t := (others=>'0');
   signal last_start_valid_s : std_logic := '0';
+  signal selected_trigger_pulse_s : std_logic;
   signal event_pulse_s, trigger_previous_s : std_logic := '0';
   signal event_sample0_ts_s : std_logic_vector(63 downto 0);
   -- One full-width age check protects the bounded local comparisons against
@@ -214,7 +217,10 @@ begin
       end if;
     end if;
   end process;
-  event_pulse_s <= trigger_i.trigger_pulse or force_trigger_i;
+  selected_trigger_pulse_s <= trigger_i.trigger_pulse and timing_trigger_enable_i
+    when trigger_i.calibration_tag = CALIBRATION_TAG_TIMING_C else
+    trigger_i.trigger_pulse and self_trigger_enable_i;
+  event_pulse_s <= selected_trigger_pulse_s or force_trigger_i;
   event_sample_s <= din_i when force_trigger_i='1' else trigger_i.trigger_sample;
   event_tag_s <= force_calibration_tag_i when force_trigger_i='1' else trigger_i.calibration_tag;
   -- Kept for legacy diagnostic calculator compatibility; packet descriptors use
@@ -299,8 +305,8 @@ begin
           -- uninterrupted raw-sample ring/serializer keep draining unchanged.
           history_s<=0; current_accepted_s<='0'; previous_accepted_s<='0'; older_accepted_s<='0'; last_start_valid_s<='0';
         end if;
-        trigger_previous_s<=trigger_i.trigger_pulse;
-        if trigger_i.trigger_pulse='1' and trigger_previous_s='0' and enable_i='1' then
+        trigger_previous_s<=selected_trigger_pulse_s;
+        if selected_trigger_pulse_s='1' and trigger_previous_s='0' and enable_i='1' then
           trigger_count_s<=trigger_count_s+1;
         end if;
         -- Releasing or skipping a slot is the sole operation returning a credit.
@@ -454,6 +460,11 @@ begin
             if quiet_limit=0 then quiet_limit:=1; end if;
             chain_quiet_limit_s<=quiet_limit;
           end if;
+        end if;
+        if enable_i='0' then
+          -- End the admission epoch, retaining queued packet ownership. New
+          -- sources must not coalesce into metadata from the previous mode.
+          current_accepted_s<='0'; previous_accepted_s<='0'; older_accepted_s<='0'; last_start_valid_s<='0';
         end if;
         -- Counter reset is deliberately independent of acquisition state: it
         -- cannot leave a partial packet in the transport stream.

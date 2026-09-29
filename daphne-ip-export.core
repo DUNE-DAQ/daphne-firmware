@@ -81,6 +81,7 @@ filesets:
       - rtl/isolated/subsystems/trigger/grouped_frame_pkg.vhd
       - rtl/isolated/subsystems/trigger/grouped_selftrigger_fabric.vhd
       - rtl/isolated/subsystems/trigger/peak_descriptor_channel.vhd
+      - rtl/isolated/subsystems/trigger/readout_trigger_policy.vhd
       - rtl/isolated/subsystems/trigger/self_trigger_xcorr_channel.vhd
       - rtl/isolated/subsystems/trigger/selftrigger_fabric.vhd
       - rtl/isolated/subsystems/trigger/stc3_frame_source.vhd
@@ -121,6 +122,7 @@ filesets:
       - ip_repo/daphne_ip/rtl/timing/ep_axi.vhd
       - ip_repo/daphne_ip/rtl/timing/outputlogic_crc16.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_acmd_arb.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_cdc_snapshot.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_cdr_sampler.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_chklock.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_cksum.vhd
@@ -131,6 +133,7 @@ filesets:
       - ip_repo/daphne_ip/rtl/timing/pdts_del.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_enc8b10b.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_endpoint.vhd
+      - ip_repo/daphne_ip/rtl/timing/pdts_endpoint_control_cdc.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_endpoint_wrapper.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_ep_cdr.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_ep_core.vhd

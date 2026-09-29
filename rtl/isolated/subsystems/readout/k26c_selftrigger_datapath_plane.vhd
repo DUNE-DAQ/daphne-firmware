@@ -19,6 +19,9 @@ port(
     timestamp: in std_logic_vector(63 downto 0);
     enable: in std_logic_vector(39 downto 0);
     forcetrig: in std_logic;
+    self_trigger_enable: in std_logic := '1';
+    timing_trigger_enable: in std_logic := '1';
+    trigger_inhibit: in std_logic := '0';
     force_calibration_tag: in std_logic_vector(1 downto 0);
     st_trigger_signal: out std_logic_vector(39 downto 0);
     adhoc: in std_logic_vector(7 downto 0);
@@ -136,7 +139,8 @@ begin
       adhoc_i                  => adhoc,
       filter_output_selector_i => filter_output_selector,
       ti_trigger_i             => ti_trigger,
-      ti_trigger_stbr_i        => ti_trigger_stbr,
+      -- Reject unselected timing commands before they enter the trigger OR.
+      ti_trigger_stbr_i        => ti_trigger_stbr and timing_trigger_enable,
       descriptor_config_i      => st_config,
       signal_delay_i           => signal_delay,
       reset_st_counters_i      => reset_st_counters,
@@ -159,6 +163,9 @@ begin
       builder_clock_i=>builder_clock_s, builder_reset_i=>builder_reset_s,
       reset_st_counters_i       => reset_st_counters,
       force_trigger_i           => forcetrig,
+      self_trigger_enable_i     => self_trigger_enable,
+      timing_trigger_enable_i   => timing_trigger_enable,
+      trigger_inhibit_i         => trigger_inhibit,
       force_calibration_tag_i   => force_calibration_tag,
       timestamp_i               => timestamp,
       version_i                 => version(3 downto 0),

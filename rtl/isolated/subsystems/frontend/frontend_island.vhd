@@ -57,6 +57,7 @@ architecture rtl of frontend_island is
   signal iserdes_reset       : std_logic;
   signal software_trig_axi        : std_logic;
   signal external_trig_axi        : std_logic;
+  signal readout_trigger_extended_axi : std_logic;
   signal spy_trigger_source_axi   : std_logic_vector(1 downto 0);
   signal spy_trigger_inhibit_axi  : std_logic;
   signal captured_data : array_5x9x16_type;
@@ -75,6 +76,8 @@ begin
       idelay_load_clk125_o      => idelay_load_clk125,
       software_trig_axi_i       => software_trig_axi,
       external_trig_axi_i       => external_trig_axi,
+      readout_trigger_extended_axi_i => readout_trigger_extended_axi,
+      readout_trigger_extended_o => readout_trigger_extended,
       spy_trigger_source_axi_i  => spy_trigger_source_axi,
       spy_trigger_inhibit_axi_i => spy_trigger_inhibit_axi,
       software_trig_o           => software_trig,
@@ -139,6 +142,7 @@ begin
       trig                => open,
       software_trig       => software_trig_axi,
       external_trig       => external_trig_axi,
+      readout_trigger_extended => readout_trigger_extended_axi,
       spy_trigger_source  => spy_trigger_source_axi,
       spy_trigger_inhibit => spy_trigger_inhibit_axi
     );

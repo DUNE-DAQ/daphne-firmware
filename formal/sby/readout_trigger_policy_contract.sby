@@ -1,0 +1,16 @@
+[options]
+mode prove
+depth 4
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 daphne_subsystem_pkg.vhd readout_trigger_policy.vhd readout_trigger_policy_formal.vhd -e readout_trigger_policy_formal
+prep -top readout_trigger_policy_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/trigger/readout_trigger_policy.vhd
+../vhdl/readout_trigger_policy_formal.vhd

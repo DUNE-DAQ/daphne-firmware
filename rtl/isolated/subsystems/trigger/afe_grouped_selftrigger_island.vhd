@@ -20,6 +20,9 @@ entity afe_grouped_selftrigger_island is
     signal_delay_i      : in  std_logic_vector(4 downto 0);
     descriptor_config_i : in  std_logic_vector(13 downto 0);
     force_trigger_i     : in  std_logic;
+    self_trigger_enable_i : in std_logic := '1';
+    timing_trigger_enable_i : in std_logic := '1';
+    trigger_inhibit_i : in std_logic := '0';
     force_calibration_tag_i : in std_logic_vector(1 downto 0);
     din_i               : in  sample14_array_t(0 to CHANNELS_PER_AFE_G - 1);
     trigger_control_i   : in  trigger_xcorr_control_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -42,6 +45,7 @@ entity afe_grouped_selftrigger_island is
 end entity afe_grouped_selftrigger_island;
 
 architecture rtl of afe_grouped_selftrigger_island is
+  signal readout_enable_s : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal descriptor_control_s : peak_descriptor_control_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal trigger_result_s     : trigger_xcorr_result_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal descriptor_result_s  : peak_descriptor_result_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -89,6 +93,7 @@ begin
     constant CHANNEL_ID_C : std_logic_vector(7 downto 0) :=
       std_logic_vector(to_unsigned(CHANNEL_ID_BASE_G + idx, 8));
   begin
+    readout_enable_s(idx) <= trigger_result_s(idx).enabled and not trigger_inhibit_i;
     descriptor_control_s(idx).config <= descriptor_config_i;
     descriptor_control_s(idx).frame_match <= frame_match_s(idx);
 
@@ -110,7 +115,9 @@ begin
         clock_i             => clock_i,
         reset_i             => reset_i,
         reset_st_counters_i => reset_st_counters_i,
-	        enable_i            => trigger_result_s(idx).enabled,
+	        enable_i            => readout_enable_s(idx),
+        self_trigger_enable_i => self_trigger_enable_i,
+        timing_trigger_enable_i => timing_trigger_enable_i,
 	        force_trigger_i     => force_trigger_i,
 	        force_calibration_tag_i => force_calibration_tag_i,
 	        timestamp_i         => timestamp_i,

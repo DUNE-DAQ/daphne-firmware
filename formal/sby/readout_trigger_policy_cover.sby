@@ -1,0 +1,17 @@
+[options]
+mode cover
+depth 8
+
+[engines]
+smtbmc z3
+
+[script]
+plugin -i ghdl
+ghdl --std=08 -fpsl daphne_subsystem_pkg.vhd readout_trigger_policy.vhd readout_trigger_policy_formal.vhd readout_trigger_policy_cover.psl -e readout_trigger_policy_formal
+prep -top readout_trigger_policy_formal
+
+[files]
+../../rtl/isolated/common/daphne_subsystem_pkg.vhd
+../../rtl/isolated/subsystems/trigger/readout_trigger_policy.vhd
+../vhdl/readout_trigger_policy_formal.vhd
+../vhdl/readout_trigger_policy_cover.psl

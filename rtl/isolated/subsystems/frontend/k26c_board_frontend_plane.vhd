@@ -26,6 +26,7 @@ entity k26c_board_frontend_plane is
     frontend_trigger_o : out std_logic;
     software_trigger_o : out std_logic;
     external_trigger_o : out std_logic;
+    readout_trigger_extended_o : out std_logic := '0';
     spy_trigger_source_o : out std_logic_vector(1 downto 0);
     spy_trigger_inhibit_o : out std_logic;
     din_debug_o : out std_logic_vector(13 downto 0);
@@ -96,6 +97,7 @@ begin
       trig          => frontend_trigger_o,
       software_trig => software_trigger_o,
       external_trig => external_trigger_o,
+      readout_trigger_extended => readout_trigger_extended_o,
       spy_trigger_source  => spy_trigger_source_o,
       spy_trigger_inhibit => spy_trigger_inhibit_o,
       trig_IN       => trig_in_i,

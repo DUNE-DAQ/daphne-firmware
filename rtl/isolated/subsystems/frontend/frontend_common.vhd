@@ -17,6 +17,8 @@ entity frontend_common is
     idelay_load_clk125_o       : out std_logic_vector(4 downto 0);
     software_trig_axi_i        : in  std_logic;
     external_trig_axi_i        : in  std_logic;
+    readout_trigger_extended_axi_i : in std_logic := '0';
+    readout_trigger_extended_o : out std_logic := '0';
     spy_trigger_source_axi_i   : in  std_logic_vector(1 downto 0);
     spy_trigger_inhibit_axi_i  : in  std_logic;
     software_trig_o            : out std_logic;
@@ -38,10 +40,10 @@ architecture rtl of frontend_common is
   signal software_trig_reg         : std_logic := '0';
   signal external_trig_meta        : std_logic := '0';
   signal external_trig_reg         : std_logic := '0';
-  signal spy_trigger_control_meta  : std_logic_vector(2 downto 0) := "011";
-  signal spy_trigger_control_sync  : std_logic_vector(2 downto 0) := "011";
-  signal spy_trigger_control_prev  : std_logic_vector(2 downto 0) := "011";
-  signal spy_trigger_control_reg   : std_logic_vector(2 downto 0) := "011";
+  signal spy_trigger_control_meta  : std_logic_vector(3 downto 0) := "0011";
+  signal spy_trigger_control_sync  : std_logic_vector(3 downto 0) := "0011";
+  signal spy_trigger_control_prev  : std_logic_vector(3 downto 0) := "0011";
+  signal spy_trigger_control_reg   : std_logic_vector(3 downto 0) := "0011";
 
   attribute ASYNC_REG : string;
   attribute ASYNC_REG of idelayctrl_reset_500_meta : signal is "TRUE";
@@ -85,7 +87,7 @@ begin
       -- Synchronize the persistent control word as a bundled value and only
       -- publish it after two identical destination-domain samples. This keeps
       -- selector and inhibit changes coherent at the spy-trigger boundary.
-      spy_trigger_control_meta <= spy_trigger_inhibit_axi_i & spy_trigger_source_axi_i;
+      spy_trigger_control_meta <= readout_trigger_extended_axi_i & spy_trigger_inhibit_axi_i & spy_trigger_source_axi_i;
       spy_trigger_control_sync <= spy_trigger_control_meta;
       spy_trigger_control_prev <= spy_trigger_control_sync;
       if spy_trigger_control_sync = spy_trigger_control_prev then
@@ -129,6 +131,7 @@ begin
   idelay_load_clk125_o <= idelay_load_clk125_sync;
   software_trig_o       <= software_trig_reg;
   external_trig_o       <= external_trig_reg;
+  readout_trigger_extended_o <= spy_trigger_control_reg(3);
   spy_trigger_source_o  <= spy_trigger_control_reg(1 downto 0);
   spy_trigger_inhibit_o <= spy_trigger_control_reg(2);
   trig_o                <= software_trig_reg or external_trig_reg;

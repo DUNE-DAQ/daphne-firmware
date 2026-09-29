@@ -7,6 +7,7 @@ CORE_PATH="$ROOT_DIR/cores/features/k26c-board-shell.core"
 TOP_PATH="$ROOT_DIR/rtl/isolated/tops/k26c_board_shell.vhd"
 
 EXPECTED_CORE_DEPS='
+dune-daq:daphne:readout-trigger-policy:0.1.0
 dune-daq:daphne:daphne-package:0.1.0
 dune-daq:daphne:k26c-board-analog-control-plane:0.1.0
 dune-daq:daphne:k26c-board-frontend-plane:0.1.0
@@ -16,6 +17,7 @@ dune-daq:daphne:k26c-board-timing-plane:0.1.0
 '
 
 EXPECTED_ENTITY_DEPS='
+readout_trigger_policy
 k26c_board_analog_control_plane
 k26c_board_frontend_plane
 k26c_board_selftrigger_plane

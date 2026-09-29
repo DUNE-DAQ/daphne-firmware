@@ -39,6 +39,7 @@ def main():
         "k26c_board_analog_control_plane": "rtl/isolated/subsystems/analog/k26c_board_analog_control_plane.vhd",
     }
     sources = [
+        "rtl/isolated/subsystems/trigger/readout_trigger_policy.vhd",
         "rtl/isolated/subsystems/trigger/grouped_frame_pkg.vhd",
         "rtl/isolated/common/primitives/grouped_sample_ring.vhd",
         "rtl/isolated/common/primitives/packet_frame_store.vhd",

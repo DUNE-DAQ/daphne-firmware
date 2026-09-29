@@ -22,7 +22,7 @@ architecture formal of fe_axi_axi_formal is
   constant CTRL_ADDR : std_logic_vector(31 downto 0) := X"00000000";
   constant STAT_ADDR : std_logic_vector(31 downto 0) := X"00000004";
   constant TRIG_ADDR : std_logic_vector(31 downto 0) := X"00000008";
-  constant STEP_LAST : integer := 41;
+  constant STEP_LAST : integer := 54;
 
   signal step              : integer range 0 to STEP_LAST := 0;
   signal aresetn           : std_logic := '0';
@@ -63,6 +63,7 @@ architecture formal of fe_axi_axi_formal is
   signal software_trig     : std_logic;
   signal external_trig     : std_logic;
   signal spy_trigger_source  : std_logic_vector(1 downto 0);
+  signal readout_trigger_extended : std_logic;
   signal spy_trigger_inhibit : std_logic;
 
   function tap_addr(index : std_logic_vector(2 downto 0)) return std_logic_vector is
@@ -157,7 +158,8 @@ begin
       software_trig     => software_trig,
       external_trig     => external_trig,
       spy_trigger_source  => spy_trigger_source,
-      spy_trigger_inhibit => spy_trigger_inhibit
+      spy_trigger_inhibit => spy_trigger_inhibit,
+      readout_trigger_extended => readout_trigger_extended
     );
 
   drive_axi : process(all)
@@ -231,6 +233,14 @@ begin
         wstrb   <= "1111";
         wvalid  <= '1';
 
+      when 42 | 43 =>
+        awaddr <= X"00000034"; awvalid <= '1';
+        wdata <= ctrl_write_data_s; wstrb <= "1111"; wvalid <= '1';
+      when 46 | 47 =>
+        awaddr <= X"00000034"; awvalid <= '1';
+        wdata <= partial_data_s; wstrb <= "0011"; wvalid <= '1';
+      when 50 | 51 =>
+        araddr <= X"00000034"; arvalid <= '1';
       when others =>
         null;
     end case;
@@ -295,7 +305,7 @@ begin
         assert software_trig = '0' and external_trig = '0'
           report "split trigger outputs must reset low"
           severity failure;
-        assert spy_trigger_source = "11" and spy_trigger_inhibit = '0'
+        assert spy_trigger_source = "11" and spy_trigger_inhibit = '0' and readout_trigger_extended = '0'
           report "spy trigger control must reset to uninhibited legacy OR mode"
           severity failure;
         assert idelay_load = "00000"
@@ -460,6 +470,15 @@ begin
             report "trigger proof must not perturb the read response code"
             severity failure;
 
+        when 44 | 48 =>
+          assert spy_trigger_source = ctrl_write_data_s(1 downto 0) and
+                 spy_trigger_inhibit = ctrl_write_data_s(2) and
+                 readout_trigger_extended = ctrl_write_data_s(3)
+            report "selector full write / partial-write rejection mismatch" severity failure;
+        when 52 =>
+          assert rvalid = '1' and rresp = "00" and
+                 rdata = (X"0000000" & ctrl_write_data_s(3 downto 0))
+            report "extended selector register readback mismatch" severity failure;
         when others =>
           null;
       end case;

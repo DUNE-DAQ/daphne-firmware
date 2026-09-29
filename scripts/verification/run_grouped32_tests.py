@@ -29,6 +29,8 @@ SOURCES=[
     'tests/logic/afe_stc3_stream_serializer_tb.vhd',
     'rtl/isolated/subsystems/readout/two_lane_readout_mux.vhd',
     'tests/logic/stc3_grouped_test_adapter.vhd',
+    'rtl/isolated/subsystems/trigger/readout_trigger_policy.vhd',
+    'tests/logic/readout_trigger_admission_tb.vhd',
     'tests/logic/stc3_frame256_continuation_tb.vhd',
     'tests/logic/grouped32_replay_tb.vhd',
 ]
@@ -144,6 +146,9 @@ def main():
         run('-r', '--std=08', 'fragment_peak_descriptors_compact_tb', '--assert-level=error', '--stop-time=1ms')
         run('-r', '--std=08', 'afe_stc3_stream_serializer_tb', '--assert-level=error',
             '--ieee-asserts=disable-at-0', '--stop-time=20us')
+        run('-e', '--std=08', 'readout_trigger_admission_tb')
+        run('-r', '--std=08', 'readout_trigger_admission_tb', '--assert-level=error',
+            '--ieee-asserts=disable-at-0', '--stop-time=4ms')
         run('-e', '--std=08', 'stc3_frame256_continuation_tb')
         for options in (['-gODD_START_G=0'], ['-gODD_START_G=1'],
                         ['-gTRIGGER_DELAY_G=447'],

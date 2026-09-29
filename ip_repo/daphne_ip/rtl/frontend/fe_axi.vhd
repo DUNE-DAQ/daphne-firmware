@@ -96,7 +96,8 @@ entity fe_axi is
         software_trig: out std_logic;
         external_trig: out std_logic;
         spy_trigger_source: out std_logic_vector(1 downto 0);
-        spy_trigger_inhibit: out std_logic
+        spy_trigger_inhibit: out std_logic;
+        readout_trigger_extended: out std_logic := '0'
 	);
 end fe_axi;
 
@@ -131,7 +132,7 @@ architecture fe_axi_arch of fe_axi is
     attribute ASYNC_REG of trig_in_meta, trig_in_sync: signal is "TRUE";
     signal software_trigger_s: std_logic;
     signal external_trigger_s: std_logic;
-    signal spy_trigger_control_reg: std_logic_vector(2 downto 0) := "011";
+    signal spy_trigger_control_reg: std_logic_vector(3 downto 0) := "0011";
     signal register_advance: std_logic;
     signal tap_write_reg: std_logic_vector(4 downto 0);
     signal tap_write_data: array_5x9_type;
@@ -381,7 +382,7 @@ begin
           control_reg <= (others=>'0');
           software_trig_reg <= (others => '0');
           external_trig_reg <= (others => '0');
-          spy_trigger_control_reg <= "011";
+          spy_trigger_control_reg <= "0011";
 	    else
 
           -- Keep software and external triggers separate so the spy-buffer
@@ -418,7 +419,7 @@ begin
                 software_trig_reg(0) <= '1';
 
 	          when TRIG_CTRL_OFFSET =>
-                spy_trigger_control_reg <= S_AXI_WDATA(2 downto 0);
+                spy_trigger_control_reg <= S_AXI_WDATA(3 downto 0);
 
 	          when others =>
                 null;
@@ -526,7 +527,7 @@ begin
                     X"0000000" & iserdes_bitslip_reg(3) when (axi_araddr(5 downto 0)=SLP3_OFFSET) else
                     X"0000000" & iserdes_bitslip_reg(4) when (axi_araddr(5 downto 0)=SLP4_OFFSET) else
 
-                    X"0000000" & '0' & spy_trigger_control_reg when (axi_araddr(5 downto 0)=TRIG_CTRL_OFFSET) else
+                    X"0000000" & spy_trigger_control_reg when (axi_araddr(5 downto 0)=TRIG_CTRL_OFFSET) else
 
                     frame_status when (axi_araddr(5 downto 0)=FRAME_CTRL_OFFSET) else
                     frame_word when (axi_araddr(5 downto 0)=FRAME_DATA_OFFSET) else
@@ -574,6 +575,7 @@ begin
     trig <= software_trigger_s or external_trigger_s;
     software_trig <= software_trigger_s;
     external_trig <= external_trigger_s;
+    readout_trigger_extended <= spy_trigger_control_reg(3);
     spy_trigger_source <= spy_trigger_control_reg(1 downto 0);
     spy_trigger_inhibit <= spy_trigger_control_reg(2);
     idelay_load <= idelay_load_reg; 
