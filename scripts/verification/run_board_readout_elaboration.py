@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Elaborate board readout wiring using real entities and hardware-boundary stubs.
 
-The frontend, timing, analog, XC trigger, builder-clock and imported-Hermes implementations
+The frontend primitive/capture boundaries, timing, analog, XC trigger, builder-clock and imported-Hermes implementations
 are replaced by empty architectures generated from their actual entity ports.
 This checks interface widths/binding, not PHY, trigger, or transport behavior.
 """
@@ -34,11 +34,17 @@ def main():
         "daphne_top": "ip_repo/daphne_ip/src/dune.daq_user_hermes_daphne_1.0/src/deimos/daphne_top.vhd",
         "afe_trigger_bank": "rtl/isolated/subsystems/trigger/afe_trigger_bank.vhd",
         "grouped_builder_clock": "rtl/isolated/subsystems/trigger/grouped_builder_clock.vhd",
-        "k26c_board_frontend_plane": "rtl/isolated/subsystems/frontend/k26c_board_frontend_plane.vhd",
+        "frontend_common": "rtl/isolated/subsystems/frontend/frontend_common.vhd",
+        "frontend_capture_bank": "rtl/isolated/subsystems/frontend/frontend_capture_bank.vhd",
         "k26c_board_timing_plane": "rtl/isolated/subsystems/timing/k26c_board_timing_plane.vhd",
         "k26c_board_analog_control_plane": "rtl/isolated/subsystems/analog/k26c_board_analog_control_plane.vhd",
     }
     sources = [
+        "rtl/isolated/subsystems/frontend/frontend_register_slice.vhd",
+        "rtl/isolated/subsystems/frontend/frontend_register_bank.vhd",
+        "ip_repo/daphne_ip/rtl/frontend/fe_axi.vhd",
+        "rtl/isolated/subsystems/frontend/frontend_island.vhd",
+        "rtl/isolated/subsystems/frontend/k26c_board_frontend_plane.vhd",
         "rtl/isolated/subsystems/trigger/readout_trigger_policy.vhd",
         "rtl/isolated/subsystems/trigger/grouped_frame_pkg.vhd",
         "rtl/isolated/common/primitives/grouped_sample_ring.vhd",
@@ -82,7 +88,7 @@ def main():
                                declaration.group(0) + f"\narchitecture interface_stub of {entity} is begin end;\n")
             run("-a", "--std=08", str(fixture))
         run("-a", "--std=08", *(str(source_path(source)) for source in sources))
-        for top in ("k26c_board_transport_plane", "k26c_board_selftrigger_plane", "k26c_board_shell", "daphne_selftrigger_top"):
+        for top in ("frontend_island", "k26c_board_frontend_plane", "k26c_board_transport_plane", "k26c_board_selftrigger_plane", "k26c_board_shell", "daphne_selftrigger_top"):
             run("-e", "--std=08", top)
             run("-r", "--std=08", top, "--assert-level=error", "--ieee-asserts=disable-at-0", "--stop-time=0ns")
             print(f"PASS board interface elaboration: {top}")

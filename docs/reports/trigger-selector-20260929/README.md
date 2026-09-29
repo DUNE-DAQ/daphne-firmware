@@ -18,7 +18,8 @@ Local checks passed on 2026-09-29:
   subsequent BNC event starts a fresh chain. Existing continuation alignment,
   late tuples, quiet termination and overload/recovery contracts also pass.
 * `run_board_readout_elaboration.py`: transport, selftrigger plane, board shell
-  and public top pass using real interface declarations and boundary stubs.
+  and public top pass using the real frontend island, frontend AXI registers, and board frontend plane;
+  vendor primitive/capture, timing, analog and transport boundaries use stubs.
 * `fe_axi_smoke_tb`: extended timing selector full-write/readback and partial
   write rejection, plus existing frontend register and trigger tests.
 * Register-map consistency, board-shell dependency contract, frontend and
@@ -39,3 +40,9 @@ Vendor synthesis, timing closure and on-board acquisition qualification remain
 separate. The source is committed on `marroyav/256_frame`; the build must use a
 fresh Cooper clone from the exact committed bundle. No board programming is
 performed as part of this synthesis submission.
+
+The first Cooper submission (595f788) failed vendor elaboration because the new
+frontend-island output was missing from the real entity declaration. This was
+corrected, and the local board elaboration runner now analyzes the real frontend
+island and AXI registers rather than substituting the whole frontend plane.
+Fresh build submissions retain their own failed/passing evidence directories.

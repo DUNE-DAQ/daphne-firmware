@@ -19,6 +19,7 @@ entity frontend_island is
     trig           : out std_logic;
     software_trig  : out std_logic;
     external_trig  : out std_logic;
+    readout_trigger_extended : out std_logic := '0';
     spy_trigger_source  : out std_logic_vector(1 downto 0);
     spy_trigger_inhibit : out std_logic;
     trig_IN        : in  std_logic;
