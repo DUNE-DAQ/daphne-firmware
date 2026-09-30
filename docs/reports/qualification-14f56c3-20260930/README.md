@@ -45,3 +45,10 @@ Original file on np04-srv-003:
 /data1/np02vd_raw_run045324_0000_df-s03-d1_dw_0_20260930T163207.hdf5
 Cooper build: /tmp/arroyave/work/trigger-selector-bit-14f56c3-20260930
 Local evidence: /home/arroyave/work/daphne-256-deploy-14f56c3-20260930
+
+Shutdown limitation: after successful stop-run and closed-file validation, the
+readout process runp02srv001eth1 terminated with exit code 134 during shutdown.
+Other child processes exited 0. No DAQ children remain running. This requires
+a fresh boot for the next run and is not evidence of waveform corruption;
+the shutdown failure itself has not been diagnosed in this qualification.
+The board runtime, server and Hermes services remain active on 14f56c3.
