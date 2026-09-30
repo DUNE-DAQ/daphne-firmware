@@ -46,3 +46,17 @@ frontend-island output was missing from the real entity declaration. This was
 corrected, and the local board elaboration runner now analyzes the real frontend
 island and AXI registers rather than substituting the whole frontend plane.
 Fresh build submissions retain their own failed/passing evidence directories.
+
+A pre-deployment board-design audit on 2026-09-30 found that both block-design
+connection procedures tied raw BNC to `trig_IN` and legacy `FORCE_TRIG`. Since
+the latter is classified as software, BNC could bypass software-only selection.
+Both procedures now connect BNC only to the frontend synchronizer and tie the
+legacy force input to a one-bit zero constant. The PS frontend software command
+remains connected through its existing synchronized path.
+
+`check_bnc_trigger_wiring.py` executes both actual Tcl connection procedures
+with mocked Vivado APIs and checks source separation and constant configuration.
+Both pass on Cooper; board readout interface elaboration and `git diff --check`
+also pass. HDL/formal policy inputs are unchanged from the 33 passing jobs.
+The f6d6460 build is superseded and must not be deployed; the corrected source
+requires a fresh committed-source build and board qualification.

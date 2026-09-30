@@ -20,7 +20,9 @@ mode 2 means timing; bit 3 extends only the Ethernet selector. No existing
 register address, low selector bit or inhibit bit moves.
 
 Software includes the frontend command at `0x88000008` and legacy
-`FORCE_TRIG`; neither bypasses selection/inhibit. Accepted software carries
+`FORCE_TRIG`; neither bypasses selection/inhibit. In the K26C block design,
+`FORCE_TRIG` is tied low: BNC connects only to the frontend synchronizer,
+so it cannot enter the software path. Accepted software carries
 tag 3, BNC tag 1, timing tag 2, and xcorr retains normal metadata. Software
 wins simultaneous accepted software/BNC pulses; either forced source wins over
 a coincident xcorr/timing tuple. Timing commands match the configured ad-hoc

@@ -160,7 +160,13 @@ proc daphne_connect_default_user_ip {block_cell_name} {
     connect_bd_net -net sfp_tmg_los_0_1 [get_bd_ports sfp_tmg_los] [daphne_bd_pin $block_cell_name sfp_tmg_los]
     connect_bd_net -net sysclk_n_0_1 [get_bd_ports sysclk_n] [daphne_bd_pin $block_cell_name sysclk_n]
     connect_bd_net -net sysclk_p_0_1 [get_bd_ports sysclk_p] [daphne_bd_pin $block_cell_name sysclk_p]
-    connect_bd_net -net trig_IN_0_1 [get_bd_ports trig_IN] [daphne_bd_pin $block_cell_name trig_IN] [daphne_bd_pin $block_cell_name FORCE_TRIG]
+    # BNC enters only the frontend synchronizer. The legacy FORCE_TRIG input
+    # is classified as software by the readout policy, so tying BNC to both
+    # inputs would bypass software-only selection and mislabel its frames.
+    connect_bd_net -net trig_IN_0_1 [get_bd_ports trig_IN] [daphne_bd_pin $block_cell_name trig_IN]
+    set legacy_force_zero [create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 ${block_cell_name}_legacy_force_zero]
+    set_property -dict [list CONFIG.CONST_WIDTH {1} CONFIG.CONST_VAL {0}] $legacy_force_zero
+    connect_bd_net [get_bd_pins ${legacy_force_zero}/dout] [daphne_bd_pin $block_cell_name FORCE_TRIG]
     connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] [get_bd_pins SYSTEM_RESET/slowest_sync_clk] [get_bd_pins smartconnect_0/aclk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_lpd_aclk] [get_bd_pins axi_quad_spi_0/s_axi_aclk] [get_bd_pins axi_intc_0/s_axi_aclk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [daphne_bd_pin $block_cell_name FRONT_END_S_AXI_ACLK] [daphne_bd_pin $block_cell_name SPY_BUF_S_S_AXI_ACLK] [daphne_bd_pin $block_cell_name END_P_S_AXI_ACLK] [daphne_bd_pin $block_cell_name SPI_DAC_S_AXI_ACLK] [daphne_bd_pin $block_cell_name AFE_SPI_S_AXI_ACLK] [daphne_bd_pin $block_cell_name TRIRG_S_AXI_ACLK] [daphne_bd_pin $block_cell_name STUFF_S_AXI_ACLK] [daphne_bd_pin $block_cell_name THRESH_S_AXI_ACLK] [daphne_bd_pin $block_cell_name OUTBUFF_S_AXI_ACLK]
     connect_bd_net -net zynq_ultra_ps_e_0_pl_clk3 [get_bd_pins zynq_ultra_ps_e_0/pl_clk3] [daphne_bd_pin $block_cell_name sysclk100]
 }
