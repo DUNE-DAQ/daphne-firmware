@@ -1,0 +1,7 @@
+{
+  "base": "/lib/firmware/xilinx/daphne_selftrigger_ol_662c3fe/daphne_selftrigger_ol_662c3fe.dtbo",
+  "base_sha256": "4267f50860a4096adee3bac81d6941c6232b57421ff4dfb095cbdda4a850baaf",
+  "original_sha256": "9a3d8c35d3cb2c1725879e621a71a1ee3230bef58aeba206cecf6ec11578fa93",
+  "compatible_sha256": "0050e71e17985f5af8729219864864d82e190928b18d845718012d743d010a6b",
+  "change": "Only same-length firmware filename substitution in proven board overlay; AXI map and device nodes unchanged"
+}
