@@ -2,8 +2,7 @@
 
 The grouped32 path supports a runtime calibration mask while the board selector
 remains in xcorr mode (`0x88000034 = 2`). This requires new gateware; the deployed
-`14f56c3` image does not implement these registers. No board was flashed for this
-change. Timing lock, command delivery and matching command configuration must
+`14f56c3` image does not implement these registers. Timing lock, command delivery and matching command configuration must
 already work.
 
 For each set bit, that channel accepts only the matching timing command. Xcorr,
@@ -11,7 +10,19 @@ software and BNC triggers are rejected and waveform continuation is disabled.
 Other channels retain the board trigger policy and their continuation settings.
 Clearing a bit restores that channel's existing settings. Channel enable bits and
 global inhibit still apply. The mask does not enable a disabled channel.
-The command selector (`0x88000028`) remains shared across the board.
+The command selector (`0x94000028`) remains shared across the board.
+Channel enables are at `0x94000020` (channels 0..31) and `0x94000024` (32..39).
+The frontend addresses `0x88000020/24/28` are AFE bitslip controls.
+
+DAPHNE15 check, 2026-10-01: firmware `93e0579`, server `9e1be59`.
+Six live checks passed: software admission, timing-only software rejection,
+AFE pause/drain with another AFE running, explicit resume, explicit selection
+removal and return to xcorr mode. Masks persisted across client disconnect.
+The complete capture held 220 v4 software-tagged waveforms: channel 0 = 40,
+channel 3 = 80, channel 8 = 100; no busy/full increments during this test.
+Ethernet needed a PHY reset after clock programming. Analog DACs were unchanged.
+Actual timing-command acceptance remains unqualified: endpoint address `0x15`
+stayed in FSM 6 after addressed alignment attempts through GIB, MIB and TLU.
 
 | Address | Access | Meaning |
 | --- | --- | --- |
