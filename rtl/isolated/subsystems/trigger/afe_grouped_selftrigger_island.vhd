@@ -19,6 +19,8 @@ entity afe_grouped_selftrigger_island is
     version_i           : in  std_logic_vector(3 downto 0);
     signal_delay_i      : in  std_logic_vector(4 downto 0);
     descriptor_config_i : in  std_logic_vector(13 downto 0);
+    calibration_mask_i : in std_logic_vector(CHANNELS_PER_AFE_G-1 downto 0) := (others=>'0');
+    calibration_applied_o : out std_logic_vector(CHANNELS_PER_AFE_G-1 downto 0);
     force_trigger_i     : in  std_logic;
     self_trigger_enable_i : in std_logic := '1';
     timing_trigger_enable_i : in std_logic := '1';
@@ -45,6 +47,8 @@ entity afe_grouped_selftrigger_island is
 end entity afe_grouped_selftrigger_island;
 
 architecture rtl of afe_grouped_selftrigger_island is
+  signal gated_control_s : trigger_xcorr_control_array_t(0 to CHANNELS_PER_AFE_G-1);
+  signal admission_s, self_enable_s, timing_enable_s, force_trigger_s : std_logic_vector(CHANNELS_PER_AFE_G-1 downto 0);
   signal readout_enable_s : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal descriptor_control_s : peak_descriptor_control_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal trigger_result_s     : trigger_xcorr_result_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -60,6 +64,20 @@ architecture rtl of afe_grouped_selftrigger_island is
   signal packet_data_s : slv72_array_t(0 to CHANNELS_PER_AFE_G/4-1);
   signal packet_overflow_s : std_logic_array_t(0 to CHANNELS_PER_AFE_G/4-1);
 begin
+  calibration_policy_inst : entity work.channel_calibration_policy
+    generic map(CHANNEL_COUNT_G=>CHANNELS_PER_AFE_G)
+    port map(clock_i=>clock_i, reset_i=>reset_i, calibration_mask_i=>calibration_mask_i,
+      self_enable_i=>self_trigger_enable_i, timing_enable_i=>timing_trigger_enable_i,
+      force_trigger_i=>force_trigger_i, inhibit_i=>trigger_inhibit_i,
+      admission_o=>admission_s, self_enable_o=>self_enable_s, timing_enable_o=>timing_enable_s,
+      force_trigger_o=>force_trigger_s, applied_mask_o=>calibration_applied_o);
+  gate_timing : process(all)
+  begin
+    gated_control_s <= trigger_control_i;
+    for ch in 0 to CHANNELS_PER_AFE_G-1 loop
+      gated_control_s(ch).ti_trigger_stbr <= trigger_control_i(ch).ti_trigger_stbr and timing_enable_s(ch);
+    end loop;
+  end process;
   assert CHANNELS_PER_AFE_G=8 report "production grouped island requires eight channels" severity failure;
   gen_builder : for group_idx in 0 to CHANNELS_PER_AFE_G/4-1 generate
     constant B : natural := group_idx*4;
@@ -82,7 +100,7 @@ begin
       reset_i              => reset_i,
       timestamp_i          => timestamp_i,
       din_i                => din_i,
-      trigger_control_i    => trigger_control_i,
+      trigger_control_i    => gated_control_s,
       descriptor_control_i => descriptor_control_s,
       trigger_result_o     => trigger_result_s,
       descriptor_result_o  => descriptor_result_s,
@@ -93,7 +111,7 @@ begin
     constant CHANNEL_ID_C : std_logic_vector(7 downto 0) :=
       std_logic_vector(to_unsigned(CHANNEL_ID_BASE_G + idx, 8));
   begin
-    readout_enable_s(idx) <= trigger_result_s(idx).enabled and not trigger_inhibit_i;
+    readout_enable_s(idx) <= trigger_result_s(idx).enabled and admission_s(idx);
     descriptor_control_s(idx).config <= descriptor_config_i;
     descriptor_control_s(idx).frame_match <= frame_match_s(idx);
 
@@ -108,7 +126,7 @@ begin
         version_i           => version_i,
         threshold_xc_i      => trigger_control_i(idx).threshold_xc,
         signal_delay_i      => signal_delay_i,
-        continuation_enable_i => trigger_control_i(idx).continuation_config(31),
+        continuation_enable_i => trigger_control_i(idx).continuation_config(31) and not calibration_mask_i(idx),
         positive_pulse_i    => trigger_control_i(idx).invert_enable,
         activity_threshold_i => trigger_control_i(idx).continuation_config(13 downto 0),
         quiet_samples_i     => trigger_control_i(idx).continuation_config(24 downto 16),
@@ -116,9 +134,9 @@ begin
         reset_i             => reset_i,
         reset_st_counters_i => reset_st_counters_i,
 	        enable_i            => readout_enable_s(idx),
-        self_trigger_enable_i => self_trigger_enable_i,
-        timing_trigger_enable_i => timing_trigger_enable_i,
-	        force_trigger_i     => force_trigger_i,
+        self_trigger_enable_i => self_enable_s(idx),
+        timing_trigger_enable_i => timing_enable_s(idx),
+	        force_trigger_i     => force_trigger_s(idx),
 	        force_calibration_tag_i => force_calibration_tag_i,
 	        timestamp_i         => timestamp_i,
         din_i               => din_i(idx),

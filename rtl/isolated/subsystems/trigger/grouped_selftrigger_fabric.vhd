@@ -18,6 +18,8 @@ entity grouped_selftrigger_fabric is
     version_i           : in  std_logic_vector(3 downto 0);
     signal_delay_i      : in  std_logic_vector(4 downto 0);
     descriptor_config_i : in  std_logic_vector(13 downto 0);
+    calibration_mask_i : in std_logic_vector(AFE_COUNT_G*CHANNELS_PER_AFE_G-1 downto 0) := (others=>'0');
+    calibration_applied_o : out std_logic_vector(AFE_COUNT_G*CHANNELS_PER_AFE_G-1 downto 0);
     force_trigger_i     : in  std_logic;
     self_trigger_enable_i : in std_logic := '1';
     timing_trigger_enable_i : in std_logic := '1';
@@ -102,7 +104,9 @@ begin
         version_i           => version_i,
         signal_delay_i      => signal_delay_i,
 	        descriptor_config_i => descriptor_config_i,
-	        force_trigger_i     => force_trigger_i,
+	        calibration_mask_i => calibration_mask_i(CHANNEL_BASE_C+CHANNELS_PER_AFE_G-1 downto CHANNEL_BASE_C),
+        calibration_applied_o => calibration_applied_o(CHANNEL_BASE_C+CHANNELS_PER_AFE_G-1 downto CHANNEL_BASE_C),
+        force_trigger_i     => force_trigger_i,
         self_trigger_enable_i => self_trigger_enable_i,
         timing_trigger_enable_i => timing_trigger_enable_i,
         trigger_inhibit_i => trigger_inhibit_i,

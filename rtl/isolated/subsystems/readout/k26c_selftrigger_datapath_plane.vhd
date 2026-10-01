@@ -79,6 +79,7 @@ architecture rtl of k26c_selftrigger_datapath_plane is
   signal full_count:         slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
   signal busy_count:         slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
   signal trigger_samples:    sample14_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal calibration_mask, calibration_applied : std_logic_vector(31 downto 0);
   signal trigger_control:    trigger_xcorr_control_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
   signal trigger_result:     trigger_xcorr_result_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
   signal ready:              std_logic_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
@@ -139,8 +140,8 @@ begin
       adhoc_i                  => adhoc,
       filter_output_selector_i => filter_output_selector,
       ti_trigger_i             => ti_trigger,
-      -- Reject unselected timing commands before they enter the trigger OR.
-      ti_trigger_stbr_i        => ti_trigger_stbr and timing_trigger_enable,
+      -- Each channel gates timing before the trigger OR in its AFE island.
+      ti_trigger_stbr_i        => ti_trigger_stbr,
       descriptor_config_i      => st_config,
       signal_delay_i           => signal_delay,
       reset_st_counters_i      => reset_st_counters,
@@ -162,6 +163,7 @@ begin
       clock_i=>clock, reset_i=>acquisition_reset_s,
       builder_clock_i=>builder_clock_s, builder_reset_i=>builder_reset_s,
       reset_st_counters_i       => reset_st_counters,
+      calibration_mask_i => calibration_mask, calibration_applied_o => calibration_applied,
       force_trigger_i           => forcetrig,
       self_trigger_enable_i     => self_trigger_enable,
       timing_trigger_enable_i   => timing_trigger_enable,
@@ -220,6 +222,7 @@ begin
       AXI_IN         => threshold_axi_in,
       AXI_OUT        => threshold_axi_out,
       counter_clock_i => clock,
+      calibration_mask_o => calibration_mask, calibration_applied_i => calibration_applied,
       threshold_xc_o => threshold_xc,
       continuation_config_o => continuation_config,
       record_count_i => record_count,
