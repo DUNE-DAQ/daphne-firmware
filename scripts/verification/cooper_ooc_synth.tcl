@@ -58,6 +58,7 @@ foreach top $targets {
     if {$top eq "selftrigger_register_bank"} {
         read_vhdl -library xpm [file join $xpm_root xpm_VCOMP.vhd]
         read_verilog -sv -library xpm [file join $xpm_root xpm_cdc hdl xpm_cdc.sv]
+        read_vhdl -vhdl2008 -library work [file join $source_root ip_repo/daphne_ip/rtl/timing/pdts_cdc_snapshot.vhd]
         read_vhdl -vhdl2008 -library work [file join $source_root rtl/isolated/subsystems/control/selftrigger_register_bank.vhd]
     } else {
         read_vhdl -vhdl2008 -library work [file join $source_root $descriptor]

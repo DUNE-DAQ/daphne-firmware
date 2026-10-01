@@ -47,6 +47,7 @@ def main():
 
     sources = [freeze(ROOT / path, path) for path in (
         "ip_repo/daphne_ip/rtl/daphne_package.vhd", "rtl/isolated/common/daphne_subsystem_pkg.vhd",
+        "ip_repo/daphne_ip/rtl/timing/pdts_cdc_snapshot.vhd",
         "rtl/isolated/subsystems/control/selftrigger_register_bank.vhd", "tests/logic/selftrigger_counter_cdc_tb.vhd")]
     for path in (Path(__file__).resolve(), ROOT / "scripts/verification/run_grouped32_vendor_tests.py",
                  ROOT / "scripts/verification/run_grouped32_tests.py"):

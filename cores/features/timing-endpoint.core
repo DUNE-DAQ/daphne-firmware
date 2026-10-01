@@ -8,9 +8,9 @@ provider:
 filesets:
   rtl:
     depend:
+      - dune-daq:daphne:timing-cdc-snapshot:0.1.0
       - dune-daq:daphne:daphne-package:0.1.0
     files:
-      - ip_repo/daphne_ip/rtl/timing/pdts_cdc_snapshot.vhd
       - ip_repo/daphne_ip/rtl/timing/pdts_endpoint_control_cdc.vhd
       - ip_repo/daphne_ip/rtl/timing/endpoint.vhd
       - ip_repo/daphne_ip/rtl/timing/ep_axi.vhd

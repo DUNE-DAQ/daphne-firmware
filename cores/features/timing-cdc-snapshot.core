@@ -1,0 +1,14 @@
+CAPI=2:
+name: dune-daq:daphne:timing-cdc-snapshot:0.1.0
+description: Coherent configuration and status transfer between unrelated clocks
+provider:
+  name: local
+filesets:
+  rtl:
+    files:
+      - ip_repo/daphne_ip/rtl/timing/pdts_cdc_snapshot.vhd
+    file_type: vhdlSource-2008
+targets:
+  default:
+    filesets:
+      - rtl

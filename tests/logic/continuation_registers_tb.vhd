@@ -6,7 +6,8 @@ use work.daphne_package.all;
 use work.daphne_subsystem_pkg.all;
 entity continuation_registers_tb is end;
 architecture test of continuation_registers_tb is
-  signal clk : std_logic := '0';
+  signal clk, sample_clk : std_logic := '0';
+  signal mask, applied : std_logic_vector(31 downto 0);
   signal ai : AXILITE_INREC := (
     ACLK=>'0',ARESETN=>'0',AWADDR=>(others=>'0'),AWPROT=>(others=>'0'),
     AWVALID=>'0',WDATA=>(others=>'0'),WSTRB=>"1111",WVALID=>'0',BREADY=>'1',
@@ -19,9 +20,15 @@ architecture test of continuation_registers_tb is
   signal telemetry : slv64_array_t(0 to 39) := (0=>x"12345678ABCDEF01",39=>x"FEDCBA9876543210",others=>(others=>'0'));
 begin
   clk <= not clk after 5 ns;
+  sample_clk <= not sample_clk after 7 ns;
   ai.ACLK <= clk;
+  policy : entity work.channel_calibration_policy
+    generic map(CHANNEL_COUNT_G=>32)
+    port map(clock_i=>sample_clk, reset_i=>not ai.ARESETN, calibration_mask_i=>mask,
+      self_enable_i=>'1',timing_enable_i=>'0',force_trigger_i=>'0',inhibit_i=>'0',
+      admission_o=>open,self_enable_o=>open,timing_enable_o=>open,force_trigger_o=>open,applied_mask_o=>applied);
   bank : entity work.selftrigger_register_bank port map(
-    AXI_IN=>ai,AXI_OUT=>ao,counter_clock_i=>clk,threshold_xc_o=>th,continuation_config_o=>cfg,
+    AXI_IN=>ai,AXI_OUT=>ao,counter_clock_i=>sample_clk,calibration_mask_o=>mask,calibration_applied_i=>applied,threshold_xc_o=>th,continuation_config_o=>cfg,
     record_count_i=>zeros,full_count_i=>zeros,busy_count_i=>zeros,tcount_i=>zeros,pcount_i=>zeros,
     continuation_count_i=>telemetry,continuation_drop_count_i=>telemetry,
     covered_trigger_count_i=>telemetry,descriptor_overflow_count_i=>telemetry);
@@ -57,6 +64,15 @@ begin
       rd(16#800#+8*c,x"ABCDEF01"); rd(16#804#+8*c,x"12345678");
       rd(16#CE0#+8*c,x"76543210"); rd(16#CE4#+8*c,x"FEDCBA98");
     end loop;
+    rd(16#F08#,x"43414C31"); rd(16#F00#,x"00000000");
+    wr(16#F00#,x"80000081"); rd(16#F00#,x"80000081");
+    wait for 4 us;
+    assert mask=x"80000081" and applied=mask report "calibration CDC did not settle" severity failure;
+    rd(16#F04#,x"80000081");
+    wr(16#F00#,x"FFFFFFFF","0011"); rd(16#F00#,x"80000081");
+    wr(16#F04#,x"FFFFFFFF"); wr(16#F08#,x"00000000");
+    rd(16#F04#,x"80000081"); rd(16#F08#,x"43414C31");
+    wr(16#F00#,x"00000000"); wait for 4 us; rd(16#F04#,x"00000000");
     wr(16#1C#,x"01010011");
     assert tc(0).continuation_config=x"01010011" and tc(1).continuation_config=x"80200040" severity failure;
     rd(16#1C#,x"01010011");
@@ -65,6 +81,9 @@ begin
     wr(0,x"01234567"); rd(0,x"01234567"); rd(16#1C#,x"01010011");
     ai.ARESETN<='0'; tick; ai.ARESETN<='1'; tick;
     rd(16#1C#,x"80200040"); rd(0,x"0FFFFFFF");
+    wait for 4 us;
+    assert mask=x"00000000" and applied=mask severity failure;
+    rd(16#F00#,x"00000000"); rd(16#F04#,x"00000000");
     report "continuation_registers_tb PASS" severity note;
     stop; wait;
   end process;
