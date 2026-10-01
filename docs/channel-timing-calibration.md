@@ -17,7 +17,10 @@ The command selector (`0x88000028`) remains shared across the board.
 | --- | --- | --- |
 | `0xA0010F00` | R/W | Complete calibration mask; bit N selects channel N, 0..31 |
 | `0xA0010F04` | R/O | Applied mask after changed-channel pipeline holdoff |
-| `0xA0010F08` | R/O | Capability signature `0x43414C31` (`CAL1`) |
+| `0xA0010F08` | R/O | Capability signature `0x43414C32` (`CAL2`) |
+| `0xA0010F0C` | R/W | Pause admission mask; selected filters keep running |
+| `0xA0010F10` | R/O | Applied pause mask after the pipeline holdoff |
+| `0xA0010F14` | R/O | Paused channels with all local reserved packet slots drained |
 
 Mask indices are firmware/PL channel IDs, matching record headers. The server's
 physical channel numbering uses `AFE_board2PL_map`; translate that numbering
@@ -87,7 +90,9 @@ transactions belong to different AFEs. Settings returned from the server's
 cached state are not independent measurements of the actual analog value.
 
 The existing channel enable mask can stop new capture admission; packets already
-queued still drain. This change adds timing-source selection, not a per-channel
-network transmission gate or a pause-and-drain acknowledgement. A complete
-runtime scan transaction needs controller support for draining, settings,
-settling, metadata and restoring prior masks. Do not shut down the DAQ per step.
+queued still drain. The pause mask stops admission without disabling filters. Poll the applied
+pause mask, then the drained bits for the affected set before changing settings.
+The drain acknowledgement includes queued capture windows, descriptors,
+serialization and packet-store output. It does not include Hermes or downstream
+DAQ buffers. Timing tags and timestamps identify delayed network arrivals.
+The controller must serialise settings, settling, metadata and mask restoration. Do not shut down the DAQ per step.

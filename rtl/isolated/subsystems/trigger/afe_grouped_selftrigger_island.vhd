@@ -20,6 +20,8 @@ entity afe_grouped_selftrigger_island is
     signal_delay_i      : in  std_logic_vector(4 downto 0);
     descriptor_config_i : in  std_logic_vector(13 downto 0);
     calibration_mask_i : in std_logic_vector(CHANNELS_PER_AFE_G-1 downto 0) := (others=>'0');
+    pause_mask_i : in std_logic_vector(CHANNELS_PER_AFE_G-1 downto 0) := (others=>'0');
+    pause_applied_o, drained_o : out std_logic_vector(CHANNELS_PER_AFE_G-1 downto 0);
     calibration_applied_o : out std_logic_vector(CHANNELS_PER_AFE_G-1 downto 0);
     force_trigger_i     : in  std_logic;
     self_trigger_enable_i : in std_logic := '1';
@@ -49,6 +51,7 @@ end entity afe_grouped_selftrigger_island;
 architecture rtl of afe_grouped_selftrigger_island is
   signal gated_control_s : trigger_xcorr_control_array_t(0 to CHANNELS_PER_AFE_G-1);
   signal admission_s, self_enable_s, timing_enable_s, force_trigger_s : std_logic_vector(CHANNELS_PER_AFE_G-1 downto 0);
+  signal pause_applied_s, drained_s : std_logic_vector(CHANNELS_PER_AFE_G-1 downto 0);
   signal readout_enable_s : std_logic_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal descriptor_control_s : peak_descriptor_control_array_t(0 to CHANNELS_PER_AFE_G - 1);
   signal trigger_result_s     : trigger_xcorr_result_array_t(0 to CHANNELS_PER_AFE_G - 1);
@@ -66,11 +69,13 @@ architecture rtl of afe_grouped_selftrigger_island is
 begin
   calibration_policy_inst : entity work.channel_calibration_policy
     generic map(CHANNEL_COUNT_G=>CHANNELS_PER_AFE_G)
-    port map(clock_i=>clock_i, reset_i=>reset_i, calibration_mask_i=>calibration_mask_i,
+    port map(clock_i=>clock_i, reset_i=>reset_i, calibration_mask_i=>calibration_mask_i, pause_mask_i=>pause_mask_i,
       self_enable_i=>self_trigger_enable_i, timing_enable_i=>timing_trigger_enable_i,
       force_trigger_i=>force_trigger_i, inhibit_i=>trigger_inhibit_i,
       admission_o=>admission_s, self_enable_o=>self_enable_s, timing_enable_o=>timing_enable_s,
-      force_trigger_o=>force_trigger_s, applied_mask_o=>calibration_applied_o);
+      force_trigger_o=>force_trigger_s, applied_mask_o=>calibration_applied_o, pause_applied_o=>pause_applied_s);
+  pause_applied_o <= pause_applied_s;
+  drained_o <= drained_s and pause_applied_s and pause_mask_i;
   gate_timing : process(all)
   begin
     gated_control_s <= trigger_control_i;
@@ -158,6 +163,7 @@ begin
         covered_trigger_count_o      => covered_trigger_count_o(idx),
         descriptor_overflow_count_o      => descriptor_overflow_count_o(idx),
         delayed_sample_o    => delayed_sample_o(idx),
+        drained_o           => drained_s(idx),
         ready_o             => ready_o(idx),
         rd_en_i             => rd_en_i(idx),
         dout_o              => dout_o(idx)

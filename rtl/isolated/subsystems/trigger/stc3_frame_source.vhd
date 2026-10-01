@@ -53,6 +53,7 @@ entity stc3_frame_source is
     packet_data_i            : in std_logic_vector(71 downto 0);
     packet_commit_i          : in std_logic;
     packet_overflow_i        : in std_logic;
+    drained_o : out std_logic;
     ready_o                  : out std_logic;
     rd_en_i                  : in  std_logic;
     dout_o                   : out std_logic_vector(71 downto 0)
@@ -228,6 +229,9 @@ begin
   frame_match_o <= '1' when enable_i='1' and queue_count_s<FRAME_QUEUE_DEPTH_C and
                    reserved_count_s<PACKET_SLOT_COUNT_C else '0';
   delayed_sample_o <= din_i;
+  -- All reserved slots include pending captures, serialization and output words.
+  drained_o <= '1' when reset_i='0' and enable_i='0' and chain_active_s='0' and
+    reserved_count_s=0 and queue_count_s=0 and desc_busy_i='0' else '0';
   ready_o <= '1' when published_count_s>0 and dropped_s(to_integer(read_slot_s))='0' else '0';
 
   desc_o <= ch_id_i & version_i & pack_meta(queue_head_s);

@@ -7,6 +7,9 @@ entity channel_calibration_tb is end;
 architecture test of channel_calibration_tb is
   signal clk, bclk : std_logic := '0';
   signal reset : std_logic := '1';
+  signal pause_mask, pause_applied, drained : std_logic_vector(7 downto 0) := (others=>'0');
+  signal drain_enable : std_logic_array_t(0 to 7) := (others=>'1');
+  signal rd : std_logic_array_t(0 to 7);
   signal mask, applied : std_logic_vector(7 downto 0) := (others=>'0');
   signal force_trigger, inhibit : std_logic := '0';
   signal ts : unsigned(63 downto 0) := (others=>'0');
@@ -29,13 +32,15 @@ begin
     reset_st_counters_i=>'0',timestamp_i=>std_logic_vector(ts),version_i=>x"4",
     signal_delay_i=>"00000",descriptor_config_i=>(others=>'0'),
     calibration_mask_i=>mask,calibration_applied_o=>applied,
+    pause_mask_i=>pause_mask,pause_applied_o=>pause_applied,drained_o=>drained,
     force_trigger_i=>force_trigger,self_trigger_enable_i=>'1',timing_trigger_enable_i=>'0',
     trigger_inhibit_i=>inhibit,force_calibration_tag_i=>CALIBRATION_TAG_SOFTWARE_C,
     din_i=>samples,trigger_control_i=>control,trigger_result_o=>result,
     descriptor_result_o=>open,record_count_o=>records,full_count_o=>open,busy_count_o=>open,
     trigger_count_o=>triggers,packet_count_o=>open,continuation_count_o=>continuations,
     continuation_drop_count_o=>open,covered_trigger_count_o=>open,descriptor_overflow_count_o=>open,
-    delayed_sample_o=>open,ready_o=>ready,rd_en_i=>ready,dout_o=>words);
+    delayed_sample_o=>open,ready_o=>ready,rd_en_i=>rd,dout_o=>words);
+  read_gates : for ch in 0 to 7 generate rd(ch)<=ready(ch) and drain_enable(ch); end generate;
   process(clk)
     variable index : counts_t := (others=>0);
   begin
@@ -43,7 +48,7 @@ begin
       if reset='1' then index:=(others=>0); timing_records<=(others=>0);
       else
         for ch in 0 to 7 loop
-          if ready(ch)='1' then
+          if rd(ch)='1' then
             if index(ch)=1 and words(ch)(47 downto 46)=CALIBRATION_TAG_TIMING_C then
               timing_records(ch)<=timing_records(ch)+1;
               assert ch=0 or ch=7 report "timing tagged unselected channel" severity failure;
@@ -126,7 +131,22 @@ begin
     before_restore:=unsigned(continuations(1)); mask<=x"00"; tick(1000);
     assert applied=x"00" and unsigned(continuations(1))>before_restore
       report "restoration interrupted an unselected continuation chain" severity failure;
+    reset<='1'; tick(4); reset<='0'; mask<=x"00"; tick(100);
+    for ch in 0 to 7 loop control(ch).continuation_config<=x"00000040"; end loop;
+    samples<=(others=>(others=>'0')); drain_enable(0)<='0';
+    samples(0)(0)<='1'; tick; samples(0)(0)<='0'; tick(70);
+    pause_mask<=x"01"; tick(1000);
+    assert pause_applied=x"01" and drained(0)='0' and ready(0)='1'
+      report "pause acknowledged drain before queued packet was consumed" severity failure;
+    pulse(true,false);
+    assert unsigned(triggers(0))=1 and unsigned(triggers(1))=1 severity failure;
+    drain_enable(0)<='1'; tick(500);
+    assert drained(0)='1' report "local drain acknowledgement missing" severity failure;
+    pause_mask<=x"00"; tick(100);
+    assert pause_applied=x"00" and drained(0)='0' severity failure;
+    pulse(true,false);
+    assert unsigned(triggers(0))=2 and unsigned(triggers(1))=2 severity failure;
     report "channel_calibration_tb PASS" severity note; stop; wait;
   end process;
-  process begin wait for 100 us; assert false report "calibration test timeout" severity failure; end process;
+  process begin wait for 200 us; assert false report "calibration test timeout" severity failure; end process;
 end;

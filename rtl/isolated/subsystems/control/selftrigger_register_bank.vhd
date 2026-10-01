@@ -17,6 +17,8 @@ entity selftrigger_register_bank is
     AXI_IN         : in  AXILITE_INREC;
     AXI_OUT        : out AXILITE_OUTREC;
     counter_clock_i : in std_logic;
+    pause_mask_o : out std_logic_vector(31 downto 0);
+    pause_applied_i, drained_i : in std_logic_vector(31 downto 0) := (others=>'0');
     calibration_mask_o : out std_logic_vector(31 downto 0);
     calibration_applied_i : in std_logic_vector(31 downto 0) := (others=>'0');
     threshold_xc_o : out slv28_array_t(0 to CHANNEL_COUNT_G - 1);
@@ -37,7 +39,9 @@ architecture rtl of selftrigger_register_bank is
   constant CALIBRATION_MASK_C : integer := 16#F00#;
   constant CALIBRATION_APPLIED_C : integer := 16#F04#;
   constant CALIBRATION_CAPABILITY_C : integer := 16#F08#;
-  signal calibration_mask_reg, calibration_mask_sample, calibration_applied_axi : std_logic_vector(31 downto 0) := (others=>'0');
+  signal calibration_mask_reg, pause_mask_reg : std_logic_vector(31 downto 0) := (others=>'0');
+  signal requested_masks, sample_masks : std_logic_vector(63 downto 0);
+  signal applied_masks, axi_status : std_logic_vector(95 downto 0) := (others=>'0');
   signal calibration_valid, calibration_applied_valid : std_logic;
   constant CHANNEL_STRIDE_C        : integer := 16#20#;
   constant THRESHOLD_OFFSET_C      : integer := 16#00#;
@@ -137,16 +141,19 @@ architecture rtl of selftrigger_register_bank is
 begin
   assert CHANNEL_COUNT_G <= 40 report "Counter address map supports at most 40 channels" severity failure;
   calibration_to_sample : entity work.pdts_cdc_snapshot
-    generic map(WIDTH_G=>32)
-    port map(src_clk_i=>AXI_IN.ACLK, src_data_i=>calibration_mask_reg,
+    generic map(WIDTH_G=>64)
+    port map(src_clk_i=>AXI_IN.ACLK, src_data_i=>requested_masks,
       dst_clk_i=>counter_clock_i, dst_reset_i=>not AXI_IN.ARESETN,
-      dst_data_o=>calibration_mask_sample, dst_valid_o=>calibration_valid, dst_update_o=>open);
+      dst_data_o=>sample_masks, dst_valid_o=>calibration_valid, dst_update_o=>open);
   calibration_to_axi : entity work.pdts_cdc_snapshot
-    generic map(WIDTH_G=>32)
-    port map(src_clk_i=>counter_clock_i, src_data_i=>calibration_applied_i,
+    generic map(WIDTH_G=>96)
+    port map(src_clk_i=>counter_clock_i, src_data_i=>applied_masks,
       dst_clk_i=>AXI_IN.ACLK, dst_reset_i=>not AXI_IN.ARESETN,
-      dst_data_o=>calibration_applied_axi, dst_valid_o=>calibration_applied_valid, dst_update_o=>open);
-  calibration_mask_o <= calibration_mask_sample when calibration_valid='1' else (others=>'0');
+      dst_data_o=>axi_status, dst_valid_o=>calibration_applied_valid, dst_update_o=>open);
+  requested_masks <= pause_mask_reg & calibration_mask_reg;
+  applied_masks <= drained_i & pause_applied_i & calibration_applied_i;
+  calibration_mask_o <= sample_masks(31 downto 0) when calibration_valid='1' else (others=>'0');
+  pause_mask_o <= sample_masks(63 downto 32) when calibration_valid='1' else (others=>'0');
   threshold_xc_o <= threshold_xc_reg;
   continuation_config_o <= continuation_config_reg;
 
@@ -214,7 +221,7 @@ begin
   begin
     if rising_edge(AXI_IN.ACLK) then
       if AXI_IN.ARESETN = '0' then
-        calibration_mask_reg <= (others=>'0');
+        calibration_mask_reg <= (others=>'0'); pause_mask_reg <= (others=>'0');
         for idx in 0 to CHANNEL_COUNT_G - 1 loop
           threshold_xc_reg(idx) <= (others => '1');
           continuation_config_reg(idx) <= CONTINUATION_CONFIG_DEFAULT_C;
@@ -222,6 +229,7 @@ begin
       else
         if reg_wren = '1' and AXI_IN.WSTRB = "1111" then
           addr_v := to_integer(unsigned(axi_awaddr(11 downto 0)));
+          if addr_v = 16#F0C# then pause_mask_reg <= AXI_IN.WDATA; end if;
           if addr_v = CALIBRATION_MASK_C then calibration_mask_reg <= AXI_IN.WDATA; end if;
           for idx in 0 to CHANNEL_COUNT_G - 1 loop
             if addr_v = idx * CHANNEL_STRIDE_C + THRESHOLD_OFFSET_C then
@@ -274,10 +282,18 @@ begin
               if to_integer(unsigned(AXI_IN.ARADDR(11 downto 0))) = CALIBRATION_MASK_C then
                 axi_rdata <= calibration_mask_reg; axi_rvalid <= '1'; read_state <= READ_RESPONSE;
               elsif to_integer(unsigned(AXI_IN.ARADDR(11 downto 0))) = CALIBRATION_APPLIED_C then
-                if calibration_applied_valid='1' then axi_rdata <= calibration_applied_axi; end if;
+                if calibration_applied_valid='1' then axi_rdata <= axi_status(31 downto 0); end if;
                 axi_rvalid <= '1'; read_state <= READ_RESPONSE;
               elsif to_integer(unsigned(AXI_IN.ARADDR(11 downto 0))) = CALIBRATION_CAPABILITY_C then
-                axi_rdata <= x"43414C31"; axi_rvalid <= '1'; read_state <= READ_RESPONSE;
+                axi_rdata <= x"43414C32"; axi_rvalid <= '1'; read_state <= READ_RESPONSE;
+              elsif to_integer(unsigned(AXI_IN.ARADDR(11 downto 0))) = 16#F0C# then
+                axi_rdata <= pause_mask_reg; axi_rvalid <= '1'; read_state <= READ_RESPONSE;
+              elsif to_integer(unsigned(AXI_IN.ARADDR(11 downto 0))) = 16#F10# then
+                if calibration_applied_valid='1' then axi_rdata <= axi_status(63 downto 32); end if;
+                axi_rvalid <= '1'; read_state <= READ_RESPONSE;
+              elsif to_integer(unsigned(AXI_IN.ARADDR(11 downto 0))) = 16#F14# then
+                if calibration_applied_valid='1' then axi_rdata <= axi_status(95 downto 64); end if;
+                axi_rvalid <= '1'; read_state <= READ_RESPONSE;
               elsif decoded.counter = -1 then
                 if decoded.local_valid then
                   if decoded.continuation then

@@ -19,7 +19,7 @@ def main():
     args = parser.parse_args()
     if args.channels and any(channel < 0 or channel > 31 for channel in args.channels):
         parser.error("channel IDs must be between 0 and 31")
-    if read(CAPABILITY) != 0x43414C31:
+    if read(CAPABILITY) not in (0x43414C31, 0x43414C32):
         raise SystemExit("Firmware does not support per-channel timing calibration")
     if read(0x88000034) != 2:
         raise SystemExit("Select board xcorr mode (2) before using channel calibration")

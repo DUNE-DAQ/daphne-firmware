@@ -79,6 +79,7 @@ architecture rtl of k26c_selftrigger_datapath_plane is
   signal full_count:         slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
   signal busy_count:         slv64_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
   signal trigger_samples:    sample14_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
+  signal pause_mask, pause_applied, drained : std_logic_vector(31 downto 0);
   signal calibration_mask, calibration_applied : std_logic_vector(31 downto 0);
   signal trigger_control:    trigger_xcorr_control_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
   signal trigger_result:     trigger_xcorr_result_array_t(0 to ACTIVE_CHANNEL_COUNT_C - 1);
@@ -163,6 +164,7 @@ begin
       clock_i=>clock, reset_i=>acquisition_reset_s,
       builder_clock_i=>builder_clock_s, builder_reset_i=>builder_reset_s,
       reset_st_counters_i       => reset_st_counters,
+      pause_mask_i=>pause_mask, pause_applied_o=>pause_applied, drained_o=>drained,
       calibration_mask_i => calibration_mask, calibration_applied_o => calibration_applied,
       force_trigger_i           => forcetrig,
       self_trigger_enable_i     => self_trigger_enable,
@@ -222,6 +224,7 @@ begin
       AXI_IN         => threshold_axi_in,
       AXI_OUT        => threshold_axi_out,
       counter_clock_i => clock,
+      pause_mask_o=>pause_mask, pause_applied_i=>pause_applied, drained_i=>drained,
       calibration_mask_o => calibration_mask, calibration_applied_i => calibration_applied,
       threshold_xc_o => threshold_xc,
       continuation_config_o => continuation_config,
